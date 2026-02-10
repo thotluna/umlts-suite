@@ -1,0 +1,787 @@
+{
+  "entities": [
+    {
+      "id": "Main",
+      "name": "Main",
+      "type": "Class",
+      "members": [
+        {
+          "name": "intializeCore",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 2,
+          "column": 5
+        },
+        {
+          "name": "openSigninWindow",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 3,
+          "column": 5
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": false,
+      "isActive": false,
+      "line": 1,
+      "column": 1
+    },
+    {
+      "id": "Core",
+      "name": "Core",
+      "type": "Class",
+      "members": [
+        {
+          "name": "login",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 7,
+          "column": 5
+        },
+        {
+          "name": "sendMessage",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 8,
+          "column": 5
+        },
+        {
+          "name": "receiveMessage",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 9,
+          "column": 5
+        },
+        {
+          "name": "logout",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 10,
+          "column": 5
+        },
+        {
+          "name": "ifgetFromDatabase",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 11,
+          "column": 5
+        },
+        {
+          "name": "sendToDatabase",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 12,
+          "column": 5
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": false,
+      "isActive": false,
+      "line": 6,
+      "column": 1
+    },
+    {
+      "id": "BuddyList",
+      "name": "BuddyList",
+      "type": "Class",
+      "members": [
+        {
+          "name": "users",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "multiplicity": "[]",
+          "line": 16,
+          "column": 5
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": false,
+      "isActive": false,
+      "line": 15,
+      "column": 1
+    },
+    {
+      "id": "Sign_in_Window",
+      "name": "Sign_in_Window",
+      "type": "Class",
+      "members": [
+        {
+          "name": "profileSelector",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 20,
+          "column": 5
+        },
+        {
+          "name": "manageProfilesFrame",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 21,
+          "column": 5
+        },
+        {
+          "name": "rememberProfileBox",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 22,
+          "column": 5
+        },
+        {
+          "name": "usernameField",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 23,
+          "column": 5
+        },
+        {
+          "name": "passwordField",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 24,
+          "column": 5
+        },
+        {
+          "name": "loginButton",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 25,
+          "column": 5
+        },
+        {
+          "name": "createProfile",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 27,
+          "column": 5
+        },
+        {
+          "name": "deleteProfile",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 28,
+          "column": 5
+        },
+        {
+          "name": "signin",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 29,
+          "column": 5
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": false,
+      "isActive": false,
+      "line": 19,
+      "column": 1
+    },
+    {
+      "id": "BuddyList_Window",
+      "name": "BuddyList_Window",
+      "type": "Class",
+      "members": [
+        {
+          "name": "listOffriends",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 33,
+          "column": 5
+        },
+        {
+          "name": "newConversationButton",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 34,
+          "column": 5
+        },
+        {
+          "name": "profilePictures",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 35,
+          "column": 5
+        },
+        {
+          "name": "createConversation",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 37,
+          "column": 5
+        },
+        {
+          "name": "addFriend",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 38,
+          "column": 5
+        },
+        {
+          "name": "removeFriend",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 39,
+          "column": 5
+        },
+        {
+          "name": "searchBuddyList",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 40,
+          "column": 5
+        },
+        {
+          "name": "updateStatus",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 41,
+          "column": 5
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": false,
+      "isActive": false,
+      "line": 32,
+      "column": 1
+    },
+    {
+      "id": "Profile",
+      "name": "Profile",
+      "type": "Class",
+      "members": [
+        {
+          "name": "buddyList",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 45,
+          "column": 5
+        },
+        {
+          "name": "accountData",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 46,
+          "column": 5
+        },
+        {
+          "name": "settings",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 47,
+          "column": 5
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": false,
+      "isActive": false,
+      "line": 44,
+      "column": 1
+    },
+    {
+      "id": "ProfileList",
+      "name": "ProfileList",
+      "type": "Class",
+      "members": [
+        {
+          "name": "profiles",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "multiplicity": "[]",
+          "line": 51,
+          "column": 5
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": false,
+      "isActive": false,
+      "line": 50,
+      "column": 1
+    },
+    {
+      "id": "Settings",
+      "name": "Settings",
+      "type": "Class",
+      "members": [
+        {
+          "name": "default_font",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 55,
+          "column": 5
+        },
+        {
+          "name": "chatbotSettings",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 56,
+          "column": 5
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": false,
+      "isActive": false,
+      "line": 54,
+      "column": 1
+    },
+    {
+      "id": "Users",
+      "name": "Users",
+      "type": "Class",
+      "members": [
+        {
+          "name": "protocol",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 60,
+          "column": 5
+        },
+        {
+          "name": "username",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 61,
+          "column": 5
+        },
+        {
+          "name": "password",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 62,
+          "column": 5
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": false,
+      "isActive": false,
+      "line": 59,
+      "column": 1
+    },
+    {
+      "id": "Options_Window",
+      "name": "Options_Window",
+      "type": "Class",
+      "members": [
+        {
+          "name": "displayBox",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 66,
+          "column": 5
+        },
+        {
+          "name": "inputBox",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 67,
+          "column": 5
+        },
+        {
+          "name": "conversationList",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 68,
+          "column": 5
+        },
+        {
+          "name": "textSettingsToolBar",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 69,
+          "column": 5
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": false,
+      "isActive": false,
+      "line": 65,
+      "column": 1
+    },
+    {
+      "id": "Chat_Window",
+      "name": "Chat_Window",
+      "type": "Class",
+      "members": [
+        {
+          "name": "displayBox",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 73,
+          "column": 5
+        },
+        {
+          "name": "inputBox",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 74,
+          "column": 5
+        },
+        {
+          "name": "conversationList",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 75,
+          "column": 5
+        },
+        {
+          "name": "textSettingsToolBar",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 76,
+          "column": 5
+        },
+        {
+          "name": "sendMessage",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 78,
+          "column": 5
+        },
+        {
+          "name": "switchConversation",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 79,
+          "column": 5
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": false,
+      "isActive": false,
+      "line": 72,
+      "column": 1
+    },
+    {
+      "id": "Twitter_User",
+      "name": "Twitter_User",
+      "type": "Class",
+      "members": [
+        {
+          "name": "status",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 83,
+          "column": 5
+        },
+        {
+          "name": "name",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 84,
+          "column": 5
+        },
+        {
+          "name": "picture",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 85,
+          "column": 5
+        },
+        {
+          "name": "friends",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "multiplicity": "[]",
+          "line": 86,
+          "column": 5
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": false,
+      "isActive": false,
+      "line": 82,
+      "column": 1
+    },
+    {
+      "id": "ICQ_User",
+      "name": "ICQ_User",
+      "type": "Class",
+      "members": [
+        {
+          "name": "name",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 90,
+          "column": 5
+        },
+        {
+          "name": "picture",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 91,
+          "column": 5
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": false,
+      "isActive": false,
+      "line": 89,
+      "column": 1
+    },
+    {
+      "id": "Jabber_User",
+      "name": "Jabber_User",
+      "type": "Class",
+      "members": [
+        {
+          "name": "name",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 95,
+          "column": 5
+        },
+        {
+          "name": "picture",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 96,
+          "column": 5
+        },
+        {
+          "name": "email",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 97,
+          "column": 5
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": false,
+      "isActive": false,
+      "line": 94,
+      "column": 1
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Twitter_User",
+      "to": "Users",
+      "type": "Inheritance"
+    },
+    {
+      "from": "ICQ_User",
+      "to": "Users",
+      "type": "Inheritance"
+    },
+    {
+      "from": "Jabber_User",
+      "to": "Users",
+      "type": "Inheritance"
+    },
+    {
+      "from": "Main",
+      "to": "Core",
+      "type": "Dependency",
+      "line": 101,
+      "column": 1
+    },
+    {
+      "from": "Main",
+      "to": "Sign_in_Window",
+      "type": "Dependency",
+      "line": 102,
+      "column": 1
+    },
+    {
+      "from": "Core",
+      "to": "BuddyList",
+      "type": "Dependency",
+      "line": 103,
+      "column": 1
+    },
+    {
+      "from": "Core",
+      "to": "ProfileList",
+      "type": "Dependency",
+      "line": 104,
+      "column": 1
+    },
+    {
+      "from": "Sign_in_Window",
+      "to": "BuddyList_Window",
+      "type": "Dependency",
+      "line": 105,
+      "column": 1
+    },
+    {
+      "from": "Sign_in_Window",
+      "to": "ProfileList",
+      "type": "Dependency",
+      "line": 106,
+      "column": 1
+    },
+    {
+      "from": "BuddyList_Window",
+      "to": "BuddyList",
+      "type": "Aggregation",
+      "line": 107,
+      "column": 1
+    },
+    {
+      "from": "BuddyList_Window",
+      "to": "Users",
+      "type": "Dependency",
+      "line": 108,
+      "column": 1
+    },
+    {
+      "from": "BuddyList_Window",
+      "to": "Options_Window",
+      "type": "Dependency",
+      "line": 109,
+      "column": 1
+    },
+    {
+      "from": "BuddyList_Window",
+      "to": "Chat_Window",
+      "type": "Dependency",
+      "line": 110,
+      "column": 1
+    },
+    {
+      "from": "ProfileList",
+      "to": "Profile",
+      "type": "Aggregation",
+      "line": 111,
+      "column": 1
+    },
+    {
+      "from": "Profile",
+      "to": "Settings",
+      "type": "Dependency",
+      "line": 112,
+      "column": 1
+    },
+    {
+      "from": "Options_Window",
+      "to": "Settings",
+      "type": "Dependency",
+      "line": 113,
+      "column": 1
+    }
+  ]
+}

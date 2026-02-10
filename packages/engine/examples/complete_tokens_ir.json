@@ -1,0 +1,273 @@
+{
+  "entities": [
+    {
+      "id": "Utils.IPersistent",
+      "name": "IPersistent",
+      "type": "Interface",
+      "members": [
+        {
+          "name": "id",
+          "type": "T",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 3,
+          "column": 11
+        },
+        {
+          "name": "save",
+          "type": "boolean",
+          "visibility": "#",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [],
+          "line": 4,
+          "column": 11
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": false,
+      "isActive": false,
+      "typeParameters": [
+        "T"
+      ],
+      "line": 2,
+      "column": 5,
+      "namespace": "Utils"
+    },
+    {
+      "id": "Utils.Status",
+      "name": "Status",
+      "type": "Enum",
+      "members": [
+        {
+          "name": "ACTIVE",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": true,
+          "isAbstract": false,
+          "line": 8,
+          "column": 9
+        },
+        {
+          "name": "INACTIVE",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": true,
+          "isAbstract": false,
+          "line": 9,
+          "column": 9
+        },
+        {
+          "name": "PENDING",
+          "type": "any",
+          "visibility": "+",
+          "isStatic": true,
+          "isAbstract": false,
+          "line": 10,
+          "column": 9
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": false,
+      "isActive": false,
+      "line": 7,
+      "column": 5,
+      "namespace": "Utils"
+    },
+    {
+      "id": "Domain.BaseEntity",
+      "name": "BaseEntity",
+      "type": "Class",
+      "members": [
+        {
+          "name": "createdAt",
+          "type": "Date",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 19,
+          "column": 16
+        },
+        {
+          "name": "_internalId",
+          "type": "T",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 20,
+          "column": 17
+        },
+        {
+          "name": "validate",
+          "type": "void",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": true,
+          "parameters": [],
+          "line": 22,
+          "column": 11
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": true,
+      "isActive": true,
+      "typeParameters": [
+        "T"
+      ],
+      "line": 18,
+      "column": 16,
+      "namespace": "Domain"
+    },
+    {
+      "id": "Domain.User",
+      "name": "User",
+      "type": "Class",
+      "members": [
+        {
+          "name": "username",
+          "type": "string",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "line": 26,
+          "column": 11
+        },
+        {
+          "name": "count",
+          "type": "number",
+          "visibility": "+",
+          "isStatic": true,
+          "isAbstract": false,
+          "line": 27,
+          "column": 11
+        },
+        {
+          "name": "profile",
+          "type": "Profile",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "relationshipKind": ">*",
+          "multiplicity": "[1]",
+          "line": 30,
+          "column": 16
+        },
+        {
+          "name": "login",
+          "type": "boolean",
+          "visibility": "+",
+          "isStatic": false,
+          "isAbstract": false,
+          "parameters": [
+            {
+              "name": "cred",
+              "type": "Credentials",
+              "relationshipKind": ">-"
+            }
+          ],
+          "docs": "/**\n         * Parámetro con relación de uso\n         */",
+          "line": 35,
+          "column": 16
+        }
+      ],
+      "isImplicit": false,
+      "isAbstract": false,
+      "isActive": false,
+      "line": 25,
+      "column": 5,
+      "namespace": "Domain"
+    },
+    {
+      "id": "Domain.IPersistent",
+      "name": "IPersistent",
+      "type": "Class",
+      "members": [],
+      "isImplicit": true,
+      "isAbstract": false,
+      "isActive": false,
+      "namespace": "Domain"
+    },
+    {
+      "id": "Domain.BaseEntity<string>",
+      "name": "BaseEntity<string>",
+      "type": "Class",
+      "members": [],
+      "isImplicit": true,
+      "isAbstract": false,
+      "isActive": false,
+      "namespace": "Domain"
+    },
+    {
+      "id": "User",
+      "name": "User",
+      "type": "Class",
+      "members": [],
+      "isImplicit": true,
+      "isAbstract": false,
+      "isActive": false
+    },
+    {
+      "id": "Status",
+      "name": "Status",
+      "type": "Class",
+      "members": [],
+      "isImplicit": true,
+      "isAbstract": false,
+      "isActive": false
+    },
+    {
+      "id": "Permission",
+      "name": "Permission",
+      "type": "Class",
+      "members": [],
+      "isImplicit": true,
+      "isAbstract": false,
+      "isActive": false
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Domain.BaseEntity",
+      "to": "Domain.IPersistent",
+      "type": "Implementation"
+    },
+    {
+      "from": "Domain.User",
+      "to": "Domain.BaseEntity<string>",
+      "type": "Inheritance"
+    },
+    {
+      "from": "User",
+      "to": "Status",
+      "type": "Composition",
+      "line": 40,
+      "column": 1,
+      "fromMultiplicity": "many",
+      "toMultiplicity": "1",
+      "label": "hasState"
+    },
+    {
+      "from": "User",
+      "to": "Permission",
+      "type": "Aggregation",
+      "line": 41,
+      "column": 1,
+      "fromMultiplicity": "[1]",
+      "toMultiplicity": "[1..*]"
+    },
+    {
+      "from": "Domain.User",
+      "to": "Domain.Profile",
+      "type": "Composition",
+      "label": "profile",
+      "toMultiplicity": "[1]"
+    },
+    {
+      "from": "Domain.User",
+      "to": "Domain.Credentials",
+      "type": "Dependency",
+      "label": "cred"
+    }
+  ]
+}

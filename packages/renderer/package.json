@@ -1,0 +1,26 @@
+{
+  "name": "@umlts/renderer",
+  "version": "0.1.0",
+  "description": "Core rendering engine for UMLTS diagrams",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "uml",
+    "renderer",
+    "svg",
+    "typescript"
+  ],
+  "dependencies": {
+    "elkjs": "^0.9.1",
+    "@umlts/engine": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.1.3"
+  }
+}

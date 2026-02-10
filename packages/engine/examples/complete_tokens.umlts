@@ -1,0 +1,41 @@
+package Utils {
+    interface IPersistent<T> {
+        + id: T
+        # save(): boolean
+    }
+    
+    enum Status {
+        ACTIVE
+        INACTIVE
+        PENDING
+    }
+}
+
+package Domain {
+    /**
+     * Entidad base activa y genérica
+     */
+    & abstract class BaseEntity<T> >implements IPersistent {
+        public createdAt: Date
+        private _internalId: T
+        
+        * validate(): void
+    }
+
+    class User >> BaseEntity<string> {
+        + username: string
+        $ count: number
+        
+        // Relación in-line
+        public profile : >* Profile [1]
+        
+        /**
+         * Parámetro con relación de uso
+         */
+        public login(cred : >- Credentials) : boolean
+    }
+}
+
+// Relaciones standalone
+User "many" >* "1" Status : "hasState"
+User [1] >+ [1..*] Permission

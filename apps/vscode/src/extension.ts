@@ -1,0 +1,193 @@
+import * as vscode from 'vscode';
+import { UMLEngine } from '@umlts/engine';
+import { UMLPreviewPanel } from './preview';
+
+export function activate(context: vscode.ExtensionContext) {
+  const engine = new UMLEngine();
+  const diagnosticCollection = vscode.languages.createDiagnosticCollection('umlts');
+
+  // Caché simple para evitar re-parseos innecesarios en hovers/completions rápidos
+  let lastParseResult: any = null;
+  let lastDocumentUri: string = '';
+
+  const getParseResult = (document: vscode.TextDocument) => {
+    if (lastDocumentUri === document.uri.toString() && lastParseResult) {
+      return lastParseResult;
+    }
+    lastParseResult = engine.parse(document.getText());
+    lastDocumentUri = document.uri.toString();
+    return lastParseResult;
+  };
+
+  const validateDocument = (document: vscode.TextDocument) => {
+    if (document.languageId !== 'umlts') return;
+
+    const result = engine.parse(document.getText());
+    lastParseResult = result;
+    lastDocumentUri = document.uri.toString();
+
+    const vsDiagnostics: vscode.Diagnostic[] = result.diagnostics.map((diag: any) => {
+      const range = new vscode.Range(
+        (diag.line || 1) - 1,
+        diag.column || 0,
+        (diag.line || 1) - 1,
+        (diag.column || 0) + 1
+      );
+      return new vscode.Diagnostic(range, diag.message, vscode.DiagnosticSeverity.Error);
+    });
+
+    diagnosticCollection.set(document.uri, vsDiagnostics);
+  };
+
+  // --- Autocompletado ---
+  const completionProvider = vscode.languages.registerCompletionItemProvider('umlts', {
+    provideCompletionItems(document, position) {
+      const completions: vscode.CompletionItem[] = [];
+
+      // 1. Keywords Básicas
+      const keywords = ['class', 'interface', 'enum', 'package', 'public', 'private', 'protected', 'internal', 'static', 'abstract'];
+      keywords.forEach(kw => {
+        completions.push(new vscode.CompletionItem(kw, vscode.CompletionItemKind.Keyword));
+      });
+
+      // 2. Entidades del diagrama actual
+      const result = getParseResult(document);
+      if (result && result.diagram && result.diagram.entities) {
+        result.diagram.entities.forEach((entity: any) => {
+          const item = new vscode.CompletionItem(entity.name, vscode.CompletionItemKind.Class);
+          item.detail = entity.namespace ? `(in ${entity.namespace})` : '';
+          item.documentation = new vscode.MarkdownString(`FQN: \`${entity.id}\`\n\nType: ${entity.type}`);
+          completions.push(item);
+        });
+      }
+
+      return completions;
+    }
+  });
+
+  // --- Catálogo de Ayuda del Lenguaje ---
+  const languageHelp: Record<string, { desc: string, example: string }> = {
+    'class': { desc: 'Define una Clase: Representa un concepto u objeto del sistema.', example: 'class Usuario {\n  nombre: string\n}' },
+    'interface': { desc: 'Define una Interfaz: Contrato que deben seguir las clases.', example: 'interface IRepositorio {\n  save(): void\n}' },
+    'enum': { desc: 'Define un Enumerado: Conjunto de constantes con nombre.', example: 'enum Estado {\n  ACTIVO\n  INACTIVO\n}' },
+    'package': { desc: 'Define un Paquete: Agrupa entidades en un espacio de nombres.', example: 'package "Dominio" {\n  class Entidad\n}' },
+    'abstract': { desc: 'Marca un elemento como abstracto (no instanciable).', example: 'abstract class Base {}\n*Base >> Hijo' },
+    'static': { desc: 'Define un miembro que pertenece a la clase, no a la instancia.', example: 'static contador: number' },
+    'public': { desc: 'Visibilidad Pública (+): Accesible desde cualquier lugar.', example: 'public nombre: string' },
+    'private': { desc: 'Visibilidad Privada (-): Solo accesible dentro de la entidad.', example: 'private id: number' },
+    'protected': { desc: 'Visibilidad Protegida (#): Accesible en la entidad y sus hijos.', example: 'protected clave: string' },
+    'internal': { desc: 'Visibilidad Interna (~): Accesible dentro del mismo paquete.', example: '~config: any' },
+    '>>': { desc: 'Asociación / Herencia: Define una relación entre entidades.', example: 'Hijo >> Padre' },
+    '>E': { desc: 'Herencia / Extensión: Indica que una clase hereda de otra.', example: 'Gato >E Animal' },
+    '>I': { desc: 'Implementación: Una clase implementa una interfaz.', example: 'Servicio >I IServicio' },
+    '>*': { desc: 'Composición: Relación de "pertenencia fuerte". Si el padre muere, el hijo también.', example: 'Coche >* Motor' },
+    '>+': { desc: 'Agregación: Relación de "pertenencia débil". El hijo puede existir sin el padre.', example: 'Aula >+ Estudiante' },
+    '>-': { desc: 'Dependencia / Uso: Una entidad usa a otra temporalmente.', example: 'Componente >- Servicio' },
+    '*': { desc: 'Descriptor de Entidad Abstracta.', example: 'A >> *B // B es tratada como abstracta' },
+    '..': { desc: 'Rango / Multiplicidad: Define el número de instancias participantes.', example: 'A [0..*] >> B' },
+    '[]': { desc: 'Multiplicidad opcional o por defecto (0..* o 1).', example: 'Clase []' },
+    '[+]': { desc: 'Multiplicidad de uno o más (1..*).', example: 'Clase [+]' },
+    '[0..*]': { desc: 'Multiplicidad de cero a muchos.', example: 'Clase [0..*]' },
+    '[1..*]': { desc: 'Multiplicidad de uno a muchos.', example: 'Clase [1..*]' },
+    '[': { desc: 'Inicio de Multiplicidad: Define el rango de instancias.', example: 'Clase [0..1]' },
+    ']': { desc: 'Fin de Multiplicidad.', example: 'Clase [1..*]' },
+    ':': { desc: 'Separador de tipo para atributos y métodos.', example: 'nombre: string' }
+  };
+
+  // --- Hovers ---
+  const hoverProvider = vscode.languages.registerHoverProvider('umlts', {
+    provideHover(document, position) {
+      const range = document.getWordRangeAtPosition(position, /\[[^\]]*\]|[a-zA-Z0-9_*>-]+|[><=:.\[\]+*]+/);
+      if (!range) return null;
+
+      const word = document.getText(range);
+      const result = getParseResult(document);
+
+      // 1. Ayuda del Lenguaje (Keywords/Operadores)
+      let helpKey = word;
+      if (!languageHelp[helpKey]) {
+        // Detectar si es una variante de multiplicidad (números, *, rangos o cualquier contenido entre [])
+        if (/^[0-9*.]+$/.test(word) || /^\[.*\]$/.test(word) || word === '[' || word === ']') {
+          helpKey = '..';
+        }
+      }
+
+      if (languageHelp[helpKey]) {
+        const help = languageHelp[helpKey];
+        const markdown = new vscode.MarkdownString();
+        markdown.appendMarkdown(`**Ayuda UMLTS**\n\n${help.desc}\n\n`);
+        markdown.appendCodeblock(help.example, 'umlts');
+        return new vscode.Hover(markdown, range);
+      }
+
+      // 2. Documentación de Usuario (AST/IR Analysis)
+      if (result && result.diagram) {
+        const line = position.line + 1;
+
+        // Buscar en Entidades
+        const entity = result.diagram.entities.find((e: any) =>
+          (e.name === word || e.id === word) && (e.line === line || e.members.some((m: any) => m.name === word && m.line === line))
+        );
+
+        if (entity) {
+          const markdown = new vscode.MarkdownString();
+
+          // Caso: Es un miembro de la entidad
+          const member = entity.members.find((m: any) => m.name === word && m.line === line);
+          if (member) {
+            markdown.appendMarkdown(`### ${member.isStatic ? 'Static ' : ''}${member.parameters ? 'Method' : 'Attribute'}: **${member.name}**\n`);
+            if (member.docs) markdown.appendMarkdown(`---\n${member.docs}\n`);
+            markdown.appendMarkdown(`\n**Type:** \`${member.type || 'any'}\``);
+            return new vscode.Hover(markdown, range);
+          }
+
+          // Caso: Es la entidad misma
+          markdown.appendMarkdown(`### ${entity.type}: **${entity.name}**\n`);
+          if (entity.docs) markdown.appendMarkdown(`---\n${entity.docs}\n`);
+          if (entity.namespace) markdown.appendMarkdown(`\n*Namespace: ${entity.namespace}*`);
+
+          return new vscode.Hover(markdown, range);
+        }
+
+        // Buscar en Relaciones
+        const rel = result.diagram.relationships.find((r: any) => r.line === line);
+        if (rel && word === rel.type) { // Simplificación: si el ratón está en la línea de la relación
+          const markdown = new vscode.MarkdownString();
+          markdown.appendMarkdown(`### Relación: **${rel.type}**\n`);
+          if (rel.docs) markdown.appendMarkdown(`---\n${rel.docs}\n`);
+          markdown.appendMarkdown(`\n\`${rel.from}\` -> \`${rel.to}\``);
+          return new vscode.Hover(markdown, range);
+        }
+      }
+
+      return null;
+    }
+  });
+
+  // Suscripciones y eventos
+  context.subscriptions.push(
+    vscode.workspace.onDidOpenTextDocument(validateDocument),
+    vscode.workspace.onDidChangeTextDocument(e => {
+      lastParseResult = null; // Invalida caché
+      validateDocument(e.document);
+    }),
+    vscode.workspace.onDidCloseTextDocument(doc => {
+      diagnosticCollection.delete(doc.uri);
+      if (lastDocumentUri === doc.uri.toString()) {
+        lastParseResult = null;
+        lastDocumentUri = '';
+      }
+    }),
+    diagnosticCollection,
+    completionProvider,
+    hoverProvider,
+    vscode.commands.registerCommand('umlts.showPreview', () => {
+      UMLPreviewPanel.createOrShow(context.extensionUri);
+    })
+  );
+
+  // Validar archivos abiertos al inicio
+  vscode.workspace.textDocuments.forEach(validateDocument);
+}
+
+export function deactivate() { }

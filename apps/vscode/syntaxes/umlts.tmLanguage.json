@@ -1,0 +1,135 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "UMLTS",
+  "scopeName": "source.umlts",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#keywords" },
+    { "include": "#multiplicity" },
+    { "include": "#relations" },
+    { "include": "#visibility" },
+    { "include": "#modifiers" },
+    { "include": "#symbols" },
+    { "include": "#types" },
+    { "include": "#identifiers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.umlts",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.umlts",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.umlts",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.umlts",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.umlts",
+          "match": "\\b(class|interface|enum|package)\\b"
+        },
+        {
+          "name": "storage.modifier.visibility.umlts",
+          "match": "\\b(public|private|protected|internal)\\b"
+        },
+        {
+          "name": "storage.modifier.umlts",
+          "match": "\\b(static|abstract)\\b"
+        }
+      ]
+    },
+    "relations": {
+      "patterns": [
+        {
+          "name": "keyword.operator.relation.textual.umlts",
+          "match": "\\>(extends|implements|comp|agreg|use|asoc)\\b"
+        },
+        {
+          "name": "keyword.operator.relation.symbolic.umlts",
+          "match": ">>|\\>I|\\>\\*|\\>\\+|\\>-"
+        },
+        {
+          "name": "keyword.operator.generic.umlts",
+          "match": ">"
+        }
+      ]
+    },
+    "visibility": {
+      "patterns": [
+        {
+          "name": "storage.modifier.visibility.symbol.umlts",
+          "match": "[\\+\\-#~]"
+        }
+      ]
+    },
+    "modifiers": {
+      "patterns": [
+        {
+          "name": "storage.modifier.symbol.umlts",
+          "match": "[\\$\\*]"
+        }
+      ]
+    },
+    "multiplicity": {
+      "patterns": [
+        {
+          "name": "constant.numeric.multiplicity.umlts",
+          "match": "\\[(\\d+|\\*|\\d+\\.\\.(\\d+|\\*))\\]|\\[\\]"
+        }
+      ]
+    },
+    "symbols": {
+      "patterns": [
+        {
+          "name": "punctuation.section.bracket.umlts",
+          "match": "[\\{\\}\\(\\)\\[\\]]"
+        },
+        {
+          "name": "punctuation.separator.range.umlts",
+          "match": "\\.\\."
+        },
+        {
+          "name": "punctuation.separator.umlts",
+          "match": "[:\\|,\\.]"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "support.type.primitive.umlts",
+          "match": "\\b(String|Number|Boolean|Date|void|any)\\b"
+        },
+        {
+          "name": "entity.name.type.umlts",
+          "match": "\\b[A-Z]\\w*\\b"
+        }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "variable.other.readwrite.umlts",
+          "match": "\\b[a-z_]\\w*\\b"
+        }
+      ]
+    }
+  }
+}

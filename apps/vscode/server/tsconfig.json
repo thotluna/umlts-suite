@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "outDir": "out",
+    "strict": true,
+    "lib": ["ESNext"],
+    "baseUrl": ".",
+    "paths": {
+      "ts-uml-engine": ["../../node_modules/ts-uml-engine"]
+    },
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*"]
+}

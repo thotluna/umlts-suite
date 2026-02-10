@@ -1,0 +1,113 @@
+class Main {
+    intializeCore(): void
+    openSigninWindow(): void
+}
+
+class Core {
+    login(): void
+    sendMessage(): void
+    receiveMessage(): void
+    logout(): void
+    ifgetFromDatabase(): void
+    sendToDatabase(): void
+}
+
+class BuddyList {
+    users: any[]
+}
+
+class Sign_in_Window {
+    profileSelector: any
+    manageProfilesFrame: any
+    rememberProfileBox: any
+    usernameField: any
+    passwordField: any
+    loginButton: any
+    
+    createProfile(): void
+    deleteProfile(): void
+    signin(): void
+}
+
+class BuddyList_Window {
+    listOffriends: any
+    newConversationButton: any
+    profilePictures: any
+    
+    createConversation(): void
+    addFriend(): void
+    removeFriend(): void
+    searchBuddyList(): void
+    updateStatus(): void
+}
+
+class Profile {
+    buddyList: any
+    accountData: any
+    settings: any
+}
+
+class ProfileList {
+    profiles: any[]
+}
+
+class Settings {
+    default_font: any
+    chatbotSettings: any
+}
+
+class Users {
+    protocol: any
+    username: any
+    password: any
+}
+
+class Options_Window {
+    displayBox: any
+    inputBox: any
+    conversationList: any
+    textSettingsToolBar: any
+}
+
+class Chat_Window {
+    displayBox: any
+    inputBox: any
+    conversationList: any
+    textSettingsToolBar: any
+    
+    sendMessage(): void
+    switchConversation(): void
+}
+
+class Twitter_User >> Users {
+    status: any
+    name: any
+    picture: any
+    friends: any[]
+}
+
+class ICQ_User >> Users {
+    name: any
+    picture: any
+}
+
+class Jabber_User >> Users {
+    name: any
+    picture: any
+    email: any
+}
+
+// Relaciones
+Main >- Core
+Main >- Sign_in_Window
+Core >- BuddyList
+Core >- ProfileList
+Sign_in_Window >- BuddyList_Window
+Sign_in_Window >- ProfileList
+BuddyList_Window >+ BuddyList
+BuddyList_Window >- Users
+BuddyList_Window >- Options_Window
+BuddyList_Window >- Chat_Window
+ProfileList >+ Profile
+Profile >- Settings
+Options_Window >- Settings
