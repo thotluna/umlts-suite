@@ -280,12 +280,24 @@ export class EntityRule implements StatementRule {
 
     let type = context.advance().value;
 
+    // Soporte para genéricos: Tipo<T>
     if (context.match(TokenType.LT)) {
       type += '<';
       while (!context.check(TokenType.GT) && !context.isAtEnd()) {
         type += context.advance().value;
       }
       type += context.consume(TokenType.GT, "Se esperaba '>'").value;
+    }
+
+    // Soporte para arrays: Tipo[] o Tipo<T>[]
+    if (context.check(TokenType.LBRACKET)) {
+      // Solo consumimos si le sigue un RBRACKET (para no confundir con multiplicidad [0..*])
+      // Sin embargo, en miembros, la multiplicidad viene DESPUÉS del tipo.
+      // Si vemos '[' y el siguiente es ']', es un array de tipo.
+      if (context.peekNext().type === TokenType.RBRACKET) {
+        context.consume(TokenType.LBRACKET, "");
+        type += '[' + context.consume(TokenType.RBRACKET, "").value;
+      }
     }
 
     return type;
