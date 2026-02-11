@@ -102,14 +102,31 @@ export function renderEdge(edge: DiagramEdge, index: number, theme: Theme): stri
   }
 
   if (edge.label) {
-    const mid = midpoint(wps);
     const displayText = edge.visibility ? `${edge.visibility} ${edge.label}` : edge.label;
+
+    let x: number, y: number;
+    let textAnchor: string = 'middle';
+
+    if (edge.labelPos) {
+      // ELK coordinates are for the top-left of the label box.
+      // We center the text within that box.
+      x = edge.labelPos.x + (edge.labelWidth ? edge.labelWidth / 2 : 0);
+      y = edge.labelPos.y + (edge.labelHeight ? edge.labelHeight / 2 : 0);
+    } else {
+      const mid = midpoint(wps);
+      x = mid.x + 4;
+      y = mid.y - 4;
+      textAnchor = 'start';
+    }
+
     labels.push(svg.text({
-      x: mid.x + 4,
-      y: mid.y - 4,
+      x,
+      y,
       fill: theme.multiplicityText,
       'font-size': theme.fontSizeSmall,
       'font-style': 'italic',
+      'text-anchor': textAnchor,
+      'dominant-baseline': 'central',
     }, displayText));
   }
 

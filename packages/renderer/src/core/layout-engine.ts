@@ -1,6 +1,6 @@
 import ELK, { ElkNode, ElkExtendedEdge } from 'elkjs/lib/elk.bundled.js';
 import { DiagramModel, LayoutResult, DiagramNode, DiagramEdge, DiagramPackage } from './types';
-import { measureNode } from '../utils/measure';
+import { measureNode, measureText } from '../utils/measure';
 
 const elk = new ELK();
 
@@ -28,6 +28,11 @@ const ROOT_LAYOUT_OPTIONS = {
 
   // Keep edges close to their nodes (better for UML)
   'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES',
+
+  // Edge labels configuration
+  'elk.edgeLabels.placement': 'CENTER',
+  'elk.edgeLabels.sideSelection': 'ALWAYS_UP',
+  'elk.edgeLabels.spacing': '10',
 
   // Outer padding
   'elk.padding': '[top=50,left=50,bottom=50,right=50]',
@@ -112,11 +117,26 @@ export class LayoutEngine {
    * at the root.
    */
   private buildTopLevelEdges(model: DiagramModel): ElkExtendedEdge[] {
-    return model.edges.map((edge, index) => ({
-      id: `e${index}`,
-      sources: [edge.from],
-      targets: [edge.to],
-    }));
+    return model.edges.map((edge, index) => {
+      const elkEdge: ElkExtendedEdge = {
+        id: `e${index}`,
+        sources: [edge.from],
+        targets: [edge.to],
+      };
+
+      if (edge.label) {
+        // Estimate label size
+        const { width, height } = measureText(edge.label, 11); // theme uses small font
+        elkEdge.labels = [{
+          id: `l${index}`,
+          text: edge.label,
+          width,
+          height
+        }];
+      }
+
+      return elkEdge;
+    });
   }
 
   // ── Layout application ────────────────────────────────────────────────────
@@ -196,6 +216,16 @@ export class LayoutEngine {
       waypoints.push({ x: section.endPoint.x, y: section.endPoint.y });
 
       edge.waypoints = waypoints;
+
+      // Capture label position if ELK provided it
+      if (elkEdge.labels?.[0]) {
+        edge.labelPos = {
+          x: elkEdge.labels[0].x ?? 0,
+          y: elkEdge.labels[0].y ?? 0
+        };
+        edge.labelWidth = elkEdge.labels[0].width;
+        edge.labelHeight = elkEdge.labels[0].height;
+      }
     }
   }
 

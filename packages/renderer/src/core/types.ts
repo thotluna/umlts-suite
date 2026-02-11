@@ -127,6 +127,9 @@ export interface DiagramEdge {
   fromMultiplicity?: string;
   toMultiplicity?: string;
   waypoints?: { x: number; y: number }[]; // Calculated by ELK
+  labelPos?: { x: number; y: number };    // Calculated by ELK
+  labelWidth?: number;
+  labelHeight?: number;
 }
 
 export interface DiagramPackage {
