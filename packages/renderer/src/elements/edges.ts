@@ -1,84 +1,283 @@
-
-import { DiagramEdge, IRRelType } from '../core/types';
+import { DiagramEdge } from '../core/types';
 import { Theme } from '../core/theme';
 import * as svg from '../utils/svg-helpers';
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+// Offset for multiplicity labels relative to the waypoint
+const LABEL_OFFSET = 12;
+
 /**
- * Renders UML relationships with orthogonal paths and markers.
+ * How many px to retract each end of the path so the marker
+ * sits fully outside the node border.
+ *
+ * Diamonds (Composition/Aggregation) go at the SOURCE end via marker-start.
+ * Triangles (Inheritance/Implementation) and arrows go at the TARGET end via marker-end.
+ *
+ * Values are tuned to match the markerWidth defined in renderMarkers():
+ *   triangle → markerWidth 12 → clearance 13
+ *   diamond  → markerWidth 18 → clearance 20
+ *   arrow    → markerWidth 10 → clearance 11
+ */
+const END_CLEARANCE: Record<string, number> = {
+  Inheritance: 13,
+  Implementation: 13,
+  Association: 11,
+  Dependency: 11,
+  Composition: 2,  // diamond is at source → target end is a plain line
+  Aggregation: 2,
+};
+
+const START_CLEARANCE: Record<string, number> = {
+  Composition: 20,  // diamond marker sits at source node
+  Aggregation: 20,
+  Inheritance: 2,
+  Implementation: 2,
+  Association: 2,
+  Dependency: 2,
+};
+
+// ─── Public API ───────────────────────────────────────────────────────────────
+
+/**
+ * Renders a single UML relationship edge (path + markers + labels).
  */
 export function renderEdge(edge: DiagramEdge, index: number, theme: Theme): string {
   if (!edge.waypoints || edge.waypoints.length < 2) return '';
 
-  // 1. Build path data
-  const d = edge.waypoints
+  const wps = edge.waypoints;
+  const type = edge.type as string;
+
+  const endClear = END_CLEARANCE[type] ?? 13;
+  const startClear = START_CLEARANCE[type] ?? 2;
+
+  // Retract both ends so markers sit outside node borders
+  const trimmed = trimStart(trimEnd(wps, endClear), startClear);
+
+  const d = trimmed
     .map((wp, i) => `${i === 0 ? 'M' : 'L'} ${wp.x} ${wp.y}`)
     .join(' ');
 
-  const isDashed = edge.type === 'Implementation' || edge.type === 'Dependency';
+  const isDashed = type === 'Implementation' || type === 'Dependency';
+  const isDiamond = type === 'Composition' || type === 'Aggregation';
 
-  const pathElement = svg.path({
+  const pathEl = svg.path({
     d,
     fill: 'none',
     stroke: theme.edgeStroke,
     'stroke-width': theme.edgeStrokeWidth,
-    'stroke-dasharray': isDashed ? '5,5' : undefined,
-    'marker-end': `url(#marker-${edge.type.toLowerCase()})`
+    ...(isDashed ? { 'stroke-dasharray': '6,4' } : {}),
+    // Diamonds go at source, everything else goes at target
+    ...(isDiamond
+      ? { 'marker-start': `url(#marker-${type.toLowerCase()})` }
+      : { 'marker-end': `url(#marker-${type.toLowerCase()})` }),
   });
 
-  // 2. Multiplicity labels (Place near start and end)
-  const labels = [];
+  // ── Multiplicity labels ──────────────────────────────────────────────────
+  // Positioned with a direction-aware offset so they never overlap
+  // the line or land on top of a node border.
+  const labels: string[] = [];
+
   if (edge.fromMultiplicity) {
-    const start = edge.waypoints[0];
+    const pos = labelPos(wps[0], wps[1], LABEL_OFFSET);
     labels.push(svg.text({
-      x: start.x + 5,
-      y: start.y - 5,
+      x: pos.x,
+      y: pos.y,
       fill: theme.multiplicityText,
-      'font-size': theme.fontSizeSmall
+      'font-size': theme.fontSizeSmall,
+      'text-anchor': pos.anchor,
     }, edge.fromMultiplicity));
   }
 
   if (edge.toMultiplicity) {
-    const end = edge.waypoints[edge.waypoints.length - 1];
+    const n = wps.length;
+    const pos = labelPos(wps[n - 1], wps[n - 2], LABEL_OFFSET);
     labels.push(svg.text({
-      x: end.x + 5,
-      y: end.y - 5,
+      x: pos.x,
+      y: pos.y,
       fill: theme.multiplicityText,
-      'font-size': theme.fontSizeSmall
+      'font-size': theme.fontSizeSmall,
+      'text-anchor': pos.anchor,
     }, edge.toMultiplicity));
   }
 
-  return svg.g({ class: 'edge', 'data-index': index }, pathElement + labels.join(''));
+  if (edge.label) {
+    const mid = midpoint(wps);
+    const displayText = edge.visibility ? `${edge.visibility} ${edge.label}` : edge.label;
+    labels.push(svg.text({
+      x: mid.x + 4,
+      y: mid.y - 4,
+      fill: theme.multiplicityText,
+      'font-size': theme.fontSizeSmall,
+      'font-style': 'italic',
+    }, displayText));
+  }
+
+  return svg.g(
+    { class: 'edge', 'data-from': edge.from, 'data-to': edge.to, 'data-index': index },
+    pathEl + labels.join('')
+  );
 }
 
 /**
- * Generates the SVG <defs> containing markers for all relationship types.
+ * Generates the SVG <defs> block with all UML arrow markers.
+ *
+ * Rules:
+ *  - refX/refY must point to the VISUAL TIP of the shape.
+ *  - markerUnits="userSpaceOnUse" → markerWidth/Height are canvas px (not strokeWidth multiples).
+ *  - For diamonds: orient="auto-start-reverse" so marker-start draws the diamond
+ *    pointing away from the node (correct UML convention: open end toward source).
  */
 export function renderMarkers(theme: Theme): string {
+  const bg = theme.nodeBackground;
+  const stroke = theme.edgeStroke;
+
   return svg.tag('defs', {}, `
-    <!-- Inheritance / Implementation -->
-    <marker id="marker-inheritance" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 Z" fill="${theme.nodeBackground}" stroke="${theme.edgeStroke}" />
-    </marker>
-    <marker id="marker-implementation" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 Z" fill="${theme.nodeBackground}" stroke="${theme.edgeStroke}" />
-    </marker>
-
-    <!-- Composition -->
-    <marker id="marker-composition" viewBox="0 0 12 10" refX="12" refY="5" markerWidth="10" markerHeight="8" orient="auto">
-      <path d="M 0 5 L 6 0 L 12 5 L 6 10 Z" fill="${theme.edgeStroke}" stroke="${theme.edgeStroke}" />
+    <!-- ── Inheritance: hollow triangle, tip at right ── -->
+    <marker id="marker-inheritance"
+            viewBox="0 0 14 14" refX="13" refY="7"
+            markerWidth="12" markerHeight="12"
+            orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 1 1 L 13 7 L 1 13 Z"
+            fill="${bg}" stroke="${stroke}" stroke-linejoin="round" stroke-width="1.5"/>
     </marker>
 
-    <!-- Aggregation -->
-    <marker id="marker-aggregation" viewBox="0 0 12 10" refX="12" refY="5" markerWidth="10" markerHeight="8" orient="auto">
-      <path d="M 0 5 L 6 0 L 12 5 L 6 10 Z" fill="${theme.nodeBackground}" stroke="${theme.edgeStroke}" />
+    <!-- ── Implementation: same hollow triangle, used with dashed line ── -->
+    <marker id="marker-implementation"
+            viewBox="0 0 14 14" refX="13" refY="7"
+            markerWidth="12" markerHeight="12"
+            orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 1 1 L 13 7 L 1 13 Z"
+            fill="${bg}" stroke="${stroke}" stroke-linejoin="round" stroke-width="1.5"/>
     </marker>
 
-    <!-- Association / Dependency -->
-    <marker id="marker-association" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10" fill="none" stroke="${theme.edgeStroke}" stroke-width="1.5" />
+    <!-- ── Composition: filled diamond at SOURCE (marker-start) ──
+         orient="auto-start-reverse" flips the marker when used as marker-start
+         so the tip still points toward the line (away from the node).         -->
+    <marker id="marker-composition"
+            viewBox="0 0 20 14" refX="1" refY="7"
+            markerWidth="18" markerHeight="12"
+            orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+      <path d="M 1 7 L 10 1 L 19 7 L 10 13 Z"
+            fill="${stroke}" stroke="${stroke}" stroke-linejoin="round" stroke-width="1"/>
     </marker>
-    <marker id="marker-dependency" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10" fill="none" stroke="${theme.edgeStroke}" stroke-width="1.5" />
+
+    <!-- ── Aggregation: hollow diamond at SOURCE ── -->
+    <marker id="marker-aggregation"
+            viewBox="0 0 20 14" refX="1" refY="7"
+            markerWidth="18" markerHeight="12"
+            orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+      <path d="M 1 7 L 10 1 L 19 7 L 10 13 Z"
+            fill="${bg}" stroke="${stroke}" stroke-linejoin="round" stroke-width="1.5"/>
+    </marker>
+
+    <!-- ── Association: open arrowhead at TARGET ── -->
+    <marker id="marker-association"
+            viewBox="0 0 12 12" refX="10" refY="6"
+            markerWidth="10" markerHeight="10"
+            orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 1 1 L 10 6 L 1 11"
+            fill="none" stroke="${stroke}" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+
+    <!-- ── Dependency: same open arrowhead, used with dashed line ── -->
+    <marker id="marker-dependency"
+            viewBox="0 0 12 12" refX="10" refY="6"
+            markerWidth="10" markerHeight="10"
+            orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 1 1 L 10 6 L 1 11"
+            fill="none" stroke="${stroke}" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
   `);
+}
+
+// ─── Geometry helpers ─────────────────────────────────────────────────────────
+
+type Point = { x: number; y: number };
+
+/**
+ * Shortens the LAST segment of a polyline by `dist` px.
+ * Moves the path endpoint away from the target node border so the
+ * marker head is not obscured by the rectangle.
+ */
+function trimEnd(wps: Point[], dist: number): Point[] {
+  if (wps.length < 2 || dist <= 0) return wps;
+
+  const result = wps.slice(0, -1);
+  const a = wps[wps.length - 2];
+  const b = wps[wps.length - 1];
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const len = Math.sqrt(dx * dx + dy * dy);
+
+  if (len <= dist) return result; // segment too short, drop it
+
+  result.push({
+    x: b.x - (dx / len) * dist,
+    y: b.y - (dy / len) * dist,
+  });
+  return result;
+}
+
+/**
+ * Shortens the FIRST segment of a polyline by `dist` px.
+ * Used for diamond markers so the path starts after the marker tip.
+ */
+function trimStart(wps: Point[], dist: number): Point[] {
+  if (wps.length < 2 || dist <= 0) return wps;
+
+  const a = wps[0];
+  const b = wps[1];
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const len = Math.sqrt(dx * dx + dy * dy);
+
+  if (len <= dist) return wps.slice(1); // segment too short, drop it
+
+  return [
+    { x: a.x + (dx / len) * dist, y: a.y + (dy / len) * dist },
+    ...wps.slice(1),
+  ];
+}
+
+/**
+ * Computes a direction-aware label position near `anchor`,
+ * offset both along the edge and perpendicular to it so labels
+ * never overlap the line or the node border.
+ */
+function labelPos(
+  anchor: Point,
+  next: Point,
+  offset: number,
+): { x: number; y: number; anchor: string } {
+  const dx = next.x - anchor.x;
+  const dy = next.y - anchor.y;
+  const len = Math.sqrt(dx * dx + dy * dy) || 1;
+
+  // Unit vector along the edge (pointing away from anchor)
+  const ux = dx / len;
+  const uy = dy / len;
+
+  // Perpendicular unit vector (90° CCW)
+  const px = -uy;
+  const py = ux;
+
+  const x = anchor.x + ux * offset + px * (offset * 0.8);
+  const y = anchor.y + uy * offset + py * (offset * 0.8);
+
+  // text-anchor: label goes to the right of the line → 'start', left → 'end'
+  const textAnchor = px >= 0 ? 'start' : 'end';
+
+  return { x, y, anchor: textAnchor };
+}
+
+/** Returns the midpoint of a polyline (for edge labels). */
+function midpoint(wps: Point[]): Point {
+  const mid = Math.floor(wps.length / 2);
+  if (wps.length % 2 === 1) return wps[mid];
+  const a = wps[mid - 1];
+  const b = wps[mid];
+  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
 }

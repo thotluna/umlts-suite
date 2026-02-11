@@ -77,6 +77,7 @@ export class IRAdapter {
       to: rel.to,
       type: rel.type,
       label: rel.label,
+      visibility: rel.visibility,
       fromMultiplicity: normalizeMultiplicity(rel.fromMultiplicity),
       toMultiplicity: normalizeMultiplicity(rel.toMultiplicity)
     };
@@ -92,7 +93,7 @@ export class IRAdapter {
     for (const node of nodes) {
       if (!node.namespace) continue;
 
-      const parts = node.namespace.split('.');
+      const parts = this.splitNamespace(node.namespace);
       let currentPath = '';
       let currentPkg = root;
 
@@ -117,5 +118,25 @@ export class IRAdapter {
 
     // Return the children of the virtual root (only the actual top-level packages)
     return root.children.filter((c): c is DiagramPackage => 'children' in c);
+  }
+
+  private splitNamespace(ns: string): string[] {
+    const parts: string[] = [];
+    let current = '';
+    let depth = 0;
+
+    for (let i = 0; i < ns.length; i++) {
+      if (ns[i] === '<') depth++;
+      else if (ns[i] === '>') depth--;
+
+      if (ns[i] === '.' && depth === 0) {
+        if (current) parts.push(current);
+        current = '';
+      } else {
+        current += ns[i];
+      }
+    }
+    if (current) parts.push(current);
+    return parts;
   }
 }
