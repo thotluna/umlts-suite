@@ -69,7 +69,7 @@ export function renderClassNode(node: DiagramNode, theme: Theme): string {
 
   headerContent += svg.text({
     x: x + width / 2,
-    y: node.type === 'Class' && !node.isAbstract ? y + 20 : currentY,
+    y: node.type === 'Class' && !node.isAbstract && !node.isStatic ? y + 20 : currentY,
     'text-anchor': 'middle',
     fill: theme.nodeHeaderText,
     'font-weight': 'bold',

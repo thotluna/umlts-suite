@@ -7,7 +7,8 @@ import { DiagramNode } from '../core/types';
  */
 const CHAR_WIDTH = 10.0; // Overestimate to force ELK clearance
 const LINE_HEIGHT = 28; // Slightly more air for labels
-const HEADER_HEIGHT = 32; // Height of the entity header
+const HEADER_HEIGHT_NORMAL = 32;
+const HEADER_HEIGHT_STEREOTYPE = 44;
 const PADDING_BOTTOM = 8;
 const MIN_WIDTH = 160;
 
@@ -18,8 +19,20 @@ export function measureNode(node: DiagramNode): { width: number, height: number 
   // 1. Calculate max width based on the longest string
   let maxChars = node.name.length;
 
-  // Sterotypes like «interface» or «enum» add to width
-  if (node.type !== 'Class') maxChars = Math.max(maxChars, node.type.length + 4);
+  // Stereotypes like «interface», «enum», «abstract», «static» add to width and height
+  let hasStereotype = false;
+  if (node.type !== 'Class') {
+    maxChars = Math.max(maxChars, node.type.length + 4);
+    hasStereotype = true;
+  }
+  if (node.isAbstract) {
+    maxChars = Math.max(maxChars, 12); // «abstract»
+    hasStereotype = true;
+  }
+  if (node.isStatic) {
+    maxChars = Math.max(maxChars, 10); // «static»
+    hasStereotype = true;
+  }
 
   // Generics like <T, K>
   if (node.typeParameters.length > 0) {
@@ -49,7 +62,8 @@ export function measureNode(node: DiagramNode): { width: number, height: number 
   // We add some extra height if we have both attributes and methods for the divider
   const sectionDividerHeight = (node.attributes.length > 0 && node.methods.length > 0) ? 8 : 0;
 
-  const height = HEADER_HEIGHT + (memberCount * LINE_HEIGHT) + sectionDividerHeight + PADDING_BOTTOM;
+  const currentHeaderHeight = hasStereotype ? HEADER_HEIGHT_STEREOTYPE : HEADER_HEIGHT_NORMAL;
+  const height = currentHeaderHeight + (memberCount * LINE_HEIGHT) + sectionDividerHeight + PADDING_BOTTOM;
 
   return { width, height };
 }
