@@ -16,6 +16,7 @@ Para el análisis léxico, el `ts-uml-engine` debe reconocer las siguientes cate
 | `KW_INTERNAL` | `internal` | Visibilidad de paquete |
 | `KW_STATIC` | `static` | Miembro estático |
 | `KW_ABSTRACT` | `abstract` | Clase o método abstracto |
+| `KW_ACTIVE` | `active` | Clase activa (hilo) |
 | `KW_EXTENDS` | `>extends` | Alias de herencia |
 | `KW_IMPLEMENTS` | `>implements` | Alias de implementación |
 | `KW_COMP` | `>comp` | Alias de composición |
@@ -33,6 +34,7 @@ Para el análisis léxico, el `ts-uml-engine` debe reconocer las siguientes cate
 | `OP_USE` | `>-` | Relación de dependencia de uso |
 | `MOD_STATIC` | `$` | Modificador estático |
 | `MOD_ABSTRACT` | `*` | Modificador abstracto |
+| `MOD_ACTIVE` | `&` | Modificador de clase activa |
 | `LBRACE` | `{` | Inicio de bloque |
 | `RBRACE` | `}` | Fin de bloque |
 | `LPAREN` | `(` | Inicio de parámetros / enum |
