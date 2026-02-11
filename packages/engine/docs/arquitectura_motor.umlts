@@ -1,0 +1,98 @@
+
+package UMLTS.Engine {
+    
+    class UMLEngine {
+        + parse(source: string): ParseResult
+        + getTokens(source: string): Token[]
+    }
+
+    class ParseResult {
+        + diagram: IRDiagram
+        + diagnostics: Diagnostic[]
+        + isValid: boolean
+    }
+
+    UMLEngine >- ParseResult
+    UMLEngine >- LexerFactory
+    UMLEngine >- ParserFactory
+    UMLEngine >- SemanticAnalyzer
+
+    package Lexer {
+        interface ILexer {
+            + tokenize(): Token[]
+        }
+        
+        class LexerFactory {
+            $ create(source: string): ILexer
+        }
+        
+        class Lexer >I ILexer {
+            - reader: LexerReader
+            - matchers: Matcher[]
+        }
+        
+        class LexerReader {
+            + peek(): char
+            + consume(): char
+        }
+
+        LexerFactory >- ILexer
+        Lexer >* LexerReader
+    }
+
+    package Parser {
+        interface IParser {
+            + parse(tokens: Token[]): ASTNode
+        }
+
+        class ParserFactory {
+            $ create(): IParser
+        }
+
+        class UMLParser >I IParser {
+            - rules: Rule[]
+        }
+
+        abstract class Rule {
+            * parse(context: ParserContext): ASTNode
+        }
+
+        class EntityRule >> Rule
+        class RelationshipRule >> Rule
+        class PackageRule >> Rule
+
+        ParserFactory >- IParser
+        UMLParser >* Rule
+    }
+
+    package Semantics {
+        class SemanticAnalyzer {
+            + analyze(ast: ASTNode): IRDiagram
+        }
+
+        class SymbolTable {
+            + define(name: string, symbol: Symbol)
+            + resolve(name: string): Symbol
+        }
+
+        SemanticAnalyzer >* SymbolTable
+    }
+
+    package Models {
+        class IRDiagram {
+            + entities: IREntity[]
+            + relationships: IRRelationship[]
+        }
+
+        class IREntity {
+            + name: string
+            + isStatic: boolean
+            + isActive: boolean
+        }
+
+        class IRRelationship
+        
+        IRDiagram >* IREntity
+        IRDiagram >* IRRelationship
+    }
+}
