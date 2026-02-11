@@ -75,6 +75,12 @@ export class UMLPreviewPanel {
       }
     }, null, this._disposables);
 
+    vscode.workspace.onDidChangeConfiguration(e => {
+      if (e.affectsConfiguration('umlts.preview')) {
+        this._update();
+      }
+    }, null, this._disposables);
+
     vscode.window.onDidChangeActiveTextEditor(() => {
       this._update();
     }, null, this._disposables);
@@ -101,10 +107,29 @@ export class UMLPreviewPanel {
       const text = editor.document.getText();
       const result = this._engine.parse(text);
 
+      const config = vscode.workspace.getConfiguration('umlts');
+      const preferredTheme = config.get<'auto' | 'light' | 'dark'>('preview.theme', 'auto');
+      const fontFamily = config.get<string>('preview.fontFamily', 'monospace');
+      const fontSize = config.get<number>('preview.fontSize', 13);
+      const customColors = config.get<Record<string, any>>('preview.customColors', {});
+
       const isDark = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ||
         vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.HighContrast;
 
-      const svg = await render(result.diagram, { theme: isDark ? 'dark' : 'light' });
+      let themeName: 'light' | 'dark' = preferredTheme === 'auto' ? (isDark ? 'dark' : 'light') : (preferredTheme as 'light' | 'dark');
+
+      // Importar temas base (asumiendo que están exportados o accesibles)
+      // Como estamos en el mismo monorepo, podemos usar los objetos directamente si los importamos
+      // Pero para simplicidad aquí, construiremos el objeto final.
+
+      const svg = await render(result.diagram, {
+        theme: {
+          ...(themeName === 'dark' ? (await import('@umlts/renderer')).darkTheme : (await import('@umlts/renderer')).lightTheme),
+          fontFamily,
+          fontSizeBase: fontSize,
+          ...customColors
+        }
+      });
 
       this._panel.webview.html = this._getHtmlForWebview(svg);
     } catch (error: any) {

@@ -57,7 +57,37 @@
         "scopeName": "source.umlts",
         "path": "./syntaxes/umlts.tmLanguage.json"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "UMLTS",
+      "properties": {
+        "umlts.preview.theme": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "light",
+            "dark"
+          ],
+          "default": "auto",
+          "description": "Specify the theme for the diagram preview."
+        },
+        "umlts.preview.fontFamily": {
+          "type": "string",
+          "default": "monospace",
+          "description": "Font family for the diagram elements."
+        },
+        "umlts.preview.fontSize": {
+          "type": "number",
+          "default": 13,
+          "description": "Base font size for the diagram elements."
+        },
+        "umlts.preview.customColors": {
+          "type": "object",
+          "default": {},
+          "description": "Override specific theme colors (e.g., { \"nodeBackground\": \"#ff0000\" })."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
