@@ -14,7 +14,7 @@ const ROOT_LAYOUT_OPTIONS = {
 
   // Node/layer spacing — sensible defaults for class diagrams
   'elk.spacing.nodeNode': '60',
-  'elk.spacing.nodeNodeBetweenLayers': '400',
+  'elk.spacing.nodeNodeBetweenLayers': '300',
   'elk.layered.spacing.baseValue': '50',
 
   // Edge routing
