@@ -4,6 +4,47 @@ import { measureNode } from '../utils/measure';
 
 const elk = new ELK();
 
+// ─── ELK option keys ──────────────────────────────────────────────────────────
+// ELK requires the FULL qualified key (with "elk." prefix) at every level.
+// Omitting the prefix is one of the most common silent-fail causes.
+
+const ROOT_LAYOUT_OPTIONS = {
+  'elk.algorithm': 'layered',
+  'elk.direction': 'UP',        // inheritance goes UP (child → parent)
+
+  // Node/layer spacing — sensible defaults for class diagrams
+  'elk.spacing.nodeNode': '60',
+  'elk.spacing.nodeNodeBetweenLayers': '400',
+  'elk.layered.spacing.baseValue': '50',
+
+  // Edge routing
+  'elk.edgeRouting': 'ORTHOGONAL',
+
+  // Node placement: BRANDES_KOEPF produces compact, readable results
+  'elk.layered.nodePlacement.strategy': 'BRANDES_KOEPF',
+
+  // Reduce edge crossings
+  'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
+
+  // Keep edges close to their nodes (better for UML)
+  'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES',
+
+  // Outer padding
+  'elk.padding': '[top=50,left=50,bottom=50,right=50]',
+
+  // Hierarchical edges handling
+  'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
+};
+
+const PACKAGE_LAYOUT_OPTIONS = {
+  'elk.algorithm': 'layered',
+  'elk.direction': 'UP',
+  'elk.spacing.nodeNode': '50',
+  'elk.spacing.nodeNodeBetweenLayers': '70',
+  'elk.edgeRouting': 'ORTHOGONAL',
+  'elk.padding': '[top=50,left=20,bottom=20,right=20]',
+};
+
 /**
  * LayoutEngine: Uses ELK.js to calculate positions and routing for the diagram elements.
  */
@@ -13,128 +54,161 @@ export class LayoutEngine {
    * Performs the layout calculation.
    */
   public async layout(model: DiagramModel): Promise<LayoutResult> {
+    // Collect all node IDs that live inside packages so we don't add them twice
+    const nodesInPackages = new Set<string>();
+    this.collectPackageNodeIds(model.packages, nodesInPackages);
+
     const elkGraph: ElkNode = {
       id: 'root',
-      layoutOptions: {
-        'elk.algorithm': 'layered',
-        'elk.direction': 'DOWN',
-        'elk.spacing.nodeNode': '60',
-        'elk.layered.spacing.nodeNodeLayered': '60',
-        'elk.padding': '[top=50,left=50,bottom=50,right=50]',
-        'elk.edges.routing': 'ORTHOGONAL',
-        'elk.hierarchyHandling': 'INCLUDE_CHILDREN'
-      },
+      layoutOptions: ROOT_LAYOUT_OPTIONS,
       children: [
         ...model.packages.map(pkg => this.pkgToElk(pkg)),
         ...model.nodes
-          .filter(node => !this.isNodeInPackages(node, model.packages))
-          .map(node => this.toElkNode(node))
+          .filter(node => !nodesInPackages.has(node.id))
+          .map(node => this.toElkNode(node)),
       ],
-      edges: model.edges.map((edge, index) => this.toElkEdge(edge, index))
+      // IMPORTANT: only top-level edges go here.
+      // Edges between nodes inside the same package go inside that package node.
+      edges: this.buildTopLevelEdges(model),
     };
 
-    // ELK calculation
     const layoutedGraph = await elk.layout(elkGraph);
 
-    // Map results back to our model (recursive)
     this.applyLayout(model, layoutedGraph);
 
     return {
       model,
-      totalWidth: layoutedGraph.width || 0,
-      totalHeight: layoutedGraph.height || 0
+      totalWidth: layoutedGraph.width ?? 800,
+      totalHeight: layoutedGraph.height ?? 600,
     };
   }
 
+  // ── ELK graph builders ────────────────────────────────────────────────────
+
   private pkgToElk(pkg: DiagramPackage): ElkNode {
     return {
-      id: `pkg:${pkg.id || pkg.name}`,
-      layoutOptions: {
-        'elk.padding': '[top=40,left=20,bottom=20,right=20]',
-        'elk.spacing.nodeNode': '40'
-      },
-      children: pkg.children.map(child => {
-        if ('children' in child) return this.pkgToElk(child);
-        return this.toElkNode(child);
-      })
+      id: `pkg:${pkg.id ?? pkg.name}`,
+      layoutOptions: PACKAGE_LAYOUT_OPTIONS,
+      children: pkg.children.map(child =>
+        'children' in child ? this.pkgToElk(child) : this.toElkNode(child)
+      ),
+      // Edges whose both endpoints are inside this package belong here
+      edges: [], // populated in buildTopLevelEdges if needed (see note below)
     };
   }
 
   private toElkNode(node: DiagramNode): ElkNode {
     const { width, height } = measureNode(node);
-    return {
-      id: node.id,
-      width,
-      height
-    };
+    return { id: node.id, width, height };
   }
 
-  private toElkEdge(edge: DiagramEdge, index: number): ElkExtendedEdge {
-    return {
+  /**
+   * Builds the edge list for the root graph.
+   *
+   * ELK rule: an edge must be declared at the level of the LOWEST COMMON
+   * ANCESTOR of its source and target nodes. For simplicity (and because
+   * cross-package edges are the norm in class diagrams) we place ALL edges at
+   * the root level. ELK handles cross-hierarchy edges correctly when declared
+   * at the root.
+   */
+  private buildTopLevelEdges(model: DiagramModel): ElkExtendedEdge[] {
+    return model.edges.map((edge, index) => ({
       id: `e${index}`,
       sources: [edge.from],
-      targets: [edge.to]
-    };
+      targets: [edge.to],
+    }));
   }
+
+  // ── Layout application ────────────────────────────────────────────────────
 
   private applyLayout(model: DiagramModel, layoutedGraph: ElkNode): void {
-    const elkNodes = layoutedGraph.children || [];
-    const elkEdges = layoutedGraph.edges || [];
+    const elkNodes = layoutedGraph.children ?? [];
+    const elkEdges = layoutedGraph.edges ?? [];
 
-    // Map Nodes and Packages recursively
     this.processElkNodes(elkNodes, model, 0, 0);
-
-    // Map Edges (Waypoints) using ID matching
-    for (const elkEdge of elkEdges) {
-      if (!elkEdge.id || !elkEdge.id.startsWith('e')) continue;
-
-      const edgeIndex = parseInt(elkEdge.id.substring(1));
-      const edge = model.edges[edgeIndex];
-
-      if (edge && elkEdge.sections && elkEdge.sections.length > 0) {
-        const section = elkEdge.sections[0];
-        const waypoints = [];
-
-        // Start point
-        waypoints.push({ x: section.startPoint.x, y: section.startPoint.y });
-
-        // Bend points
-        if (section.bendPoints) {
-          for (const bp of section.bendPoints) {
-            waypoints.push({ x: bp.x, y: bp.y });
-          }
-        }
-
-        // End point
-        waypoints.push({ x: section.endPoint.x, y: section.endPoint.y });
-
-        edge.waypoints = waypoints;
-      }
-    }
+    this.processElkEdges(elkEdges, model);
   }
 
-  private processElkNodes(elkNodes: ElkNode[], model: DiagramModel, offsetX: number, offsetY: number): void {
+  /**
+   * Recursively maps ELK node positions back to our DiagramModel.
+   * offsetX/Y accumulate the parent's absolute position so that child
+   * positions (which ELK gives as relative to their parent) become absolute.
+   */
+  private processElkNodes(
+    elkNodes: ElkNode[],
+    model: DiagramModel,
+    offsetX: number,
+    offsetY: number,
+  ): void {
     for (const elkNode of elkNodes) {
+      const absX = (elkNode.x ?? 0) + offsetX;
+      const absY = (elkNode.y ?? 0) + offsetY;
+
       if (elkNode.id.startsWith('pkg:')) {
-        const pkgId = elkNode.id.replace('pkg:', '');
+        const pkgId = elkNode.id.slice('pkg:'.length);
         const pkg = this.findPackage(model.packages, pkgId);
         if (pkg) {
-          pkg.x = (elkNode.x || 0) + offsetX;
-          pkg.y = (elkNode.y || 0) + offsetY;
+          pkg.x = absX;
+          pkg.y = absY;
           pkg.width = elkNode.width;
           pkg.height = elkNode.height;
 
-          if (elkNode.children) {
-            this.processElkNodes(elkNode.children, model, pkg.x, pkg.y);
+          if (elkNode.children?.length) {
+            this.processElkNodes(elkNode.children, model, absX, absY);
           }
         }
       } else {
         const node = model.nodes.find(n => n.id === elkNode.id);
         if (node) {
-          node.x = (elkNode.x || 0) + offsetX;
-          node.y = (elkNode.y || 0) + offsetY;
+          node.x = absX;
+          node.y = absY;
           node.width = elkNode.width;
           node.height = elkNode.height;
+        }
+      }
+    }
+  }
+
+  /**
+   * Maps ELK edge sections (waypoints) back to DiagramEdge.
+   * ELK returns coordinates relative to the graph root, so no offset needed here.
+   */
+  private processElkEdges(elkEdges: ElkExtendedEdge[], model: DiagramModel): void {
+    for (const elkEdge of elkEdges) {
+      if (!elkEdge.id?.startsWith('e')) continue;
+
+      const edgeIndex = parseInt(elkEdge.id.slice(1), 10);
+      const edge = model.edges[edgeIndex];
+      if (!edge) continue;
+
+      const sections = (elkEdge as any).sections;
+      if (!sections?.length) continue;
+
+      const section = sections[0];
+      const waypoints: { x: number; y: number }[] = [];
+
+      waypoints.push({ x: section.startPoint.x, y: section.startPoint.y });
+
+      for (const bp of section.bendPoints ?? []) {
+        waypoints.push({ x: bp.x, y: bp.y });
+      }
+
+      waypoints.push({ x: section.endPoint.x, y: section.endPoint.y });
+
+      edge.waypoints = waypoints;
+    }
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  /** Collects all node IDs that are nested inside any package (recursively). */
+  private collectPackageNodeIds(packages: DiagramPackage[], out: Set<string>): void {
+    for (const pkg of packages) {
+      for (const child of pkg.children) {
+        if ('children' in child) {
+          this.collectPackageNodeIds([child], out);
+        } else {
+          out.add(child.id);
         }
       }
     }
@@ -143,20 +217,10 @@ export class LayoutEngine {
   private findPackage(packages: DiagramPackage[], id: string): DiagramPackage | undefined {
     for (const pkg of packages) {
       if (pkg.id === id || pkg.name === id) return pkg;
-      const nestedPackages = pkg.children.filter((c): c is DiagramPackage => 'children' in c);
-      const found = this.findPackage(nestedPackages, id);
+      const nested = pkg.children.filter((c): c is DiagramPackage => 'children' in c);
+      const found = this.findPackage(nested, id);
       if (found) return found;
     }
     return undefined;
-  }
-
-  private isNodeInPackages(node: DiagramNode, packages: DiagramPackage[]): boolean {
-    for (const pkg of packages) {
-      const hasNode = pkg.children.some(child => !('children' in child) && child.id === node.id);
-      if (hasNode) return true;
-      const nestedPackages = pkg.children.filter((c): c is DiagramPackage => 'children' in c);
-      if (this.isNodeInPackages(node, nestedPackages)) return true;
-    }
-    return false;
   }
 }
