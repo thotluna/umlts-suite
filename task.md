@@ -26,7 +26,7 @@
     - [x] Modificar `SemanticAnalyzer` para propagar visibilidad
     - [x] Implementar fase de "Deduplicación" en `SemanticAnalyzer`
     - [x] Adaptar renderer (si aplica) para mostrar visibilidad en roles
-- [ ] **BUG**: Etiquetas de roles se cortan en el renderizado (ej: `+ representación` -> `+ represent`)
+- [x] **BUG**: Etiquetas de roles se cortan en el renderizado (ej: `+ representación` -> `+ represent`)
 - [ ] **BUG**: Fallo al nombrar una clase abstracta en línea (reportado por usuario)
 - [ ] **FEAT**: Implementación completa de Clases Activas (Pendiente de completar)
 
