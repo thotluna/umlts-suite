@@ -34,11 +34,11 @@ Todas las relaciones deben estar precedidas por el carácter de intención `>`. 
 
 | Tipo de Relación | Símbolos | Palabras Clave | Significado UML |
 | :--- | :--- | :--- | :--- |
-| **Herencia** | `>>` | `>extends` | Generalización (Sólida + Triángulo) |
-| **Implementación** | `>I` | `>implements` | Realización (Punteada + Triángulo) |
+| **Herencia** | `>>` | `>extends` | Generalización (Single only) |
+| **Implementación** | `>I` | `>implements` | Realización (Chained `>I`) |
 | **Composición** | `>*` | `>comp` | Composición (Sólida + Diamante Relleno) |
 | **Agregación** | `>+` | `>agreg` | Agregación (Sólida + Diamante Vacío) |
-| **Asociación** | `>-` | `>asoc` | Asociación (Sólida + Flecha Abierta) |
+| **Dependencia** | `>-` | `>use` | Uso (Línea Punteada + Flecha Abierta) |
 
 
 
@@ -46,7 +46,7 @@ Todas las relaciones deben estar precedidas por el carácter de intención `>`. 
 
 
 ## 5. Ubicación de Relaciones
-1. **En Cabecera**: `class A >> B { ... }`
+1. **En Cabecera**: `class A >> B >I C >I D { ... }`
 2. **En Cuerpo (Atributo)**: `items: >* Clase`
 3. **En Métodos (Parámetros)**: `+ set(p: >- Clase)`
 

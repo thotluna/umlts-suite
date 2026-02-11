@@ -1,0 +1,45 @@
+// Definición del sistema Automovil mostrando todas las capacidades del DSL
+
+*class Vehiculo<T> {
+    - motor: >* T
+    + getMotor(): T
+}
+
+interface IEncendible {
+    + encender()
+}
+
+interface IControlable {
+    + girar(direccion: string)
+}
+
+package Suministros {
+    class Gasolina {
+        - octanaje: int
+    }
+}
+
+class MotorX {
+    - caballos: int
+}
+
+class Rueda {
+    - presion: float
+}
+
+// La clase Automovil demuestra:
+// 1. Herencia simple con genéricos (>> Vehiculo<MotorX>)
+// 2. Implementación múltiple (>I interface1, interface2)
+// 3. Composición de miembros (- motor)
+// 4. Agregación de miembros (- ruedas)
+// 5. Dependencia de uso en parámetros (+ repostar)
+// 6. Nombres cualificados (Suministros.Gasolina)
+
+class Automovil >> Vehiculo<MotorX> >I IEncendible >I IControlable {
+    - motor: >* MotorX
+    - ruedas: >+ Rueda[4]
+    
+    + encender()
+    + girar(d: string)
+    + repostar(c: >- Suministros.Gasolina)
+}

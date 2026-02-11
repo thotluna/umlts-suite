@@ -25,11 +25,11 @@ identifier     ::= (alpha | "_") (alpha | digit | "_" | ".")*
 ## 3. Entidades (Estructuras de Datos)
 
 ```ebnf
-entity_def     ::= entity_type identifier [relationship_list] body_opt
+entity_def     ::= entity_type identifier [inheritance_opt] [implementation_chain] body_opt
 
-relationship_list ::= relationship_item ("," relationship_item)*
+inheritance_opt ::= (">>" | ">extends") identifier
 
-relationship_item ::= relationship_type identifier
+implementation_chain ::= ((">I" | ">implements") identifier)+
 
 entity_type    ::= "class" | "interface" | "enum"
 
@@ -56,7 +56,7 @@ param          ::= identifier ":" type
 
 type           ::= identifier | inline_enum
 
-relationship_mark ::= ">*" | ">+" | ">-" | ">>" | ">I"
+relationship_mark ::= ">*" | ">+" | ">>" | ">I"
 ```
 
 ## 5. Relaciones
@@ -72,7 +72,7 @@ relationship_type   ::= ">>" | ">extends"
                       | ">I" | ">implements"
                       | ">*" | ">comp"
                       | ">+" | ">agreg"
-                      | ">-" | ">asoc"
+                      | ">-" | ">use"
 ```
 
 ## 6. Multiplicidad y Enums
