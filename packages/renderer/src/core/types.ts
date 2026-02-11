@@ -57,6 +57,7 @@ export interface IRRelationship {
   to: string;
   type: IRRelType;
   label?: string;
+  visibility?: IRVisibility;
   fromMultiplicity?: string;
   toMultiplicity?: string;
   line?: number;
@@ -122,6 +123,7 @@ export interface DiagramEdge {
   to: string;
   type: IRRelType;
   label?: string;
+  visibility?: string;
   fromMultiplicity?: string;
   toMultiplicity?: string;
   waypoints?: { x: number; y: number }[]; // Calculated by ELK

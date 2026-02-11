@@ -74,6 +74,7 @@ export interface IRRelationship {
   fromMultiplicity?: string | undefined;
   toMultiplicity?: string | undefined;
   label?: string;
+  visibility?: IRVisibility;
   docs?: string | undefined;
   line?: number;
   column?: number;

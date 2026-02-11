@@ -46,6 +46,9 @@ export class SemanticAnalyzer {
     // Paso 3: Inferencia Automática (Basado en tipos de miembros)
     this.inferRelationships();
 
+    // Paso 4: Limpiar miembros redundantes (UML Source of Truth)
+    this.cleanupRedundantMembers();
+
     return {
       entities: this.symbolTable.getAllEntities(),
       relationships: this.relationships
@@ -65,7 +68,7 @@ export class SemanticAnalyzer {
         if (member.type) {
           if (member.relationshipKind) {
             const relType = mapRelationshipType(member.relationshipKind);
-            this.inferFromType(entity.id, member.type, entity.namespace, member.name, relType, member.multiplicity);
+            this.inferFromType(entity.id, member.type, entity.namespace, member.name, relType, member.multiplicity, member.visibility);
           }
         }
 
@@ -74,7 +77,7 @@ export class SemanticAnalyzer {
           member.parameters.forEach(param => {
             if (param.relationshipKind) {
               const relType = mapRelationshipType(param.relationshipKind);
-              this.inferFromType(entity.id, param.type, entity.namespace, param.name, relType);
+              this.inferFromType(entity.id, param.type, entity.namespace, param.name, relType, undefined, IRVisibility.PUBLIC); // Params default to public for now
             }
           });
         }
@@ -88,7 +91,8 @@ export class SemanticAnalyzer {
     fromNamespace?: string,
     label?: string,
     relType: IRRelationshipType = IRRelationshipType.ASSOCIATION,
-    multiplicity?: string
+    multiplicity?: string,
+    visibility?: IRVisibility
   ): void {
     const primitives = [
       'string', 'number', 'boolean', 'void', 'any', 'unknown', 'never', 'object',
@@ -98,7 +102,8 @@ export class SemanticAnalyzer {
     if (primitives.includes(typeName.toLowerCase())) return;
 
     const baseType = typeName.replace(/[\[\]]/g, '');
-    const toFQN = this.resolveOrRegisterImplicit(baseType, fromNamespace || '');
+    const cleanBaseType = baseType.includes('<') ? baseType.substring(0, baseType.indexOf('<')) : baseType;
+    const toFQN = this.resolveOrRegisterImplicit(cleanBaseType, fromNamespace || '');
 
     if (this.shouldCreateInferredRel(fromFQN, toFQN, relType)) {
       this.relationships.push({
@@ -106,7 +111,8 @@ export class SemanticAnalyzer {
         to: toFQN,
         type: relType,
         label: label || '',
-        toMultiplicity: multiplicity
+        toMultiplicity: multiplicity,
+        visibility: visibility
       });
     }
   }
@@ -115,11 +121,13 @@ export class SemanticAnalyzer {
    * Resuelve un nombre y si no existe en la tabla de símbolos, lo registra como implícito.
    */
   public resolveOrRegisterImplicit(name: string, namespace: string): string {
-    const fqn = this.symbolTable.resolveFQN(name, namespace);
+    // Si el nombre tiene genéricos (ej: List<User>), resolvemos al tipo base (List)
+    const baseName = name.includes('<') ? name.substring(0, name.indexOf('<')) : name;
+
+    const fqn = this.symbolTable.resolveFQN(baseName, namespace);
 
     if (!this.symbolTable.has(fqn)) {
-      // Extraer nombre corto si el nombre original incluía puntos
-      const shortName = name.includes('.') ? name.substring(name.lastIndexOf('.') + 1) : name;
+      const { name: shortName, namespace: entityNamespace } = getNamespaceAndName(fqn);
 
       const entity: IREntity = {
         id: fqn,
@@ -128,15 +136,9 @@ export class SemanticAnalyzer {
         members: [],
         isImplicit: true,
         isAbstract: false,
-        isActive: false
+        isActive: false,
+        namespace: entityNamespace
       };
-
-      // Namespace se extrae del FQN resuelto
-      if (fqn.includes('.')) {
-        entity.namespace = fqn.substring(0, fqn.lastIndexOf('.'));
-      } else if (namespace) {
-        entity.namespace = namespace;
-      }
 
       this.symbolTable.register(entity);
     }
@@ -158,6 +160,31 @@ export class SemanticAnalyzer {
     }
 
     return true;
+  }
+
+  /**
+   * Elimina de las entidades aquellos atributos que ya están representados
+   * como una relación estructural (Composición, Agregación, etc.).
+   */
+  private cleanupRedundantMembers(): void {
+    const entities = this.symbolTable.getAllEntities();
+
+    entities.forEach(entity => {
+      // Solo nos importan los miembros que originan una relación desde esta entidad
+      const outgoingRels = this.relationships.filter(rel => rel.from === entity.id);
+
+      entity.members = entity.members.filter(member => {
+        // Buscamos si hay una relación que "cubra" este miembro
+        // Un miembro es redundante si su nombre coincide con el label de una relación saliente
+        const isRedundant = outgoingRels.some(rel =>
+          rel.label === member.name &&
+          rel.type !== IRRelationshipType.INHERITANCE &&
+          rel.type !== IRRelationshipType.IMPLEMENTATION
+        );
+
+        return !isRedundant;
+      });
+    });
   }
 }
 
@@ -185,8 +212,7 @@ class DeclarationVisitor implements ASTVisitor {
     const currentNS = this.currentNamespace.join('.');
     const fqn = currentNS ? (node.name.includes('.') ? node.name : `${currentNS}.${node.name}`) : node.name;
 
-    // Extraer short name si el nombre original incluía puntos
-    const shortName = node.name.includes('.') ? node.name.substring(node.name.lastIndexOf('.') + 1) : node.name;
+    const { name: shortName, namespace: entityNamespace } = getNamespaceAndName(fqn);
 
     const entity: IREntity = {
       id: fqn,
@@ -199,15 +225,9 @@ class DeclarationVisitor implements ASTVisitor {
       typeParameters: node.typeParameters,
       docs: node.docs,
       line: node.line,
-      column: node.column
+      column: node.column,
+      namespace: entityNamespace
     };
-
-    // Namespace se extrae del FQN resuelto
-    if (fqn.includes('.')) {
-      entity.namespace = fqn.substring(0, fqn.lastIndexOf('.'));
-    } else if (currentNS) {
-      entity.namespace = currentNS;
-    }
 
     this.symbolTable.register(entity);
   }
@@ -333,4 +353,26 @@ function mapRelationshipType(kind: string): IRRelationshipType {
   if (k.startsWith('>-')) return IRRelationshipType.DEPENDENCY;
 
   return IRRelationshipType.ASSOCIATION;
+}
+
+function getNamespaceAndName(fqn: string): { namespace?: string; name: string } {
+  let lastDotIndex = -1;
+  let depth = 0;
+
+  for (let i = 0; i < fqn.length; i++) {
+    if (fqn[i] === '<') depth++;
+    else if (fqn[i] === '>') depth--;
+    else if (fqn[i] === '.' && depth === 0) {
+      lastDotIndex = i;
+    }
+  }
+
+  if (lastDotIndex === -1) {
+    return { name: fqn };
+  }
+
+  return {
+    namespace: fqn.substring(0, lastDotIndex),
+    name: fqn.substring(lastDotIndex + 1)
+  };
 }
