@@ -75,6 +75,7 @@ export interface IREntity {
   /** True if the entity was generated automatically (e.g. for unknown types). */
   isImplicit: boolean;
   isAbstract: boolean;
+  isStatic: boolean;
   /** True if the class has a thread of execution (active class). */
   isActive: boolean;
   /** Dot-separated namespace or package path. */
@@ -108,6 +109,7 @@ export interface DiagramNode {
   methods: IRMember[];
   isImplicit: boolean;
   isAbstract: boolean;
+  isStatic: boolean;
   isActive: boolean;
   namespace?: string;
   typeParameters: string[];

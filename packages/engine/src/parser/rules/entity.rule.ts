@@ -17,15 +17,17 @@ export class EntityRule implements StatementRule {
     const pos = context.getPosition();
     let isActive = context.match(TokenType.KW_ACTIVE, TokenType.MOD_ACTIVE);
     let isAbstract = context.match(TokenType.KW_ABSTRACT, TokenType.MOD_ABSTRACT);
+    let isStatic = context.match(TokenType.KW_STATIC, TokenType.MOD_STATIC);
 
     if (!context.match(TokenType.KW_CLASS, TokenType.KW_INTERFACE, TokenType.KW_ENUM)) {
       context.rollback(pos);
       return null;
     }
 
-    // Support modifiers after keyword (e.g. class * MyClass)
+    // Support modifiers after keyword (e.g. class * MyClass or class $ MyClass)
     if (!isActive) isActive = context.match(TokenType.KW_ACTIVE, TokenType.MOD_ACTIVE);
     if (!isAbstract) isAbstract = context.match(TokenType.KW_ABSTRACT, TokenType.MOD_ABSTRACT);
+    if (!isStatic) isStatic = context.match(TokenType.KW_STATIC, TokenType.MOD_STATIC);
 
     const token = context.prev();
     let type: any = ASTNodeType.CLASS;
@@ -131,6 +133,7 @@ export class EntityRule implements StatementRule {
       type,
       name: nameToken.value,
       isAbstract,
+      isStatic,
       isActive,
       typeParameters,
       docs,

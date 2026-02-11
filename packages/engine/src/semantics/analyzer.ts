@@ -77,7 +77,7 @@ export class SemanticAnalyzer {
           member.parameters.forEach(param => {
             if (param.relationshipKind) {
               const relType = mapRelationshipType(param.relationshipKind);
-              this.inferFromType(entity.id, param.type, entity.namespace, param.name, relType, undefined, IRVisibility.PUBLIC); // Params default to public for now
+              this.inferFromType(entity.id, param.type, entity.namespace, param.name, relType, undefined, IRVisibility.PUBLIC);
             }
           });
         }
@@ -112,7 +112,7 @@ export class SemanticAnalyzer {
         type: relType,
         label: label || '',
         toMultiplicity: multiplicity,
-        visibility: visibility
+        visibility: visibility || IRVisibility.PUBLIC
       });
     }
   }
@@ -120,13 +120,14 @@ export class SemanticAnalyzer {
   /**
    * Resuelve un nombre y si no existe en la tabla de símbolos, lo registra como implícito.
    */
-  public resolveOrRegisterImplicit(name: string, namespace: string): string {
+  public resolveOrRegisterImplicit(name: string, namespace: string, modifiers?: { isAbstract?: boolean, isStatic?: boolean, isActive?: boolean }): string {
     // Si el nombre tiene genéricos (ej: List<User>), resolvemos al tipo base (List)
     const baseName = name.includes('<') ? name.substring(0, name.indexOf('<')) : name;
 
     const fqn = this.symbolTable.resolveFQN(baseName, namespace);
+    const existing = this.symbolTable.get(fqn);
 
-    if (!this.symbolTable.has(fqn)) {
+    if (!existing) {
       const { name: shortName, namespace: entityNamespace } = getNamespaceAndName(fqn);
 
       const entity: IREntity = {
@@ -135,12 +136,18 @@ export class SemanticAnalyzer {
         type: IREntityType.CLASS,
         members: [],
         isImplicit: true,
-        isAbstract: false,
-        isActive: false,
+        isAbstract: modifiers?.isAbstract || false,
+        isStatic: modifiers?.isStatic || false,
+        isActive: modifiers?.isActive || false,
         namespace: entityNamespace
       };
 
       this.symbolTable.register(entity);
+    } else if (existing.isImplicit && modifiers) {
+      // Si la entidad es implícita y traemos nuevos modificadores, los actualizamos
+      if (modifiers.isAbstract) existing.isAbstract = true;
+      if (modifiers.isStatic) existing.isStatic = true;
+      if (modifiers.isActive) existing.isActive = true;
     }
 
     return fqn;
@@ -221,6 +228,7 @@ class DeclarationVisitor implements ASTVisitor {
       members: this.mapMembers(node.body || []),
       isImplicit: false,
       isAbstract: (node.type === ASTNodeType.CLASS) && (node as any).isAbstract === true,
+      isStatic: (node.type === ASTNodeType.CLASS) && (node as any).isStatic === true,
       isActive: node.isActive || false,
       typeParameters: node.typeParameters,
       docs: node.docs,
@@ -301,15 +309,15 @@ class RelationshipVisitor implements ASTVisitor {
     const fromFQN = this.symbolTable.resolveFQN(node.name, namespace);
 
     node.relationships.forEach(rel => {
-      const toFQN = this.analyzer.resolveOrRegisterImplicit(rel.target, namespace);
+      const toFQN = this.analyzer.resolveOrRegisterImplicit(rel.target, namespace, { isAbstract: rel.targetIsAbstract });
       this.addRelationship(fromFQN, toFQN, rel.kind);
     });
   }
 
   visitRelationship(node: RelationshipNode): void {
     const namespace = this.currentNamespace.join('.');
-    const fromFQN = this.analyzer.resolveOrRegisterImplicit(node.from, namespace);
-    const toFQN = this.analyzer.resolveOrRegisterImplicit(node.to, namespace);
+    const fromFQN = this.analyzer.resolveOrRegisterImplicit(node.from, namespace, { isAbstract: node.fromIsAbstract });
+    const toFQN = this.analyzer.resolveOrRegisterImplicit(node.to, namespace, { isAbstract: node.toIsAbstract });
 
     const irRel: IRRelationship = {
       from: fromFQN,

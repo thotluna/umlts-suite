@@ -27,8 +27,8 @@
     - [x] Implementar fase de "Deduplicación" en `SemanticAnalyzer`
     - [x] Adaptar renderer (si aplica) para mostrar visibilidad en roles
 - [x] **BUG**: Etiquetas de roles se cortan en el renderizado (ej: `+ representación` -> `+ represent`)
-- [ ] **BUG**: Fallo al nombrar una clase abstracta en línea (reportado por usuario)
-- [ ] **FEAT**: Implementación completa de Clases Activas (Pendiente de completar)
+- [x] **BUG**: Fallo al nombrar una clase abstracta en línea (reportado por usuario)
+- [x] **FEAT**: Implementación completa de Clases Estáticas y Activas
 
 ## Optimización del Layout
 - [x] Investigar parámetros de ELK para compactación

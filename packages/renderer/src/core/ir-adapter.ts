@@ -61,6 +61,7 @@ export class IRAdapter {
       methods,
       isImplicit: entity.isImplicit,
       isAbstract: entity.isAbstract,
+      isStatic: entity.isStatic,
       isActive: entity.isActive,
       namespace: entity.namespace,
       typeParameters: entity.typeParameters || [],

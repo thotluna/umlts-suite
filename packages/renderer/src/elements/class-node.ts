@@ -56,6 +56,15 @@ export function renderClassNode(node: DiagramNode, theme: Theme): string {
       'font-size': theme.fontSizeSmall
     }, `«abstract»`);
     currentY += 14;
+  } else if (node.isStatic) {
+    headerContent += svg.text({
+      x: x + width / 2,
+      y: currentY,
+      'text-anchor': 'middle',
+      fill: theme.nodeHeaderText,
+      'font-size': theme.fontSizeSmall
+    }, `«static»`);
+    currentY += 14;
   }
 
   headerContent += svg.text({

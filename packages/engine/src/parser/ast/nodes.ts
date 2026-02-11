@@ -44,6 +44,7 @@ export interface EntityNode extends ASTNode {
   relationships: RelationshipHeaderNode[];
   body: MemberNode[] | undefined;
   isAbstract: boolean;
+  isStatic: boolean;
   isActive: boolean;
   typeParameters?: string[] | undefined;
 }
@@ -89,10 +90,10 @@ export interface ParameterNode extends ASTNode {
 export interface RelationshipNode extends ASTNode {
   type: ASTNodeType.RELATIONSHIP;
   from: string;
-  fromIsAbstract?: boolean;
+  fromIsAbstract: boolean;
   fromMultiplicity: string | undefined;
   to: string;
-  toIsAbstract?: boolean;
+  toIsAbstract: boolean;
   toMultiplicity: string | undefined;
   kind: string;
   label: string | undefined;

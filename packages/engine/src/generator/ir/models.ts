@@ -44,6 +44,7 @@ export interface IREntity {
   members: IRMember[];
   isImplicit: boolean;
   isAbstract: boolean;
+  isStatic: boolean;
   isActive: boolean;
   typeParameters?: string[] | undefined;
   namespace?: string;
