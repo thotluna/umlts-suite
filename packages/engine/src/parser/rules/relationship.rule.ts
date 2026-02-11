@@ -41,6 +41,16 @@ export class RelationshipRule implements StatementRule {
 
       const toIsAbstract = context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT);
       const toToken = context.consume(TokenType.IDENTIFIER, "Se esperaba el nombre del objetivo de la relación");
+      let to = toToken.value;
+
+      // Soporte para genéricos en el destino de la relación: B<T>
+      if (context.match(TokenType.LT)) {
+        to += '<';
+        while (!context.check(TokenType.GT) && !context.isAtEnd()) {
+          to += context.advance().value;
+        }
+        to += context.consume(TokenType.GT, "Se esperaba '>'").value;
+      }
 
       let label: string | undefined = undefined;
       if (context.match(TokenType.COLON)) {
@@ -52,7 +62,7 @@ export class RelationshipRule implements StatementRule {
         from: fromToken.value,
         fromIsAbstract,
         fromMultiplicity,
-        to: toToken.value,
+        to, // Ahora usamos la variable 'to' que incluye genéricos
         toIsAbstract,
         toMultiplicity,
         kind,
