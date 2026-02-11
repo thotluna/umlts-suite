@@ -147,7 +147,7 @@ export class LayoutEngine {
     const elkEdges = layoutedGraph.edges ?? [];
 
     this.processElkNodes(elkNodes, model, 0, 0);
-    this.processElkEdges(elkEdges, model);
+    this.processElkEdges(layoutedGraph, model);
   }
 
   /**
@@ -192,15 +192,23 @@ export class LayoutEngine {
 
   /**
    * Maps ELK edge sections (waypoints) back to DiagramEdge.
-   * ELK returns coordinates relative to the graph root, so no offset needed here.
+   * Logic: ELK returns coordinates relative to the node that contains the edge.
+   * Since we put all edges at the root, they should be relative to the root (0,0).
+   * HOWEVER, if ELK moves an edge inside a package during layout or if we change
+   * where edges are declared, we need to be robust.
    */
-  private processElkEdges(elkEdges: ElkExtendedEdge[], model: DiagramModel): void {
-    for (const elkEdge of elkEdges) {
+  private processElkEdges(root: ElkNode, model: DiagramModel): void {
+    const allEdges = this.collectAllElkEdges(root);
+
+    for (const elkEdge of allEdges) {
       if (!elkEdge.id?.startsWith('e')) continue;
 
       const edgeIndex = parseInt(elkEdge.id.slice(1), 10);
       const edge = model.edges[edgeIndex];
       if (!edge) continue;
+
+      // Find the absolute offset of the container where this edge lives
+      const offset = this.getElkEdgeOffset(root, elkEdge.id);
 
       const sections = (elkEdge as any).sections;
       if (!sections?.length) continue;
@@ -208,26 +216,57 @@ export class LayoutEngine {
       const section = sections[0];
       const waypoints: { x: number; y: number }[] = [];
 
-      waypoints.push({ x: section.startPoint.x, y: section.startPoint.y });
+      waypoints.push({
+        x: section.startPoint.x + offset.x,
+        y: section.startPoint.y + offset.y
+      });
 
       for (const bp of section.bendPoints ?? []) {
-        waypoints.push({ x: bp.x, y: bp.y });
+        waypoints.push({
+          x: bp.x + offset.x,
+          y: bp.y + offset.y
+        });
       }
 
-      waypoints.push({ x: section.endPoint.x, y: section.endPoint.y });
+      waypoints.push({
+        x: section.endPoint.x + offset.x,
+        y: section.endPoint.y + offset.y
+      });
 
       edge.waypoints = waypoints;
 
-      // Capture label position if ELK provided it
       if (elkEdge.labels?.[0]) {
         edge.labelPos = {
-          x: elkEdge.labels[0].x ?? 0,
-          y: elkEdge.labels[0].y ?? 0
+          x: (elkEdge.labels[0].x ?? 0) + offset.x,
+          y: (elkEdge.labels[0].y ?? 0) + offset.y
         };
         edge.labelWidth = elkEdge.labels[0].width;
         edge.labelHeight = elkEdge.labels[0].height;
       }
     }
+  }
+
+  /** Recursively collects all edges from the ELK graph. */
+  private collectAllElkEdges(node: ElkNode): ElkExtendedEdge[] {
+    let edges = node.edges || [];
+    for (const child of node.children || []) {
+      edges = edges.concat(this.collectAllElkEdges(child));
+    }
+    return edges;
+  }
+
+  /** Finds the absolute offset (x, y) of the node that owns the given edge ID. */
+  private getElkEdgeOffset(node: ElkNode, edgeId: string, currentX = 0, currentY = 0): { x: number; y: number } {
+    if (node.edges?.some(e => e.id === edgeId)) {
+      return { x: currentX, y: currentY };
+    }
+
+    for (const child of node.children || []) {
+      const found = this.getElkEdgeOffset(child, edgeId, currentX + (child.x ?? 0), currentY + (child.y ?? 0));
+      if (found.x !== -1) return found;
+    }
+
+    return { x: -1, y: -1 };
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
