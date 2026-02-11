@@ -5,8 +5,8 @@ import { DiagramNode } from '../core/types';
  * Approximate constants for text measurement without a real DOM.
  * These values are calibrated for a standard monospace font at 13px.
  */
-const CHAR_WIDTH = 7.8; // Average width of a character in pixels
-const LINE_HEIGHT = 24; // Height of each member line
+const CHAR_WIDTH = 10.0; // Overestimate to force ELK clearance
+const LINE_HEIGHT = 28; // Slightly more air for labels
 const HEADER_HEIGHT = 32; // Height of the entity header
 const PADDING_BOTTOM = 8;
 const MIN_WIDTH = 160;
@@ -52,4 +52,15 @@ export function measureNode(node: DiagramNode): { width: number, height: number 
   const height = HEADER_HEIGHT + (memberCount * LINE_HEIGHT) + sectionDividerHeight + PADDING_BOTTOM;
 
   return { width, height };
+}
+
+/**
+ * Approximates the dimensions of a single line of text.
+ */
+export function measureText(text: string, fontSize: number = 12): { width: number, height: number } {
+  const scale = fontSize / 13; // CHAR_WIDTH is calibrated for 13px
+  return {
+    width: Math.ceil(text.length * CHAR_WIDTH * scale),
+    height: Math.ceil(LINE_HEIGHT * scale)
+  };
 }

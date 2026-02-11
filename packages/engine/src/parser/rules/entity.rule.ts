@@ -15,13 +15,17 @@ import type { StatementRule } from '../rule.types';
 export class EntityRule implements StatementRule {
   public parse(context: ParserContext): EntityNode | null {
     const pos = context.getPosition();
-    const isActive = context.match(TokenType.KW_ACTIVE, TokenType.MOD_ACTIVE);
-    const isAbstract = context.match(TokenType.KW_ABSTRACT, TokenType.MOD_ABSTRACT);
+    let isActive = context.match(TokenType.KW_ACTIVE, TokenType.MOD_ACTIVE);
+    let isAbstract = context.match(TokenType.KW_ABSTRACT, TokenType.MOD_ABSTRACT);
 
     if (!context.match(TokenType.KW_CLASS, TokenType.KW_INTERFACE, TokenType.KW_ENUM)) {
       context.rollback(pos);
       return null;
     }
+
+    // Support modifiers after keyword (e.g. class * MyClass)
+    if (!isActive) isActive = context.match(TokenType.KW_ACTIVE, TokenType.MOD_ACTIVE);
+    if (!isAbstract) isAbstract = context.match(TokenType.KW_ABSTRACT, TokenType.MOD_ABSTRACT);
 
     const token = context.prev();
     let type: any = ASTNodeType.CLASS;

@@ -32,7 +32,8 @@ const ROOT_LAYOUT_OPTIONS = {
   // Edge labels configuration
   'elk.edgeLabels.placement': 'CENTER',
   'elk.edgeLabels.sideSelection': 'ALWAYS_UP',
-  'elk.edgeLabels.spacing': '20',
+  'elk.edgeLabels.spacing': '30',
+  'elk.layered.spacing.edgeLabel': '40',
 
   // Outer padding
   'elk.padding': '[top=50,left=50,bottom=50,right=50]',
