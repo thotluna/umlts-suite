@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { LexerFactory } from '../lexer/lexer.factory';
-import { ParserFactory } from './parser.factory';
-import { ASTNodeType } from './ast/nodes';
+import { LexerFactory } from '../../lexer/lexer.factory';
+import { ParserFactory } from '../parser.factory';
+import { ASTNodeType } from '../ast/nodes';
 
 describe('Parser', () => {
   it('should parse a simple class', () => {

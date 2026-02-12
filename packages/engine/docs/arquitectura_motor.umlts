@@ -1,4 +1,5 @@
 package Lexer {
+
     interface ILexer {
         + tokenize(): >- Token[]
     }
@@ -279,18 +280,20 @@ package Generator {
 // Relaciones entre componentes
 Semantics.SemanticAnalyzer >- Generator.IR.IRDiagram
 
-    interface ParseResult {
-        + diagram: >- Generator.IR.IRDiagram
-        + diagnostics: Diagnostic[]
-        + isValid: boolean
+    package Core {
+        interface ParseResult {
+            + diagram: >- Generator.IR.IRDiagram
+            + diagnostics: Diagnostic[]
+            + isValid: boolean
+        }
+
+        class UMLEngine {
+            + parse(source: string): >- ParseResult
+            + getTokens(source: string): any[]
+        }
     }
 
-    class UMLEngine {
-        + parse(source: string): >- ParseResult
-        + getTokens(source: string): any[]
-    }
-
-// Relaciones de orquestación (UMLEngine como fachada)
-UMLEngine >- Lexer.LexerFactory
-UMLEngine >- Parser.ParserFactory
-UMLEngine >- Semantics.SemanticAnalyzer
+// Relaciones de orquestación (Desde Core hacia el resto)
+Core.UMLEngine >- Lexer.LexerFactory
+Core.UMLEngine >- Parser.ParserFactory
+Core.UMLEngine >- Semantics.SemanticAnalyzer
