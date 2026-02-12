@@ -8,7 +8,16 @@ export enum ASTNodeType {
   ATTRIBUTE = 'Attribute',
   PARAMETER = 'Parameter',
   RELATIONSHIP = 'Relationship',
-  COMMENT = 'Comment'
+  COMMENT = 'Comment',
+  TYPE = 'Type'
+}
+
+export interface TypeNode extends ASTNode {
+  type: ASTNodeType.TYPE;
+  kind: 'simple' | 'generic' | 'array';
+  raw: string;
+  name: string;
+  arguments?: TypeNode[];
 }
 
 export interface ASTNode {
@@ -63,7 +72,7 @@ export interface AttributeNode extends ASTNode {
   name: string;
   visibility: string;
   isStatic: boolean;
-  typeAnnotation: string;
+  typeAnnotation: TypeNode;
   multiplicity: string | undefined;
   relationshipKind?: string | undefined;
   targetIsAbstract?: boolean;
@@ -76,13 +85,15 @@ export interface MethodNode extends ASTNode {
   isStatic: boolean;
   isAbstract: boolean;
   parameters: ParameterNode[];
-  returnType: string | undefined;
+  returnType: TypeNode;
+  returnRelationshipKind?: string | undefined;
+  returnTargetIsAbstract?: boolean;
 }
 
 export interface ParameterNode extends ASTNode {
   type: ASTNodeType.PARAMETER;
   name: string;
-  typeAnnotation: string;
+  typeAnnotation: TypeNode;
   relationshipKind?: string | undefined;
   targetIsAbstract?: boolean;
 }

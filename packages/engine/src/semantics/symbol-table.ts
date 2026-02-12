@@ -51,7 +51,22 @@ export class SymbolTable {
    * Resuelve un nombre simple a un FQN dentro de un contexto de namespace con búsqueda ascendente.
    */
   public resolveFQN(name: string, currentNamespace?: string): string {
-    if (!currentNamespace || name.includes('.')) return name;
+    if (!currentNamespace) return name;
+
+    // Si el nombre ya contiene un punto, es un FQN (Fully Qualified Name)
+    // Ejemplos: core.DiagramNode, utils.SVGAttr
+    // En este caso, lo tratamos como absoluto y verificamos si existe
+    if (name.includes('.')) {
+      // Si existe exactamente como está, lo devolvemos
+      if (this.has(name)) return name;
+
+      // Si no existe, lo devolvemos tal cual para que se cree como implícito
+      // con ese FQN exacto (no lo concatenamos con el namespace actual)
+      return name;
+    }
+
+    // Si el nombre ya es un FQN absoluto que existe, lo devolvemos
+    if (this.has(name)) return name;
 
     const parts = currentNamespace.split('.');
 

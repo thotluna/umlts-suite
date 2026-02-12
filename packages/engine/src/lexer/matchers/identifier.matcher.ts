@@ -4,7 +4,7 @@ import type { Token } from '../token.types';
 import { TokenType } from '../token.types';
 
 export class IdentifierMatcher implements TokenMatcher {
-  private readonly KEYWORDS: Record<string, TokenType> = {
+  private readonly KEYWORDS: Record<string, TokenType> = Object.assign(Object.create(null), {
     'class': TokenType.KW_CLASS,
     'interface': TokenType.KW_INTERFACE,
     'enum': TokenType.KW_ENUM,
@@ -16,7 +16,7 @@ export class IdentifierMatcher implements TokenMatcher {
     'static': TokenType.KW_STATIC,
     'abstract': TokenType.KW_ABSTRACT,
     'active': TokenType.KW_ACTIVE,
-  };
+  });
 
   public match(reader: LexerReader): Token | null {
     const char = reader.peek();

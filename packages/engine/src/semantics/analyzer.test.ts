@@ -72,4 +72,30 @@ describe('SemanticAnalyzer', () => {
     expect(ir.entities.every(e => e.isImplicit)).toBe(true);
     expect(ir.relationships).toHaveLength(1);
   });
+
+  it('should create multiple relationships to same type with different roles', () => {
+    const input = `
+      interface IRMember {}
+      interface DiagramNode {
+        + attributes: >* IRMember
+        + methods: >* IRMember
+      }
+    `;
+    const tokens = LexerFactory.create(input).tokenize();
+    const parser = ParserFactory.create();
+    const ast = parser.parse(tokens);
+
+    const analyzer = new SemanticAnalyzer();
+    const ir = analyzer.analyze(ast);
+
+    // Should have 2 relationships from DiagramNode to IRMember
+    const rels = ir.relationships.filter(r =>
+      r.from === 'DiagramNode' &&
+      r.to === 'IRMember' &&
+      r.type === IRRelationshipType.COMPOSITION
+    );
+
+    expect(rels).toHaveLength(2);
+    expect(rels.map(r => r.label).sort()).toEqual(['attributes', 'methods']);
+  });
 });

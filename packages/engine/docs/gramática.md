@@ -25,13 +25,16 @@ identifier     ::= (alpha | "_") (alpha | digit | "_" | ".")*
 ## 3. Entidades (Estructuras de Datos)
 
 ```ebnf
-entity_def     ::= entity_type identifier [inheritance_opt] [implementation_chain] body_opt
+entity_def     ::= [modifiers] entity_type identifier [modifiers] [inheritance_opt] [implementation_chain] body_opt
 
-inheritance_opt ::= (">>" | ">extends") identifier
+modifiers      ::= (static_opt | abstract_opt | active_opt)*
+
+inheritance_opt ::= (">>" | ">extends") [abstract_opt] identifier
 
 implementation_chain ::= ((">I" | ">implements") identifier)+
 
 entity_type    ::= "class" | "interface" | "enum"
+active_opt     ::= "active" | "&"
 
 body_opt       ::= "{" member* "}"
                  | empty
@@ -64,7 +67,7 @@ relationship_mark ::= ">*" | ">+" | ">>" | ">I"
 ```ebnf
 relationship_header ::= relationship_type identifier
 
-relationship_def    ::= identifier multiplicity_opt relationship_type multiplicity_opt identifier
+relationship_def    ::= identifier multiplicity_opt relationship_type multiplicity_opt [abstract_opt] identifier
 
 multiplicity_opt    ::= multiplicity | empty
 
