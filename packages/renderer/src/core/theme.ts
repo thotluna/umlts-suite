@@ -83,9 +83,9 @@ export const lightTheme: Theme = {
   fontSizeBase: 13,
   fontSizeSmall: 11,
 
-  packageBackground: '#fdfdfd',
-  packageBorder: '#dddddd',
-  packageLabelText: '#999999',
+  packageBackground: 'rgba(0, 0, 0, 0.02)',
+  packageBorder: 'rgba(0, 0, 0, 0.2)',
+  packageLabelText: 'rgba(0, 0, 0, 0.4)',
 
   noteBackground: '#fff9c4',
   noteBorder: '#fbc02d',
@@ -116,9 +116,9 @@ export const darkTheme: Theme = {
   fontSizeBase: 13,
   fontSizeSmall: 11,
 
-  packageBackground: '#1e1e1e',
-  packageBorder: '#3a3a3a',
-  packageLabelText: '#777777',
+  packageBackground: 'rgba(255, 255, 255, 0.03)',
+  packageBorder: 'rgba(255, 255, 255, 0.15)',
+  packageLabelText: 'rgba(255, 255, 255, 0.4)',
 
   noteBackground: '#424242',
   noteBorder: '#616161',
