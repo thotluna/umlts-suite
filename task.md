@@ -99,13 +99,11 @@
 - [x] Formalización del Orquestador de Pipeline (`UMLRenderer`)
 - [x] Abstracción de Jerarquía (`UMLHierarchyItem`) para soporte agnóstico de contenedores
 - [x] Corrección de Bug de Layout Jerárquico (Offsets de aristas y proporciones)
-99: 
-100: - [ ] ## Publicación y Despliegue
-101: - [/] **TASK**: Login en NPM
-102: - [ ] **TASK**: Configurar tokens de acceso (si es necesario)
-103: - [ ] **TASK**: Verificar permisos de publicación
 
-
+## Publicación y Despliegue
+- [ ] **TASK**: Login en NPM
+- [ ] **TASK**: Configurar tokens de acceso (si es necesario)
+- [ ] **TASK**: Verificar permisos de publicación
 
 ## Refactorización del Motor (Parser V2)
 - [x] **TASK**: Descomposición de la "God Rule" `EntityRule`
