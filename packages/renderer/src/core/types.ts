@@ -9,3 +9,17 @@ export interface LayoutResult {
   totalWidth: number;
   totalHeight: number;
 }
+
+export interface DiagramConfig {
+  theme?: string;
+  layout?: {
+    direction?: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
+    spacing?: number;
+    nodePadding?: number;
+  };
+  render?: {
+    showVisibility?: boolean;
+    showIcons?: boolean;
+    showAbstractItalic?: boolean;
+  };
+}

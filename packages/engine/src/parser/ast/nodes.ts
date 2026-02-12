@@ -9,7 +9,8 @@ export enum ASTNodeType {
   PARAMETER = 'Parameter',
   RELATIONSHIP = 'Relationship',
   COMMENT = 'Comment',
-  TYPE = 'Type'
+  TYPE = 'Type',
+  CONFIG = 'Config'
 }
 
 export interface TypeNode extends ASTNode {
@@ -37,7 +38,8 @@ export type StatementNode =
   | PackageNode
   | EntityNode
   | RelationshipNode
-  | CommentNode;
+  | CommentNode
+  | ConfigNode;
 
 export interface PackageNode extends ASTNode {
   type: ASTNodeType.PACKAGE;
@@ -113,4 +115,9 @@ export interface RelationshipNode extends ASTNode {
 export interface CommentNode extends ASTNode {
   type: ASTNodeType.COMMENT;
   value: string;
+}
+
+export interface ConfigNode extends ASTNode {
+  type: ASTNodeType.CONFIG;
+  options: Record<string, any>;
 }

@@ -87,4 +87,5 @@ export interface IRRelationship {
 export interface IRDiagram {
   entities: IREntity[];
   relationships: IRRelationship[];
+  config?: Record<string, any>;
 }

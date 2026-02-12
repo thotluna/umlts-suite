@@ -112,3 +112,15 @@
     - [x] Extraer `RelationshipHeaderRule` (Lógica de herencia/relaciones en cabeceras)
     - [x] Implementar soporte para `EnumRule` especializada
     - [x] Verificar integridad del AST y build
+
+## Soporte para Configuración de Diagrama (DSL)
+- [x] **TASK**: Definir sintaxis del bloque de configuración (ej: `config { ... }`)
+- [x] **TASK**: Actualizar Lexer con nuevos tokens (`config`, llaves, etc.)
+- [x] **TASK**: Implementar `ConfigRule` en el Parser
+- [x] **TASK**: Extender AST para incluir el nodo de configuración
+- [x] **TASK**: Propagar configuración a través de la IR
+- [x] **TASK**: Adaptar Renderer para consumir opciones dinámicas
+
+### Herramientas de Desarrollo (LSP)
+- [x] **TASK**: Añadir autocompletado para el bloque `config` y sus propiedades
+- [x] **TASK**: Incluir ayuda contextual (tooltips) para opciones de configuración

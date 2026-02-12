@@ -1,5 +1,4 @@
-
-import { LayoutResult, UMLPackage, DiagramModel, UMLNode, UMLEdge, UMLHierarchyItem } from '../core/types';
+import { LayoutResult, UMLPackage, DiagramModel, UMLNode, UMLEdge, UMLHierarchyItem, DiagramConfig } from '../core/types';
 import { Theme } from '../core/theme';
 import { SVGBuilder as svg } from './svg-helpers';
 import { DrawingRegistry } from './drawable';
@@ -14,7 +13,7 @@ import { renderMarkers } from './elements/edges';
  */
 export class SVGRenderer {
 
-  public render(layoutResult: LayoutResult, theme: Theme): string {
+  public render(layoutResult: LayoutResult, theme: Theme, config?: DiagramConfig['render']): string {
     const { model, totalWidth, totalHeight } = layoutResult;
 
     // 1. Defs (Markers)
@@ -27,11 +26,11 @@ export class SVGRenderer {
     // 3. Render Top-level Nodes (not in packages)
     const nodesStr = model.nodes
       .filter(n => !n.namespace)
-      .map(node => DrawingRegistry.render('Node', node, theme))
+      .map(node => DrawingRegistry.render('Node', node, theme, config))
       .join('');
 
     // 4. Render Edges
-    const edgesStr = model.edges.map((edge, idx) => DrawingRegistry.render('Edge', edge, theme)).join('');
+    const edgesStr = model.edges.map((edge, idx) => DrawingRegistry.render('Edge', edge, theme, config)).join('');
 
     // Combine everything with proper grouping
     const content = defs +
@@ -51,7 +50,7 @@ export class SVGRenderer {
   /**
    * Renders a UML package and its nested elements recursively.
    */
-  private renderPackage(pkg: UMLPackage, theme: Theme): string {
+  private renderPackage(pkg: UMLPackage, theme: Theme, config?: DiagramConfig['render']): string {
     const { x = 0, y = 0, width = 0, height = 0 } = pkg;
 
     // Package body
@@ -77,9 +76,9 @@ export class SVGRenderer {
     // 2. Render children (nested packages or nodes)
     const childrenStr = pkg.children.map((c: UMLHierarchyItem) => {
       if (c instanceof UMLPackage) {
-        return this.renderPackage(c, theme);
+        return this.renderPackage(c, theme, config);
       }
-      return DrawingRegistry.render('Node', c, theme);
+      return DrawingRegistry.render('Node', c, theme, config);
     }).join('');
 
     return svg.g({ class: 'package', 'data-name': pkg.name }, rect + label + childrenStr);

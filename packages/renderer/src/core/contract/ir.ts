@@ -65,4 +65,5 @@ export interface IREntity {
 export interface IR {
   entities: IREntity[];
   relationships: IRRelationship[];
+  config?: Record<string, any>;
 }

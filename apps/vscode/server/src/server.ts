@@ -103,8 +103,63 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 }
 
 connection.onCompletion((params) => {
+  const doc = documents.get(params.textDocument.uri);
+  if (!doc) return [];
+
+  const text = doc.getText();
+  const offset = doc.offsetAt(params.position);
+  const textBefore = text.substring(0, offset);
+
+  // Check if we are inside a config block
+  // A simple way: find the last occurrence of '{' and check if it's preceded by 'config'
+  const lastOpenBrace = textBefore.lastIndexOf('{');
+  const lastCloseBrace = textBefore.lastIndexOf('}');
+
+  if (lastOpenBrace > lastCloseBrace) {
+    const textBeforeBrace = textBefore.substring(0, lastOpenBrace).trim();
+    if (textBeforeBrace.endsWith('config')) {
+      const properties = [
+        { label: 'direction', detail: 'UP | DOWN | LEFT | RIGHT' },
+        { label: 'spacing', detail: 'Distance between nodes (number)' },
+        { label: 'theme', detail: 'light | dark' },
+        { label: 'showVisibility', detail: 'true | false' },
+        { label: 'showIcons', detail: 'true | false' },
+        { label: 'nodePadding', detail: 'Internal padding (number)' }
+      ];
+
+      // Check if we just typed 'direction:' to offer values
+      const lineTextBefore = textBefore.split('\n').pop() || '';
+      if (lineTextBefore.includes('direction:')) {
+        return ['UP', 'DOWN', 'LEFT', 'RIGHT'].map(v => ({
+          label: v,
+          kind: CompletionItemKind.EnumMember,
+        }));
+      }
+
+      if (lineTextBefore.includes('showVisibility:') || lineTextBefore.includes('showIcons:')) {
+        return ['true', 'false'].map(v => ({
+          label: v,
+          kind: CompletionItemKind.Keyword,
+        }));
+      }
+
+      if (lineTextBefore.includes('theme:')) {
+        return ['light', 'dark'].map(v => ({
+          label: v,
+          kind: CompletionItemKind.Color,
+        }));
+      }
+
+      return properties.map(p => ({
+        label: p.label,
+        kind: CompletionItemKind.Property,
+        detail: p.detail
+      }));
+    }
+  }
+
   const keywords = [
-    'class', 'interface', 'enum', 'package', 'extends', 'implements',
+    'class', 'interface', 'enum', 'package', 'config', 'extends', 'implements',
     'public', 'private', 'protected', 'abstract', 'static'
   ];
 

@@ -1,5 +1,5 @@
 import ELK, { ElkNode, ElkExtendedEdge } from 'elkjs/lib/elk.bundled.js';
-import { DiagramModel, UMLNode, UMLEdge, UMLPackage, LayoutResult } from '../core/types';
+import { DiagramModel, UMLNode, UMLEdge, UMLPackage, LayoutResult, DiagramConfig } from '../core/types';
 import { measureText } from './measure';
 
 const elk = new ELK();
@@ -23,20 +23,29 @@ const BASE_LAYOUT_OPTIONS = {
   'elk.padding': '[top=60,left=60,bottom=60,right=60]',
 };
 
-const ROOT_LAYOUT_OPTIONS = { ...BASE_LAYOUT_OPTIONS };
-
-const PACKAGE_LAYOUT_OPTIONS = {
-  ...BASE_LAYOUT_OPTIONS,
-  'elk.padding': '[top=70,left=30,bottom=30,right=30]',
-};
-
 /**
  * LayoutEngine: Uses ELK.js to calculate positions and routing for the diagram elements.
  */
 export class LayoutEngine {
 
-  public async layout(model: DiagramModel): Promise<LayoutResult> {
+  public async layout(model: DiagramModel, config?: DiagramConfig['layout']): Promise<LayoutResult> {
     const edgesByLCA = this.groupEdgesByLCA(model);
+
+    // Prepare layout options based on configuration
+    const layoutOptions: any = { ...BASE_LAYOUT_OPTIONS };
+
+    if (config?.direction) {
+      layoutOptions['elk.direction'] = config.direction;
+    }
+
+    if (config?.spacing) {
+      layoutOptions['elk.spacing.nodeNode'] = config.spacing.toString();
+    }
+
+    if (config?.nodePadding) {
+      const p = config.nodePadding;
+      layoutOptions['elk.padding'] = `[top=${p},left=${p},bottom=${p},right=${p}]`;
+    }
 
     // 1. Convert to ELK format recursively
     // Nodes that are not part of any package (i.e., top-level nodes)
@@ -44,12 +53,12 @@ export class LayoutEngine {
 
     const elkChildren: ElkNode[] = [
       ...topLevelNodes.map(n => this.toElkNode(n)),
-      ...model.packages.map(p => this.pkgToElk(p, edgesByLCA))
+      ...model.packages.map(p => this.pkgToElk(p, edgesByLCA, layoutOptions))
     ];
 
     const elkGraph: ElkNode = {
       id: 'root',
-      layoutOptions: ROOT_LAYOUT_OPTIONS,
+      layoutOptions,
       children: elkChildren,
       edges: edgesByLCA.get('root') ?? [],
     };
@@ -73,18 +82,18 @@ export class LayoutEngine {
   /**
    * Converts a DiagramPackage to an ElkNode.
    */
-  private pkgToElk(pkg: UMLPackage, edgesByLCA: Map<string, ElkExtendedEdge[]>): ElkNode {
+  private pkgToElk(pkg: UMLPackage, edgesByLCA: Map<string, ElkExtendedEdge[]>, layoutOptions: any): ElkNode {
     const pkgId = pkg.id || pkg.name;
     const children: ElkNode[] = pkg.children.map(child => {
       if (child instanceof UMLPackage) {
-        return this.pkgToElk(child, edgesByLCA);
+        return this.pkgToElk(child, edgesByLCA, layoutOptions);
       }
       return this.toElkNode(child as UMLNode);
     });
 
     return {
       id: pkgId,
-      layoutOptions: PACKAGE_LAYOUT_OPTIONS,
+      layoutOptions,
       children: children,
       edges: edgesByLCA.get(pkgId) ?? [],
     };

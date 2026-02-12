@@ -3,7 +3,8 @@ import type {
   PackageNode,
   EntityNode,
   RelationshipNode,
-  CommentNode
+  CommentNode,
+  ConfigNode
 } from '../parser/ast/nodes';
 import { ASTNodeType } from '../parser/ast/nodes';
 import type { ASTVisitor } from '../parser/ast/visitor';
@@ -29,6 +30,7 @@ export class SemanticAnalyzer {
   private symbolTable = new SymbolTable();
   private relationships: IRRelationship[] = [];
   private currentNamespace: string[] = [];
+  private config: Record<string, any> = {};
 
   /**
    * Ejecuta el análisis semántico completo.
@@ -51,8 +53,13 @@ export class SemanticAnalyzer {
 
     return {
       entities: this.symbolTable.getAllEntities(),
-      relationships: this.relationships
+      relationships: this.relationships,
+      config: this.config
     };
+  }
+
+  public addConfig(options: Record<string, any>): void {
+    this.config = { ...this.config, ...options };
   }
 
   /**
@@ -247,6 +254,9 @@ class DeclarationVisitor implements ASTVisitor {
 
   visitRelationship(node: RelationshipNode): void { }
   visitComment(node: CommentNode): void { }
+  visitConfig(node: ConfigNode): void {
+    this.analyzer.addConfig(node.options);
+  }
 
   private mapEntityType(type: ASTNodeType): IREntityType {
     switch (type) {
@@ -342,6 +352,7 @@ class RelationshipVisitor implements ASTVisitor {
   }
 
   visitComment(node: CommentNode): void { }
+  visitConfig(node: ConfigNode): void { }
 
   private addRelationship(from: string, to: string, kind: string): void {
     this.relationships.push({

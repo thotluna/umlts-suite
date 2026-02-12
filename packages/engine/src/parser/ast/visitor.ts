@@ -4,7 +4,8 @@ import type {
   PackageNode,
   EntityNode,
   RelationshipNode,
-  CommentNode
+  CommentNode,
+  ConfigNode
 } from './nodes';
 import { ASTNodeType } from './nodes';
 
@@ -17,6 +18,7 @@ export interface ASTVisitor<T = void> {
   visitEntity(node: EntityNode): T;
   visitRelationship(node: RelationshipNode): T;
   visitComment(node: CommentNode): T;
+  visitConfig(node: ConfigNode): T;
 }
 
 /**
@@ -37,6 +39,8 @@ export function walkAST<T>(node: ASTNode, visitor: ASTVisitor<T>): T {
       return visitor.visitRelationship(node as RelationshipNode);
     case ASTNodeType.COMMENT:
       return visitor.visitComment(node as CommentNode);
+    case ASTNodeType.CONFIG:
+      return visitor.visitConfig(node as ConfigNode);
     default:
       throw new Error(`Tipo de nodo no visitable: ${node.type}`);
   }
