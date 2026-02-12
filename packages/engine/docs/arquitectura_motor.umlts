@@ -138,18 +138,6 @@ package Parser {
             + name: string
             + arguments: TypeNode[]
         }
-
-        // Relaciones internas de las reglas
-        EntityRule >- ParserContext
-        EntityRule >- RelationshipHeaderRule
-        EntityRule >- MemberRule
-        MemberRule >- AttributeRule
-        MemberRule >- MethodRule
-        MethodRule >- ParameterRule
-        AttributeRule >- TypeRule
-        MethodRule >- TypeRule
-        ParameterRule >- TypeRule
-        TypeRule >- TypeNode
     }
 
     ParserFactory >- Parser
@@ -159,7 +147,18 @@ package Parser {
     ParserFactory >- Rules.RelationshipRule
 
     Parser >- ParserContext
+    Rules.EntityRule >- ParserContext
+    Rules.EntityRule >- Rules.RelationshipHeaderRule
+    Rules.EntityRule >- Rules.MemberRule
+    Rules.MemberRule >- Rules.AttributeRule
+    Rules.MemberRule >- Rules.MethodRule
+    Rules.MethodRule >- Rules.ParameterRule
+    Rules.AttributeRule >- Rules.TypeRule
+    Rules.MethodRule >- Rules.TypeRule
+    Rules.ParameterRule >- Rules.TypeRule
+    Rules.TypeRule >- Rules.TypeNode
 }
+
 
 
 // Relación entre componentes

@@ -45,9 +45,10 @@
   - Causa: El motor de renderizado no maneja correctamente múltiples asociaciones desde la misma clase hacia el mismo tipo destino.
   - Impacto: Se pierde información semántica importante cuando una clase tiene múltiples relaciones con roles distintos hacia el mismo tipo.
   - Solución implementada: Modificado `shouldCreateInferredRel` para considerar el `label` al verificar duplicados, permitiendo múltiples relaciones hacia el mismo tipo cuando tienen roles diferentes.
-- [ ] **BUG**: Duplicidad visual de paquetes al usar FQN externos
+- [x] **BUG**: Duplicidad visual de paquetes al usar FQN externos
     - Problema: Definir relaciones con FQN fuera de los bloques `package` provoca la creación de contenedores "fantasma" duplicados.
-    - Causa sospechada: El `SemanticAnalyzer` o el motor de layout no consolida correctamente los namespaces ya existentes cuando se referencian externamente.
+    - Causa: `SymbolTable.resolveFQN` no resolvía sufijos globales, creando entidades implícitas duplicadas.
+    - Solución: Implementada resolución por sufijo global en `resolveFQN`.
 
 ## Optimización del Layout
 - [x] Investigar parámetros de ELK para compactación
