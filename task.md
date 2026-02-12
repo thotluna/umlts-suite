@@ -124,3 +124,28 @@
 ### Herramientas de Desarrollo (LSP)
 - [x] **TASK**: Añadir autocompletado para el bloque `config` y sus propiedades
 - [x] **TASK**: Incluir ayuda contextual (tooltips) para opciones de configuración
+
+## Optimizaciones Avanzadas (ELK Expert Level)
+- [x] **TASK**: Implementar Puertos (Ports) en nodos de Clase
+    - [x] Definir interfaz de Ports en el modelo interno del Renderer
+    - [x] Añadir puertos cardinales (N, S, E, W) a cada nodo en la fase de Adaptación
+    - [x] Actualizar el generador de JSON para ELK con la estructura de `ports`
+- [x] **TASK**: Enrutamiento Ortogonal (Ángulos Rectos)
+    - [x] Investigar y aplicar `elk.edgeRouting: ORTHOGONAL`
+    - [x] Ajustar puntos de control para que el SVG dibuje líneas quebradas en lugar de rectas/curvas
+- [x] **TASK**: Refinar Jerarquía Completa
+    - [x] Asegurar que las aristas conecten puertos finales (`ClaseA.out` -> `ClaseB.in`)
+    - [x] Optimizar `layoutOptions` para minimizar cruces de líneas
+
+## Depuración y Calidad (VS Code Extension)
+- [x] **BUG**: Corregir errores de resolución de módulos (`ts-uml-engine` -> `@umlts/engine`)
+- [x] **FEAT**: Sincronizar autocompletado y ayuda contextual en `extension.ts`
+- [x] **IMPROVEMENT**: Soporte para propiedades de `config` contextuales
+- [x] **FIX**: Mapeo correcto de severidad de diagnósticos (Warnings vs Errors)
+- [x] **VERIFY**: Verificación de compilación exitosa de la extensión
+
+## Mantenimiento y Rendimiento (Pnpm & Workspace)
+- [x] **TASK**: Migrar la gestión de paquetes de `npm` a `pnpm`.
+- [x] **FIX**: Resolver dependencias faltantes de `vscode-languageserver` en `apps/vscode`.
+- [x] **IMPROVEMENT**: Configurar `NodeNext` en `server/tsconfig.json` para soporte nativo de `exports` de espacio de trabajo.
+- [x] **FIX**: Tipado fuerte en `server.ts` (eliminación de `any` y uso de interfaces de IR).

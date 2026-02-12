@@ -33,7 +33,8 @@ export function activate(context: vscode.ExtensionContext) {
         (diag.line || 1) - 1,
         (diag.column || 0) + 1
       );
-      return new vscode.Diagnostic(range, diag.message, vscode.DiagnosticSeverity.Error);
+      const severity = diag.severity === 'Warning' ? vscode.DiagnosticSeverity.Warning : vscode.DiagnosticSeverity.Error;
+      return new vscode.Diagnostic(range, diag.message, severity);
     });
 
     diagnosticCollection.set(document.uri, vsDiagnostics);
@@ -45,7 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
       const completions: vscode.CompletionItem[] = [];
 
       // 1. Keywords Básicas
-      const keywords = ['class', 'interface', 'enum', 'package', 'public', 'private', 'protected', 'internal', 'static', 'abstract'];
+      const keywords = ['class', 'interface', 'enum', 'package', 'config', 'public', 'private', 'protected', 'internal', 'static', 'abstract'];
       keywords.forEach(kw => {
         completions.push(new vscode.CompletionItem(kw, vscode.CompletionItemKind.Keyword));
       });
@@ -59,6 +60,46 @@ export function activate(context: vscode.ExtensionContext) {
           item.documentation = new vscode.MarkdownString(`FQN: \`${entity.id}\`\n\nType: ${entity.type}`);
           completions.push(item);
         });
+      }
+
+      // 3. Propiedades de Configuración (Contextual)
+      const textBefore = document.getText(new vscode.Range(new vscode.Position(0, 0), position));
+      const lastOpenBrace = textBefore.lastIndexOf('{');
+      const lastCloseBrace = textBefore.lastIndexOf('}');
+
+      if (lastOpenBrace > lastCloseBrace) {
+        const textBeforeBrace = textBefore.substring(0, lastOpenBrace).trim();
+        if (textBeforeBrace.endsWith('config')) {
+          const configProps = [
+            { label: 'direction', detail: 'UP | DOWN | LEFT | RIGHT' },
+            { label: 'spacing', detail: 'Espaciado entre nodos (número)' },
+            { label: 'theme', detail: 'light | dark' },
+            { label: 'routing', detail: 'ORTHOGONAL | POLYLINE | SPLINES' },
+            { label: 'showVisibility', detail: 'true | false' },
+            { label: 'showIcons', detail: 'true | false' },
+            { label: 'nodePadding', detail: 'Padding interno de paquetes (número)' }
+          ];
+
+          configProps.forEach(p => {
+            const item = new vscode.CompletionItem(p.label, vscode.CompletionItemKind.Property);
+            item.detail = p.detail;
+            completions.push(item);
+          });
+
+          // Sugerencias de valores específicos
+          const lineTextBefore = document.lineAt(position.line).text.substring(0, position.character);
+          if (lineTextBefore.includes('direction:')) {
+            ['UP', 'DOWN', 'LEFT', 'RIGHT'].forEach(v => completions.push(new vscode.CompletionItem(v, vscode.CompletionItemKind.EnumMember)));
+          } else if (lineTextBefore.includes('routing:')) {
+            ['ORTHOGONAL', 'POLYLINE', 'SPLINES'].forEach(v => completions.push(new vscode.CompletionItem(v, vscode.CompletionItemKind.EnumMember)));
+          } else if (lineTextBefore.includes('theme:')) {
+            ['light', 'dark'].forEach(v => completions.push(new vscode.CompletionItem(v, vscode.CompletionItemKind.Color)));
+          } else if (lineTextBefore.includes('visibility:') || lineTextBefore.includes('Icons:')) {
+            ['true', 'false'].forEach(v => completions.push(new vscode.CompletionItem(v, vscode.CompletionItemKind.Keyword)));
+          }
+
+          return completions;
+        }
       }
 
       return completions;
@@ -91,6 +132,8 @@ export function activate(context: vscode.ExtensionContext) {
     '[1..*]': { desc: 'Multiplicidad de uno a muchos.', example: 'Clase [1..*]' },
     '[': { desc: 'Inicio de Multiplicidad: Define el rango de instancias.', example: 'Clase [0..1]' },
     ']': { desc: 'Fin de Multiplicidad.', example: 'Clase [1..*]' },
+    'config': { desc: 'Bloque de Configuración: Define ajustes del diagrama (tema, dirección, espaciado, enrutamiento).', example: 'config {\n  direction: RIGHT\n  routing: ORTHOGONAL\n}' },
+    'routing': { desc: 'Enrutamiento de Líneas: Define cómo se dibujan las relaciones. ORTHOGONAL | POLYLINE | SPLINES.', example: 'routing: ORTHOGONAL' },
     ':': { desc: 'Separador de tipo para atributos y métodos.', example: 'nombre: string' }
   };
 

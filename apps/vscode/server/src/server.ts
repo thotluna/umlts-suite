@@ -16,10 +16,14 @@ import {
   TextDocument
 } from 'vscode-languageserver-textdocument';
 
-// Importamos la fachada oficial del motor
 import {
-  UMLEngine
-} from 'ts-uml-engine';
+  UMLEngine,
+  ParseResult
+} from '@umlts/engine';
+import {
+  IREntity,
+  IRDiagram
+} from '@umlts/engine';
 // Importamos el diccionario de documentación de operadores
 import { OPERATOR_DOCS } from './docs_data';
 
@@ -33,7 +37,7 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 const engine = new UMLEngine();
 
 // Mapas para persistencia de análisis resumido para hover/completion
-const documentsDiagram = new Map<string, any>();
+const documentsDiagram = new Map<string, IRDiagram>();
 const documentsEntities = new Map<string, string[]>();
 
 connection.onInitialize((_params: InitializeParams) => {
@@ -122,6 +126,7 @@ connection.onCompletion((params) => {
         { label: 'direction', detail: 'UP | DOWN | LEFT | RIGHT' },
         { label: 'spacing', detail: 'Distance between nodes (number)' },
         { label: 'theme', detail: 'light | dark' },
+        { label: 'routing', detail: 'ORTHOGONAL | POLYLINE | SPLINES' },
         { label: 'showVisibility', detail: 'true | false' },
         { label: 'showIcons', detail: 'true | false' },
         { label: 'nodePadding', detail: 'Internal padding (number)' }
@@ -147,6 +152,13 @@ connection.onCompletion((params) => {
         return ['light', 'dark'].map(v => ({
           label: v,
           kind: CompletionItemKind.Color,
+        }));
+      }
+
+      if (lineTextBefore.includes('routing:')) {
+        return ['ORTHOGONAL', 'POLYLINE', 'SPLINES'].map(v => ({
+          label: v,
+          kind: CompletionItemKind.EnumMember,
         }));
       }
 
@@ -213,18 +225,18 @@ connection.onHover((params) => {
   const word = (prefixMatch ? prefixMatch[0] : "") + (suffixMatch ? suffixMatch[0] : "");
   if (!word) return null;
 
-  const entity = diagram.entities.find((e: any) => e.name === word || e.id === word);
+  const entity = diagram.entities.find((e) => e.name === word || e.id === word);
 
   if (entity) {
     let markdown = `**${entity.type}:** \`${entity.id}\``;
 
-    if ((entity as any).docs) {
-      markdown += `\n\n---\n${(entity as any).docs}`;
+    if (entity.docs) {
+      markdown += `\n\n---\n${entity.docs}`;
     }
 
     if (entity.members && entity.members.length > 0) {
       markdown += `\n\n**Miembros:**\n`;
-      entity.members.slice(0, 5).forEach((m: any) => {
+      entity.members.slice(0, 5).forEach((m: import('@umlts/engine').IRMember) => {
         const sign = m.parameters ? '()' : '';
         markdown += `- \`${m.visibility}${m.name}${sign}: ${m.type || 'any'}\`\n`;
       });

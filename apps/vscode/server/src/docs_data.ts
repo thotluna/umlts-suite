@@ -39,4 +39,5 @@ export const OPERATOR_DOCS: Record<string, string> = {
   'theme': '**Tema**: Controla el estilo visual del diagrama (ej: `light`, `dark`).',
   'showVisibility': '**Mostrar Visibilidad**: Si es `false`, oculta los símbolos `+`, `-`, `#` de los miembros.',
   'nodePadding': '**Padding de Nodo**: Espacio interno dentro de los contenedores (paquetes).',
+  'routing': '**Enrutamiento de Líneas**: Define cómo se dibujan las relaciones. `ORTHOGONAL` (ángulos rectos), `POLYLINE` (rectas), `SPLINES` (curvas).',
 };

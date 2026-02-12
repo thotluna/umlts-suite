@@ -17,6 +17,7 @@ const BASE_LAYOUT_OPTIONS = {
   'elk.algorithm': 'layered',
   'elk.direction': 'DOWN',
   'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
+  'elk.edgeRouting': 'ORTHOGONAL',
 
   // Basic spacing for readability
   'elk.spacing.nodeNode': '80',
@@ -45,6 +46,10 @@ export class LayoutEngine {
     if (config?.nodePadding) {
       const p = config.nodePadding;
       layoutOptions['elk.padding'] = `[top=${p},left=${p},bottom=${p},right=${p}]`;
+    }
+
+    if (config?.routing) {
+      layoutOptions['elk.edgeRouting'] = config.routing;
     }
 
     // 1. Convert to ELK format recursively
@@ -101,7 +106,24 @@ export class LayoutEngine {
 
   private toElkNode(node: UMLNode): ElkNode {
     const { width, height } = node.getDimensions();
-    return { id: node.id, width, height };
+
+    // Create 4 cardinal ports for the node
+    const ports = [
+      { id: `${node.id}.n`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'NORTH' } },
+      { id: `${node.id}.s`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'SOUTH' } },
+      { id: `${node.id}.e`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'EAST' } },
+      { id: `${node.id}.w`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'WEST' } },
+    ];
+
+    return {
+      id: node.id,
+      width,
+      height,
+      ports,
+      layoutOptions: {
+        'elk.portConstraints': 'FIXED_SIDE'
+      }
+    };
   }
 
   /**
@@ -113,10 +135,24 @@ export class LayoutEngine {
 
     model.edges.forEach((edge, index) => {
       const lcaId = this.findLCA(edge.from, edge.to);
+
+      // Determine best ports based on relationship type and layout direction
+      // Heuristic for DOWN: Inheritance goes from North (Sub) to South (Super)
+      let sourcePortId = edge.from;
+      let targetPortId = edge.to;
+
+      if (edge.type === 'Inheritance' || edge.type === 'Implementation') {
+        sourcePortId = `${edge.from}.n`;
+        targetPortId = `${edge.to}.s`;
+      } else {
+        sourcePortId = `${edge.from}.s`;
+        targetPortId = `${edge.to}.n`;
+      }
+
       const elkEdge: ElkExtendedEdge = {
         id: `e${index}`,
-        sources: [edge.from],
-        targets: [edge.to],
+        sources: [sourcePortId],
+        targets: [targetPortId],
       };
 
       if (edge.label) {
