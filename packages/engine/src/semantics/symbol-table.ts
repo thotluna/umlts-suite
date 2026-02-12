@@ -51,20 +51,34 @@ export class SymbolTable {
    * Resuelve un nombre simple a un FQN dentro de un contexto de namespace con búsqueda ascendente.
    */
   public resolveFQN(name: string, currentNamespace?: string): string {
-    if (!currentNamespace || name.includes('.')) return name;
+    // 1. Intento de resolución exacta (FQN absoluto)
+    if (this.has(name)) return name;
 
-    const parts = currentNamespace.split('.');
-
-    // Búsqueda ascendente: core.domain.User -> core.User -> User
-    for (let i = parts.length; i >= 0; i--) {
-      const prefix = parts.slice(0, i).join('.');
-      const candidate = prefix ? `${prefix}.${name}` : name;
-
-      if (this.has(candidate)) return candidate;
+    // 2. Búsqueda ascendente en el namespace actual (si existe)
+    if (currentNamespace) {
+      const parts = currentNamespace.split('.');
+      for (let i = parts.length; i >= 0; i--) {
+        const prefix = parts.slice(0, i).join('.');
+        const candidate = prefix ? `${prefix}.${name}` : name;
+        if (this.has(candidate)) return candidate;
+      }
     }
 
-    // Fallback: si no se encuentra en ninguna parte de la jerarquía, 
-    // lo asumimos en el namespace actual (se creará como implícito luego si es necesario)
+    // 3. Resolución global por sufijo (para FQNs parciales como Rules.EntityRule)
+    if (name.includes('.')) {
+      const candidates = this.getAllEntities().filter(e =>
+        !e.isImplicit && (e.id.endsWith('.' + name) || e.id === name)
+      );
+
+      // Si hay un único match explícito que termina con este sufijo, lo usamos
+      if (candidates.length === 1) {
+        return candidates[0].id;
+      }
+    }
+
+    // 4. Fallback: Contextualizar en el namespace actual o retornar tal cual
+    if (!currentNamespace) return name;
+
     return `${currentNamespace}.${name}`;
   }
 }

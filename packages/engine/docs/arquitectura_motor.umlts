@@ -1,0 +1,299 @@
+package Lexer {
+
+    interface ILexer {
+        + tokenize(): >- Token[]
+    }
+
+    interface TokenMatcher {
+        + match(reader: LexerReader): >- Token
+    }
+
+    interface Token {
+        + type: TokenType
+        + value: string
+        + line: int
+        + column: int
+    }
+
+    class Lexer >I ILexer {
+        - reader: >* LexerReader
+        - matchers: >+ TokenMatcher[]
+
+        + constructor(input: string)
+        + tokenize(): >- Token[]
+    }
+
+    class LexerReader {
+        - input: string
+        - position: int
+        - line: int
+        - column: int
+
+        + constructor(input: string)
+        + peek(): string
+        + advance(): string
+        + snapshot(): any
+        + rollback(s: any): void
+    }
+
+    class LexerFactory {
+        + $create(input: string): Lexer
+    }
+
+    package Matchers {
+        class CommentMatcher >I Lexer.TokenMatcher
+        class IdentifierMatcher >I Lexer.TokenMatcher {
+            - KEYWORDS: Record<string, TokenType>
+        }
+        class NumberMatcher >I Lexer.TokenMatcher
+        class StringMatcher >I Lexer.TokenMatcher
+        class SymbolMatcher >I Lexer.TokenMatcher {
+            - SYMBOLS: Record<string, TokenType>
+        }
+        class WhitespaceMatcher >I Lexer.TokenMatcher
+    }
+
+    // Estas son las dependencias de la Factory (Flechas punteadas)
+    LexerFactory >- Lexer
+    LexerFactory >- Matchers.CommentMatcher
+    LexerFactory >- Matchers.IdentifierMatcher
+    LexerFactory >- Matchers.NumberMatcher
+    LexerFactory >- Matchers.StringMatcher
+    LexerFactory >- Matchers.SymbolMatcher
+    LexerFactory >- Matchers.WhitespaceMatcher
+}
+
+package Parser {
+    *interface Orchestrator {
+        + parseStatement(context: ParserContext)
+    }
+
+    *interface StatementRule {
+        + parse(context: ParserContext, orchestrator: Orchestrator)
+    }
+
+    class ParserContext {
+        - tokens: >+ Lexer.Token[0..*]
+        - current: int
+        - diagnostics: Diagnostic[]
+        + constructor(tokens: >- Lexer.Token[])
+        + peek(): >- Lexer.Token
+        + match(types: TokenType[]): boolean
+        + consume(type: TokenType, message: string): >- Lexer.Token
+        + addError(message: string)
+    }
+
+    class Parser >I Orchestrator {
+        - rules: >+ StatementRule[]
+        + constructor(rules: StatementRule[])
+        + parse(tokens: >- Lexer.Token[]): ProgramNode
+        + parseStatement(context: ParserContext)
+        - synchronize(context: ParserContext)
+    }
+
+    class ParserFactory {
+        + $create(): Parser
+    }
+
+    package Rules {
+        class CommentRule >I Parser.StatementRule
+        class PackageRule >I Parser.StatementRule
+        class EntityRule >I Parser.StatementRule {
+            - relationshipHeaderRule: >* RelationshipHeaderRule
+            - memberRule: >* MemberRule
+        }
+        class RelationshipRule >I Parser.StatementRule
+        class TypeRule {
+            + parse(context: ParserContext): >- TypeNode
+        }
+
+        class MemberRule {
+            - attributeRule: >* AttributeRule
+            - methodRule: >* MethodRule
+            + parse(context: ParserContext): >- MemberNode
+        }
+
+        class AttributeRule {
+            - typeRule: >* TypeRule
+            + parse(context: ParserContext, name: Lexer.Token, visibility: string, isStatic: boolean): >- AttributeNode
+        }
+
+        class MethodRule {
+            - typeRule: >* TypeRule
+            - parameterRule: >* ParameterRule
+            + parse(context: ParserContext, name: Lexer.Token, visibility: string, isStatic: boolean, isAbstract: boolean): >- MethodNode
+        }
+
+        class ParameterRule {
+            - typeRule: >* TypeRule
+            + parse(context: ParserContext): >- ParameterNode
+        }
+
+        class RelationshipHeaderRule {
+            + parse(context: ParserContext): >- RelationshipHeaderNode[]
+        }
+
+        interface TypeNode {
+            + kind: string
+            + raw: string
+            + name: string
+            + arguments: TypeNode[]
+        }
+    }
+
+    ParserFactory >- Parser
+    ParserFactory >- Rules.CommentRule
+    ParserFactory >- Rules.PackageRule
+    ParserFactory >- Rules.EntityRule
+    ParserFactory >- Rules.RelationshipRule
+
+    Parser >- ParserContext
+    Rules.EntityRule >- ParserContext
+    Rules.EntityRule >- Rules.RelationshipHeaderRule
+    Rules.EntityRule >- Rules.MemberRule
+    Rules.MemberRule >- Rules.AttributeRule
+    Rules.MemberRule >- Rules.MethodRule
+    Rules.MethodRule >- Rules.ParameterRule
+    Rules.AttributeRule >- Rules.TypeRule
+    Rules.MethodRule >- Rules.TypeRule
+    Rules.ParameterRule >- Rules.TypeRule
+    Rules.TypeRule >- Rules.TypeNode
+}
+
+
+
+// Relación entre componentes
+Parser.Parser >- Lexer.ILexer
+
+package Semantics {
+    *interface ASTVisitor {
+        + visitProgram(node: ProgramNode)
+        + visitPackage(node: PackageNode)
+        + visitEntity(node: EntityNode)
+        + visitRelationship(node: RelationshipNode)
+    }
+
+    class SymbolTable {
+        - entities: >* Map<string, Generator.IR.IREntity>
+        + register(entity: >- Generator.IR.IREntity): void
+        + get(id: string): >- Generator.IR.IREntity
+        + resolveFQN(name: string, namespace: string): string
+    }
+
+    class SemanticAnalyzer {
+        - symbolTable: >* SymbolTable
+        - relationships: >+ Generator.IR.IRRelationship[]
+        + constructor()
+        + analyze(program: >- Parser.ProgramNode): >- Generator.IR.IRDiagram
+        - inferRelationships(): void
+        - cleanupRedundantMembers(): void
+    }
+
+    class DeclarationVisitor >I ASTVisitor {
+        - analyzer: >- SemanticAnalyzer
+        - symbolTable: >- SymbolTable
+        + constructor(analyzer: SemanticAnalyzer, symbolTable: SymbolTable)
+    }
+
+    class RelationshipVisitor >I ASTVisitor {
+        - analyzer: >- SemanticAnalyzer
+        - symbolTable: >- SymbolTable
+        + constructor(analyzer: SemanticAnalyzer, symbolTable: SymbolTable)
+    }
+}
+
+// Relaciones entre componentes
+Semantics.ASTVisitor >- Parser.ProgramNode
+Semantics.ASTVisitor >- Parser.PackageNode
+Semantics.ASTVisitor >- Parser.EntityNode
+Semantics.ASTVisitor >- Parser.RelationshipNode
+
+package Generator {
+    package IR {
+        enum IREntityType {
+            CLASS
+            INTERFACE
+            ENUM
+        }
+
+        enum IRRelationshipType {
+            ASSOCIATION
+            INHERITANCE
+            IMPLEMENTATION
+            COMPOSITION
+            AGGREGATION
+            DEPENDENCY
+        }
+
+        enum IRVisibility {
+            PUBLIC
+            PRIVATE
+            PROTECTED
+            INTERNAL
+        }
+
+        interface IRMember {
+            + name: string
+            + type: string
+            + visibility: >- IRVisibility
+            + isStatic: boolean
+            + isAbstract: boolean
+            + relationshipKind: string
+            + multiplicity: string
+            + docs: string
+        }
+
+        interface IREntity {
+            + id: string
+            + name: string
+            + type: >- IREntityType
+            + members: >+ IRMember[]
+            + isImplicit: boolean
+            + isAbstract: boolean
+            + isStatic: boolean
+            + isActive: boolean
+            + typeParameters: string[]
+            + namespace: string
+        }
+
+        interface IRRelationship {
+            + from: string
+            + to: string
+            + type: >- IRRelationshipType
+            + visibility: >- IRVisibility
+            + fromMultiplicity: string
+            + toMultiplicity: string
+            + label: string
+        }
+
+        interface IRDiagram {
+            + entities: >+ IREntity[]
+            + relationships: >+ IRRelationship[]
+        }
+    }
+
+    class MermaidGenerator {
+        + generate(diagram: >- IR.IRDiagram): string
+    }
+}
+
+// Relaciones entre componentes
+Semantics.SemanticAnalyzer >- Generator.IR.IRDiagram
+
+    package Core {
+        interface ParseResult {
+            + diagram: >- Generator.IR.IRDiagram
+            + diagnostics: Diagnostic[]
+            + isValid: boolean
+        }
+
+        class UMLEngine {
+            + parse(source: string): >- ParseResult
+            + getTokens(source: string): any[]
+        }
+    }
+
+// Relaciones de orquestación (Desde Core hacia el resto)
+Core.UMLEngine >- Lexer.LexerFactory
+Core.UMLEngine >- Parser.ParserFactory
+Core.UMLEngine >- Semantics.SemanticAnalyzer

@@ -105,7 +105,7 @@ export class SemanticAnalyzer {
     const cleanBaseType = baseType.includes('<') ? baseType.substring(0, baseType.indexOf('<')) : baseType;
     const toFQN = this.resolveOrRegisterImplicit(cleanBaseType, fromNamespace || '');
 
-    if (this.shouldCreateInferredRel(fromFQN, toFQN, relType)) {
+    if (this.shouldCreateInferredRel(fromFQN, toFQN, relType, label)) {
       this.relationships.push({
         from: fromFQN,
         to: toFQN,
@@ -153,8 +153,13 @@ export class SemanticAnalyzer {
     return fqn;
   }
 
-  private shouldCreateInferredRel(from: string, to: string, type: IRRelationshipType): boolean {
-    const exactMatch = this.relationships.some(rel => rel.from === from && rel.to === to && rel.type === type);
+  private shouldCreateInferredRel(from: string, to: string, type: IRRelationshipType, label?: string): boolean {
+    const exactMatch = this.relationships.some(rel =>
+      rel.from === from &&
+      rel.to === to &&
+      rel.type === type &&
+      rel.label === (label || '')
+    );
     if (exactMatch) return false;
 
     if (type === IRRelationshipType.DEPENDENCY) {
@@ -256,16 +261,17 @@ class DeclarationVisitor implements ASTVisitor {
       .filter(m => m.type !== ASTNodeType.COMMENT)
       .map(m => ({
         name: m.name,
-        type: m.typeAnnotation || m.returnType,
+        type: m.typeAnnotation?.raw || m.returnType?.raw,
         visibility: this.mapVisibility(m.visibility),
         isStatic: m.isStatic || false,
         isAbstract: m.isAbstract || false,
         parameters: m.parameters?.map((p: any) => ({
           name: p.name,
-          type: p.typeAnnotation,
+          type: p.typeAnnotation?.raw || p.typeAnnotation,
           relationshipKind: p.relationshipKind
         })),
-        relationshipKind: m.relationshipKind,
+        // Para métodos, usar returnRelationshipKind; para atributos, usar relationshipKind
+        relationshipKind: m.returnRelationshipKind || m.relationshipKind,
         multiplicity: m.multiplicity,
         docs: m.docs,
         line: m.line,

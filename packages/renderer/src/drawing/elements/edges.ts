@@ -1,6 +1,7 @@
-import { DiagramEdge } from '../core/types';
-import { Theme } from '../core/theme';
-import * as svg from '../utils/svg-helpers';
+import { UMLEdge } from '../../core/types';
+import { Theme } from '../../core/theme';
+import { SVGBuilder as svg } from '../svg-helpers';
+import { DrawingRegistry } from '../drawable';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -42,7 +43,7 @@ const START_CLEARANCE: Record<string, number> = {
 /**
  * Renders a single UML relationship edge (path + markers + labels).
  */
-export function renderEdge(edge: DiagramEdge, index: number, theme: Theme): string {
+export function renderEdge(edge: UMLEdge, index: number, theme: Theme): string {
   if (!edge.waypoints || edge.waypoints.length < 2) return '';
 
   const wps = edge.waypoints;
@@ -298,3 +299,6 @@ function midpoint(wps: Point[]): Point {
   const b = wps[mid];
   return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
 }
+
+// Register as Edge renderer
+DrawingRegistry.register('Edge', (edge: UMLEdge, theme: Theme) => renderEdge(edge, 0, theme));

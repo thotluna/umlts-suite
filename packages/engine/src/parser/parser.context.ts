@@ -16,6 +16,13 @@ export class ParserContext {
     return this.tokens[this.current]!;
   }
 
+  public peekNext(): Token {
+    if (this.current + 1 >= this.tokens.length) {
+      return this.tokens[this.tokens.length - 1]!;
+    }
+    return this.tokens[this.current + 1]!;
+  }
+
   public prev(): Token {
     return this.tokens[this.current - 1]!;
   }
