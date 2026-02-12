@@ -1,8 +1,7 @@
-
 export * from './contract/ir';
 export * from './model/nodes';
 
-import { DiagramModel } from './model/nodes';
+import type { DiagramModel } from './model/nodes';
 
 export interface LayoutResult {
   model: DiagramModel;
