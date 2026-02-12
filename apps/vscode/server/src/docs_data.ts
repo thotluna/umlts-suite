@@ -31,4 +31,12 @@ export const OPERATOR_DOCS: Record<string, string> = {
   '$': '**Estático**: Atajo simbólico para marcar un miembro como estático.',
   'abstract': '**Abstracto**: El elemento es una definición que debe ser concretada en subclases.',
   '*': '**Abstracto**: Atajo simbólico para marcar un elemento como abstracto.',
+
+  // Configuración de Diagrama
+  'config': '**Bloque de Configuración**: Permite definir ajustes específicos del diagrama como el tema, la dirección del layout y el espaciado.',
+  'direction': '**Dirección del Layout**: Controla hacia dónde fluye el diagrama. Valores: `UP`, `DOWN`, `LEFT`, `RIGHT`.',
+  'spacing': '**Espaciado**: Define la distancia mínima entre nodos en el diagrama.',
+  'theme': '**Tema**: Controla el estilo visual del diagrama (ej: `light`, `dark`).',
+  'showVisibility': '**Mostrar Visibilidad**: Si es `false`, oculta los símbolos `+`, `-`, `#` de los miembros.',
+  'nodePadding': '**Padding de Nodo**: Espacio interno dentro de los contenedores (paquetes).',
 };

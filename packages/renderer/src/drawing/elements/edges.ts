@@ -43,7 +43,7 @@ const START_CLEARANCE: Record<string, number> = {
 /**
  * Renders a single UML relationship edge (path + markers + labels).
  */
-export function renderEdge(edge: UMLEdge, index: number, theme: Theme): string {
+export function renderEdge(edge: UMLEdge, index: number, theme: Theme, options?: any): string {
   if (!edge.waypoints || edge.waypoints.length < 2) return '';
 
   const wps = edge.waypoints;
@@ -103,7 +103,9 @@ export function renderEdge(edge: UMLEdge, index: number, theme: Theme): string {
   }
 
   if (edge.label) {
-    const displayText = edge.visibility ? `${edge.visibility} ${edge.label}` : edge.label;
+    const showVisibility = options?.showVisibility !== false;
+    const visibility = showVisibility && edge.visibility ? `${edge.visibility} ` : '';
+    const displayText = `${visibility}${edge.label}`;
 
     let x: number, y: number;
     let textAnchor: string = 'middle';
@@ -301,4 +303,4 @@ function midpoint(wps: Point[]): Point {
 }
 
 // Register as Edge renderer
-DrawingRegistry.register('Edge', (edge: UMLEdge, theme: Theme) => renderEdge(edge, 0, theme));
+DrawingRegistry.register('Edge', (edge: UMLEdge, theme: Theme, options?: any) => renderEdge(edge, 0, theme, options));

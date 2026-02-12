@@ -3,6 +3,7 @@ import { CommentRule } from './rules/comment.rule';
 import { PackageRule } from './rules/package.rule';
 import { EntityRule } from './rules/entity.rule';
 import { RelationshipRule } from './rules/relationship.rule';
+import { ConfigRule } from './rules/config.rule';
 
 export class ParserFactory {
   /**
@@ -10,6 +11,7 @@ export class ParserFactory {
    */
   public static create(): Parser {
     const rules = [
+      new ConfigRule(),
       new CommentRule(),
       new PackageRule(),
       new EntityRule(),

@@ -7,7 +7,10 @@ import { DrawingRegistry } from '../drawable';
 /**
  * Renders a single UML Entity (Class, Interface, or Enum) into an SVG group.
  */
-export function renderClassNode(node: UMLNode, theme: Theme): string {
+/**
+ * Renders a single UML Entity (Class, Interface, or Enum) into an SVG group.
+ */
+export function renderClassNode(node: UMLNode, theme: Theme, options?: any): string {
   const { x = 0, y = 0, width = 160, height = 40 } = node;
 
   const HEADER_HEIGHT = 32;
@@ -84,7 +87,7 @@ export function renderClassNode(node: UMLNode, theme: Theme): string {
 
   // Attributes
   for (const attr of node.attributes) {
-    membersContent += renderMember(attr, x + 10, memberY, theme);
+    membersContent += renderMember(attr, x + 10, memberY, theme, options);
     memberY += LINE_HEIGHT;
   }
 
@@ -99,7 +102,7 @@ export function renderClassNode(node: UMLNode, theme: Theme): string {
 
   // Methods
   for (const meth of node.methods) {
-    membersContent += renderMember(meth, x + 10, memberY, theme);
+    membersContent += renderMember(meth, x + 10, memberY, theme, options);
     memberY += LINE_HEIGHT;
   }
 
@@ -108,11 +111,15 @@ export function renderClassNode(node: UMLNode, theme: Theme): string {
   );
 }
 
-function renderMember(m: IRMember, x: number, y: number, theme: Theme): string {
-  let label = `${m.visibility} ${m.name}`;
+function renderMember(m: IRMember, x: number, y: number, theme: Theme, options?: any): string {
+  const showVisibility = options?.showVisibility !== false;
+  let label = showVisibility ? `${m.visibility} ${m.name}` : m.name;
 
   if (m.parameters !== undefined) {
-    const params = m.parameters.map(p => `${p.name}: ${p.type}`).join(', ');
+    const params = m.parameters.map(p => {
+      const pLabel = p.type ? `${p.name}: ${p.type}` : p.name;
+      return pLabel;
+    }).join(', ');
     label += `(${params})`;
   }
 
@@ -134,4 +141,4 @@ function renderMember(m: IRMember, x: number, y: number, theme: Theme): string {
 }
 
 // Register as Node renderer
-DrawingRegistry.register('Node', (node: UMLNode, theme: Theme) => renderClassNode(node, theme));
+DrawingRegistry.register('Node', (node: UMLNode, theme: Theme, options?: any) => renderClassNode(node, theme, options));

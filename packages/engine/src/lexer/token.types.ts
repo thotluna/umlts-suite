@@ -16,6 +16,7 @@ export enum TokenType {
   KW_AGREG = 'KW_AGREG',
   KW_USE = 'KW_USE',
   KW_ACTIVE = 'KW_ACTIVE',
+  KW_CONFIG = 'KW_CONFIG',
 
   // Operators and Symbols
   OP_INHERIT = 'OP_INHERIT',      // >>
