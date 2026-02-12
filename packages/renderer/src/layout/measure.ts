@@ -1,21 +1,32 @@
 
-import { DiagramNode } from '../core/types';
+import { UMLNode } from '../core/types';
 
 /**
  * Approximate constants for text measurement without a real DOM.
  * These values are calibrated for a standard monospace font at 13px.
  */
-const CHAR_WIDTH = 10.0; // Overestimate to force ELK clearance
-const LINE_HEIGHT = 28; // Slightly more air for labels
+const CHAR_WIDTH = 11.5; // More conservative to avoid clipping
+const LINE_HEIGHT = 26; // More compact but safe
 const HEADER_HEIGHT_NORMAL = 32;
 const HEADER_HEIGHT_STEREOTYPE = 44;
 const PADDING_BOTTOM = 8;
 const MIN_WIDTH = 160;
 
+export interface NodeDimensions {
+  width: number;
+  height: number;
+}
+
+export interface TextDimensions {
+  width: number;
+  height: number;
+}
+
 /**
- * Calculates the dimensions of a DiagramNode based on its content.
+ * Internal helper to calculate node dimensions.
+ * Migrated to UMLNode.getDimensions()
  */
-export function measureNode(node: DiagramNode): { width: number, height: number } {
+export function measureNodeDimensions(node: UMLNode): NodeDimensions {
   // 1. Calculate max width based on the longest string
   let maxChars = node.name.length;
 
@@ -48,7 +59,7 @@ export function measureNode(node: DiagramNode): { width: number, height: number 
     if (m.multiplicity) memberChars += m.multiplicity.length + 2;
     if (m.parameters) {
       // Methods also have parameters (name: type)
-      const paramsChars = m.parameters.reduce((acc, p) => acc + p.name.length + (p.type?.length || 0) + 3, 0);
+      const paramsChars = m.parameters.reduce((acc: number, p) => acc + p.name.length + (p.type?.length || 0) + 3, 0);
       memberChars += paramsChars + 2; // +2 for ()
     }
     maxChars = Math.max(maxChars, memberChars);
@@ -71,7 +82,7 @@ export function measureNode(node: DiagramNode): { width: number, height: number 
 /**
  * Approximates the dimensions of a single line of text.
  */
-export function measureText(text: string, fontSize: number = 12): { width: number, height: number } {
+export function measureText(text: string, fontSize: number = 12): TextDimensions {
   const scale = fontSize / 13; // CHAR_WIDTH is calibrated for 13px
   return {
     width: Math.ceil(text.length * CHAR_WIDTH * scale),

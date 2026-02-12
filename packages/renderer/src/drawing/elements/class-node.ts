@@ -1,12 +1,13 @@
 
-import { DiagramNode, IRMember } from '../core/types';
-import { Theme } from '../core/theme';
-import * as svg from '../utils/svg-helpers';
+import { UMLNode, IRMember } from '../../core/types';
+import { Theme } from '../../core/theme';
+import { SVGBuilder as svg } from '../svg-helpers';
+import { DrawingRegistry } from '../drawable';
 
 /**
  * Renders a single UML Entity (Class, Interface, or Enum) into an SVG group.
  */
-export function renderClassNode(node: DiagramNode, theme: Theme): string {
+export function renderClassNode(node: UMLNode, theme: Theme): string {
   const { x = 0, y = 0, width = 160, height = 40 } = node;
 
   const HEADER_HEIGHT = 32;
@@ -131,3 +132,6 @@ function renderMember(m: IRMember, x: number, y: number, theme: Theme): string {
     'text-decoration': m.isStatic ? 'underline' : 'none'
   }, label);
 }
+
+// Register as Node renderer
+DrawingRegistry.register('Node', (node: UMLNode, theme: Theme) => renderClassNode(node, theme));
