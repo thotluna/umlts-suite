@@ -6,6 +6,9 @@ import { DiagnosticCode } from '../../parser/diagnostic.types'
 import { FQNBuilder } from '../utils/fqn-builder'
 import type { HierarchyValidator } from '../validators/hierarchy-validator'
 import type { RelationshipNode } from '../../parser/ast/nodes'
+import { MultiplicityValidator } from '../utils/multiplicity-validator'
+import { TokenType } from '../../lexer/token.types'
+import type { Token } from '../../lexer/token.types'
 
 /**
  * Handles creation and validation of relationships.
@@ -88,8 +91,38 @@ export class RelationshipAnalyzer {
     }
 
     if (node != null) {
-      if (node.fromMultiplicity) irRel.fromMultiplicity = node.fromMultiplicity
-      if (node.toMultiplicity) irRel.toMultiplicity = node.toMultiplicity
+      if (node.fromMultiplicity) {
+        irRel.fromMultiplicity = node.fromMultiplicity
+        const bounds = MultiplicityValidator.validateBounds(
+          node.fromMultiplicity,
+          node.line,
+          node.column,
+          this.context,
+        )
+
+        // Composite Aggregation: Part's owner (whole) multiplicity cannot be > 1
+        if (relType === IRRelationshipType.COMPOSITION && bounds && bounds.upper > 1) {
+          this.context?.addError(
+            `Violación de Composición: Un objeto no puede ser parte de más de un compuesto al mismo tiempo (multiplicidad superior > 1 en extremo contenedor).`,
+            {
+              line: node.line,
+              column: node.column,
+              type: TokenType.UNKNOWN,
+              value: node.fromMultiplicity,
+            } as Token,
+            DiagnosticCode.SEMANTIC_COMPOSITE_VIOLATION,
+          )
+        }
+      }
+      if (node.toMultiplicity) {
+        irRel.toMultiplicity = node.toMultiplicity
+        MultiplicityValidator.validateBounds(
+          node.toMultiplicity,
+          node.line,
+          node.column,
+          this.context,
+        )
+      }
       if (node.label) irRel.label = node.label
     }
 

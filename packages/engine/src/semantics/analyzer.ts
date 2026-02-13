@@ -15,6 +15,9 @@ import { EntityAnalyzer } from './analyzers/entity-analyzer'
 import { RelationshipAnalyzer } from './analyzers/relationship-analyzer'
 import { HierarchyValidator } from './validators/hierarchy-validator'
 import { TypeValidator } from './utils/type-validator'
+import { DiagnosticCode } from '../parser/diagnostic.types'
+import { TokenType } from '../lexer/token.types'
+import type { Token } from '../lexer/token.types'
 import { IRRelationshipType, IRVisibility } from '../generator/ir/models'
 
 /**
@@ -48,7 +51,13 @@ export class SemanticAnalyzer {
     // Paso 1: Recolectar declaraciones explícitas
     walkAST(
       program,
-      new DeclarationVisitor(this, this.symbolTable, this.currentNamespace, this.entityAnalyzer),
+      new DeclarationVisitor(
+        this,
+        this.symbolTable,
+        this.currentNamespace,
+        this.entityAnalyzer,
+        context,
+      ),
     )
 
     // Paso 2: Procesar relaciones y crear entidades implícitas
@@ -61,6 +70,7 @@ export class SemanticAnalyzer {
         this.relationships,
         this.currentNamespace,
         this.relationshipAnalyzer,
+        context,
       ),
     )
 
@@ -137,6 +147,7 @@ class DeclarationVisitor implements ASTVisitor {
     private readonly symbolTable: SymbolTable,
     private readonly currentNamespace: string[],
     private readonly entityAnalyzer: EntityAnalyzer,
+    private readonly context: ParserContext,
   ) {}
 
   visitProgram(node: ProgramNode): void {
@@ -155,6 +166,17 @@ class DeclarationVisitor implements ASTVisitor {
 
   visitEntity(node: EntityNode): void {
     const entity = this.entityAnalyzer.buildEntity(node, this.currentNamespace.join('.'))
+    const existing = this.symbolTable.get(entity.id)
+
+    if (existing != null && !existing.isImplicit) {
+      this.context.addError(
+        `Entidad duplicada: '${entity.id}' ya está definida en este ámbito.`,
+        { line: node.line, column: node.column, type: TokenType.UNKNOWN, value: '' } as Token,
+        DiagnosticCode.SEMANTIC_DUPLICATE_ENTITY,
+      )
+      return
+    }
+
     this.symbolTable.register(entity)
   }
 
@@ -178,6 +200,7 @@ class RelationshipVisitor implements ASTVisitor {
     private readonly relationships: IRRelationship[],
     private readonly currentNamespace: string[],
     private readonly relationshipAnalyzer: RelationshipAnalyzer,
+    private readonly context: ParserContext,
   ) {}
 
   visitProgram(node: ProgramNode): void {
