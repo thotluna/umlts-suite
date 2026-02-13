@@ -153,3 +153,5 @@
 - [x] **IMPROVEMENT**: Optimizar el layout de ELK para reducir desorden, mejorar compacidad y minimizar cruces.
 - [x] **FEATURE**: Implementar sistema de auto-escalado (responsive) y zoom manual
 - [x] **IMPROVEMENT**: Mejorar legibilidad y encuadre dinámico (Auto-Fit corregido)
+- [x] **FIX**: Viewport del SVG ignora los límites de los paquetes (Clipping)
+- [ ] **FIX**: Ruteo de aristas de herencia forzado a N->S provoca bucles innecesarios

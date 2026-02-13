@@ -342,7 +342,23 @@ export class LayoutEngine {
       maxY = Math.max(maxY, node.y + node.height);
     }
 
-    // 2. Considerar Aristas
+    // 2. Considerar Paquetes de forma recursiva
+    const includePackages = (pkgs: UMLPackage[]) => {
+      for (const pkg of pkgs) {
+        minX = Math.min(minX, pkg.x);
+        minY = Math.min(minY, pkg.y);
+        maxX = Math.max(maxX, pkg.x + pkg.width);
+        maxY = Math.max(maxY, pkg.y + pkg.height);
+
+        // El label del paquete puede sobresalir por arriba (el tab del paquete)
+        // Por ahora asumimos que pkg.y ya incluye el inicio del dibujo del paquete.
+
+        includePackages(pkg.children.filter((c): c is UMLPackage => c instanceof UMLPackage));
+      }
+    };
+    includePackages(model.packages);
+
+    // 3. Considerar Aristas
     for (const edge of model.edges) {
       if (edge.waypoints) {
         for (const wp of edge.waypoints) {
