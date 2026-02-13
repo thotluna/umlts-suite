@@ -6,3 +6,4 @@ out
 *.config.js
 *.config.mjs
 *.config.cjs
+*.eslintrc.js
