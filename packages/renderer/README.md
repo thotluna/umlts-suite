@@ -37,7 +37,7 @@ const svg = await render(ir, { theme: 'dark' });
 La función principal de la biblioteca.
 
 - `ir`: El objeto de representación intermedia generado por `ts-uml-engine`.
-- `options`: 
+- `options`:
   - `theme`: `'light'`, `'dark'` o un objeto `Theme` personalizado.
 
 ## Arquitectura de la Biblioteca
@@ -47,4 +47,5 @@ La función principal de la biblioteca.
 3. **SVGRenderer**: Genera el XML final aplicando estilos y geometrías.
 
 ---
+
 Desarrollado para el ecosistema UMLTS.

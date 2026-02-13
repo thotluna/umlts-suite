@@ -1,8 +1,15 @@
-import ELK, { ElkNode, ElkExtendedEdge } from 'elkjs/lib/elk.bundled.js';
-import { DiagramModel, UMLNode, UMLEdge, UMLPackage, LayoutResult, DiagramConfig } from '../core/types';
-import { measureText } from './measure';
+import ELK, { ElkNode, ElkExtendedEdge } from 'elkjs/lib/elk.bundled.js'
+import {
+  DiagramModel,
+  UMLNode,
+  UMLEdge,
+  UMLPackage,
+  LayoutResult,
+  DiagramConfig,
+} from '../core/types'
+import { measureText } from './measure'
 
-const elk = new ELK();
+const elk = new ELK()
 
 // ─── ELK option keys ──────────────────────────────────────────────────────────
 // ELK requires the FULL qualified key (with "elk." prefix) at every level.
@@ -30,68 +37,70 @@ const BASE_LAYOUT_OPTIONS = {
   // Layered specifics to reduce crossing and "messy" look
   'elk.layered.nodePlacement.strategy': 'BRANDES_KOEPF',
   'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
-};
+}
 
 /**
  * LayoutEngine: Uses ELK.js to calculate positions and routing for the diagram elements.
  */
 export class LayoutEngine {
-
-  public async layout(model: DiagramModel, config?: DiagramConfig['layout']): Promise<LayoutResult> {
-    const edgesByLCA = this.groupEdgesByLCA(model);
+  public async layout(
+    model: DiagramModel,
+    config?: DiagramConfig['layout'],
+  ): Promise<LayoutResult> {
+    const edgesByLCA = this.groupEdgesByLCA(model)
 
     // Prepare layout options based on configuration
-    const layoutOptions: any = { ...BASE_LAYOUT_OPTIONS };
+    const layoutOptions: Record<string, string> = { ...BASE_LAYOUT_OPTIONS }
 
     if (config?.direction) {
-      layoutOptions['elk.direction'] = config.direction;
+      layoutOptions['elk.direction'] = config.direction
     }
 
     if (config?.spacing) {
-      layoutOptions['elk.spacing.nodeNode'] = config.spacing.toString();
+      layoutOptions['elk.spacing.nodeNode'] = config.spacing.toString()
     }
 
     if (config?.nodePadding) {
-      const p = config.nodePadding;
-      layoutOptions['elk.padding'] = `[top=${p},left=${p},bottom=${p},right=${p}]`;
+      const p = config.nodePadding
+      layoutOptions['elk.padding'] = `[top=${p},left=${p},bottom=${p},right=${p}]`
     }
 
     if (config?.routing) {
-      layoutOptions['elk.edgeRouting'] = config.routing;
+      layoutOptions['elk.edgeRouting'] = config.routing
     }
 
     // 1. Convert to ELK format recursively
     // Nodes that are not part of any package (i.e., top-level nodes)
-    const topLevelNodes = model.nodes.filter(n => !n.namespace);
+    const topLevelNodes = model.nodes.filter((n) => !n.namespace)
 
     const elkChildren: ElkNode[] = [
-      ...topLevelNodes.map(n => this.toElkNode(n)),
-      ...model.packages.map(p => this.pkgToElk(p, edgesByLCA, layoutOptions))
-    ];
+      ...topLevelNodes.map((n) => this.toElkNode(n)),
+      ...model.packages.map((p) => this.pkgToElk(p, edgesByLCA, layoutOptions)),
+    ]
 
     const elkGraph: ElkNode = {
       id: 'root',
       layoutOptions,
       children: elkChildren,
       edges: edgesByLCA.get('root') ?? [],
-    };
+    }
 
     // Validate graph before sending to ELK
-    this.validateElkGraph(elkGraph);
+    this.validateElkGraph(elkGraph)
 
-    const layoutedGraph = await elk.layout(elkGraph);
+    const layoutedGraph = await elk.layout(elkGraph)
 
-    this.applyLayout(model, layoutedGraph);
+    this.applyLayout(model, layoutedGraph)
 
     // Calculate real bounding box of all elements to have a tight viewBox
-    const bbox = this.calculateModelBoundingBox(model);
+    const bbox = this.calculateModelBoundingBox(model)
 
     return {
       model,
       totalWidth: layoutedGraph.width ?? 800,
       totalHeight: layoutedGraph.height ?? 600,
-      bbox
-    };
+      bbox,
+    }
   }
 
   // ── ELK graph builders ────────────────────────────────────────────────────
@@ -99,25 +108,29 @@ export class LayoutEngine {
   /**
    * Converts a DiagramPackage to an ElkNode.
    */
-  private pkgToElk(pkg: UMLPackage, edgesByLCA: Map<string, ElkExtendedEdge[]>, layoutOptions: any): ElkNode {
-    const pkgId = pkg.id || pkg.name;
-    const children: ElkNode[] = pkg.children.map(child => {
+  private pkgToElk(
+    pkg: UMLPackage,
+    edgesByLCA: Map<string, ElkExtendedEdge[]>,
+    layoutOptions: Record<string, string>,
+  ): ElkNode {
+    const pkgId = pkg.id || pkg.name
+    const children: ElkNode[] = pkg.children.map((child) => {
       if (child instanceof UMLPackage) {
-        return this.pkgToElk(child, edgesByLCA, layoutOptions);
+        return this.pkgToElk(child, edgesByLCA, layoutOptions)
       }
-      return this.toElkNode(child as UMLNode);
-    });
+      return this.toElkNode(child as UMLNode)
+    })
 
     return {
       id: pkgId,
       layoutOptions,
       children: children,
       edges: edgesByLCA.get(pkgId) ?? [],
-    };
+    }
   }
 
   private toElkNode(node: UMLNode): ElkNode {
-    const { width, height } = node.getDimensions();
+    const { width, height } = node.getDimensions()
 
     // Create 4 cardinal ports for the node
     const ports = [
@@ -125,7 +138,7 @@ export class LayoutEngine {
       { id: `${node.id}.s`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'SOUTH' } },
       { id: `${node.id}.e`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'EAST' } },
       { id: `${node.id}.w`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'WEST' } },
-    ];
+    ]
 
     return {
       id: node.id,
@@ -133,9 +146,9 @@ export class LayoutEngine {
       height,
       ports,
       layoutOptions: {
-        'elk.portConstraints': 'FIXED_SIDE'
-      }
-    };
+        'elk.portConstraints': 'FIXED_SIDE',
+      },
+    }
   }
 
   /**
@@ -143,45 +156,47 @@ export class LayoutEngine {
    * Cross-package edges with no common parent package go to 'root'.
    */
   private groupEdgesByLCA(model: DiagramModel): Map<string, ElkExtendedEdge[]> {
-    const groups = new Map<string, ElkExtendedEdge[]>();
+    const groups = new Map<string, ElkExtendedEdge[]>()
 
     model.edges.forEach((edge, index) => {
-      const lcaId = this.findLCA(edge.from, edge.to);
+      const lcaId = this.findLCA(edge.from, edge.to)
 
       // Determine best ports based on relationship type and layout direction
       // Heuristic for DOWN: Inheritance goes from North (Sub) to South (Super)
-      let sourcePortId = edge.from;
-      let targetPortId = edge.to;
+      let sourcePortId = edge.from
+      let targetPortId = edge.to
 
       if (edge.type === 'Inheritance' || edge.type === 'Implementation') {
-        sourcePortId = `${edge.from}.n`;
-        targetPortId = `${edge.to}.s`;
+        sourcePortId = `${edge.from}.n`
+        targetPortId = `${edge.to}.s`
       } else {
-        sourcePortId = `${edge.from}.s`;
-        targetPortId = `${edge.to}.n`;
+        sourcePortId = `${edge.from}.s`
+        targetPortId = `${edge.to}.n`
       }
 
       const elkEdge: ElkExtendedEdge = {
         id: `e${index}`,
         sources: [sourcePortId],
         targets: [targetPortId],
-      };
-
-      if (edge.label) {
-        const { width, height } = measureText(edge.label, 11);
-        elkEdge.labels = [{
-          id: `l${index}`,
-          text: edge.label,
-          width,
-          height
-        }];
       }
 
-      if (!groups.has(lcaId)) groups.set(lcaId, []);
-      groups.get(lcaId)!.push(elkEdge);
-    });
+      if (edge.label) {
+        const { width, height } = measureText(edge.label, 11)
+        elkEdge.labels = [
+          {
+            id: `l${index}`,
+            text: edge.label,
+            width,
+            height,
+          },
+        ]
+      }
 
-    return groups;
+      if (!groups.has(lcaId)) groups.set(lcaId, [])
+      groups.get(lcaId)!.push(elkEdge)
+    })
+
+    return groups
   }
 
   /**
@@ -189,66 +204,76 @@ export class LayoutEngine {
    * Assumes IDs are FQN separated by dots.
    */
   private findLCA(id1: string, id2: string): string {
-    const p1 = id1.split('.');
-    const p2 = id2.split('.');
+    const p1 = id1.split('.')
+    const p2 = id2.split('.')
 
     // We want the common prefix excluding the last part (the class name)
-    const common: string[] = [];
-    const len = Math.min(p1.length - 1, p2.length - 1);
+    const common: string[] = []
+    const len = Math.min(p1.length - 1, p2.length - 1)
 
     for (let i = 0; i < len; i++) {
       if (p1[i] === p2[i]) {
-        common.push(p1[i]!);
+        common.push(p1[i]!)
       } else {
-        break;
+        break
       }
     }
 
-    return common.length > 0 ? common.join('.') : 'root';
+    return common.length > 0 ? common.join('.') : 'root'
   }
 
   // ── Layout application ────────────────────────────────────────────────────
 
   private applyLayout(model: DiagramModel, layoutedGraph: ElkNode): void {
-    this.processElkNodes(layoutedGraph.children || [], model, 0, 0);
-    this.processElkEdges(layoutedGraph, model, 0, 0);
+    this.processElkNodes(layoutedGraph.children || [], model, 0, 0)
+    this.processElkEdges(layoutedGraph, model, 0, 0)
   }
 
   /**
    * Maps ELK coordinates back to our model.
    */
-  private processElkNodes(elkNodes: ElkNode[], model: DiagramModel, offsetX: number, offsetY: number): void {
-    const nodesById = new Map<string, UMLNode>(model.nodes.map(n => [n.id, n]));
-    const pkgsById = new Map<string, UMLPackage>();
+  private processElkNodes(
+    elkNodes: ElkNode[],
+    model: DiagramModel,
+    offsetX: number,
+    offsetY: number,
+  ): void {
+    const nodesById = new Map<string, UMLNode>(model.nodes.map((n) => [n.id, n]))
+    const pkgsById = new Map<string, UMLPackage>()
 
     const collectPkgs = (pkgs: UMLPackage[]) => {
       for (const p of pkgs) {
-        if (p.id) pkgsById.set(p.id, p);
-        collectPkgs(p.children.filter((c): c is UMLPackage => c instanceof UMLPackage));
+        if (p.id) pkgsById.set(p.id, p)
+        collectPkgs(p.children.filter((c): c is UMLPackage => c instanceof UMLPackage))
       }
-    };
-    collectPkgs(model.packages);
+    }
+    collectPkgs(model.packages)
 
     for (const elkNode of elkNodes) {
-      const node = nodesById.get(elkNode.id);
-      const pkg = pkgsById.get(elkNode.id);
+      const node = nodesById.get(elkNode.id)
+      const pkg = pkgsById.get(elkNode.id)
 
       if (node) {
         node.updateLayout(
           (elkNode.x || 0) + offsetX,
           (elkNode.y || 0) + offsetY,
           elkNode.width || 0,
-          elkNode.height || 0
-        );
+          elkNode.height || 0,
+        )
       } else if (pkg) {
         pkg.updateLayout(
           (elkNode.x || 0) + offsetX,
           (elkNode.y || 0) + offsetY,
           elkNode.width || 0,
-          elkNode.height || 0
-        );
+          elkNode.height || 0,
+        )
         // Recursive for children
-        this.processElkNodes(elkNode.children || [], model, (elkNode.x || 0) + offsetX, (elkNode.y || 0) + offsetY);
+        this.processElkNodes(
+          elkNode.children || [],
+          model,
+          (elkNode.x || 0) + offsetX,
+          (elkNode.y || 0) + offsetY,
+        )
       }
     }
   }
@@ -257,57 +282,62 @@ export class LayoutEngine {
    * Maps ELK waypoints back to our model.
    * Edges are relative to their immediate container ELK node.
    */
-  private processElkEdges(container: ElkNode, model: DiagramModel, offsetX: number, offsetY: number): void {
+  private processElkEdges(
+    container: ElkNode,
+    model: DiagramModel,
+    offsetX: number,
+    offsetY: number,
+  ): void {
     const edgesByEntities = new Map<string, UMLEdge>(
-      model.edges.map(e => [`${e.from}->${e.to}`, e])
-    );
+      model.edges.map((e) => [`${e.from}->${e.to}`, e]),
+    )
 
     if (container.edges) {
       for (const elkEdge of container.edges) {
-        const sourceId = this.stripPort(elkEdge.sources[0]);
-        const targetId = this.stripPort(elkEdge.targets[0]);
-        const edgeKey = `${sourceId}->${targetId}`;
-        const edge = edgesByEntities.get(edgeKey);
+        const sourceId = this.stripPort(elkEdge.sources[0])
+        const targetId = this.stripPort(elkEdge.targets[0])
+        const edgeKey = `${sourceId}->${targetId}`
+        const edge = edgesByEntities.get(edgeKey)
 
         if (edge && elkEdge.sections && elkEdge.sections[0]) {
-          const section = elkEdge.sections[0];
-          const waypoints: { x: number, y: number }[] = [];
+          const section = elkEdge.sections[0]
+          const waypoints: { x: number; y: number }[] = []
 
           // Start Point
           waypoints.push({
             x: section.startPoint.x + offsetX,
-            y: section.startPoint.y + offsetY
-          });
+            y: section.startPoint.y + offsetY,
+          })
 
           // Bend Points
           if (section.bendPoints) {
             for (const bp of section.bendPoints) {
               waypoints.push({
                 x: bp.x + offsetX,
-                y: bp.y + offsetY
-              });
+                y: bp.y + offsetY,
+              })
             }
           }
 
           // End Point
           waypoints.push({
             x: section.endPoint.x + offsetX,
-            y: section.endPoint.y + offsetY
-          });
+            y: section.endPoint.y + offsetY,
+          })
 
           // Label Position
-          let labelPos;
-          let labelWidth;
-          let labelHeight;
+          let labelPos
+          let labelWidth
+          let labelHeight
 
           if (elkEdge.labels && elkEdge.labels[0]) {
-            const l = elkEdge.labels[0];
-            labelPos = { x: (l.x || 0) + offsetX, y: (l.y || 0) + offsetY };
-            labelWidth = l.width;
-            labelHeight = l.height;
+            const l = elkEdge.labels[0]
+            labelPos = { x: (l.x || 0) + offsetX, y: (l.y || 0) + offsetY }
+            labelWidth = l.width
+            labelHeight = l.height
           }
 
-          edge.updateLayout(waypoints, labelPos, labelWidth, labelHeight);
+          edge.updateLayout(waypoints, labelPos, labelWidth, labelHeight)
         }
       }
     }
@@ -315,7 +345,7 @@ export class LayoutEngine {
     // Recursively process edges in sub-packages
     for (const child of container.children || []) {
       // Offset for sub-container is its absolute position
-      this.processElkEdges(child, model, offsetX + (child.x || 0), offsetY + (child.y || 0));
+      this.processElkEdges(child, model, offsetX + (child.x || 0), offsetY + (child.y || 0))
     }
   }
 
@@ -323,146 +353,148 @@ export class LayoutEngine {
 
   /**
    * Calcula el área real ocupada únicamente por los elementos visuales (nodos y aristas).
-   * Ignoramos las dimensiones de los paquetes porque ELK les asigna tamaños con 
+   * Ignoramos las dimensiones de los paquetes porque ELK les asigna tamaños con
    * márgenes que queremos eliminar en el encuadre inicial.
    */
   private calculateModelBoundingBox(model: DiagramModel) {
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
+    let minX = Infinity
+    let minY = Infinity
+    let maxX = -Infinity
+    let maxY = -Infinity
 
-    const MARGIN = 30; // Margen de seguridad alrededor del contenido
+    const MARGIN = 30 // Margen de seguridad alrededor del contenido
 
     // 1. Considerar solo Nodos
     for (const node of model.nodes) {
-      minX = Math.min(minX, node.x);
-      minY = Math.min(minY, node.y);
-      maxX = Math.max(maxX, node.x + node.width);
-      maxY = Math.max(maxY, node.y + node.height);
+      minX = Math.min(minX, node.x)
+      minY = Math.min(minY, node.y)
+      maxX = Math.max(maxX, node.x + node.width)
+      maxY = Math.max(maxY, node.y + node.height)
     }
 
     // 2. Considerar Paquetes de forma recursiva
     const includePackages = (pkgs: UMLPackage[]) => {
       for (const pkg of pkgs) {
-        minX = Math.min(minX, pkg.x);
-        minY = Math.min(minY, pkg.y);
-        maxX = Math.max(maxX, pkg.x + pkg.width);
-        maxY = Math.max(maxY, pkg.y + pkg.height);
+        minX = Math.min(minX, pkg.x)
+        minY = Math.min(minY, pkg.y)
+        maxX = Math.max(maxX, pkg.x + pkg.width)
+        maxY = Math.max(maxY, pkg.y + pkg.height)
 
         // El label del paquete puede sobresalir por arriba (el tab del paquete)
         // Por ahora asumimos que pkg.y ya incluye el inicio del dibujo del paquete.
 
-        includePackages(pkg.children.filter((c): c is UMLPackage => c instanceof UMLPackage));
+        includePackages(pkg.children.filter((c): c is UMLPackage => c instanceof UMLPackage))
       }
-    };
-    includePackages(model.packages);
+    }
+    includePackages(model.packages)
 
     // 3. Considerar Aristas
     for (const edge of model.edges) {
       if (edge.waypoints) {
         for (const wp of edge.waypoints) {
-          minX = Math.min(minX, wp.x);
-          minY = Math.min(minY, wp.y);
-          maxX = Math.max(maxX, wp.x);
-          maxY = Math.max(maxY, wp.y);
+          minX = Math.min(minX, wp.x)
+          minY = Math.min(minY, wp.y)
+          maxX = Math.max(maxX, wp.x)
+          maxY = Math.max(maxY, wp.y)
         }
       }
       if (edge.labelPos) {
-        minX = Math.min(minX, edge.labelPos.x);
-        minY = Math.min(minY, edge.labelPos.y);
-        maxX = Math.max(maxX, edge.labelPos.x + (edge.labelWidth || 0));
-        maxY = Math.max(maxY, edge.labelPos.y + (edge.labelHeight || 0));
+        minX = Math.min(minX, edge.labelPos.x)
+        minY = Math.min(minY, edge.labelPos.y)
+        maxX = Math.max(maxX, edge.labelPos.x + (edge.labelWidth || 0))
+        maxY = Math.max(maxY, edge.labelPos.y + (edge.labelHeight || 0))
       }
     }
 
     // Fallback si no hay elementos
-    if (minX === Infinity) return { x: 0, y: 0, width: 800, height: 600 };
+    if (minX === Infinity) return { x: 0, y: 0, width: 800, height: 600 }
 
     return {
       x: minX - MARGIN,
       y: minY - MARGIN,
-      width: (maxX - minX) + (MARGIN * 2),
-      height: (maxY - minY) + (MARGIN * 2)
-    };
+      width: maxX - minX + MARGIN * 2,
+      height: maxY - minY + MARGIN * 2,
+    }
   }
 
   /**
    * Limpia el sufijo de puerto (.n, .s, .e, .w) de un ID de nodo de ELK.
    */
   private stripPort(id: string): string {
-    if (!id) return '';
-    const lastDot = id.lastIndexOf('.');
-    if (lastDot === -1) return id;
-    const suffix = id.substring(lastDot + 1);
+    if (!id) return ''
+    const lastDot = id.lastIndexOf('.')
+    if (lastDot === -1) return id
+    const suffix = id.substring(lastDot + 1)
     if (['n', 's', 'e', 'w'].includes(suffix)) {
-      return id.substring(0, lastDot);
+      return id.substring(0, lastDot)
     }
-    return id;
+    return id
   }
 
   private findPackage(packages: UMLPackage[], id: string): UMLPackage | undefined {
     for (const pkg of packages) {
-      if (pkg.id === id) return pkg;
-      const nested = pkg.children.filter((c): c is UMLPackage => c instanceof UMLPackage);
-      const found = this.findPackage(nested, id);
-      if (found) return found;
+      if (pkg.id === id) return pkg
+      const nested = pkg.children.filter((c): c is UMLPackage => c instanceof UMLPackage)
+      const found = this.findPackage(nested, id)
+      if (found) return found
     }
-    return undefined;
+    return undefined
   }
 
   /**
    * Validates the ELK graph structure to catch common issues before layout.
    */
-  private validateElkGraph(node: ElkNode, path: string = 'root'): void {
+  private validateElkGraph(node: ElkNode, path = 'root'): void {
     // Check node has ID
     if (!node.id) {
-      console.error(`[ELK Validation] Node at ${path} has no ID!`);
+      console.error(`[ELK Validation] Node at ${path} has no ID!`)
     }
 
     // Check children have width/height
     if (node.children) {
       node.children.forEach((child, idx) => {
-        const childPath = `${path}.children[${idx}]`;
+        const childPath = `${path}.children[${idx}]`
 
         // If it's a leaf node (no children), it must have width/height
         if (!child.children || child.children.length === 0) {
           if (child.width === undefined || child.height === undefined) {
-            console.error(`[ELK Validation] Leaf node ${child.id} at ${childPath} missing width/height!`);
+            console.error(
+              `[ELK Validation] Leaf node ${child.id} at ${childPath} missing width/height!`,
+            )
           }
         }
 
         // Recursively validate children
-        this.validateElkGraph(child, childPath);
-      });
+        this.validateElkGraph(child, childPath)
+      })
     }
 
     // Check edges reference valid nodes
     if (node.edges) {
-      const allNodeIds = this.collectAllElkNodeIds(node);
+      const allNodeIds = this.collectAllElkNodeIds(node)
 
       node.edges.forEach((edge, idx) => {
         if (!edge.sources || edge.sources.length === 0) {
-          console.error(`[ELK Validation] Edge ${edge.id} at ${path}.edges[${idx}] has no sources!`);
+          console.error(`[ELK Validation] Edge ${edge.id} at ${path}.edges[${idx}] has no sources!`)
         }
         if (!edge.targets || edge.targets.length === 0) {
-          console.error(`[ELK Validation] Edge ${edge.id} at ${path}.edges[${idx}] has no targets!`);
+          console.error(`[ELK Validation] Edge ${edge.id} at ${path}.edges[${idx}] has no targets!`)
         }
 
-        edge.sources?.forEach(sourceId => {
+        edge.sources?.forEach((sourceId) => {
           if (!allNodeIds.has(sourceId)) {
-            console.error(`[ELK Validation] Edge ${edge.id} references unknown source: ${sourceId}`);
-            console.error(`[ELK Validation] Available nodes:`, Array.from(allNodeIds));
+            console.error(`[ELK Validation] Edge ${edge.id} references unknown source: ${sourceId}`)
+            console.error(`[ELK Validation] Available nodes:`, Array.from(allNodeIds))
           }
-        });
+        })
 
-        edge.targets?.forEach(targetId => {
+        edge.targets?.forEach((targetId) => {
           if (!allNodeIds.has(targetId)) {
-            console.error(`[ELK Validation] Edge ${edge.id} references unknown target: ${targetId}`);
-            console.error(`[ELK Validation] Available nodes:`, Array.from(allNodeIds));
+            console.error(`[ELK Validation] Edge ${edge.id} references unknown target: ${targetId}`)
+            console.error(`[ELK Validation] Available nodes:`, Array.from(allNodeIds))
           }
-        });
-      });
+        })
+      })
     }
   }
 
@@ -470,19 +502,19 @@ export class LayoutEngine {
    * Collects all node IDs recursively from an ELK graph.
    */
   private collectAllElkNodeIds(node: ElkNode): Set<string> {
-    const ids = new Set<string>();
+    const ids = new Set<string>()
 
     if (node.id) {
-      ids.add(node.id);
+      ids.add(node.id)
     }
 
     if (node.children) {
-      node.children.forEach(child => {
-        const childIds = this.collectAllElkNodeIds(child);
-        childIds.forEach(id => ids.add(id));
-      });
+      node.children.forEach((child) => {
+        const childIds = this.collectAllElkNodeIds(child)
+        childIds.forEach((id) => ids.add(id))
+      })
     }
 
-    return ids;
+    return ids
   }
 }

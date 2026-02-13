@@ -1,35 +1,34 @@
-export * from './contract/ir';
-export * from './model/nodes';
+export * from './contract/ir'
+export * from './model/nodes'
 
-import type { DiagramModel } from './model/nodes';
-
+import type { DiagramModel } from './model/nodes'
 
 export interface LayoutResult {
-  model: DiagramModel;
-  totalWidth: number;
-  totalHeight: number;
-  bbox?: { x: number, y: number, width: number, height: number };
+  model: DiagramModel
+  totalWidth: number
+  totalHeight: number
+  bbox?: { x: number; y: number; width: number; height: number }
 }
 
 export interface DiagramConfig {
-  theme?: string;
+  theme?: string
   layout?: {
-    direction?: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
-    spacing?: number;
-    nodePadding?: number;
-    routing?: 'ORTHOGONAL' | 'SPLINES' | 'POLYLINE';
-  };
+    direction?: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT'
+    spacing?: number
+    nodePadding?: number
+    routing?: 'ORTHOGONAL' | 'SPLINES' | 'POLYLINE'
+  }
   render?: {
-    showVisibility?: boolean;
-    showIcons?: boolean;
-    showAbstractItalic?: boolean;
+    showVisibility?: boolean
+    showIcons?: boolean
+    showAbstractItalic?: boolean
     /** Si es true, el SVG ocupará el 100% de su contenedor y se auto-ajustará */
-    responsive?: boolean;
+    responsive?: boolean
     /** Ancho objetivo para el renderizado (si no es responsive) */
-    width?: number | string;
+    width?: number | string
     /** Alto objetivo para el renderizado (si no es responsive) */
-    height?: number | string;
+    height?: number | string
     /** Nivel de zoom relativo (1.0 = 100%). Menor a 1.0 aleja, mayor acerca. */
-    zoomLevel?: number;
-  };
+    zoomLevel?: number
+  }
 }

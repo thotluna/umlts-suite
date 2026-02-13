@@ -9,11 +9,11 @@
 
 El proyecto está compuesto por tres paquetes. El renderer es el componente central de visualización, independiente de cualquier entorno de ejecución específico.
 
-| Paquete | Rol | Output |
-|---|---|---|
-| `umlts-engine` | Lexer → Parser → AST → IR | JSON con `entities[]` y `relationships[]` |
-| `umlts-renderer` | IR → SVG *(este documento)* | String SVG o archivo `.svg` / `.png` |
-| `umlts-vscode` | Extensión VS Code | WebView que consume `umlts-renderer` |
+| Paquete          | Rol                         | Output                                    |
+| ---------------- | --------------------------- | ----------------------------------------- |
+| `umlts-engine`   | Lexer → Parser → AST → IR   | JSON con `entities[]` y `relationships[]` |
+| `umlts-renderer` | IR → SVG _(este documento)_ | String SVG o archivo `.svg` / `.png`      |
+| `umlts-vscode`   | Extensión VS Code           | WebView que consume `umlts-renderer`      |
 
 > **Decisión de diseño: el renderer consume solo el IR**  
 > El engine ya resuelve el grafo completo: entidades, relaciones, namespaces e implícitos.  
@@ -30,7 +30,7 @@ El renderer acepta el JSON producido por `umlts-engine`. A continuación se docu
 
 ```json
 {
-  "entities":      "IREntity[]",
+  "entities": "IREntity[]",
   "relationships": "IRRelationship[]"
 }
 ```
@@ -109,14 +109,14 @@ El renderer acepta el JSON producido por `umlts-engine`. A continuación se docu
 
 ### 2.5 Tipos de relación
 
-| RelType (IR) | Símbolo DSL | Notación visual UML |
-|---|---|---|
-| `Inheritance` | `>> / >extends` | Línea sólida + triángulo hueco |
-| `Implementation` | `>I / >implements` | Línea punteada + triángulo hueco |
-| `Composition` | `>* / >comp` | Línea sólida + rombo sólido negro |
-| `Aggregation` | `>+ / >agreg` | Línea sólida + rombo hueco |
-| `Dependency` | `>- / >use` | Línea punteada + flecha abierta |
-| `Association` | `>` | Línea sólida + flecha abierta |
+| RelType (IR)     | Símbolo DSL        | Notación visual UML               |
+| ---------------- | ------------------ | --------------------------------- |
+| `Inheritance`    | `>> / >extends`    | Línea sólida + triángulo hueco    |
+| `Implementation` | `>I / >implements` | Línea punteada + triángulo hueco  |
+| `Composition`    | `>* / >comp`       | Línea sólida + rombo sólido negro |
+| `Aggregation`    | `>+ / >agreg`      | Línea sólida + rombo hueco        |
+| `Dependency`     | `>- / >use`        | Línea punteada + flecha abierta   |
+| `Association`    | `>`                | Línea sólida + flecha abierta     |
 
 ### 2.6 Entidades implícitas
 
@@ -124,6 +124,7 @@ Cuando el engine encuentra una referencia a una clase no definida en el diagrama
 
 > ⚠️ **Multiplicidad — normalización necesaria**  
 > El IR puede expresar la multiplicidad en dos formatos diferentes que el renderer debe normalizar:
+>
 > - Formato bracket: `"[1]"`, `"[*]"`, `"[1..*]"`, `"[0..1]"`
 > - Formato texto: `"many"`, `"1"` (relaciones declaradas externamente)
 >
@@ -190,13 +191,13 @@ Usa ELK.js para calcular posiciones. Antes de invocar ELK, calcula el tamaño de
 
 Genera el SVG string en capas ordenadas:
 
-| Capa SVG | Contenido | z-order |
-|---|---|---|
-| `<g class="packages">` | Rectángulos de paquetes / namespaces | 1 (fondo) |
-| `<g class="edges">` | Todas las aristas con marcadores | 2 |
-| `<g class="nodes">` | Nodos de clase, interfaz, enum | 3 |
-| `<g class="labels">` | Multiplicidad y roles sobre aristas | 4 |
-| `<g class="notes">` | Notas flotantes | 5 (frente) |
+| Capa SVG               | Contenido                            | z-order    |
+| ---------------------- | ------------------------------------ | ---------- |
+| `<g class="packages">` | Rectángulos de paquetes / namespaces | 1 (fondo)  |
+| `<g class="edges">`    | Todas las aristas con marcadores     | 2          |
+| `<g class="nodes">`    | Nodos de clase, interfaz, enum       | 3          |
+| `<g class="labels">`   | Multiplicidad y roles sobre aristas  | 4          |
+| `<g class="notes">`    | Notas flotantes                      | 5 (frente) |
 
 ---
 
@@ -267,27 +268,27 @@ Cada nodo se renderiza como un grupo `<g>` con tres compartimentos rectangulares
 
 ### 5.2 Variantes de nodo
 
-| Tipo | Indicador visual | Notas |
-|---|---|---|
-| Class concreta | Borde normal, nombre recto | |
-| Class abstracta | Nombre en cursiva + `«abstract»` | `isAbstract: true` |
-| Interface | `«interface»` en cabecera, solo métodos | `type: Interface` |
-| Enum | `«enum»` en cabecera, valores con `$` | `type: Enum`, todos `isStatic` |
-| Class activa | Doble línea vertical en los bordes | stereotype `«active»` |
-| Entidad implícita | Fondo gris claro, borde punteado | `isImplicit: true` |
+| Tipo              | Indicador visual                        | Notas                          |
+| ----------------- | --------------------------------------- | ------------------------------ |
+| Class concreta    | Borde normal, nombre recto              |                                |
+| Class abstracta   | Nombre en cursiva + `«abstract»`        | `isAbstract: true`             |
+| Interface         | `«interface»` en cabecera, solo métodos | `type: Interface`              |
+| Enum              | `«enum»` en cabecera, valores con `$`   | `type: Enum`, todos `isStatic` |
+| Class activa      | Doble línea vertical en los bordes      | stereotype `«active»`          |
+| Entidad implícita | Fondo gris claro, borde punteado        | `isImplicit: true`             |
 
 ### 5.3 Formato de miembros
 
-| Campo | Representación visual |
-|---|---|
-| `visibility: "+"` | `+` (public) |
-| `visibility: "-"` | `-` (private) |
-| `visibility: "#"` | `#` (protected) |
-| `visibility: "~"` | `~` (package) |
-| `isStatic: true` | Texto subrayado (`text-decoration: underline`) |
-| `isAbstract: true` | Texto en cursiva (`font-style: italic`) |
-| `parameters: []` | `nombre() : tipo` (paréntesis siempre presentes) |
-| `parameters: [...]` | `nombre(param: tipo) : tipo` |
+| Campo               | Representación visual                            |
+| ------------------- | ------------------------------------------------ |
+| `visibility: "+"`   | `+` (public)                                     |
+| `visibility: "-"`   | `-` (private)                                    |
+| `visibility: "#"`   | `#` (protected)                                  |
+| `visibility: "~"`   | `~` (package)                                    |
+| `isStatic: true`    | Texto subrayado (`text-decoration: underline`)   |
+| `isAbstract: true`  | Texto en cursiva (`font-style: italic`)          |
+| `parameters: []`    | `nombre() : tipo` (paréntesis siempre presentes) |
+| `parameters: [...]` | `nombre(param: tipo) : tipo`                     |
 
 ---
 
@@ -317,14 +318,14 @@ Cada nodo se renderiza como un grupo `<g>` con tres compartimentos rectangulares
 
 ### 6.2 Marcadores SVG por tipo de relación
 
-| Tipo | Línea | Marcador destino | marker id |
-|---|---|---|---|
-| `Inheritance` | Sólida | Triángulo hueco (fill: blanco) | `mk-inherit` |
-| `Implementation` | Punteada | Triángulo hueco (fill: blanco) | `mk-implement` |
-| `Composition` | Sólida | Rombo sólido (fill: negro) | `mk-comp` |
-| `Aggregation` | Sólida | Rombo hueco (fill: blanco) | `mk-agreg` |
-| `Dependency` | Punteada | Flecha abierta (open arrowhead) | `mk-dep` |
-| `Association` | Sólida | Flecha abierta (open arrowhead) | `mk-assoc` |
+| Tipo             | Línea    | Marcador destino                | marker id      |
+| ---------------- | -------- | ------------------------------- | -------------- |
+| `Inheritance`    | Sólida   | Triángulo hueco (fill: blanco)  | `mk-inherit`   |
+| `Implementation` | Punteada | Triángulo hueco (fill: blanco)  | `mk-implement` |
+| `Composition`    | Sólida   | Rombo sólido (fill: negro)      | `mk-comp`      |
+| `Aggregation`    | Sólida   | Rombo hueco (fill: blanco)      | `mk-agreg`     |
+| `Dependency`     | Punteada | Flecha abierta (open arrowhead) | `mk-dep`       |
+| `Association`    | Sólida   | Flecha abierta (open arrowhead) | `mk-assoc`     |
 
 ### 6.3 Normalización de multiplicidad
 
@@ -347,53 +348,53 @@ function normalizeMultiplicity(raw: string | undefined): string {
 ### 7.1 Función principal
 
 ```ts
-import { render } from 'umlts-renderer';
+import { render } from 'umlts-renderer'
 
 const svg = await render(ir, {
-  theme:  'light',        // 'light' | 'dark' | Partial<Theme>
+  theme: 'light', // 'light' | 'dark' | Partial<Theme>
   layout: {
-    direction: 'DOWN',    // 'DOWN' | 'RIGHT'
-    spacing:   60,        // px entre nodos
+    direction: 'DOWN', // 'DOWN' | 'RIGHT'
+    spacing: 60, // px entre nodos
   },
-  width:  1200,           // viewport (opcional, default auto)
+  width: 1200, // viewport (opcional, default auto)
   height: 900,
-});
+})
 ```
 
 ### 7.2 Adaptador Browser
 
 ```ts
-import { mountToElement } from 'umlts-renderer/browser';
+import { mountToElement } from 'umlts-renderer/browser'
 
 // Monta el SVG en el DOM e inicializa zoom/pan con wheel + drag
-await mountToElement(ir, '#diagram', { theme: 'dark' });
+await mountToElement(ir, '#diagram', { theme: 'dark' })
 ```
 
 ### 7.3 Adaptador VS Code WebView
 
 ```ts
 // En la extensión umlts-vscode:
-import { renderForVSCode } from 'umlts-renderer/vscode';
+import { renderForVSCode } from 'umlts-renderer/vscode'
 
-const svg = await renderForVSCode(ir, options);
-panel.webview.postMessage({ type: 'render', svg });
+const svg = await renderForVSCode(ir, options)
+panel.webview.postMessage({ type: 'render', svg })
 
 // En el HTML del WebView:
-window.addEventListener('message', e => {
-  document.getElementById('root').innerHTML = e.data.svg;
-});
+window.addEventListener('message', (e) => {
+  document.getElementById('root').innerHTML = e.data.svg
+})
 ```
 
 ### 7.4 Adaptador Node.js (headless export)
 
 ```ts
-import { renderToFile } from 'umlts-renderer/node';
+import { renderToFile } from 'umlts-renderer/node'
 
 // Exportar SVG
-await renderToFile(ir, './diagram.svg');
+await renderToFile(ir, './diagram.svg')
 
 // Exportar PNG (requiere sharp como peer dependency)
-await renderToFile(ir, './diagram.png', { format: 'png', scale: 2 });
+await renderToFile(ir, './diagram.png', { format: 'png', scale: 2 })
 ```
 
 ---
@@ -405,30 +406,30 @@ El theme es un objeto plano de tokens. Se exportan dos temas built-in (`lightThe
 ```ts
 interface Theme {
   // — Nodos —
-  nodeBackground:     string;   // fondo del compartimento
-  nodeBorder:         string;   // borde del nodo
-  nodeHeaderBg:       string;   // fondo de la cabecera
-  nodeHeaderText:     string;   // nombre de la clase
-  nodeMemberText:     string;   // atributos y métodos
-  nodeDivider:        string;   // línea entre compartimentos
-  nodeImplicitBg:     string;   // fondo de entidades implícitas
-  nodeImplicitBorder: string;   // borde punteado de implícitas
+  nodeBackground: string // fondo del compartimento
+  nodeBorder: string // borde del nodo
+  nodeHeaderBg: string // fondo de la cabecera
+  nodeHeaderText: string // nombre de la clase
+  nodeMemberText: string // atributos y métodos
+  nodeDivider: string // línea entre compartimentos
+  nodeImplicitBg: string // fondo de entidades implícitas
+  nodeImplicitBorder: string // borde punteado de implícitas
   // — Aristas —
-  edgeStroke:         string;
-  edgeStrokeWidth:    number;
-  edgeLabel:          string;   // color del texto label
-  multiplicityText:   string;   // color de la multiplicidad
+  edgeStroke: string
+  edgeStrokeWidth: number
+  edgeLabel: string // color del texto label
+  multiplicityText: string // color de la multiplicidad
   // — Tipografía —
-  fontFamily:         string;   // 'monospace' recomendado
-  fontSizeBase:       number;   // 13px
-  fontSizeSmall:      number;   // 11px (stereotype, multiplicidad)
+  fontFamily: string // 'monospace' recomendado
+  fontSizeBase: number // 13px
+  fontSizeSmall: number // 11px (stereotype, multiplicidad)
   // — Paquetes —
-  packageBackground:  string;
-  packageBorder:      string;
-  packageLabelText:   string;
+  packageBackground: string
+  packageBorder: string
+  packageLabelText: string
   // — Notas —
-  noteBackground:     string;
-  noteBorder:         string;
+  noteBackground: string
+  noteBorder: string
 }
 ```
 
@@ -436,14 +437,14 @@ interface Theme {
 
 ## 9. Dependencias
 
-| Paquete | Versión | Rol | Entorno |
-|---|---|---|---|
-| `elkjs` | `^0.9` | Auto-layout del grafo | Todos |
-| `web-worker` | `^1.3` | ELK en Web Worker (browser) | Browser |
-| `typescript` | `^5.4` | Tipado estático | Dev |
-| `tsup` | `^8` | Build ESM + CJS | Dev |
-| `vitest` | `^1` | Testing unitario | Dev |
-| `sharp` | `^0.33` | Exportar PNG | Node.js (peer, opcional) |
+| Paquete      | Versión | Rol                         | Entorno                  |
+| ------------ | ------- | --------------------------- | ------------------------ |
+| `elkjs`      | `^0.9`  | Auto-layout del grafo       | Todos                    |
+| `web-worker` | `^1.3`  | ELK en Web Worker (browser) | Browser                  |
+| `typescript` | `^5.4`  | Tipado estático             | Dev                      |
+| `tsup`       | `^8`    | Build ESM + CJS             | Dev                      |
+| `vitest`     | `^1`    | Testing unitario            | Dev                      |
+| `sharp`      | `^0.33` | Exportar PNG                | Node.js (peer, opcional) |
 
 > **Sin D3, sin Cytoscape, sin dependencias de DOM**  
 > El SVG se genera como string puro → compatible con Node.js sin polyfills.  
@@ -454,18 +455,18 @@ interface Theme {
 
 ## 10. Roadmap de Implementación
 
-| Fase | Entregable | Criterio de completitud |
-|---|---|---|
-| 1 — Tipos | `types.ts`: DiagramModel, LayoutResult, Theme | Tipado completo sin `any` |
-| 1 — Tipos | `ir-adapter.ts`: IR → DiagramModel | Tests con el IR de ejemplo |
-| 1 — Tipos | `measure.ts` + `multiplicity.ts` | Normalización cubierta |
-| 2 — Layout | `layout-engine.ts` con ELK layered | Nodos sin solapamiento |
-| 2 — Layout | Compound nodes para namespaces | `Domain.*` agrupado visualmente |
-| 3 — Renderer | `class-node` + `interface-node` + `enum-node` | Los 3 tipos básicos renderizados |
-| 3 — Renderer | `edges.ts` con los 6 tipos de aristas | Marcadores SVG correctos |
-| 3 — Renderer | `implicit-node.ts` | Entidades implícitas atenuadas |
-| 4 — Adapters | `browser.ts` + `vscode.ts` | Funciona en WebView VS Code |
-| 4 — Adapters | `node.ts` (SVG + PNG headless) | Export desde CLI |
-| 5 — UX | Zoom / pan interactivo en browser | Wheel + drag |
-| 5 — UX | `lightTheme` + `darkTheme` built-in | Switchable sin rerender |
-| 6 — Avanzado | `active-node`, `note-node`, `package-node` visual | Fidelidad UML completa |
+| Fase         | Entregable                                        | Criterio de completitud          |
+| ------------ | ------------------------------------------------- | -------------------------------- |
+| 1 — Tipos    | `types.ts`: DiagramModel, LayoutResult, Theme     | Tipado completo sin `any`        |
+| 1 — Tipos    | `ir-adapter.ts`: IR → DiagramModel                | Tests con el IR de ejemplo       |
+| 1 — Tipos    | `measure.ts` + `multiplicity.ts`                  | Normalización cubierta           |
+| 2 — Layout   | `layout-engine.ts` con ELK layered                | Nodos sin solapamiento           |
+| 2 — Layout   | Compound nodes para namespaces                    | `Domain.*` agrupado visualmente  |
+| 3 — Renderer | `class-node` + `interface-node` + `enum-node`     | Los 3 tipos básicos renderizados |
+| 3 — Renderer | `edges.ts` con los 6 tipos de aristas             | Marcadores SVG correctos         |
+| 3 — Renderer | `implicit-node.ts`                                | Entidades implícitas atenuadas   |
+| 4 — Adapters | `browser.ts` + `vscode.ts`                        | Funciona en WebView VS Code      |
+| 4 — Adapters | `node.ts` (SVG + PNG headless)                    | Export desde CLI                 |
+| 5 — UX       | Zoom / pan interactivo en browser                 | Wheel + drag                     |
+| 5 — UX       | `lightTheme` + `darkTheme` built-in               | Switchable sin rerender          |
+| 6 — Avanzado | `active-node`, `note-node`, `package-node` visual | Fidelidad UML completa           |
