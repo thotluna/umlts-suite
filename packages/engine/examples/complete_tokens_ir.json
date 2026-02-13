@@ -28,9 +28,7 @@
       "isImplicit": false,
       "isAbstract": false,
       "isActive": false,
-      "typeParameters": [
-        "T"
-      ],
+      "typeParameters": ["T"],
       "line": 2,
       "column": 5,
       "namespace": "Utils"
@@ -112,9 +110,7 @@
       "isImplicit": false,
       "isAbstract": true,
       "isActive": true,
-      "typeParameters": [
-        "T"
-      ],
+      "typeParameters": ["T"],
       "line": 18,
       "column": 16,
       "namespace": "Domain"

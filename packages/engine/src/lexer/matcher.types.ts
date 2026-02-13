@@ -1,5 +1,5 @@
-import type { Token } from './token.types';
-import type { LexerReader } from './lexer.reader';
+import type { Token } from './token.types'
+import type { LexerReader } from './lexer.reader'
 
 export interface TokenMatcher {
   /**
@@ -7,5 +7,5 @@ export interface TokenMatcher {
    * Si hay coincidencia, consume los caracteres necesarios y devuelve el Token.
    * Si no hay coincidencia, DEBE devolver null y NO consumir nada (o hacer rollback).
    */
-  match(reader: LexerReader): Token | null;
+  match(reader: LexerReader): Token | null
 }
