@@ -44,40 +44,31 @@ export function activate(context: vscode.ExtensionContext) {
   const completionProvider = vscode.languages.registerCompletionItemProvider('umlts', {
     provideCompletionItems(document, position) {
       const completions: vscode.CompletionItem[] = [];
-
-      // 1. Keywords Básicas
-      const keywords = ['class', 'interface', 'enum', 'package', 'config', 'public', 'private', 'protected', 'internal', 'static', 'abstract'];
-      keywords.forEach(kw => {
-        completions.push(new vscode.CompletionItem(kw, vscode.CompletionItemKind.Keyword));
-      });
-
-      // 2. Entidades del diagrama actual
-      const result = getParseResult(document);
-      if (result && result.diagram && result.diagram.entities) {
-        result.diagram.entities.forEach((entity: any) => {
-          const item = new vscode.CompletionItem(entity.name, vscode.CompletionItemKind.Class);
-          item.detail = entity.namespace ? `(in ${entity.namespace})` : '';
-          item.documentation = new vscode.MarkdownString(`FQN: \`${entity.id}\`\n\nType: ${entity.type}`);
-          completions.push(item);
-        });
-      }
-
-      // 3. Propiedades de Configuración (Contextual)
       const textBefore = document.getText(new vscode.Range(new vscode.Position(0, 0), position));
       const lastOpenBrace = textBefore.lastIndexOf('{');
       const lastCloseBrace = textBefore.lastIndexOf('}');
 
+      // --- 1. Lógica de Bloques Contextuales (Exclusiva) ---
       if (lastOpenBrace > lastCloseBrace) {
         const textBeforeBrace = textBefore.substring(0, lastOpenBrace).trim();
-        if (textBeforeBrace.endsWith('config')) {
+        // Heurística robusta: eliminamos comentarios para encontrar la keyword
+        const cleanTextBeforeBrace = textBeforeBrace
+          .replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '')
+          .trim();
+
+        if (cleanTextBeforeBrace.endsWith('config')) {
           const configProps = [
             { label: 'direction', detail: 'UP | DOWN | LEFT | RIGHT' },
-            { label: 'spacing', detail: 'Espaciado entre nodos (número)' },
+            { label: 'spacing', detail: 'Distancia entre nodos (número)' },
             { label: 'theme', detail: 'light | dark' },
             { label: 'routing', detail: 'ORTHOGONAL | POLYLINE | SPLINES' },
             { label: 'showVisibility', detail: 'true | false' },
             { label: 'showIcons', detail: 'true | false' },
-            { label: 'nodePadding', detail: 'Padding interno de paquetes (número)' }
+            { label: 'nodePadding', detail: 'Padding interno de paquetes (número)' },
+            { label: 'responsive', detail: 'true | false (SVG takes 100%)' },
+            { label: 'zoomLevel', detail: '1.0 = 100% (zoom level)' },
+            { label: 'width', detail: 'Canvas width (number or %)' },
+            { label: 'height', detail: 'Canvas height (number or %)' }
           ];
 
           configProps.forEach(p => {
@@ -86,20 +77,40 @@ export function activate(context: vscode.ExtensionContext) {
             completions.push(item);
           });
 
-          // Sugerencias de valores específicos
+          // Sugerencias de valores específicos basándonos en la palabra antes del cursor
           const lineTextBefore = document.lineAt(position.line).text.substring(0, position.character);
+
           if (lineTextBefore.includes('direction:')) {
             ['UP', 'DOWN', 'LEFT', 'RIGHT'].forEach(v => completions.push(new vscode.CompletionItem(v, vscode.CompletionItemKind.EnumMember)));
           } else if (lineTextBefore.includes('routing:')) {
             ['ORTHOGONAL', 'POLYLINE', 'SPLINES'].forEach(v => completions.push(new vscode.CompletionItem(v, vscode.CompletionItemKind.EnumMember)));
           } else if (lineTextBefore.includes('theme:')) {
             ['light', 'dark'].forEach(v => completions.push(new vscode.CompletionItem(v, vscode.CompletionItemKind.Color)));
-          } else if (lineTextBefore.includes('visibility:') || lineTextBefore.includes('Icons:')) {
+          } else if (lineTextBefore.includes('visibility:') || lineTextBefore.includes('Icons:') || lineTextBefore.includes('responsive:')) {
             ['true', 'false'].forEach(v => completions.push(new vscode.CompletionItem(v, vscode.CompletionItemKind.Keyword)));
           }
 
-          return completions;
+          return completions; // RETORNO EXCLUSIVO: Solo cosas de config
         }
+      }
+
+      // --- 2. Sugerencias Globales (Fuera de bloques o bloques genéricos) ---
+
+      // Keywords Básicas
+      const keywords = ['class', 'interface', 'enum', 'package', 'config', 'public', 'private', 'protected', 'internal', 'static', 'abstract'];
+      keywords.forEach(kw => {
+        completions.push(new vscode.CompletionItem(kw, vscode.CompletionItemKind.Keyword));
+      });
+
+      // Entidades del diagrama actual
+      const result = getParseResult(document);
+      if (result && result.diagram && result.diagram.entities) {
+        result.diagram.entities.forEach((entity: any) => {
+          const item = new vscode.CompletionItem(entity.name, vscode.CompletionItemKind.Class);
+          item.detail = entity.namespace ? `(in ${entity.namespace})` : '';
+          item.documentation = new vscode.MarkdownString(`FQN: \`${entity.id}\`\n\nType: ${entity.type}`);
+          completions.push(item);
+        });
       }
 
       return completions;
