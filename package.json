@@ -13,9 +13,20 @@
     "build:engine": "pnpm --filter @umlts/engine build",
     "build:renderer": "pnpm --filter @umlts/renderer build",
     "build:vscode": "pnpm --filter umlts-vscode build",
-    "dev": "pnpm --filter umlts-vscode watch"
+    "lint": "eslint . --ext .ts,.js",
+    "format": "prettier --write .",
+    "test": "pnpm -r test",
+    "dev": "pnpm --filter umlts-vscode watch",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1",
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.55.0"
   }
 }
