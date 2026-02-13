@@ -5,6 +5,7 @@ import type { ParserContext } from '../../parser/parser.context'
 import { DiagnosticCode } from '../../parser/diagnostic.types'
 import { TypeValidator } from '../utils/type-validator'
 import { FQNBuilder } from '../utils/fqn-builder'
+import { MultiplicityValidator } from '../utils/multiplicity-validator'
 import { TokenType } from '../../lexer/token.types'
 import type { Token } from '../../lexer/token.types'
 import type { EntityNode, MemberNode, AttributeNode, MethodNode } from '../../parser/ast/nodes'
@@ -79,25 +80,38 @@ export class EntityAnalyzer {
         const isMethod = m.type === ASTNodeType.METHOD
         const isAttribute = m.type === ASTNodeType.ATTRIBUTE
 
-        return {
+        const irMember: IRMember = {
           name: m.name,
           type: typeName,
           visibility: this.mapVisibility(m.visibility),
           isStatic: m.isStatic || false,
-          isAbstract: isMethod ? m.isAbstract : false,
+          isAbstract: isMethod ? (m as MethodNode).isAbstract : false,
           parameters: isMethod
-            ? m.parameters?.map((p) => ({
+            ? (m as MethodNode).parameters?.map((p) => ({
                 name: p.name,
                 type: p.typeAnnotation?.raw,
                 relationshipKind: p.relationshipKind,
               }))
             : [],
-          relationshipKind: isAttribute ? m.relationshipKind : m.returnRelationshipKind,
-          multiplicity: isAttribute ? m.multiplicity : undefined,
+          relationshipKind: isAttribute
+            ? (m as AttributeNode).relationshipKind
+            : (m as MethodNode).returnRelationshipKind,
+          multiplicity: isAttribute ? (m as AttributeNode).multiplicity : undefined,
           docs: m.docs,
           line: m.line,
           column: m.column,
         }
+
+        if (isAttribute && (m as AttributeNode).multiplicity) {
+          MultiplicityValidator.validateBounds(
+            (m as AttributeNode).multiplicity!,
+            m.line,
+            m.column,
+            this.context,
+          )
+        }
+
+        return irMember
       })
   }
 
