@@ -208,3 +208,7 @@
   - [x] Resolver advertencias de `any` implícito en el renderer
   - [x] Verificar build y tests locales en todo el workspace
   - [x] Purgar y verificar CI en GitHub
+- [x] **FEAT**: Implementar reglas de UML 2.5.1 sobre Propiedades/Atributos
+  - [x] Validación de consistencia de multiplicidad (`upper >= lower`)
+  - [x] Validación de agregación compuesta (multiplicidad del contenedor <= 1)
+  - [x] **BACKLOG**: Validación de Nombres de Subconjuntos (Requiere actualización del DSL)
