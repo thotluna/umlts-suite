@@ -1,19 +1,19 @@
-import { IRMember, IRRelType } from '../contract/ir';
-import { measureNodeDimensions } from '../../layout/measure';
+import { IRMember, IRRelType } from '../contract/ir'
+import { measureNodeDimensions } from '../../layout/measure'
 
 /**
  * Port side definition for ELK.
  */
-export type PortSide = 'NORTH' | 'SOUTH' | 'EAST' | 'WEST';
+export type PortSide = 'NORTH' | 'SOUTH' | 'EAST' | 'WEST'
 
 /**
  * Connection point for edges on a node.
  */
 export interface UMLPort {
-  id: string;
-  side: PortSide;
-  x: number;
-  y: number;
+  id: string
+  side: PortSide
+  x: number
+  y: number
 }
 
 /**
@@ -21,26 +21,26 @@ export interface UMLPort {
  * This provides a language-agnostic way to handle nodes and packages.
  */
 export abstract class UMLHierarchyItem {
-  public x: number = 0;
-  public y: number = 0;
-  public width: number = 0;
-  public height: number = 0;
-  public ports: UMLPort[] = [];
+  public x = 0
+  public y = 0
+  public width = 0
+  public height = 0
+  public ports: UMLPort[] = []
 
   constructor(
     public readonly id: string,
-    public readonly name: string
-  ) { }
+    public readonly name: string,
+  ) {}
 
   public updateLayout(x: number, y: number, width: number, height: number): void {
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
+    this.x = x
+    this.y = y
+    this.width = width
+    this.height = height
   }
 
   public updatePorts(ports: UMLPort[]): void {
-    this.ports = ports;
+    this.ports = ports
   }
 }
 
@@ -60,16 +60,16 @@ export class UMLNode extends UMLHierarchyItem {
     public readonly isActive: boolean,
     public readonly typeParameters: string[],
     public readonly namespace?: string,
-    public readonly docs?: string
+    public readonly docs?: string,
   ) {
-    super(id, name);
+    super(id, name)
   }
 
   /**
    * Calculates the dimensions of this node based on its content.
    */
   public getDimensions(): { width: number; height: number } {
-    return measureNodeDimensions(this);
+    return measureNodeDimensions(this)
   }
 }
 
@@ -77,10 +77,10 @@ export class UMLNode extends UMLHierarchyItem {
  * Rich Domain Model for UML Relationships.
  */
 export class UMLEdge {
-  public waypoints?: { x: number; y: number }[];
-  public labelPos?: { x: number; y: number };
-  public labelWidth?: number;
-  public labelHeight?: number;
+  public waypoints?: { x: number; y: number }[]
+  public labelPos?: { x: number; y: number }
+  public labelWidth?: number
+  public labelHeight?: number
 
   constructor(
     public readonly from: string,
@@ -89,19 +89,19 @@ export class UMLEdge {
     public readonly label?: string,
     public readonly visibility?: string,
     public readonly fromMultiplicity?: string,
-    public readonly toMultiplicity?: string
-  ) { }
+    public readonly toMultiplicity?: string,
+  ) {}
 
   public updateLayout(
     waypoints: { x: number; y: number }[],
     labelPos?: { x: number; y: number },
     labelWidth?: number,
-    labelHeight?: number
+    labelHeight?: number,
   ): void {
-    this.waypoints = waypoints;
-    this.labelPos = labelPos;
-    this.labelWidth = labelWidth;
-    this.labelHeight = labelHeight;
+    this.waypoints = waypoints
+    this.labelPos = labelPos
+    this.labelWidth = labelWidth
+    this.labelHeight = labelHeight
   }
 }
 
@@ -112,14 +112,14 @@ export class UMLPackage extends UMLHierarchyItem {
   constructor(
     name: string,
     public readonly children: UMLHierarchyItem[],
-    public readonly path?: string
+    public readonly path?: string,
   ) {
-    super(path || name, name);
+    super(path || name, name)
   }
 }
 
 export interface DiagramModel {
-  nodes: UMLNode[];
-  edges: UMLEdge[];
-  packages: UMLPackage[];
+  nodes: UMLNode[]
+  edges: UMLEdge[]
+  packages: UMLPackage[]
 }

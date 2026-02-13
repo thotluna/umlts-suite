@@ -1,63 +1,62 @@
-
 /**
  * Defines the visual styling for all diagram elements.
  */
 export interface Theme {
   // --- Nodes ---
   /** Background color of the class box. */
-  nodeBackground: string;
+  nodeBackground: string
   /** Border color of the class box. */
-  nodeBorder: string;
+  nodeBorder: string
   /** Background color for the class name header section. */
-  nodeHeaderBg: string;
+  nodeHeaderBg: string
   /** Font color for the class name. */
-  nodeHeaderText: string;
+  nodeHeaderText: string
   /** Font color for attributes and methods. */
-  nodeMemberText: string;
+  nodeMemberText: string
   /** Color of the line separating header, attributes, and methods. */
-  nodeDivider: string;
+  nodeDivider: string
   /** Background color for implicit classes. */
-  nodeImplicitBg: string;
+  nodeImplicitBg: string
   /** Border color for implicit classes. */
-  nodeImplicitBorder: string;
+  nodeImplicitBorder: string
   /** Color for the double border in active classes. */
-  nodeActiveLine: string;
+  nodeActiveLine: string
 
   // --- Edges ---
   /** Color of the relationship lines. */
-  edgeStroke: string;
+  edgeStroke: string
   /** Thickness of the relationship lines. */
-  edgeStrokeWidth: number;
+  edgeStrokeWidth: number
   /** Color of the relationship label text. */
-  edgeLabel: string;
+  edgeLabel: string
   /** Color of the multiplicity numbers/strings. */
-  multiplicityText: string;
+  multiplicityText: string
 
   // --- Typography ---
   /** CSS font-family string. */
-  fontFamily: string;
+  fontFamily: string
   /** Default font size for headers and members. */
-  fontSizeBase: number;
+  fontSizeBase: number
   /** Smaller font size for stereotypes and multiplicities. */
-  fontSizeSmall: number;
+  fontSizeSmall: number
 
   // --- Packages ---
   /** Background color of the package/namespace container. */
-  packageBackground: string;
+  packageBackground: string
   /** Border color of the package container. */
-  packageBorder: string;
+  packageBorder: string
   /** Font color for the package name label. */
-  packageLabelText: string;
+  packageLabelText: string
 
   // --- Notes ---
   /** Background color of note elements. */
-  noteBackground: string;
+  noteBackground: string
   /** Border color of note elements. */
-  noteBorder: string;
+  noteBorder: string
 
   // --- Background ---
   /** Background color of the entire SVG canvas. */
-  canvasBackground: string;
+  canvasBackground: string
 }
 
 /**
@@ -90,8 +89,8 @@ export const lightTheme: Theme = {
   noteBackground: '#fff9c4',
   noteBorder: '#fbc02d',
 
-  canvasBackground: '#ffffff'
-};
+  canvasBackground: '#ffffff',
+}
 
 /**
  * Default dark theme for high-contrast IDE environments.
@@ -123,5 +122,5 @@ export const darkTheme: Theme = {
   noteBackground: '#424242',
   noteBorder: '#616161',
 
-  canvasBackground: '#1e1e1e'
-};
+  canvasBackground: '#1e1e1e',
+}

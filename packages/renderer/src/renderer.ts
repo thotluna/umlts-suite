@@ -1,21 +1,21 @@
-import { IR, LayoutResult, DiagramConfig } from './core/types';
-import { Theme, lightTheme, darkTheme } from './core/theme';
-import { IRAdapter } from './adaptation/ir-adapter';
-import { LayoutEngine } from './layout/layout-engine';
-import { SVGRenderer } from './drawing/svg-renderer';
+import { IR, DiagramConfig } from './core/types'
+import { Theme, lightTheme, darkTheme } from './core/theme'
+import { IRAdapter } from './adaptation/ir-adapter'
+import { LayoutEngine } from './layout/layout-engine'
+import { SVGRenderer } from './drawing/svg-renderer'
 
 export interface RenderOptions {
-  theme?: 'light' | 'dark' | Theme;
-  config?: DiagramConfig;
+  theme?: 'light' | 'dark' | Theme
+  config?: DiagramConfig
 }
 
 /**
  * UMLRenderer: The high-level orchestrator of the rendering pipeline.
  */
 export class UMLRenderer {
-  private adapter = new IRAdapter();
-  private layoutEngine = new LayoutEngine();
-  private svgRenderer = new SVGRenderer();
+  private adapter = new IRAdapter()
+  private layoutEngine = new LayoutEngine()
+  private svgRenderer = new SVGRenderer()
 
   /**
    * Renders the given IR into an SVG string.
@@ -24,50 +24,50 @@ export class UMLRenderer {
     // Merge configuration: Defaults < Options (IDE/JSON) < IR (DSL)
     const mergedConfig: DiagramConfig = {
       ...options.config,
-      ...this.normalizeDSLConfig(ir.config)
-    };
+      ...this.normalizeDSLConfig(ir.config),
+    }
 
-    const theme = this.resolveTheme(options.theme || mergedConfig.theme);
+    const theme = this.resolveTheme(options.theme || mergedConfig.theme)
 
     // 1. Adaptation Phase
-    const model = this.adapter.transform(ir);
+    const model = this.adapter.transform(ir)
 
     // 2. Layout Phase
     // Pass merged config to layout engine (direction, spacing)
-    const layoutResult = await this.layoutEngine.layout(model, mergedConfig.layout);
+    const layoutResult = await this.layoutEngine.layout(model, mergedConfig.layout)
 
     // 3. Drawing Phase
     // Pass merged config to SVG renderer (render options)
-    return this.svgRenderer.render(layoutResult, theme, mergedConfig.render);
+    return this.svgRenderer.render(layoutResult, theme, mergedConfig.render)
   }
 
   private resolveTheme(themeOption?: string | Theme): Theme {
-    if (!themeOption) return lightTheme;
-    if (themeOption === 'dark') return darkTheme;
-    if (themeOption === 'light') return lightTheme;
-    if (typeof themeOption === 'string') return lightTheme; // Fallback for unknown theme strings
-    return themeOption;
+    if (!themeOption) return lightTheme
+    if (themeOption === 'dark') return darkTheme
+    if (themeOption === 'light') return lightTheme
+    if (typeof themeOption === 'string') return lightTheme // Fallback for unknown theme strings
+    return themeOption
   }
 
   /**
-   * Transforma la configuración cruda del DSL (Record<string, any>) 
+   * Transforma la configuración cruda del DSL (Record<string, unknown>)
    * a la interfaz estructurada DiagramConfig.
    */
-  private normalizeDSLConfig(dslConfig?: Record<string, any>): DiagramConfig {
-    if (!dslConfig) return {};
+  private normalizeDSLConfig(dslConfig?: Record<string, unknown>): DiagramConfig {
+    if (!dslConfig) return {}
 
-    const config: DiagramConfig = {};
+    const config: DiagramConfig = {}
 
-    if (dslConfig.theme) config.theme = dslConfig.theme;
+    if (dslConfig.theme) config.theme = dslConfig.theme as string
 
     // Mapeo simple de opciones de layout
     if (dslConfig.direction || dslConfig.spacing || dslConfig.nodePadding || dslConfig.routing) {
       config.layout = {
-        direction: dslConfig.direction as any,
-        spacing: dslConfig.spacing,
-        nodePadding: dslConfig.nodePadding,
-        routing: dslConfig.routing as any
-      };
+        direction: dslConfig.direction as NonNullable<DiagramConfig['layout']>['direction'],
+        spacing: dslConfig.spacing as number,
+        nodePadding: dslConfig.nodePadding as number,
+        routing: dslConfig.routing as NonNullable<DiagramConfig['layout']>['routing'],
+      }
     }
 
     // Mapeo simple de opciones de render
@@ -80,15 +80,15 @@ export class UMLRenderer {
       dslConfig.zoomLevel !== undefined
     ) {
       config.render = {
-        showVisibility: dslConfig.showVisibility,
-        showIcons: dslConfig.showIcons,
-        responsive: dslConfig.responsive,
-        width: dslConfig.width,
-        height: dslConfig.height,
-        zoomLevel: dslConfig.zoomLevel
-      };
+        showVisibility: dslConfig.showVisibility as boolean,
+        showIcons: dslConfig.showIcons as boolean,
+        responsive: dslConfig.responsive as boolean,
+        width: dslConfig.width as number | string,
+        height: dslConfig.height as number | string,
+        zoomLevel: dslConfig.zoomLevel as number,
+      }
     }
 
-    return config;
+    return config
   }
 }
