@@ -28,9 +28,9 @@ describe('SemanticAnalyzer', () => {
 
     // La relación debe estar presente y resuelta
     expect(ir.relationships).toHaveLength(1)
-    expect(ir.relationships[0]!.from).toBe('Hero')
-    expect(ir.relationships[0]!.to).toBe('Person')
-    expect(ir.relationships[0]!.type).toBe(IRRelationshipType.INHERITANCE)
+    expect(ir.relationships[0].from).toBe('Hero')
+    expect(ir.relationships[0].to).toBe('Person')
+    expect(ir.relationships[0].type).toBe(IRRelationshipType.INHERITANCE)
   })
 
   it('should resolve FQNs correctly in nested packages', () => {
@@ -55,8 +55,8 @@ describe('SemanticAnalyzer', () => {
     expect(user).toBeDefined()
     expect(profile).toBeDefined()
 
-    expect(ir.relationships[0]!.from).toBe('core.domain.Profile')
-    expect(ir.relationships[0]!.to).toBe('core.User')
+    expect(ir.relationships[0].from).toBe('core.domain.Profile')
+    expect(ir.relationships[0].to).toBe('core.User')
   })
 
   it('should handle standalone relationships creating implicits', () => {

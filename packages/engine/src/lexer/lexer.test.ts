@@ -24,7 +24,7 @@ describe('Lexer', () => {
       column: 7,
     })
 
-    expect(tokens[2]!.type).toBe(TokenType.EOF)
+    expect(tokens[2].type).toBe(TokenType.EOF)
   })
 
   it('should handle whitespace correctly', () => {
@@ -33,8 +33,8 @@ describe('Lexer', () => {
     const tokens = lexer.tokenize()
 
     expect(tokens).toHaveLength(3)
-    expect(tokens[0]!.type).toBe(TokenType.KW_CLASS)
-    expect(tokens[1]!.type).toBe(TokenType.IDENTIFIER)
+    expect(tokens[0].type).toBe(TokenType.KW_CLASS)
+    expect(tokens[1].type).toBe(TokenType.IDENTIFIER)
   })
 
   it('should tokenize relations and symbols correctly', () => {
@@ -42,12 +42,12 @@ describe('Lexer', () => {
     const lexer = LexerFactory.create(input)
     const tokens = lexer.tokenize()
 
-    expect(tokens[0]!.type).toBe(TokenType.OP_INHERIT)
-    expect(tokens[1]!.type).toBe(TokenType.OP_IMPLEMENT)
-    expect(tokens[2]!.type).toBe(TokenType.OP_COMP)
-    expect(tokens[3]!.type).toBe(TokenType.OP_AGREG)
-    expect(tokens[4]!.type).toBe(TokenType.OP_USE)
-    expect(tokens[5]!.type).toBe(TokenType.GT)
+    expect(tokens[0].type).toBe(TokenType.OP_INHERIT)
+    expect(tokens[1].type).toBe(TokenType.OP_IMPLEMENT)
+    expect(tokens[2].type).toBe(TokenType.OP_COMP)
+    expect(tokens[3].type).toBe(TokenType.OP_AGREG)
+    expect(tokens[4].type).toBe(TokenType.OP_USE)
+    expect(tokens[5].type).toBe(TokenType.GT)
   })
 
   it('should tokenize braces and other symbols', () => {
@@ -76,7 +76,7 @@ describe('Lexer', () => {
     ]
 
     expectedTypes.forEach((type, i) => {
-      expect(tokens[i]!.type).toBe(type)
+      expect(tokens[i].type).toBe(type)
     })
   })
 
@@ -86,8 +86,8 @@ describe('Lexer', () => {
     const tokens = lexer.tokenize()
 
     expect(tokens).toHaveLength(4) // KW_CLASS, IDENTIFIER, COMMENT, EOF
-    expect(tokens[2]!.type).toBe(TokenType.COMMENT)
-    expect(tokens[2]!.value).toBe('// This is a user class')
+    expect(tokens[2].type).toBe(TokenType.COMMENT)
+    expect(tokens[2].value).toBe('// This is a user class')
   })
 
   it('should tokenize multi-line comments', () => {
@@ -96,8 +96,8 @@ describe('Lexer', () => {
     const tokens = lexer.tokenize()
 
     expect(tokens).toHaveLength(4) // COMMENT, KW_CLASS, IDENTIFIER, EOF
-    expect(tokens[0]!.type).toBe(TokenType.COMMENT)
-    expect(tokens[0]!.line).toBe(1)
-    expect(tokens[1]!.line).toBe(2) // class should be on line 2
+    expect(tokens[0].type).toBe(TokenType.COMMENT)
+    expect(tokens[0].line).toBe(1)
+    expect(tokens[1].line).toBe(2) // class should be on line 2
   })
 })

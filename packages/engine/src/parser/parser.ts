@@ -6,7 +6,7 @@ import { ParserContext } from './parser.context'
 import type { StatementRule, Orchestrator } from './rule.types'
 
 export class Parser implements Orchestrator {
-  private rules: StatementRule[]
+  private readonly rules: StatementRule[]
 
   constructor(rules: StatementRule[]) {
     this.rules = rules
@@ -25,7 +25,7 @@ export class Parser implements Orchestrator {
         }
 
         const stmt = this.parseStatement(context)
-        if (stmt) {
+        if (stmt != null) {
           body.push(stmt)
         } else {
           context.addError('Sentencia no reconocida')
@@ -77,7 +77,7 @@ export class Parser implements Orchestrator {
 
     for (const rule of this.rules) {
       const node = rule.parse(context, this)
-      if (node) return node
+      if (node != null) return node
     }
 
     return null

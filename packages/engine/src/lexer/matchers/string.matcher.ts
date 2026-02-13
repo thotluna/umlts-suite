@@ -33,7 +33,7 @@ export class StringMatcher implements TokenMatcher {
 
     return {
       type: TokenType.STRING,
-      value: value,
+      value,
       line: startLine,
       column: startColumn,
     }

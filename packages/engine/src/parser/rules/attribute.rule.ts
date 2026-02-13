@@ -1,11 +1,11 @@
 import type { Token } from '../../lexer/token.types'
 import { TokenType } from '../../lexer/token.types'
-import { ASTNodeType, AttributeNode } from '../ast/nodes'
+import { ASTNodeType, type AttributeNode } from '../ast/nodes'
 import type { ParserContext } from '../parser.context'
 import { TypeRule } from './type.rule'
 
 export class AttributeRule {
-  private typeRule = new TypeRule()
+  private readonly typeRule = new TypeRule()
 
   public parse(
     context: ParserContext,
@@ -16,7 +16,7 @@ export class AttributeRule {
     context.consume(TokenType.COLON, "Se esperaba ':' después del nombre del atributo")
 
     // SOPORTE SECCIÓN 5.2 DE LA ESPECIFICACIÓN: Soporte de relaciones in-line
-    let relationshipKind: string | undefined = undefined
+    let relationshipKind: string | undefined
     if (
       context.match(
         TokenType.OP_INHERIT,
@@ -32,7 +32,7 @@ export class AttributeRule {
 
     const targetIsAbstract = context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)
     const typeAnnotation = this.typeRule.parse(context)
-    let multiplicity: string | undefined = undefined
+    let multiplicity: string | undefined
 
     if (context.match(TokenType.LBRACKET)) {
       multiplicity = '['

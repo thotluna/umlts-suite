@@ -16,7 +16,7 @@ export class RelationshipRule implements StatementRule {
       }
 
       const fromToken = context.consume(TokenType.IDENTIFIER, 'Se esperaba un identificador')
-      let fromMultiplicity: string | undefined = undefined
+      let fromMultiplicity: string | undefined
 
       if (context.check(TokenType.LBRACKET)) {
         fromMultiplicity = this.parseMultiplicity(context)
@@ -31,7 +31,7 @@ export class RelationshipRule implements StatementRule {
       }
 
       const kind = context.advance().value
-      let toMultiplicity: string | undefined = undefined
+      let toMultiplicity: string | undefined
 
       if (context.check(TokenType.LBRACKET)) {
         toMultiplicity = this.parseMultiplicity(context)
@@ -55,7 +55,7 @@ export class RelationshipRule implements StatementRule {
         to += context.consume(TokenType.GT, "Se esperaba '>'").value
       }
 
-      let label: string | undefined = undefined
+      let label: string | undefined
       if (context.match(TokenType.COLON)) {
         label = context.consume(
           TokenType.STRING,
@@ -77,7 +77,7 @@ export class RelationshipRule implements StatementRule {
         line: fromToken.line,
         column: fromToken.column,
       }
-    } catch (e) {
+    } catch (_e) {
       context.rollback(pos)
       return null
     }

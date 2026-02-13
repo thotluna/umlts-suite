@@ -1,30 +1,32 @@
 import type { Token } from '../lexer/token.types'
 import { TokenType } from '../lexer/token.types'
-import type { Diagnostic } from './diagnostic.types'
-import { DiagnosticSeverity } from './diagnostic.types'
+import type { Diagnostic, DiagnosticSeverity, type DiagnosticCode } from './diagnostic.types'
 
 export class ParserContext {
-  private tokens: Token[]
+  private readonly tokens: Token[]
   private current = 0
-  private diagnostics: Diagnostic[] = []
+  private readonly diagnostics: Diagnostic[] = []
 
   constructor(tokens: Token[]) {
     this.tokens = tokens
   }
 
   public peek(): Token {
-    return this.tokens[this.current]!
+    if (this.current >= this.tokens.length) {
+      return this.tokens[this.tokens.length - 1]
+    }
+    return this.tokens[this.current]
   }
 
   public peekNext(): Token {
     if (this.current + 1 >= this.tokens.length) {
-      return this.tokens[this.tokens.length - 1]!
+      return this.tokens[this.tokens.length - 1]
     }
-    return this.tokens[this.current + 1]!
+    return this.tokens[this.current + 1]
   }
 
   public prev(): Token {
-    return this.tokens[this.current - 1]!
+    return this.tokens[this.current - 1]
   }
 
   public advance(): Token {
@@ -64,10 +66,11 @@ export class ParserContext {
     this.current = position
   }
 
-  public addError(message: string, token?: Token): void {
-    const errorToken = token || this.peek()
+  public addError(message: string, token?: Token, code?: DiagnosticCode): void {
+    const errorToken = token != null || this.peek()
     this.diagnostics.push({
       message,
+      code,
       line: errorToken.line,
       column: errorToken.column,
       severity: DiagnosticSeverity.ERROR,

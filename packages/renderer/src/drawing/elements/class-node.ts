@@ -1,5 +1,5 @@
-import { UMLNode, IRMember, DiagramConfig } from '../../core/types'
-import { Theme } from '../../core/theme'
+import { type UMLNode, type IRMember, type DiagramConfig } from '../../core/types'
+import { type Theme } from '../../core/theme'
 import { SVGBuilder as svg } from '../svg-helpers'
 import { DrawingRegistry } from '../drawable'
 
@@ -75,7 +75,7 @@ export function renderClassNode(
         fill: theme.nodeHeaderText,
         'font-size': theme.fontSizeSmall,
       },
-      `«abstract»`,
+      '«abstract»',
     )
     currentY += 14
   } else if (node.isStatic) {
@@ -87,7 +87,7 @@ export function renderClassNode(
         fill: theme.nodeHeaderText,
         'font-size': theme.fontSizeSmall,
       },
-      `«static»`,
+      '«static»',
     )
     currentY += 14
   }

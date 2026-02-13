@@ -63,6 +63,7 @@ export enum IRRelationshipType {
   COMPOSITION = 'Composition',
   AGGREGATION = 'Aggregation',
   DEPENDENCY = 'Dependency',
+  REALIZATION = 'Realization',
 }
 
 /**

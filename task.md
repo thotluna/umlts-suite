@@ -24,8 +24,9 @@
 - [x] **BUG**: Corregir redundancia de atributos (no mostrar en cajetín si existe relación visual)
   - [x] Análisis arquitectónico (Opción A seleccionada)
   - [x] Extender `IRRelationship` con campo `visibility`
-  - [x] Modificar `SemanticAnalyzer` para propagar visibilidad
-  - [x] Implementar fase de "Deduplicación" en `SemanticAnalyzer`
+  - [x] **Semantic Analysis & Validation** <!-- id: 3 -->
+    - [x] Implement semantic rules (Inheritance cycles, Type compatibility) <!-- id: 7 -->
+    - [x] Implement member uniqueness validation <!-- id: 8 -->
   - [x] Adaptar renderer (si aplica) para mostrar visibilidad en roles
 - [x] **BUG**: Etiquetas de roles se cortan en el renderizado (ej: `+ representación` -> `+ represent`)
 - [x] **BUG**: Fallo al nombrar una clase abstracta en línea (reportado por usuario)
@@ -183,3 +184,21 @@
 - [x] **CHORE**: Configurar Husky y lint-staged (Pre-commits)
 - [x] **CHORE**: Configurar GitHub Actions (CI para PRs: Lint + Test + Build)
 - [x] **CHORE**: Eliminar `any` y estandarizar tipos en `@umlts/engine` y `@umlts/renderer`
+- [x] **FIX**: Corregir uso de `any` en `packages/engine/src/semantics/__test__/semantic-rules.test.ts`
+- [x] **FIX**: Error de compilación en `index.ts` (faltaba instanciar `ParserContext` para `SemanticAnalyzer`)
+- [x] **FIX**: Validar relaciones de nivel superior y mejorar reporte de errores semánticos <!-- id: 189 -->
+- [x] **CHORE**: Corregir errores de formato Prettier y ESLint auto-fix <!-- id: 190 -->
+- [x] **FIX**: Resolver conflictos entre Prettier y el formateador interno de VS Code
+- [x] **CHORE**: Configurar ESLint y Prettier con `standard-with-typescript` y resolver conflictos de versión <!-- id: 196 -->
+- [x] **FIX**: Resolver errores de linter por reglas incompatibles de Standard v8 e ignorar archivos de configuración <!-- id: 197 -->
+- [x] **FIX**: Limpiar los 21 warnings restantes del linter (variables no usadas y console statements en herramientas) <!-- id: 198 -->
+
+## Refactorización del Análisis Semántico (V2)
+
+- [x] **ARCH**: Dividir `SemanticAnalyzer` en sub-componentes especializados <!-- id: 191 -->
+  - [x] Crear `EntityAnalyzer`, `RelationshipAnalyzer` y `ContextAnalyzer`
+  - [x] Implementar `TypeValidator`, `HierarchyValidator` y `FQNBuilder`
+- [x] **FEAT**: Implementar validación de tipos en miembros (atributos/parámetros) <!-- id: 192 -->
+- [x] **FEAT**: Añadir advertencias (Warnings) para entidades implícitas <!-- id: 193 -->
+- [x] **FIX**: Mejorar construcción de FQNs para soportar rutas absolutas <!-- id: 194 -->
+- [x] **TEST**: Verificar refactorización con batería de tests extendida <!-- id: 195 -->

@@ -7,8 +7,8 @@ import { RelationshipHeaderRule } from './relationship-header.rule'
 import { MemberRule } from './member.rule'
 
 export class EntityRule implements StatementRule {
-  private relationshipHeaderRule = new RelationshipHeaderRule()
-  private memberRule = new MemberRule()
+  private readonly relationshipHeaderRule = new RelationshipHeaderRule()
+  private readonly memberRule = new MemberRule()
 
   public parse(context: ParserContext): EntityNode | null {
     const pos = context.getPosition()
@@ -36,7 +36,7 @@ export class EntityRule implements StatementRule {
     const docs = context.consumePendingDocs()
 
     // Soporte para genéricos: <T, K>
-    let typeParameters: string[] | undefined = undefined
+    let typeParameters: string[] | undefined
     if (context.match(TokenType.LT)) {
       typeParameters = []
       do {
@@ -53,7 +53,7 @@ export class EntityRule implements StatementRule {
     const relationships = this.relationshipHeaderRule.parse(context)
 
     // Parse body members
-    let body: MemberNode[] | undefined = undefined
+    let body: MemberNode[] | undefined
     if (context.match(TokenType.LBRACE)) {
       body = []
       while (!context.check(TokenType.RBRACE) && !context.isAtEnd()) {
@@ -102,7 +102,7 @@ export class EntityRule implements StatementRule {
           }
         } else {
           const member = this.memberRule.parse(context)
-          if (member) body.push(member)
+          if (member != null) body.push(member)
         }
       }
       context.consume(TokenType.RBRACE, "Se esperaba '}'")

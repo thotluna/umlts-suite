@@ -1,5 +1,5 @@
-import { IR, DiagramConfig } from './core/types'
-import { Theme, lightTheme, darkTheme } from './core/theme'
+import { type IR, type DiagramConfig } from './core/types'
+import { type Theme, lightTheme, darkTheme } from './core/theme'
 import { IRAdapter } from './adaptation/ir-adapter'
 import { LayoutEngine } from './layout/layout-engine'
 import { SVGRenderer } from './drawing/svg-renderer'
@@ -13,9 +13,9 @@ export interface RenderOptions {
  * UMLRenderer: The high-level orchestrator of the rendering pipeline.
  */
 export class UMLRenderer {
-  private adapter = new IRAdapter()
-  private layoutEngine = new LayoutEngine()
-  private svgRenderer = new SVGRenderer()
+  private readonly adapter = new IRAdapter()
+  private readonly layoutEngine = new LayoutEngine()
+  private readonly svgRenderer = new SVGRenderer()
 
   /**
    * Renders the given IR into an SVG string.
@@ -54,7 +54,7 @@ export class UMLRenderer {
    * a la interfaz estructurada DiagramConfig.
    */
   private normalizeDSLConfig(dslConfig?: Record<string, unknown>): DiagramConfig {
-    if (!dslConfig) return {}
+    if (dslConfig == null) return {}
 
     const config: DiagramConfig = {}
 

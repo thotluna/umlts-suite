@@ -13,12 +13,12 @@ import { ASTNodeType } from './nodes'
  * Interfaz base para visitantes del AST.
  */
 export interface ASTVisitor<T = void> {
-  visitProgram(node: ProgramNode): T
-  visitPackage(node: PackageNode): T
-  visitEntity(node: EntityNode): T
-  visitRelationship(node: RelationshipNode): T
-  visitComment(node: CommentNode): T
-  visitConfig(node: ConfigNode): T
+  visitProgram: (node: ProgramNode) => T
+  visitPackage: (node: PackageNode) => T
+  visitEntity: (node: EntityNode) => T
+  visitRelationship: (node: RelationshipNode) => T
+  visitComment: (node: CommentNode) => T
+  visitConfig: (node: ConfigNode) => T
 }
 
 /**

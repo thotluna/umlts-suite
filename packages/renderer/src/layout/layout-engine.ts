@@ -1,11 +1,11 @@
-import ELK, { ElkNode, ElkExtendedEdge } from 'elkjs/lib/elk.bundled.js'
+import ELK, { type ElkNode, type ElkExtendedEdge } from 'elkjs/lib/elk.bundled.js'
 import {
-  DiagramModel,
-  UMLNode,
-  UMLEdge,
+  type DiagramModel,
+  type UMLNode,
+  type UMLEdge,
   UMLPackage,
-  LayoutResult,
-  DiagramConfig,
+  type LayoutResult,
+  type DiagramConfig,
 } from '../core/types'
 import { measureText } from './measure'
 
@@ -124,7 +124,7 @@ export class LayoutEngine {
     return {
       id: pkgId,
       layoutOptions,
-      children: children,
+      children,
       edges: edgesByLCA.get(pkgId) ?? [],
     }
   }
@@ -213,7 +213,7 @@ export class LayoutEngine {
 
     for (let i = 0; i < len; i++) {
       if (p1[i] === p2[i]) {
-        common.push(p1[i]!)
+        common.push(p1[i])
       } else {
         break
       }
@@ -225,7 +225,7 @@ export class LayoutEngine {
   // ── Layout application ────────────────────────────────────────────────────
 
   private applyLayout(model: DiagramModel, layoutedGraph: ElkNode): void {
-    this.processElkNodes(layoutedGraph.children || [], model, 0, 0)
+    this.processElkNodes(layoutedGraph.children != null || [], model, 0, 0)
     this.processElkEdges(layoutedGraph, model, 0, 0)
   }
 
@@ -253,14 +253,14 @@ export class LayoutEngine {
       const node = nodesById.get(elkNode.id)
       const pkg = pkgsById.get(elkNode.id)
 
-      if (node) {
+      if (node != null) {
         node.updateLayout(
           (elkNode.x || 0) + offsetX,
           (elkNode.y || 0) + offsetY,
           elkNode.width || 0,
           elkNode.height || 0,
         )
-      } else if (pkg) {
+      } else if (pkg != null) {
         pkg.updateLayout(
           (elkNode.x || 0) + offsetX,
           (elkNode.y || 0) + offsetY,
@@ -269,7 +269,7 @@ export class LayoutEngine {
         )
         // Recursive for children
         this.processElkNodes(
-          elkNode.children || [],
+          elkNode.children != null || [],
           model,
           (elkNode.x || 0) + offsetX,
           (elkNode.y || 0) + offsetY,
@@ -292,16 +292,16 @@ export class LayoutEngine {
       model.edges.map((e) => [`${e.from}->${e.to}`, e]),
     )
 
-    if (container.edges) {
+    if (container.edges != null) {
       for (const elkEdge of container.edges) {
         const sourceId = this.stripPort(elkEdge.sources[0])
         const targetId = this.stripPort(elkEdge.targets[0])
         const edgeKey = `${sourceId}->${targetId}`
         const edge = edgesByEntities.get(edgeKey)
 
-        if (edge && elkEdge.sections && elkEdge.sections[0]) {
+        if (edge != null && elkEdge.sections != null && elkEdge.sections[0]) {
           const section = elkEdge.sections[0]
-          const waypoints: { x: number; y: number }[] = []
+          const waypoints: Array<{ x: number; y: number }> = []
 
           // Start Point
           waypoints.push({
@@ -310,7 +310,7 @@ export class LayoutEngine {
           })
 
           // Bend Points
-          if (section.bendPoints) {
+          if (section.bendPoints != null) {
             for (const bp of section.bendPoints) {
               waypoints.push({
                 x: bp.x + offsetX,
@@ -330,7 +330,7 @@ export class LayoutEngine {
           let labelWidth
           let labelHeight
 
-          if (elkEdge.labels && elkEdge.labels[0]) {
+          if (elkEdge.labels != null && elkEdge.labels[0]) {
             const l = elkEdge.labels[0]
             labelPos = { x: (l.x || 0) + offsetX, y: (l.y || 0) + offsetY }
             labelWidth = l.width
@@ -343,7 +343,7 @@ export class LayoutEngine {
     }
 
     // Recursively process edges in sub-packages
-    for (const child of container.children || []) {
+    for (const child of container.children != null || []) {
       // Offset for sub-container is its absolute position
       this.processElkEdges(child, model, offsetX + (child.x || 0), offsetY + (child.y || 0))
     }
@@ -390,7 +390,7 @@ export class LayoutEngine {
 
     // 3. Considerar Aristas
     for (const edge of model.edges) {
-      if (edge.waypoints) {
+      if (edge.waypoints != null) {
         for (const wp of edge.waypoints) {
           minX = Math.min(minX, wp.x)
           minY = Math.min(minY, wp.y)
@@ -398,7 +398,7 @@ export class LayoutEngine {
           maxY = Math.max(maxY, wp.y)
         }
       }
-      if (edge.labelPos) {
+      if (edge.labelPos != null) {
         minX = Math.min(minX, edge.labelPos.x)
         minY = Math.min(minY, edge.labelPos.y)
         maxX = Math.max(maxX, edge.labelPos.x + (edge.labelWidth || 0))
@@ -436,7 +436,7 @@ export class LayoutEngine {
       if (pkg.id === id) return pkg
       const nested = pkg.children.filter((c): c is UMLPackage => c instanceof UMLPackage)
       const found = this.findPackage(nested, id)
-      if (found) return found
+      if (found != null) return found
     }
     return undefined
   }
@@ -451,12 +451,12 @@ export class LayoutEngine {
     }
 
     // Check children have width/height
-    if (node.children) {
+    if (node.children != null) {
       node.children.forEach((child, idx) => {
         const childPath = `${path}.children[${idx}]`
 
         // If it's a leaf node (no children), it must have width/height
-        if (!child.children || child.children.length === 0) {
+        if (child.children == null || child.children.length === 0) {
           if (child.width === undefined || child.height === undefined) {
             console.error(
               `[ELK Validation] Leaf node ${child.id} at ${childPath} missing width/height!`,
@@ -470,7 +470,7 @@ export class LayoutEngine {
     }
 
     // Check edges reference valid nodes
-    if (node.edges) {
+    if (node.edges != null) {
       const allNodeIds = this.collectAllElkNodeIds(node)
 
       node.edges.forEach((edge, idx) => {
@@ -484,14 +484,14 @@ export class LayoutEngine {
         edge.sources?.forEach((sourceId) => {
           if (!allNodeIds.has(sourceId)) {
             console.error(`[ELK Validation] Edge ${edge.id} references unknown source: ${sourceId}`)
-            console.error(`[ELK Validation] Available nodes:`, Array.from(allNodeIds))
+            console.error('[ELK Validation] Available nodes:', Array.from(allNodeIds))
           }
         })
 
         edge.targets?.forEach((targetId) => {
           if (!allNodeIds.has(targetId)) {
             console.error(`[ELK Validation] Edge ${edge.id} references unknown target: ${targetId}`)
-            console.error(`[ELK Validation] Available nodes:`, Array.from(allNodeIds))
+            console.error('[ELK Validation] Available nodes:', Array.from(allNodeIds))
           }
         })
       })
@@ -508,7 +508,7 @@ export class LayoutEngine {
       ids.add(node.id)
     }
 
-    if (node.children) {
+    if (node.children != null) {
       node.children.forEach((child) => {
         const childIds = this.collectAllElkNodeIds(child)
         childIds.forEach((id) => ids.add(id))

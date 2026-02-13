@@ -1,17 +1,17 @@
 import { TokenType } from '../../lexer/token.types'
-import { ASTNodeType, ParameterNode } from '../ast/nodes'
+import { ASTNodeType, type ParameterNode } from '../ast/nodes'
 import type { ParserContext } from '../parser.context'
 import { TypeRule } from './type.rule'
 
 export class ParameterRule {
-  private typeRule = new TypeRule()
+  private readonly typeRule = new TypeRule()
 
   public parse(context: ParserContext): ParameterNode {
     const paramName = context.consume(TokenType.IDENTIFIER, 'Se esperaba el nombre del parámetro')
     context.consume(TokenType.COLON, "Se esperaba ':'")
 
     // SOPORTE SECCIÓN 5.3: Operadores de relación en parámetros
-    let relationshipKind: string | undefined = undefined
+    let relationshipKind: string | undefined
     if (
       context.match(
         TokenType.OP_INHERIT,

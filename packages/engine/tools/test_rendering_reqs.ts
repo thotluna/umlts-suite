@@ -22,7 +22,9 @@ const result = engine.parse(code)
 
 if (result.diagnostics.length > 0) {
   console.error('Errores de parseo:')
-  result.diagnostics.forEach((d) => console.error(`${d.message} [${d.line}:${d.column}]`))
+  result.diagnostics.forEach((d) => {
+    console.error(`${d.message} [${d.line}:${d.column}]`)
+  })
   process.exit(1)
 }
 
@@ -32,7 +34,7 @@ if (!result.diagram) {
 }
 
 const manager = result.diagram.entities.find((e) => e.name === 'Manager')
-if (!manager) {
+if (manager == null) {
   console.error('No se encontró la entidad Manager')
   process.exit(1)
 }
@@ -43,7 +45,7 @@ console.log(` - typeParameters: ${JSON.stringify(manager.typeParameters)}`)
 console.log(` - docs: ${manager.docs}`)
 
 const repository = result.diagram.entities.find((e) => e.name === 'IRepository')
-if (!repository) {
+if (repository == null) {
   console.error('No se encontró la entidad IRepository')
   process.exit(1)
 }
@@ -58,9 +60,9 @@ manager.members.forEach((m) => {
 })
 
 // Caso 3: Símbolo & para Active Class
-const codeActiveSymbol = `& class ActiveWorker {}`
+const codeActiveSymbol = '& class ActiveWorker {}'
 const resultActive = engine.parse(codeActiveSymbol)
-if (resultActive.diagram.entities[0].isActive !== true) {
+if (!resultActive.diagram.entities[0].isActive) {
   console.error('ERROR: El símbolo & no activó isActive')
   process.exit(1)
 }

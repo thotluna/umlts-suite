@@ -1,10 +1,10 @@
-import { IR } from './core/types'
-import { UMLRenderer, RenderOptions } from './renderer'
+import { type IR } from './core/types'
+import { UMLRenderer, type RenderOptions } from './renderer'
 
 export * from './core/types'
 export * from './core/theme'
 
-export { UMLRenderer, RenderOptions } from './renderer'
+export { UMLRenderer, type RenderOptions } from './renderer'
 
 /**
  * Main entry point for rendering UMLTS diagrams to SVG.
@@ -15,5 +15,5 @@ export { UMLRenderer, RenderOptions } from './renderer'
  */
 export async function render(ir: IR, options: RenderOptions = {}): Promise<string> {
   const renderer = new UMLRenderer()
-  return renderer.render(ir, options)
+  return await renderer.render(ir, options)
 }
