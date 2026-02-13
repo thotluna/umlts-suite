@@ -1,132 +1,160 @@
-import * as vscode from 'vscode';
-import { UMLEngine } from '@umlts/engine';
-import { render } from '@umlts/renderer';
+import * as vscode from 'vscode'
+import { UMLEngine } from '@umlts/engine'
+import { render } from '@umlts/renderer'
 
 export class UMLPreviewPanel {
-  public static currentPanel: UMLPreviewPanel | undefined;
-  private readonly _panel: vscode.WebviewPanel;
-  private readonly _engine: UMLEngine;
-  private _documentUri: vscode.Uri | undefined;
-  private _disposables: vscode.Disposable[] = [];
+  public static currentPanel: UMLPreviewPanel | undefined
+  private readonly _panel: vscode.WebviewPanel
+  private readonly _engine: UMLEngine
+  private _documentUri: vscode.Uri | undefined
+  private _disposables: vscode.Disposable[] = []
 
   public static createOrShow(extensionUri: vscode.Uri) {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
-      : undefined;
+      : undefined
 
     if (UMLPreviewPanel.currentPanel) {
-      UMLPreviewPanel.currentPanel._panel.reveal(column);
-      return;
+      UMLPreviewPanel.currentPanel._panel.reveal(column)
+      return
     }
 
     const panel = vscode.window.createWebviewPanel(
       'umltsPreview',
       'UMLTS Preview',
-      column ? (column === vscode.ViewColumn.One ? vscode.ViewColumn.Two : column) : vscode.ViewColumn.Two,
+      column
+        ? column === vscode.ViewColumn.One
+          ? vscode.ViewColumn.Two
+          : column
+        : vscode.ViewColumn.Two,
       {
         enableScripts: true,
         localResourceRoots: [extensionUri],
-        retainContextWhenHidden: true
-      }
-    );
+        retainContextWhenHidden: true,
+      },
+    )
 
-    UMLPreviewPanel.currentPanel = new UMLPreviewPanel(panel, extensionUri);
+    UMLPreviewPanel.currentPanel = new UMLPreviewPanel(panel, extensionUri)
   }
 
   private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
-    this._panel = panel;
-    this._engine = new UMLEngine();
+    this._panel = panel
+    this._engine = new UMLEngine()
 
-    this._update();
+    this._update()
 
-    this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+    this._panel.onDidDispose(() => this.dispose(), null, this._disposables)
 
     this._panel.webview.onDidReceiveMessage(
-      async message => {
+      async (message) => {
         switch (message.command) {
-          case 'exportSvg':
+          case 'exportSvg': {
             if (!this._documentUri) {
-              vscode.window.showErrorMessage('No hay un documento activo asociado a esta previsualización.');
-              return;
+              vscode.window.showErrorMessage(
+                'No hay un documento activo asociado a esta previsualización.',
+              )
+              return
             }
 
-            const svgContent = message.svg;
+            const svgContent = message.svg
             if (!svgContent) {
-              vscode.window.showErrorMessage('No se pudo capturar el contenido del diagrama.');
-              return;
+              vscode.window.showErrorMessage('No se pudo capturar el contenido del diagrama.')
+              return
             }
 
-            const defaultUri = vscode.Uri.file(this._documentUri.fsPath.replace('.umlts', '.svg'));
+            const defaultUri = vscode.Uri.file(this._documentUri.fsPath.replace('.umlts', '.svg'))
 
             const saveUri = await vscode.window.showSaveDialog({
               defaultUri,
-              filters: { 'SVG files': ['svg'] }
-            });
+              filters: { 'SVG files': ['svg'] },
+            })
 
             if (saveUri) {
-              await vscode.workspace.fs.writeFile(saveUri, Buffer.from(svgContent, 'utf8'));
-              vscode.window.showInformationMessage('Diagrama exportado correctamente.');
+              await vscode.workspace.fs.writeFile(saveUri, Buffer.from(svgContent, 'utf8'))
+              vscode.window.showInformationMessage('Diagrama exportado correctamente.')
             }
-            return;
+            return
+          }
           case 'alert':
-            vscode.window.showErrorMessage(message.text);
-            return;
+            vscode.window.showErrorMessage(message.text)
+            return
         }
       },
       null,
-      this._disposables
-    );
+      this._disposables,
+    )
 
-    vscode.workspace.onDidChangeTextDocument(e => {
-      if (vscode.window.activeTextEditor && e.document === vscode.window.activeTextEditor.document) {
-        this._update();
-      }
-    }, null, this._disposables);
+    vscode.workspace.onDidChangeTextDocument(
+      (e) => {
+        if (
+          vscode.window.activeTextEditor &&
+          e.document === vscode.window.activeTextEditor.document
+        ) {
+          this._update()
+        }
+      },
+      null,
+      this._disposables,
+    )
 
-    vscode.workspace.onDidChangeConfiguration(e => {
-      if (e.affectsConfiguration('umlts.preview')) {
-        this._update();
-      }
-    }, null, this._disposables);
+    vscode.workspace.onDidChangeConfiguration(
+      (e) => {
+        if (e.affectsConfiguration('umlts.preview')) {
+          this._update()
+        }
+      },
+      null,
+      this._disposables,
+    )
 
-    vscode.window.onDidChangeActiveTextEditor(() => {
-      this._update();
-    }, null, this._disposables);
+    vscode.window.onDidChangeActiveTextEditor(
+      () => {
+        this._update()
+      },
+      null,
+      this._disposables,
+    )
   }
 
   public dispose() {
-    UMLPreviewPanel.currentPanel = undefined;
-    this._panel.dispose();
+    UMLPreviewPanel.currentPanel = undefined
+    this._panel.dispose()
     while (this._disposables.length) {
-      const x = this._disposables.pop();
+      const x = this._disposables.pop()
       if (x) {
-        x.dispose();
+        x.dispose()
       }
     }
   }
 
   private async _update() {
-    const editor = vscode.window.activeTextEditor;
+    const editor = vscode.window.activeTextEditor
     if (!editor || editor.document.languageId !== 'umlts') {
-      return;
+      return
     }
 
-    this._documentUri = editor.document.uri;
+    this._documentUri = editor.document.uri
 
     try {
-      const text = editor.document.getText();
-      const result = this._engine.parse(text);
+      const text = editor.document.getText()
+      const result = this._engine.parse(text)
 
-      const config = vscode.workspace.getConfiguration('umlts');
-      const preferredTheme = config.get<'auto' | 'light' | 'dark'>('preview.theme', 'auto');
-      const fontFamily = config.get<string>('preview.fontFamily', 'monospace');
-      const fontSize = config.get<number>('preview.fontSize', 13);
-      const customColors = config.get<Record<string, any>>('preview.customColors', {});
+      const config = vscode.workspace.getConfiguration('umlts')
+      const preferredTheme = config.get<'auto' | 'light' | 'dark'>('preview.theme', 'auto')
+      const fontFamily = config.get<string>('preview.fontFamily', 'monospace')
+      const fontSize = config.get<number>('preview.fontSize', 13)
+      const customColors = config.get<Record<string, unknown>>('preview.customColors', {})
 
-      const isDark = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ||
-        vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.HighContrast;
+      const isDark =
+        vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ||
+        vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.HighContrast
 
-      let themeName: 'light' | 'dark' = preferredTheme === 'auto' ? (isDark ? 'dark' : 'light') : (preferredTheme as 'light' | 'dark');
+      const themeName: 'light' | 'dark' =
+        preferredTheme === 'auto'
+          ? isDark
+            ? 'dark'
+            : 'light'
+          : (preferredTheme as 'light' | 'dark')
 
       // Importar temas base (asumiendo que están exportados o accesibles)
       // Como estamos en el mismo monorepo, podemos usar los objetos directamente si los importamos
@@ -134,21 +162,24 @@ export class UMLPreviewPanel {
 
       const svg = await render(result.diagram, {
         theme: {
-          ...(themeName === 'dark' ? (await import('@umlts/renderer')).darkTheme : (await import('@umlts/renderer')).lightTheme),
+          ...(themeName === 'dark'
+            ? (await import('@umlts/renderer')).darkTheme
+            : (await import('@umlts/renderer')).lightTheme),
           fontFamily,
           fontSizeBase: fontSize,
-          ...customColors
+          ...customColors,
         },
         config: {
           render: {
-            responsive: false // Forzamos false para que el Webview maneje el zoom sobre píxeles reales
-          }
-        }
-      });
+            responsive: false, // Forzamos false para que el Webview maneje el zoom sobre píxeles reales
+          },
+        },
+      })
 
-      this._panel.webview.html = this._getHtmlForWebview(svg);
-    } catch (error: any) {
-      this._panel.webview.html = this._getErrorHtml(error.message);
+      this._panel.webview.html = this._getHtmlForWebview(svg)
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error)
+      this._panel.webview.html = this._getErrorHtml(message)
     }
   }
 
@@ -435,7 +466,7 @@ export class UMLPreviewPanel {
                     setTimeout(autoFit, 500);
                 </script>
             </body>
-            </html>`;
+            </html>`
   }
 
   private _getErrorHtml(error: string) {
@@ -445,6 +476,6 @@ export class UMLPreviewPanel {
                 <h3>Error de Renderizado</h3>
                 <pre>${error}</pre>
             </body>
-            </html>`;
+            </html>`
   }
 }
