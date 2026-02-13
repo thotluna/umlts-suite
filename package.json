@@ -15,7 +15,7 @@
     "build:vscode": "pnpm --filter umlts-vscode build",
     "lint": "eslint . --ext .ts,.js",
     "format": "prettier --write .",
-    "test": "pnpm -r test",
+    "test": "pnpm -r --if-present test",
     "test:engine": "pnpm --filter @umlts/engine test:run",
     "test:renderer": "pnpm --filter @umlts/renderer test:run",
     "test:vscode": "pnpm --filter umlts-vscode test:run",
