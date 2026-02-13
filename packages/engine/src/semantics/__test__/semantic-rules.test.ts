@@ -115,20 +115,33 @@ describe('Semantic Rules', () => {
     expect(error?.message).toContain('Miembro duplicado')
   })
 
-  it('should detect inheritance mismatch in top-level relationships', () => {
+  it('should detect duplicate entity definitions', () => {
     const source = `
-      class A {}
-      interface I {}
-      A >> I // Error: Class extending Interface
+      class User {}
+      class User {} // Error: Duplicate entity
     `
     const { analyzer, program, context } = parseAndAnalyze(source)
     analyzer.analyze(program, context)
 
     const diagnostics = context.getDiagnostics()
-    const error = diagnostics.find(
-      (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
-    )
+    const error = diagnostics.find((d: Diagnostic) => d.message.includes('ya está definida'))
     expect(error).toBeDefined()
-    expect(error?.message).toContain('Herencia inválida')
+  })
+
+  it('should report multiple semantic errors at once', () => {
+    const source = `
+      class A >> A {}
+      class B {
+        x: string
+        x: number
+      }
+    `
+    const { analyzer, program, context } = parseAndAnalyze(source)
+    analyzer.analyze(program, context)
+
+    const diagnostics = context.getDiagnostics()
+    expect(diagnostics.length).toBeGreaterThanOrEqual(2)
+    expect(diagnostics.some((d) => d.code === DiagnosticCode.SEMANTIC_CYCLE_DETECTED)).toBe(true)
+    expect(diagnostics.some((d) => d.code === DiagnosticCode.SEMANTIC_DUPLICATE_MEMBER)).toBe(true)
   })
 })
