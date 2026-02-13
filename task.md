@@ -19,7 +19,7 @@
 - [x] Aprender abstracción y agregación (Padre/Abuelo)
 - [x] Patrones de Composición y FQN (Monitor)
 - [x] Crear Cookbook de referencia
-- [ ] **BACKLOG**: Repasar casos de genéricos (errores de concepción y renderizado)
+- [x] **BACKLOG**: Repasar casos de genéricos (errores de concepción y renderizado)
 
 - [x] **BUG**: Corregir redundancia de atributos (no mostrar en cajetín si existe relación visual)
   - [x] Análisis arquitectónico (Opción A seleccionada)
@@ -38,7 +38,7 @@
 - [x] **BUG**: Diagrama desconectado / Nodos fantasmas en arquitectura.
   - Causa: `SymbolTable` no resolvía nombres con puntos de forma relativa.
   - Solución: Corregida lógica de `resolveFQN` y actualizado script de arquitectura.
-- [ ] **BUG**: Interfaces en relaciones de atributos se renderizan como clases
+- [x] **BUG**: Interfaces en relaciones de atributos se renderizan como clases
   - Problema: En `arquitectura_motor.umlts` línea 135, `- relationships: >+ IRRelationship[]` muestra `IRRelationship` como clase en el diagrama, pero es una interfaz.
   - Causa: El SemanticAnalyzer no propaga el tipo de entidad (interface vs class) cuando crea relaciones implícitas desde atributos.
   - Solución propuesta: Extender la lógica de `resolveOrRegisterImplicit` para consultar el tipo real de la entidad referenciada y preservarlo en la entidad implícita.
@@ -109,9 +109,9 @@
 
 ## Publicación y Despliegue
 
-- [ ] **TASK**: Login en NPM
-- [ ] **TASK**: Configurar tokens de acceso (si es necesario)
-- [ ] **TASK**: Verificar permisos de publicación
+- [x] **TASK**: Login en NPM
+- [x] **TASK**: Configurar tokens de acceso (si es necesario)
+- [x] **TASK**: Verificar permisos de publicación
 
 ## Refactorización del Motor (Parser V2)
 
@@ -175,8 +175,8 @@
 
 - [x] **FIX**: Corregir tests de Lexer (`TokenType.GT` mismatch)
 - [x] **FIX**: Corregir tests de Parser (Ajustar a `TypeNode` en lugar de strings)
-- [/] **CHORE**: Evaluar y mejorar cobertura de tests del motor
-- [ ] **CHORE**: Actualizar versión a `0.8.0-alpha.1` e incluir `README` básico
+- [x] **CHORE**: Evaluar y mejorar cobertura de tests del motor
+- [x] **CHORE**: Actualizar versión a `0.8.0-alpha.1` e incluir `README` básico
 
 ### Infraestructura de Calidad y CI
 
@@ -202,3 +202,9 @@
 - [x] **FEAT**: Añadir advertencias (Warnings) para entidades implícitas <!-- id: 193 -->
 - [x] **FIX**: Mejorar construcción de FQNs para soportar rutas absolutas <!-- id: 194 -->
 - [x] **TEST**: Verificar refactorización con batería de tests extendida <!-- id: 195 -->
+- [x] **FIX**: Depuración y resolución de fallos en CI (Build @umlts/renderer)
+  - [x] Corregir lógica de nulos en `LayoutEngine` (`elkNode.children ?? []`)
+  - [x] Estandarizar IR entre motor y renderer para evitar conflictos de tipos
+  - [x] Resolver advertencias de `any` implícito en el renderer
+  - [x] Verificar build y tests locales en todo el workspace
+  - [x] Purgar y verificar CI en GitHub

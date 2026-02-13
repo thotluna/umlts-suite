@@ -6,6 +6,10 @@ import { ParserContext } from './parser/parser.context'
 import type { Diagnostic } from './parser/diagnostic.types'
 import type { Token } from './lexer/token.types'
 
+export * from './generator/ir/models'
+export * from './parser/diagnostic.types'
+export * from './lexer/token.types'
+
 /**
  * Resultado de una operación de parseo del motor.
  */

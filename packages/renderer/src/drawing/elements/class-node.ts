@@ -1,4 +1,4 @@
-import { type UMLNode, type IRMember, type DiagramConfig } from '../../core/types'
+import { type UMLNode, type IRMember, type IRParameter, type DiagramConfig } from '../../core/types'
 import { type Theme } from '../../core/theme'
 import { SVGBuilder as svg } from '../svg-helpers'
 import { DrawingRegistry } from '../drawable'
@@ -148,7 +148,7 @@ function renderMember(
 
   if (m.parameters !== undefined) {
     const params = m.parameters
-      .map((p) => {
+      .map((p: IRParameter) => {
         const pLabel = p.type ? `${p.name}: ${p.type}` : p.name
         return pLabel
       })

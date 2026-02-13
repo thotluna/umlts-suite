@@ -1,4 +1,4 @@
-import { type UMLNode } from '../core/types'
+import { type UMLNode, type IRParameter } from '../core/types'
 
 /**
  * Approximate constants for text measurement without a real DOM.
@@ -59,7 +59,7 @@ export function measureNodeDimensions(node: UMLNode): NodeDimensions {
     if (m.parameters != null) {
       // Methods also have parameters (name: type)
       const paramsChars = m.parameters.reduce(
-        (acc: number, p) => acc + p.name.length + (p.type?.length || 0) + 3,
+        (acc: number, p: IRParameter) => acc + p.name.length + (p.type?.length || 0) + 3,
         0,
       )
       memberChars += paramsChars + 2 // +2 for ()

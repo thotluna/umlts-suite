@@ -225,7 +225,7 @@ export class LayoutEngine {
   // ── Layout application ────────────────────────────────────────────────────
 
   private applyLayout(model: DiagramModel, layoutedGraph: ElkNode): void {
-    this.processElkNodes(layoutedGraph.children != null || [], model, 0, 0)
+    this.processElkNodes(layoutedGraph.children ?? [], model, 0, 0)
     this.processElkEdges(layoutedGraph, model, 0, 0)
   }
 
@@ -269,7 +269,7 @@ export class LayoutEngine {
         )
         // Recursive for children
         this.processElkNodes(
-          elkNode.children != null || [],
+          elkNode.children ?? [],
           model,
           (elkNode.x || 0) + offsetX,
           (elkNode.y || 0) + offsetY,
@@ -343,7 +343,7 @@ export class LayoutEngine {
     }
 
     // Recursively process edges in sub-packages
-    for (const child of container.children != null || []) {
+    for (const child of container.children ?? []) {
       // Offset for sub-container is its absolute position
       this.processElkEdges(child, model, offsetX + (child.x || 0), offsetY + (child.y || 0))
     }
