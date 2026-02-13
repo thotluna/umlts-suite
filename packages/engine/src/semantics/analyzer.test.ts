@@ -1,37 +1,37 @@
-import { describe, it, expect } from 'vitest';
-import { LexerFactory } from '../lexer/lexer.factory';
-import { ParserFactory } from '../parser/parser.factory';
-import { SemanticAnalyzer } from './analyzer';
-import { IRRelationshipType } from '../generator/ir/models';
+import { describe, it, expect } from 'vitest'
+import { LexerFactory } from '../lexer/lexer.factory'
+import { ParserFactory } from '../parser/parser.factory'
+import { SemanticAnalyzer } from './analyzer'
+import { IRRelationshipType } from '../generator/ir/models'
 
 describe('SemanticAnalyzer', () => {
   it('should create an implicit entity when a relationship target is missing', () => {
-    const input = 'class Hero >> Person {}';
-    const tokens = LexerFactory.create(input).tokenize();
-    const parser = ParserFactory.create();
-    const ast = parser.parse(tokens);
+    const input = 'class Hero >> Person {}'
+    const tokens = LexerFactory.create(input).tokenize()
+    const parser = ParserFactory.create()
+    const ast = parser.parse(tokens)
 
-    const analyzer = new SemanticAnalyzer();
-    const ir = analyzer.analyze(ast);
+    const analyzer = new SemanticAnalyzer()
+    const ir = analyzer.analyze(ast)
 
     // Debe haber 2 entidades: Hero (explícita) y Person (implícita)
-    expect(ir.entities).toHaveLength(2);
+    expect(ir.entities).toHaveLength(2)
 
-    const hero = ir.entities.find(e => e.name === 'Hero');
-    const person = ir.entities.find(e => e.name === 'Person');
+    const hero = ir.entities.find((e) => e.name === 'Hero')
+    const person = ir.entities.find((e) => e.name === 'Person')
 
-    expect(hero).toBeDefined();
-    expect(hero!.isImplicit).toBe(false);
+    expect(hero).toBeDefined()
+    expect(hero!.isImplicit).toBe(false)
 
-    expect(person).toBeDefined();
-    expect(person!.isImplicit).toBe(true);
+    expect(person).toBeDefined()
+    expect(person!.isImplicit).toBe(true)
 
     // La relación debe estar presente y resuelta
-    expect(ir.relationships).toHaveLength(1);
-    expect(ir.relationships[0]!.from).toBe('Hero');
-    expect(ir.relationships[0]!.to).toBe('Person');
-    expect(ir.relationships[0]!.type).toBe(IRRelationshipType.INHERITANCE);
-  });
+    expect(ir.relationships).toHaveLength(1)
+    expect(ir.relationships[0]!.from).toBe('Hero')
+    expect(ir.relationships[0]!.to).toBe('Person')
+    expect(ir.relationships[0]!.type).toBe(IRRelationshipType.INHERITANCE)
+  })
 
   it('should resolve FQNs correctly in nested packages', () => {
     const input = `
@@ -41,37 +41,37 @@ describe('SemanticAnalyzer', () => {
           class Profile >> User {}
         }
       }
-    `;
-    const tokens = LexerFactory.create(input).tokenize();
-    const parser = ParserFactory.create();
-    const ast = parser.parse(tokens);
+    `
+    const tokens = LexerFactory.create(input).tokenize()
+    const parser = ParserFactory.create()
+    const ast = parser.parse(tokens)
 
-    const analyzer = new SemanticAnalyzer();
-    const ir = analyzer.analyze(ast);
+    const analyzer = new SemanticAnalyzer()
+    const ir = analyzer.analyze(ast)
 
-    const user = ir.entities.find(e => e.id === 'core.User');
-    const profile = ir.entities.find(e => e.id === 'core.domain.Profile');
+    const user = ir.entities.find((e) => e.id === 'core.User')
+    const profile = ir.entities.find((e) => e.id === 'core.domain.Profile')
 
-    expect(user).toBeDefined();
-    expect(profile).toBeDefined();
+    expect(user).toBeDefined()
+    expect(profile).toBeDefined()
 
-    expect(ir.relationships[0]!.from).toBe('core.domain.Profile');
-    expect(ir.relationships[0]!.to).toBe('core.User');
-  });
+    expect(ir.relationships[0]!.from).toBe('core.domain.Profile')
+    expect(ir.relationships[0]!.to).toBe('core.User')
+  })
 
   it('should handle standalone relationships creating implicits', () => {
-    const input = 'A >> B';
-    const tokens = LexerFactory.create(input).tokenize();
-    const parser = ParserFactory.create();
-    const ast = parser.parse(tokens);
+    const input = 'A >> B'
+    const tokens = LexerFactory.create(input).tokenize()
+    const parser = ParserFactory.create()
+    const ast = parser.parse(tokens)
 
-    const analyzer = new SemanticAnalyzer();
-    const ir = analyzer.analyze(ast);
+    const analyzer = new SemanticAnalyzer()
+    const ir = analyzer.analyze(ast)
 
-    expect(ir.entities).toHaveLength(2);
-    expect(ir.entities.every(e => e.isImplicit)).toBe(true);
-    expect(ir.relationships).toHaveLength(1);
-  });
+    expect(ir.entities).toHaveLength(2)
+    expect(ir.entities.every((e) => e.isImplicit)).toBe(true)
+    expect(ir.relationships).toHaveLength(1)
+  })
 
   it('should create multiple relationships to same type with different roles', () => {
     const input = `
@@ -80,22 +80,23 @@ describe('SemanticAnalyzer', () => {
         + attributes: >* IRMember
         + methods: >* IRMember
       }
-    `;
-    const tokens = LexerFactory.create(input).tokenize();
-    const parser = ParserFactory.create();
-    const ast = parser.parse(tokens);
+    `
+    const tokens = LexerFactory.create(input).tokenize()
+    const parser = ParserFactory.create()
+    const ast = parser.parse(tokens)
 
-    const analyzer = new SemanticAnalyzer();
-    const ir = analyzer.analyze(ast);
+    const analyzer = new SemanticAnalyzer()
+    const ir = analyzer.analyze(ast)
 
     // Should have 2 relationships from DiagramNode to IRMember
-    const rels = ir.relationships.filter(r =>
-      r.from === 'DiagramNode' &&
-      r.to === 'IRMember' &&
-      r.type === IRRelationshipType.COMPOSITION
-    );
+    const rels = ir.relationships.filter(
+      (r) =>
+        r.from === 'DiagramNode' &&
+        r.to === 'IRMember' &&
+        r.type === IRRelationshipType.COMPOSITION,
+    )
 
-    expect(rels).toHaveLength(2);
-    expect(rels.map(r => r.label).sort()).toEqual(['attributes', 'methods']);
-  });
-});
+    expect(rels).toHaveLength(2)
+    expect(rels.map((r) => r.label).sort()).toEqual(['attributes', 'methods'])
+  })
+})

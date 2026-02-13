@@ -1,10 +1,10 @@
-import { Lexer } from './lexer';
-import { WhitespaceMatcher } from './matchers/whitespace.matcher';
-import { CommentMatcher } from './matchers/comment.matcher';
-import { IdentifierMatcher } from './matchers/identifier.matcher';
-import { NumberMatcher } from './matchers/number.matcher';
-import { SymbolMatcher } from './matchers/symbol.matcher';
-import { StringMatcher } from './matchers/string.matcher';
+import { Lexer } from './lexer'
+import { WhitespaceMatcher } from './matchers/whitespace.matcher'
+import { CommentMatcher } from './matchers/comment.matcher'
+import { IdentifierMatcher } from './matchers/identifier.matcher'
+import { NumberMatcher } from './matchers/number.matcher'
+import { SymbolMatcher } from './matchers/symbol.matcher'
+import { StringMatcher } from './matchers/string.matcher'
 
 export class LexerFactory {
   /**
@@ -17,9 +17,9 @@ export class LexerFactory {
       new IdentifierMatcher(),
       new NumberMatcher(),
       new StringMatcher(),
-      new SymbolMatcher()
-    ];
+      new SymbolMatcher(),
+    ]
 
-    return new Lexer(input, matchers);
+    return new Lexer(input, matchers)
   }
 }

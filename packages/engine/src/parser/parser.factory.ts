@@ -1,9 +1,9 @@
-import { Parser } from './parser';
-import { CommentRule } from './rules/comment.rule';
-import { PackageRule } from './rules/package.rule';
-import { EntityRule } from './rules/entity.rule';
-import { RelationshipRule } from './rules/relationship.rule';
-import { ConfigRule } from './rules/config.rule';
+import { Parser } from './parser'
+import { CommentRule } from './rules/comment.rule'
+import { PackageRule } from './rules/package.rule'
+import { EntityRule } from './rules/entity.rule'
+import { RelationshipRule } from './rules/relationship.rule'
+import { ConfigRule } from './rules/config.rule'
 
 export class ParserFactory {
   /**
@@ -15,8 +15,8 @@ export class ParserFactory {
       new CommentRule(),
       new PackageRule(),
       new EntityRule(),
-      new RelationshipRule()
-    ];
-    return new Parser(rules);
+      new RelationshipRule(),
+    ]
+    return new Parser(rules)
   }
 }

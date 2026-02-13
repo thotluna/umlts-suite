@@ -5,20 +5,20 @@ import type {
   EntityNode,
   RelationshipNode,
   CommentNode,
-  ConfigNode
-} from './nodes';
-import { ASTNodeType } from './nodes';
+  ConfigNode,
+} from './nodes'
+import { ASTNodeType } from './nodes'
 
 /**
  * Interfaz base para visitantes del AST.
  */
 export interface ASTVisitor<T = void> {
-  visitProgram(node: ProgramNode): T;
-  visitPackage(node: PackageNode): T;
-  visitEntity(node: EntityNode): T;
-  visitRelationship(node: RelationshipNode): T;
-  visitComment(node: CommentNode): T;
-  visitConfig(node: ConfigNode): T;
+  visitProgram(node: ProgramNode): T
+  visitPackage(node: PackageNode): T
+  visitEntity(node: EntityNode): T
+  visitRelationship(node: RelationshipNode): T
+  visitComment(node: CommentNode): T
+  visitConfig(node: ConfigNode): T
 }
 
 /**
@@ -28,20 +28,20 @@ export interface ASTVisitor<T = void> {
 export function walkAST<T>(node: ASTNode, visitor: ASTVisitor<T>): T {
   switch (node.type) {
     case ASTNodeType.PROGRAM:
-      return visitor.visitProgram(node as ProgramNode);
+      return visitor.visitProgram(node as ProgramNode)
     case ASTNodeType.PACKAGE:
-      return visitor.visitPackage(node as PackageNode);
+      return visitor.visitPackage(node as PackageNode)
     case ASTNodeType.CLASS:
     case ASTNodeType.INTERFACE:
     case ASTNodeType.ENUM:
-      return visitor.visitEntity(node as EntityNode);
+      return visitor.visitEntity(node as EntityNode)
     case ASTNodeType.RELATIONSHIP:
-      return visitor.visitRelationship(node as RelationshipNode);
+      return visitor.visitRelationship(node as RelationshipNode)
     case ASTNodeType.COMMENT:
-      return visitor.visitComment(node as CommentNode);
+      return visitor.visitComment(node as CommentNode)
     case ASTNodeType.CONFIG:
-      return visitor.visitConfig(node as ConfigNode);
+      return visitor.visitConfig(node as ConfigNode)
     default:
-      throw new Error(`Tipo de nodo no visitable: ${node.type}`);
+      throw new Error(`Tipo de nodo no visitable: ${node.type}`)
   }
 }
