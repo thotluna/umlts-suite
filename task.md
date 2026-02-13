@@ -29,7 +29,7 @@
 - [x] **BUG**: Etiquetas de roles se cortan en el renderizado (ej: `+ representación` -> `+ represent`)
 - [x] **BUG**: Fallo al nombrar una clase abstracta en línea (reportado por usuario)
 - [x] **FEAT**: Implementación completa de Clases Estáticas y Activas
-- [ ] **BUG**: El botón de exportar en la extensión (Preview) no funciona
+- [x] **BUG**: El botón de exportar en la extensión (Preview) no funciona
 - [x] Bug: Las relaciones se renderizan en (0,0) (como líneas huérfanas arriba a la izquierda).
   - Causa: ELK usa coordenadas relativas al contenedor, pero el renderizado SVG asume absolutas. Faltaba resolver los offsets jerárquicos de las aristas.
   - Solución: Implementada resolución recursiva de offsets de aristas y distribución por LCA.
@@ -149,3 +149,7 @@
 - [x] **FIX**: Resolver dependencias faltantes de `vscode-languageserver` en `apps/vscode`.
 - [x] **IMPROVEMENT**: Configurar `NodeNext` en `server/tsconfig.json` para soporte nativo de `exports` de espacio de trabajo.
 - [x] **FIX**: Tipado fuerte en `server.ts` (eliminación de `any` y uso de interfaces de IR).
+- [x] **OPTIMIZATION**: Corregir bucle de construcción recursivo y habilitar `pnpm -r build` para paralelismo seguro.
+- [x] **IMPROVEMENT**: Optimizar el layout de ELK para reducir desorden, mejorar compacidad y minimizar cruces.
+- [x] **FEATURE**: Implementar sistema de auto-escalado (responsive) y zoom manual
+- [x] **IMPROVEMENT**: Mejorar legibilidad y encuadre dinámico (Auto-Fit corregido)

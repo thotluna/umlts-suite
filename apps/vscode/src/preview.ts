@@ -6,6 +6,7 @@ export class UMLPreviewPanel {
   public static currentPanel: UMLPreviewPanel | undefined;
   private readonly _panel: vscode.WebviewPanel;
   private readonly _engine: UMLEngine;
+  private _documentUri: vscode.Uri | undefined;
   private _disposables: vscode.Disposable[] = [];
 
   public static createOrShow(extensionUri: vscode.Uri) {
@@ -44,11 +45,18 @@ export class UMLPreviewPanel {
       async message => {
         switch (message.command) {
           case 'exportSvg':
-            const document = vscode.window.activeTextEditor?.document;
-            if (!document) return;
+            if (!this._documentUri) {
+              vscode.window.showErrorMessage('No hay un documento activo asociado a esta previsualización.');
+              return;
+            }
 
             const svgContent = message.svg;
-            const defaultUri = vscode.Uri.file(document.uri.fsPath.replace('.umlts', '.svg'));
+            if (!svgContent) {
+              vscode.window.showErrorMessage('No se pudo capturar el contenido del diagrama.');
+              return;
+            }
+
+            const defaultUri = vscode.Uri.file(this._documentUri.fsPath.replace('.umlts', '.svg'));
 
             const saveUri = await vscode.window.showSaveDialog({
               defaultUri,
@@ -103,6 +111,8 @@ export class UMLPreviewPanel {
       return;
     }
 
+    this._documentUri = editor.document.uri;
+
     try {
       const text = editor.document.getText();
       const result = this._engine.parse(text);
@@ -128,6 +138,11 @@ export class UMLPreviewPanel {
           fontFamily,
           fontSizeBase: fontSize,
           ...customColors
+        },
+        config: {
+          render: {
+            responsive: false // Forzamos false para que el Webview maneje el zoom sobre píxeles reales
+          }
         }
       });
 
@@ -209,21 +224,20 @@ export class UMLPreviewPanel {
                     }
                     #diagram-wrapper {
                         position: absolute;
-                        transform-origin: center center;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        padding: 100px;
+                        top: 0;
+                        left: 0;
+                        transform-origin: 0 0;
+                        display: block;
                         min-width: 100%;
                         min-height: 100%;
                     }
                     .container {
                         background: rgba(255, 255, 255, 0.03);
                         border-radius: 12px;
-                        padding: 24px;
+                        padding: 40px;
                         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
                         border: 1px solid rgba(255, 255, 255, 0.1);
-                        transition: none;
+                        display: inline-block;
                         pointer-events: auto;
                     }
                     svg {
@@ -285,18 +299,70 @@ export class UMLPreviewPanel {
                     let translateY = 0;
                     let isDragging = false;
                     let startX, startY;
+                    let initialFitDone = false;
+
+                    function autoFit() {
+                        const svgElement = document.querySelector('#diagram-container svg');
+                        if (!svgElement) return;
+
+                        const containerWidth = viewer.clientWidth;
+                        const containerHeight = viewer.clientHeight;
+                        
+                        if (containerWidth < 20 || containerHeight < 20) return;
+                        
+                        const viewBoxAttr = svgElement.getAttribute('viewBox');
+                        if (!viewBoxAttr) return;
+                        
+                        const viewBox = viewBoxAttr.trim().split(/[\\s,]+/).map(Number);
+                        if (viewBox.length < 4) return;
+                        
+                        const contentWidth = viewBox[2];
+                        const contentHeight = viewBox[3];
+
+                        const margin = 40;
+                        const targetWidth = containerWidth - margin;
+                        const targetHeight = containerHeight - margin;
+                        
+                        const scaleW = targetWidth / contentWidth;
+                        const scaleH = targetHeight / contentHeight;
+                        
+                        scale = Math.min(scaleW, scaleH);
+                        
+                        if (scale > 2) scale = 2;
+                        if (scale < 0.01) scale = 0.01;
+
+                        translateX = (containerWidth - (contentWidth * scale)) / 2;
+                        translateY = (containerHeight - (contentHeight * scale)) / 2;
+                        
+                        translateX -= viewBox[0] * scale;
+                        translateY -= viewBox[1] * scale;
+
+                        updateTransform();
+                        initialFitDone = true;
+                    }
 
                     function updateTransform() {
-                        wrapper.style.transform = \`translate(\${translateX}px, \${translateY}px) scale(\${scale})\`;
+                        wrapper.style.transform = 'translate(' + translateX + 'px, ' + translateY + 'px) scale(' + scale + ')';
+                        // Actualizar indicador de zoom
                         zoomLabel.innerText = Math.round(scale * 100) + '%';
                     }
 
                     function exportSvg() {
-                        const svgElement = document.querySelector('svg');
-                        if (!svgElement) return;
+                        const svgElement = document.querySelector('#diagram-container svg');
+                        if (!svgElement) {
+                            vscode.postMessage({ command: 'alert', text: 'Depuración: No se encontró <svg> en #diagram-container' });
+                            return;
+                        }
+                        
+                        const svgData = svgElement.outerHTML;
+                        if (!svgData || svgData.length < 10) {
+                            vscode.postMessage({ command: 'alert', text: 'Depuración: El SVG capturado está vacío o es demasiado corto.' });
+                            return;
+                        }
+
                         vscode.postMessage({
                             command: 'exportSvg',
-                            svg: svgElement.outerHTML
+                            svg: svgData
                         });
                     }
 
@@ -353,6 +419,20 @@ export class UMLPreviewPanel {
 
                     // Initial call
                     updateTransform();
+
+                    // Ajuste automático al redimensionar usando ResizeObserver (más robusto)
+                    const resizeObserver = new ResizeObserver(() => {
+                        if (viewer.clientWidth > 0 && viewer.clientHeight > 0) {
+                            autoFit();
+                        }
+                    });
+                    resizeObserver.observe(viewer);
+                    
+                    // Ejecutar inmediatamente y con varios reintentos para asegurar que el SVG esté cargado
+                    autoFit();
+                    setTimeout(autoFit, 50);
+                    setTimeout(autoFit, 200);
+                    setTimeout(autoFit, 500);
                 </script>
             </body>
             </html>`;
