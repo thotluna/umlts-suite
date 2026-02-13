@@ -48,10 +48,13 @@ export class IRAdapter {
    * Transforms a relationship into a UMLEdge.
    */
   private transformRelationship(rel: IRRelationship): UMLEdge {
+    // Normalize relationship type to PascalCase
+    const type = rel.type.charAt(0).toUpperCase() + rel.type.slice(1).toLowerCase() as any;
+
     return new UMLEdge(
       rel.from,
       rel.to,
-      rel.type,
+      type,
       rel.label,
       rel.visibility,
       rel.fromMultiplicity,

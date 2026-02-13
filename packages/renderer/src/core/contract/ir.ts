@@ -27,12 +27,18 @@ export interface IRMember {
 }
 
 export type IRRelType =
+  | 'Association'
   | 'Inheritance'
   | 'Implementation'
   | 'Composition'
   | 'Aggregation'
   | 'Dependency'
-  | 'Association';
+  | 'ASSOCIATION'
+  | 'INHERITANCE'
+  | 'IMPLEMENTATION'
+  | 'COMPOSITION'
+  | 'AGGREGATION'
+  | 'DEPENDENCY';
 
 export interface IRRelationship {
   from: string;

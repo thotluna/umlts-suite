@@ -71,10 +71,21 @@ export class UMLRenderer {
     }
 
     // Mapeo simple de opciones de render
-    if (dslConfig.showVisibility !== undefined || dslConfig.showIcons !== undefined) {
+    if (
+      dslConfig.showVisibility !== undefined ||
+      dslConfig.showIcons !== undefined ||
+      dslConfig.responsive !== undefined ||
+      dslConfig.width !== undefined ||
+      dslConfig.height !== undefined ||
+      dslConfig.zoomLevel !== undefined
+    ) {
       config.render = {
         showVisibility: dslConfig.showVisibility,
-        showIcons: dslConfig.showIcons
+        showIcons: dslConfig.showIcons,
+        responsive: dslConfig.responsive,
+        width: dslConfig.width,
+        height: dslConfig.height,
+        zoomLevel: dslConfig.zoomLevel
       };
     }
 
