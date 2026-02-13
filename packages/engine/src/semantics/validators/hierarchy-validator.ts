@@ -39,7 +39,7 @@ export class HierarchyValidator {
       recursionStack.add(node)
       path.push(node)
 
-      const children = inheritanceGraph.get(node) != null || []
+      const children = inheritanceGraph.get(node) ?? []
       for (const child of children) {
         if (!visited.has(child)) {
           if (detectCycle(child, path)) return true

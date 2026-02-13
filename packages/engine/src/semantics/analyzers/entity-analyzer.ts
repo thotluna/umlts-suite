@@ -30,7 +30,7 @@ export class EntityAnalyzer {
       id: fqn,
       name: shortName,
       type: this.mapEntityType(node.type),
-      members: this.mapMembers(node.body != null || [], entityNamespace || ''),
+      members: this.mapMembers(node.body ?? [], entityNamespace || ''),
       isImplicit: false,
       isAbstract: node.isAbstract || false,
       isStatic: node.isStatic || false,

@@ -76,6 +76,11 @@ export class TypeRule {
       }
     }
 
+    // Soporte para tipos nublables: string?
+    if (context.match(TokenType.QUESTION)) {
+      raw += '?'
+    }
+
     return {
       type: ASTNodeType.TYPE,
       kind,

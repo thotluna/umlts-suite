@@ -26,6 +26,7 @@ export enum TokenType {
   OP_USE = 'OP_USE', // >-
   GT = 'GT', // >
   LT = 'LT', // <
+  QUESTION = 'QUESTION', // ?
   LBRACE = 'LBRACE', // {
   RBRACE = 'RBRACE', // }
   LPAREN = 'LPAREN', // (
