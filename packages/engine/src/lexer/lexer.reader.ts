@@ -1,5 +1,5 @@
 export class LexerReader {
-  private input: string
+  private readonly input: string
   private position = 0
   private line = 1
   private column = 1
@@ -34,9 +34,11 @@ export class LexerReader {
   public getLine(): number {
     return this.line
   }
+
   public getColumn(): number {
     return this.column
   }
+
   public getPosition(): number {
     return this.position
   }

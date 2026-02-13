@@ -3,3 +3,7 @@ node_modules
 coverage
 .vscode-test
 out
+*.config.js
+*.config.mjs
+*.config.cjs
+*.eslintrc.js

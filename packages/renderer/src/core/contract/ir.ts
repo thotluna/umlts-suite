@@ -1,31 +1,21 @@
+import type {
+  IRDiagram as IR,
+  IREntity,
+  IRRelationship,
+  IRRelationshipType,
+  IRMember,
+  IRParameter,
+  IRVisibility as EngineVisibility,
+} from '@umlts/engine'
+
+export type IRVisibility = EngineVisibility | '+' | '-' | '#' | '~'
+
 /**
- * Intermediate Representation (IR) from ts-uml-engine.
- * This is the raw data we receive from the compiler.
+ * Mapeo de tipos de relación para compatibilidad con el renderer.
+ * El renderer espera strings, el motor provee un enum.
  */
-
-export type IRVisibility = '+' | '-' | '#' | '~'
-
-export interface IRParameter {
-  name: string
-  type?: string
-  relationshipKind?: string
-}
-
-export interface IRMember {
-  name: string
-  type?: string
-  visibility: IRVisibility
-  isStatic: boolean
-  isAbstract: boolean
-  relationshipKind?: string
-  multiplicity?: string
-  parameters?: IRParameter[]
-  docs?: string
-  line?: number
-  column?: number
-}
-
 export type IRRelType =
+  | IRRelationshipType
   | 'Association'
   | 'Inheritance'
   | 'Implementation'
@@ -39,36 +29,4 @@ export type IRRelType =
   | 'AGGREGATION'
   | 'DEPENDENCY'
 
-export interface IRRelationship {
-  from: string
-  to: string
-  type: IRRelType
-  label?: string
-  visibility?: IRVisibility
-  fromMultiplicity?: string
-  toMultiplicity?: string
-  line?: number
-  column?: number
-}
-
-export interface IREntity {
-  id: string
-  name: string
-  type: 'Class' | 'Interface' | 'Enum'
-  members: IRMember[]
-  isImplicit: boolean
-  isAbstract: boolean
-  isStatic: boolean
-  isActive: boolean
-  namespace?: string
-  typeParameters?: string[]
-  docs?: string
-  line?: number
-  column?: number
-}
-
-export interface IR {
-  entities: IREntity[]
-  relationships: IRRelationship[]
-  config?: Record<string, unknown>
-}
+export type { IR, IREntity, IRRelationship, IRMember, IRParameter }

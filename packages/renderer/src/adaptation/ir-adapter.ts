@@ -1,14 +1,13 @@
 import {
-  IR,
-  IREntity,
-  IRRelationship,
+  type IR,
+  type IREntity,
+  type IRRelationship,
   UMLNode,
   UMLEdge,
   UMLPackage,
-  DiagramModel,
-  IRRelType,
+  type DiagramModel,
+  type IRRelType,
 } from '../core/types'
-import { normalizeMultiplicity } from './multiplicity'
 
 /**
  * IRAdapter: Transforms the raw IR from ts-uml-engine into a DiagramModel
@@ -34,8 +33,8 @@ export class IRAdapter {
    * Transforms a single entity into a UMLNode.
    */
   private transformEntity(entity: IREntity): UMLNode {
-    const attributes = entity.members.filter((m) => !m.parameters)
-    const methods = entity.members.filter((m) => !!m.parameters)
+    const attributes = entity.members.filter((m) => m.parameters == null)
+    const methods = entity.members.filter((m) => !(m.parameters == null))
 
     return new UMLNode(
       entity.id,
@@ -47,7 +46,7 @@ export class IRAdapter {
       entity.isAbstract,
       entity.isStatic,
       entity.isActive,
-      entity.typeParameters || [],
+      entity.typeParameters ?? [],
       entity.namespace,
       entity.docs,
     )
@@ -75,8 +74,8 @@ export class IRAdapter {
    * Builds the tree structure of packages from nodes namespaces.
    */
   private buildPackageHierarchy(nodes: UMLNode[]): UMLPackage[] {
-    const rootPackages: Map<string, UMLPackage> = new Map()
-    const allPackages: Map<string, UMLPackage> = new Map()
+    const rootPackages = new Map<string, UMLPackage>()
+    const allPackages = new Map<string, UMLPackage>()
 
     for (const node of nodes) {
       if (!node.namespace) continue
@@ -89,11 +88,11 @@ export class IRAdapter {
         currentPath = currentPath ? `${currentPath}.${part}` : part
         let pkg = allPackages.get(currentPath)
 
-        if (!pkg) {
+        if (pkg == null) {
           pkg = new UMLPackage(part, [], currentPath)
           allPackages.set(currentPath, pkg)
 
-          if (parentPkg) {
+          if (parentPkg != null) {
             parentPkg.children.push(pkg)
           } else {
             rootPackages.set(part, pkg)
@@ -102,7 +101,7 @@ export class IRAdapter {
         parentPkg = pkg
       }
 
-      if (parentPkg) {
+      if (parentPkg != null) {
         parentPkg.children.push(node)
       }
     }

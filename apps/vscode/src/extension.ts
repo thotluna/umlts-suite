@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import { UMLEngine, ParseResult } from '@umlts/engine'
+import { UMLEngine, type ParseResult } from '@umlts/engine'
 import { UMLPreviewPanel } from './preview'
 
 export function activate(context: vscode.ExtensionContext) {
@@ -11,8 +11,8 @@ export function activate(context: vscode.ExtensionContext) {
   let lastDocumentUri = ''
 
   const getParseResult = (document: vscode.TextDocument) => {
-    if (lastDocumentUri === document.uri.toString() && lastParseResult) {
-      return lastParseResult as ParseResult
+    if (lastDocumentUri === document.uri.toString() && lastParseResult != null) {
+      return lastParseResult
     }
     lastParseResult = engine.parse(document.getText())
     lastDocumentUri = document.uri.toString()
@@ -249,9 +249,9 @@ export function activate(context: vscode.ExtensionContext) {
     provideHover(document, position) {
       const range = document.getWordRangeAtPosition(
         position,
-        new RegExp('\\[[^\\]]*\\]|[a-zA-Z0-9_*>-]+|[><=:.[\\]+*]+'),
+        /\[[^\]]*\]|[a-zA-Z0-9_*>-]+|[><=:. [\]+*]+/,
       )
-      if (!range) return null
+      if (range == null) return null
 
       const word = document.getText(range)
       const result = getParseResult(document)
@@ -284,14 +284,14 @@ export function activate(context: vscode.ExtensionContext) {
             (e.line === line || e.members.some((m) => m.name === word && m.line === line)),
         )
 
-        if (entity) {
+        if (entity != null) {
           const markdown = new vscode.MarkdownString()
 
           // Caso: Es un miembro de la entidad
           const member = entity.members.find((m) => m.name === word && m.line === line)
-          if (member) {
+          if (member != null) {
             markdown.appendMarkdown(
-              `### ${member.isStatic ? 'Static ' : ''}${member.parameters ? 'Method' : 'Attribute'}: **${member.name}**\n`,
+              `### ${member.isStatic ? 'Static ' : ''}${member.parameters != null ? 'Method' : 'Attribute'}: **${member.name}**\n`,
             )
             if (member.docs) markdown.appendMarkdown(`---\n${member.docs}\n`)
             markdown.appendMarkdown(`\n**Type:** \`${member.type || 'any'}\``)
@@ -308,7 +308,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Buscar en Relaciones
         const rel = result.diagram.relationships.find((r) => r.line === line)
-        if (rel && word === rel.type) {
+        if (word === rel?.type) {
           // Simplificación: si el ratón está en la línea de la relación
           const markdown = new vscode.MarkdownString()
           markdown.appendMarkdown(`### Relación: **${rel.type}**\n`)

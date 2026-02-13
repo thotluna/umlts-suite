@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { LexerFactory } from '../../lexer/lexer.factory'
 import { ParserFactory } from '../parser.factory'
-import { ASTNodeType, PackageNode } from '../ast/nodes'
+import { ASTNodeType, type PackageNode } from '../ast/nodes'
 
 describe('Parser Error Handling', () => {
   it('should report error for unrecognized statement and continue', () => {
@@ -15,12 +15,12 @@ describe('Parser Error Handling', () => {
     const ast = parser.parse(tokens)
 
     expect(ast.body).toHaveLength(2)
-    expect(ast.body[0]!.type).toBe(ASTNodeType.CLASS)
-    expect(ast.body[1]!.type).toBe(ASTNodeType.CLASS)
+    expect(ast.body[0].type).toBe(ASTNodeType.CLASS)
+    expect(ast.body[1].type).toBe(ASTNodeType.CLASS)
 
     expect(ast.diagnostics).toBeDefined()
     expect(ast.diagnostics!.length).toBeGreaterThan(0)
-    expect(ast.diagnostics![0]!.message).toContain('Sentencia no reconocida')
+    expect(ast.diagnostics![0].message).toContain('Sentencia no reconocida')
   })
 
   it('should recover from an error inside a package', () => {
@@ -37,7 +37,7 @@ describe('Parser Error Handling', () => {
 
     const pkg = ast.body[0] as PackageNode
     expect(pkg.body).toHaveLength(2)
-    expect(pkg.body[0]!.type).toBe(ASTNodeType.CLASS)
-    expect(pkg.body[1]!.type).toBe(ASTNodeType.CLASS)
+    expect(pkg.body[0].type).toBe(ASTNodeType.CLASS)
+    expect(pkg.body[1].type).toBe(ASTNodeType.CLASS)
   })
 })

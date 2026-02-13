@@ -1,10 +1,10 @@
-import type { IREntity, IREntityType } from '../generator/ir/models'
+import type { IREntity } from '../generator/ir/models'
 
 /**
  * Tabla de símbolos para gestionar entidades y su resolución semántica.
  */
 export class SymbolTable {
-  private entities: Map<string, IREntity> = new Map()
+  private readonly entities = new Map<string, IREntity>()
 
   /**
    * Registra una entidad. Si ya existe y es implícita, la sobreescribe con la explícita.
@@ -12,16 +12,16 @@ export class SymbolTable {
   public register(entity: IREntity): void {
     const existing = this.entities.get(entity.id)
 
-    if (existing && !existing.isImplicit && !entity.isImplicit) {
+    if (existing != null && !existing.isImplicit && !entity.isImplicit) {
       return
     }
 
-    if (existing && existing.isImplicit && !entity.isImplicit) {
+    if (existing != null && existing.isImplicit && !entity.isImplicit) {
       this.entities.set(entity.id, entity)
       return
     }
 
-    if (!existing) {
+    if (existing == null) {
       this.entities.set(entity.id, entity)
     }
   }

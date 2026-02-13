@@ -1,16 +1,13 @@
 {
   "root": true,
   "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.base.json"
+  },
   "plugins": ["@typescript-eslint", "prettier"],
-  "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended"
-  ],
+  "extends": ["standard", "plugin:@typescript-eslint/recommended", "plugin:prettier/recommended"],
   "rules": {
     "@typescript-eslint/no-explicit-any": "error",
-    "semi": ["error", "never"],
-    "prettier/prettier": ["error", { "semi": false }],
     "@typescript-eslint/no-unused-vars": [
       "warn",
       {
@@ -19,11 +16,22 @@
         "caughtErrorsIgnorePattern": "^_"
       }
     ],
-    "@typescript-eslint/no-non-null-assertion": "off",
-    "no-console": ["warn", { "allow": ["warn", "error"] }]
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "prettier/prettier": ["error", { "semi": false }],
+    "no-useless-constructor": "off",
+    "@typescript-eslint/no-useless-constructor": "error",
+    "no-use-before-define": "off",
+    "@typescript-eslint/no-use-before-define": [
+      "error",
+      { "functions": false, "classes": false, "variables": true, "typedefs": false }
+    ]
   },
-  "env": {
-    "node": true,
-    "es6": true
-  }
+  "overrides": [
+    {
+      "files": ["**/tools/**/*.ts", "**/cli/**/*.ts", "**/debug_*.ts", "**/test_*.ts"],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ]
 }

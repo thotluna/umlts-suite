@@ -1,5 +1,5 @@
-import { UMLEdge, DiagramConfig } from '../../core/types'
-import { Theme } from '../../core/theme'
+import { type UMLEdge, type DiagramConfig } from '../../core/types'
+import { type Theme } from '../../core/theme'
 import { SVGBuilder as svg } from '../svg-helpers'
 import { DrawingRegistry } from '../drawable'
 
@@ -61,7 +61,7 @@ export function renderEdge(
   theme: Theme,
   options?: DiagramConfig['render'],
 ): string {
-  if (!edge.waypoints || edge.waypoints.length < 2) return ''
+  if (edge.waypoints == null || edge.waypoints.length < 2) return ''
 
   const wps = edge.waypoints
   const type = edge.type as string
@@ -135,7 +135,7 @@ export function renderEdge(
     let x: number, y: number
     let textAnchor = 'middle'
 
-    if (edge.labelPos) {
+    if (edge.labelPos != null) {
       // ELK coordinates are for the top-left of the label box.
       // We center the text within that box.
       x = edge.labelPos.x + (edge.labelWidth ? edge.labelWidth / 2 : 0)
@@ -249,7 +249,10 @@ export function renderMarkers(theme: Theme): string {
 
 // ─── Geometry helpers ─────────────────────────────────────────────────────────
 
-type Point = { x: number; y: number }
+interface Point {
+  x: number
+  y: number
+}
 
 /**
  * Shortens the LAST segment of a polyline by `dist` px.

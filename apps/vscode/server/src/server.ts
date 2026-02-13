@@ -1,25 +1,19 @@
 import {
   createConnection,
   TextDocuments,
-  Diagnostic as LSPDiagnostic,
+  type Diagnostic as LSPDiagnostic,
   DiagnosticSeverity as LSPDiagnosticSeverity,
   ProposedFeatures,
-  InitializeParams,
+  type InitializeParams,
   TextDocumentSyncKind,
-  CompletionItem,
+  type CompletionItem,
   CompletionItemKind,
   MarkupKind,
 } from 'vscode-languageserver/node'
 
 import { TextDocument } from 'vscode-languageserver-textdocument'
 
-import {
-  UMLEngine,
-  ParseResult,
-  IREntity,
-  IRDiagram,
-  Diagnostic as EngineDiagnostic,
-} from '@umlts/engine'
+import { UMLEngine, type ParseResult, type IREntity, type IRDiagram } from '@umlts/engine'
 // Importamos el diccionario de documentación de operadores
 import { OPERATOR_DOCS } from './docs_data'
 
@@ -27,7 +21,7 @@ import { OPERATOR_DOCS } from './docs_data'
 const connection = createConnection(ProposedFeatures.all)
 
 // Gestor de documentos abiertos
-const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument)
+const documents = new TextDocuments<TextDocument>(TextDocument)
 
 // Motor de UMLTS (Fachada principal)
 const engine = new UMLEngine()
@@ -60,7 +54,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   try {
     const result: ParseResult = engine.parse(text)
 
-    for (const issue of result.diagnostics as EngineDiagnostic[]) {
+    for (const issue of result.diagnostics) {
       const severity =
         (issue.severity as string) === 'Error'
           ? LSPDiagnosticSeverity.Error
@@ -105,7 +99,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 
 connection.onCompletion((params) => {
   const doc = documents.get(params.textDocument.uri)
-  if (!doc) return []
+  if (doc == null) return []
 
   const text = doc.getText()
   const offset = doc.offsetAt(params.position)
@@ -213,7 +207,7 @@ connection.onCompletion((params) => {
   })
 
   const entities = documentsEntities.get(params.textDocument.uri)
-  if (entities) {
+  if (entities != null) {
     entities.forEach((e) => {
       items.push({
         label: e,
@@ -227,10 +221,10 @@ connection.onCompletion((params) => {
 
 connection.onHover((params) => {
   const doc = documents.get(params.textDocument.uri)
-  if (!doc) return null
+  if (doc == null) return null
 
   const diagram = documentsDiagram.get(params.textDocument.uri)
-  if (!diagram) return null
+  if (diagram == null) return null
 
   const line = params.position.line
   const text = doc.getText({
@@ -244,14 +238,15 @@ connection.onHover((params) => {
   const prefixMatch = textBefore.match(/[a-zA-Z0-9_.>+*\-$#~]+$/)
   const suffixMatch = textAfter.match(/^[a-zA-Z0-9_.>+*\-$#~]*/)
 
-  if (!prefixMatch && !suffixMatch) return null
+  if (prefixMatch == null && suffixMatch == null) return null
 
-  const word = (prefixMatch ? prefixMatch[0] : '') + (suffixMatch ? suffixMatch[0] : '')
+  const word =
+    (prefixMatch != null ? prefixMatch[0] : '') + (suffixMatch != null ? suffixMatch[0] : '')
   if (!word) return null
 
   const entity = diagram.entities.find((e) => e.name === word || e.id === word)
 
-  if (entity) {
+  if (entity != null) {
     let markdown = `**${entity.type}:** \`${entity.id}\``
 
     if (entity.docs) {
@@ -259,9 +254,9 @@ connection.onHover((params) => {
     }
 
     if (entity.members && entity.members.length > 0) {
-      markdown += `\n\n**Miembros:**\n`
+      markdown += '\n\n**Miembros:**\n'
       entity.members.slice(0, 5).forEach((m: IREntity['members'][number]) => {
-        const sign = m.parameters ? '()' : ''
+        const sign = m.parameters != null ? '()' : ''
         markdown += `- \`${m.visibility}${m.name}${sign}: ${m.type || 'any'}\`\n`
       })
       if (entity.members.length > 5) markdown += `- *... y ${entity.members.length - 5} más*`

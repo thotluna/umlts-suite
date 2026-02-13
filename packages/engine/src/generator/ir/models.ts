@@ -18,6 +18,15 @@ export enum IRVisibility {
 }
 
 /**
+ * Representa un parámetro de un método en la IR.
+ */
+export interface IRParameter {
+  name: string
+  type?: string
+  relationshipKind?: string
+}
+
+/**
  * Representa un miembro (Atributo o Método) en la IR.
  */
 export interface IRMember {
@@ -26,7 +35,7 @@ export interface IRMember {
   visibility: IRVisibility
   isStatic: boolean
   isAbstract: boolean
-  parameters?: Array<{ name: string; type: string; relationshipKind?: string }>
+  parameters?: IRParameter[]
   relationshipKind?: string
   multiplicity?: string
   line?: number
@@ -63,6 +72,7 @@ export enum IRRelationshipType {
   COMPOSITION = 'Composition',
   AGGREGATION = 'Aggregation',
   DEPENDENCY = 'Dependency',
+  REALIZATION = 'Realization',
 }
 
 /**

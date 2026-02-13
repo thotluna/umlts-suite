@@ -1,5 +1,5 @@
 import { TokenType } from '../../lexer/token.types'
-import { ASTNodeType, RelationshipHeaderNode } from '../ast/nodes'
+import { ASTNodeType, type RelationshipHeaderNode } from '../ast/nodes'
 import type { ParserContext } from '../parser.context'
 
 export class RelationshipHeaderRule {

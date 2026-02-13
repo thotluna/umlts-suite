@@ -7,8 +7,7 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "lint": "eslint src --ext .ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint src --ext .ts"
   },
   "keywords": [
     "uml",

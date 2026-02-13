@@ -3,11 +3,11 @@ import { LexerFactory } from '../../lexer/lexer.factory'
 import { ParserFactory } from '../parser.factory'
 import {
   ASTNodeType,
-  EntityNode,
-  PackageNode,
-  AttributeNode,
-  MethodNode,
-  RelationshipNode,
+  type EntityNode,
+  type PackageNode,
+  type AttributeNode,
+  type MethodNode,
+  type RelationshipNode,
 } from '../ast/nodes'
 
 describe('Parser', () => {
@@ -19,7 +19,7 @@ describe('Parser', () => {
 
     expect(ast.type).toBe(ASTNodeType.PROGRAM)
     expect(ast.body).toHaveLength(1)
-    expect(ast.body[0]!.type).toBe(ASTNodeType.CLASS)
+    expect(ast.body[0].type).toBe(ASTNodeType.CLASS)
     expect((ast.body[0] as EntityNode).name).toBe('User')
   })
 
@@ -29,11 +29,11 @@ describe('Parser', () => {
     const parser = ParserFactory.create()
     const ast = parser.parse(tokens)
 
-    expect(ast.body[0]!.type).toBe(ASTNodeType.PACKAGE)
+    expect(ast.body[0].type).toBe(ASTNodeType.PACKAGE)
     const pkg = ast.body[0] as PackageNode
     expect(pkg.name).toBe('core')
     expect(pkg.body).toHaveLength(1)
-    expect(pkg.body[0]!.type).toBe(ASTNodeType.CLASS)
+    expect(pkg.body[0].type).toBe(ASTNodeType.CLASS)
   })
 
   it('should parse a class with attributes and methods', () => {

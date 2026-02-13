@@ -2,8 +2,13 @@ import { LexerFactory } from './lexer/lexer.factory'
 import { ParserFactory } from './parser/parser.factory'
 import { SemanticAnalyzer } from './semantics/analyzer'
 import type { IRDiagram } from './generator/ir/models'
+import { ParserContext } from './parser/parser.context'
 import type { Diagnostic } from './parser/diagnostic.types'
 import type { Token } from './lexer/token.types'
+
+export * from './generator/ir/models'
+export * from './parser/diagnostic.types'
+export * from './lexer/token.types'
 
 /**
  * Resultado de una operación de parseo del motor.
@@ -40,15 +45,21 @@ export class UMLEngine {
     const ast = parser.parse(tokens)
 
     // Acumulamos diagnósticos del parser
-    if (ast.diagnostics) {
+    if (ast.diagnostics != null) {
       diagnostics.push(...ast.diagnostics)
     }
 
     // 3. Análisis Semántico
     // IMPORTANTE: Instanciamos un nuevo analizador por cada parseo para evitar
     // la filtración de estado entre cambios de código (evita duplicados acumulados).
+    const context = new ParserContext(tokens)
     const analyzer = new SemanticAnalyzer()
-    const diagram = analyzer.analyze(ast)
+    const diagram = analyzer.analyze(ast, context)
+
+    // Acumulamos diagnósticos del analizador semántico
+    if (context.hasErrors()) {
+      diagnostics.push(...context.getDiagnostics())
+    }
 
     return {
       diagram,

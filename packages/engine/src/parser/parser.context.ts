@@ -1,45 +1,80 @@
 import type { Token } from '../lexer/token.types'
 import { TokenType } from '../lexer/token.types'
-import type { Diagnostic } from './diagnostic.types'
+import type { Diagnostic, DiagnosticCode } from './diagnostic.types'
 import { DiagnosticSeverity } from './diagnostic.types'
 
 export class ParserContext {
-  private tokens: Token[]
+  private readonly tokens: Token[]
   private current = 0
-  private diagnostics: Diagnostic[] = []
+  private readonly diagnostics: Diagnostic[] = []
 
   constructor(tokens: Token[]) {
     this.tokens = tokens
   }
 
+  private splitTokens: Token[] = []
+
   public peek(): Token {
-    return this.tokens[this.current]!
+    if (this.splitTokens.length > 0) {
+      return this.splitTokens[0]
+    }
+    if (this.current >= this.tokens.length) {
+      return this.tokens[this.tokens.length - 1]
+    }
+    return this.tokens[this.current]
   }
 
   public peekNext(): Token {
     if (this.current + 1 >= this.tokens.length) {
-      return this.tokens[this.tokens.length - 1]!
+      return this.tokens[this.tokens.length - 1]
     }
-    return this.tokens[this.current + 1]!
+    return this.tokens[this.current + 1]
   }
 
   public prev(): Token {
-    return this.tokens[this.current - 1]!
+    return this.tokens[this.current - 1]
   }
 
   public advance(): Token {
+    if (this.splitTokens.length > 0) {
+      return this.splitTokens.shift()!
+    }
     if (!this.isAtEnd()) this.current++
     return this.prev()
   }
 
   public check(type: TokenType): boolean {
     if (this.isAtEnd()) return false
-    return this.peek().type === type
+    const token = this.peek()
+    if (token.type === type) return true
+
+    // Si buscamos un carácter individual y tenemos uno compuesto que empieza con él
+    if (token.type === TokenType.OP_INHERIT && type === TokenType.GT) {
+      return true
+    }
+
+    return false
   }
 
   public match(...types: TokenType[]): boolean {
     for (const type of types) {
       if (this.check(type)) {
+        const token = this.peek()
+        if (token.type === TokenType.OP_INHERIT && type === TokenType.GT) {
+          this.current++ // consume >> real
+          this.splitTokens.push({
+            ...token,
+            type: TokenType.GT,
+            value: '>',
+            column: token.column + 1,
+          })
+          // We don't return the split token here, just return true
+          // The caller will then call advance() (implied) or we just return true
+          // Wait, match() SHOULD consume the token.
+          // By incrementing this.current and pushing to splitTokens, we effectively
+          // consumed the first half of >>.
+          return true
+        }
         this.advance()
         return true
       }
@@ -48,12 +83,26 @@ export class ParserContext {
   }
 
   public consume(type: TokenType, message: string): Token {
-    if (this.check(type)) return this.advance()
+    if (this.check(type)) {
+      const token = this.peek()
+      if (token.type === TokenType.OP_INHERIT && type === TokenType.GT) {
+        this.current++ // consume >> real
+        this.splitTokens.push({
+          ...token,
+          type: TokenType.GT,
+          value: '>',
+          column: token.column + 1,
+        })
+        return { ...token, type: TokenType.GT, value: '>' }
+      }
+      return this.advance()
+    }
+
     throw new Error(`${message} en línea ${this.peek().line}, columna ${this.peek().column}`)
   }
 
   public isAtEnd(): boolean {
-    return this.peek().type === TokenType.EOF
+    return this.splitTokens.length === 0 && this.peek().type === TokenType.EOF
   }
 
   public getPosition(): number {
@@ -64,10 +113,11 @@ export class ParserContext {
     this.current = position
   }
 
-  public addError(message: string, token?: Token): void {
-    const errorToken = token || this.peek()
+  public addError(message: string, token?: Token, code?: DiagnosticCode): void {
+    const errorToken = token ?? this.peek()
     this.diagnostics.push({
       message,
+      code,
       line: errorToken.line,
       column: errorToken.column,
       severity: DiagnosticSeverity.ERROR,

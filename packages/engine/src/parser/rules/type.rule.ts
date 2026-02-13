@@ -1,5 +1,5 @@
 import { TokenType } from '../../lexer/token.types'
-import { ASTNodeType, TypeNode } from '../ast/nodes'
+import { ASTNodeType, type TypeNode } from '../ast/nodes'
 import type { ParserContext } from '../parser.context'
 
 export class TypeRule {
@@ -17,7 +17,7 @@ export class TypeRule {
     let raw = context.advance().value
     let name = raw
     let kind: 'simple' | 'generic' | 'array' = 'simple'
-    let args: TypeNode[] | undefined = undefined
+    let args: TypeNode[] | undefined
 
     // Soporte para FQN (Fully Qualified Names): core.DiagramNode
     while (context.match(TokenType.DOT)) {
@@ -74,6 +74,11 @@ export class TypeRule {
       } else {
         break // Podría ser una multiplicidad, salimos
       }
+    }
+
+    // Soporte para tipos nublables: string?
+    if (context.match(TokenType.QUESTION)) {
+      raw += '?'
     }
 
     return {

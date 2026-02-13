@@ -10,7 +10,7 @@ function main() {
     process.exit(1)
   }
 
-  const fileName = args[0]!
+  const fileName = args[0]
   const filePath = path.resolve(fileName)
 
   if (!fs.existsSync(filePath)) {

@@ -19,13 +19,14 @@
 - [x] Aprender abstracción y agregación (Padre/Abuelo)
 - [x] Patrones de Composición y FQN (Monitor)
 - [x] Crear Cookbook de referencia
-- [ ] **BACKLOG**: Repasar casos de genéricos (errores de concepción y renderizado)
+- [x] **BACKLOG**: Repasar casos de genéricos (errores de concepción y renderizado)
 
 - [x] **BUG**: Corregir redundancia de atributos (no mostrar en cajetín si existe relación visual)
   - [x] Análisis arquitectónico (Opción A seleccionada)
   - [x] Extender `IRRelationship` con campo `visibility`
-  - [x] Modificar `SemanticAnalyzer` para propagar visibilidad
-  - [x] Implementar fase de "Deduplicación" en `SemanticAnalyzer`
+  - [x] **Semantic Analysis & Validation** <!-- id: 3 -->
+    - [x] Implement semantic rules (Inheritance cycles, Type compatibility) <!-- id: 7 -->
+    - [x] Implement member uniqueness validation <!-- id: 8 -->
   - [x] Adaptar renderer (si aplica) para mostrar visibilidad en roles
 - [x] **BUG**: Etiquetas de roles se cortan en el renderizado (ej: `+ representación` -> `+ represent`)
 - [x] **BUG**: Fallo al nombrar una clase abstracta en línea (reportado por usuario)
@@ -37,7 +38,7 @@
 - [x] **BUG**: Diagrama desconectado / Nodos fantasmas en arquitectura.
   - Causa: `SymbolTable` no resolvía nombres con puntos de forma relativa.
   - Solución: Corregida lógica de `resolveFQN` y actualizado script de arquitectura.
-- [ ] **BUG**: Interfaces en relaciones de atributos se renderizan como clases
+- [x] **BUG**: Interfaces en relaciones de atributos se renderizan como clases
   - Problema: En `arquitectura_motor.umlts` línea 135, `- relationships: >+ IRRelationship[]` muestra `IRRelationship` como clase en el diagrama, pero es una interfaz.
   - Causa: El SemanticAnalyzer no propaga el tipo de entidad (interface vs class) cuando crea relaciones implícitas desde atributos.
   - Solución propuesta: Extender la lógica de `resolveOrRegisterImplicit` para consultar el tipo real de la entidad referenciada y preservarlo en la entidad implícita.
@@ -108,9 +109,9 @@
 
 ## Publicación y Despliegue
 
-- [ ] **TASK**: Login en NPM
-- [ ] **TASK**: Configurar tokens de acceso (si es necesario)
-- [ ] **TASK**: Verificar permisos de publicación
+- [x] **TASK**: Login en NPM
+- [x] **TASK**: Configurar tokens de acceso (si es necesario)
+- [x] **TASK**: Verificar permisos de publicación
 
 ## Refactorización del Motor (Parser V2)
 
@@ -174,8 +175,8 @@
 
 - [x] **FIX**: Corregir tests de Lexer (`TokenType.GT` mismatch)
 - [x] **FIX**: Corregir tests de Parser (Ajustar a `TypeNode` en lugar de strings)
-- [/] **CHORE**: Evaluar y mejorar cobertura de tests del motor
-- [ ] **CHORE**: Actualizar versión a `0.8.0-alpha.1` e incluir `README` básico
+- [x] **CHORE**: Evaluar y mejorar cobertura de tests del motor
+- [x] **CHORE**: Actualizar versión a `0.8.0-alpha.1` e incluir `README` básico
 
 ### Infraestructura de Calidad y CI
 
@@ -183,3 +184,27 @@
 - [x] **CHORE**: Configurar Husky y lint-staged (Pre-commits)
 - [x] **CHORE**: Configurar GitHub Actions (CI para PRs: Lint + Test + Build)
 - [x] **CHORE**: Eliminar `any` y estandarizar tipos en `@umlts/engine` y `@umlts/renderer`
+- [x] **FIX**: Corregir uso de `any` en `packages/engine/src/semantics/__test__/semantic-rules.test.ts`
+- [x] **FIX**: Error de compilación en `index.ts` (faltaba instanciar `ParserContext` para `SemanticAnalyzer`)
+- [x] **FIX**: Validar relaciones de nivel superior y mejorar reporte de errores semánticos <!-- id: 189 -->
+- [x] **CHORE**: Corregir errores de formato Prettier y ESLint auto-fix <!-- id: 190 -->
+- [x] **FIX**: Resolver conflictos entre Prettier y el formateador interno de VS Code
+- [x] **CHORE**: Configurar ESLint y Prettier con `standard-with-typescript` y resolver conflictos de versión <!-- id: 196 -->
+- [x] **FIX**: Resolver errores de linter por reglas incompatibles de Standard v8 e ignorar archivos de configuración <!-- id: 197 -->
+- [x] **FIX**: Limpiar los 21 warnings restantes del linter (variables no usadas y console statements en herramientas) <!-- id: 198 -->
+
+## Refactorización del Análisis Semántico (V2)
+
+- [x] **ARCH**: Dividir `SemanticAnalyzer` en sub-componentes especializados <!-- id: 191 -->
+  - [x] Crear `EntityAnalyzer`, `RelationshipAnalyzer` y `ContextAnalyzer`
+  - [x] Implementar `TypeValidator`, `HierarchyValidator` y `FQNBuilder`
+- [x] **FEAT**: Implementar validación de tipos en miembros (atributos/parámetros) <!-- id: 192 -->
+- [x] **FEAT**: Añadir advertencias (Warnings) para entidades implícitas <!-- id: 193 -->
+- [x] **FIX**: Mejorar construcción de FQNs para soportar rutas absolutas <!-- id: 194 -->
+- [x] **TEST**: Verificar refactorización con batería de tests extendida <!-- id: 195 -->
+- [x] **FIX**: Depuración y resolución de fallos en CI (Build @umlts/renderer)
+  - [x] Corregir lógica de nulos en `LayoutEngine` (`elkNode.children ?? []`)
+  - [x] Estandarizar IR entre motor y renderer para evitar conflictos de tipos
+  - [x] Resolver advertencias de `any` implícito en el renderer
+  - [x] Verificar build y tests locales en todo el workspace
+  - [x] Purgar y verificar CI en GitHub

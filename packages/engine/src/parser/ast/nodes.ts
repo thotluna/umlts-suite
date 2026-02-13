@@ -31,7 +31,7 @@ export interface ASTNode {
 export interface ProgramNode extends ASTNode {
   type: ASTNodeType.PROGRAM
   body: StatementNode[]
-  diagnostics?: import('../diagnostic.types').Diagnostic[]
+  diagnostics?: Array<import('../diagnostic.types').Diagnostic>
 }
 
 export type StatementNode = PackageNode | EntityNode | RelationshipNode | CommentNode | ConfigNode

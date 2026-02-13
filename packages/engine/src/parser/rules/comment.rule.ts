@@ -1,5 +1,5 @@
 import { TokenType } from '../../lexer/token.types'
-import type { StatementNode, CommentNode } from '../ast/nodes'
+import type { CommentNode } from '../ast/nodes'
 import { ASTNodeType } from '../ast/nodes'
 import type { ParserContext } from '../parser.context'
 import type { StatementRule } from '../rule.types'

@@ -4,8 +4,8 @@ import { LexerReader } from './lexer.reader'
 import type { TokenMatcher } from './matcher.types'
 
 export class Lexer {
-  private reader: LexerReader
-  private matchers: TokenMatcher[]
+  private readonly reader: LexerReader
+  private readonly matchers: TokenMatcher[]
 
   constructor(input: string, matchers: TokenMatcher[]) {
     this.reader = new LexerReader(input)
@@ -24,13 +24,13 @@ export class Lexer {
         token = matcher.match(this.reader)
 
         // Un match ocurre si devolvió un token O si avanzó el puntero (ej. espacios)
-        if (token || this.reader.getPosition() > beforePos) {
+        if (token != null || this.reader.getPosition() > beforePos) {
           matched = true
           break
         }
       }
 
-      if (token) {
+      if (token != null) {
         tokens.push(token)
       } else if (!matched) {
         // Carácter desconocido: solo avanzamos si nadie reclamó el carácter

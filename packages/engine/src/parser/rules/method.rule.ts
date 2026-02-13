@@ -1,13 +1,13 @@
 import type { Token } from '../../lexer/token.types'
 import { TokenType } from '../../lexer/token.types'
-import { ASTNodeType, MethodNode, TypeNode } from '../ast/nodes'
+import { ASTNodeType, type MethodNode, type TypeNode } from '../ast/nodes'
 import type { ParserContext } from '../parser.context'
 import { TypeRule } from './type.rule'
 import { ParameterRule } from './parameter.rule'
 
 export class MethodRule {
-  private typeRule = new TypeRule()
-  private parameterRule = new ParameterRule()
+  private readonly typeRule = new TypeRule()
+  private readonly parameterRule = new ParameterRule()
 
   public parse(
     context: ParserContext,
@@ -35,7 +35,7 @@ export class MethodRule {
       line: name.line,
       column: name.column,
     }
-    let returnRelationshipKind: string | undefined = undefined
+    let returnRelationshipKind: string | undefined
     let returnTargetIsAbstract = false
 
     if (context.match(TokenType.COLON)) {

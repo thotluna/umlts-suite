@@ -1,12 +1,12 @@
 import { TokenType } from '../../lexer/token.types'
-import { ASTNodeType, MemberNode } from '../ast/nodes'
+import { ASTNodeType, type MemberNode } from '../ast/nodes'
 import type { ParserContext } from '../parser.context'
 import { AttributeRule } from './attribute.rule'
 import { MethodRule } from './method.rule'
 
 export class MemberRule {
-  private attributeRule = new AttributeRule()
-  private methodRule = new MethodRule()
+  private readonly attributeRule = new AttributeRule()
+  private readonly methodRule = new MethodRule()
 
   public parse(context: ParserContext): MemberNode | null {
     if (context.match(TokenType.DOC_COMMENT)) {

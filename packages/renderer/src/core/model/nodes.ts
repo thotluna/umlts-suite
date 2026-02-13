@@ -1,4 +1,4 @@
-import { IRMember, IRRelType } from '../contract/ir'
+import { type IRMember, type IRRelType } from '../contract/ir'
 import { measureNodeDimensions } from '../../layout/measure'
 
 /**
@@ -77,7 +77,7 @@ export class UMLNode extends UMLHierarchyItem {
  * Rich Domain Model for UML Relationships.
  */
 export class UMLEdge {
-  public waypoints?: { x: number; y: number }[]
+  public waypoints?: Array<{ x: number; y: number }>
   public labelPos?: { x: number; y: number }
   public labelWidth?: number
   public labelHeight?: number
@@ -93,7 +93,7 @@ export class UMLEdge {
   ) {}
 
   public updateLayout(
-    waypoints: { x: number; y: number }[],
+    waypoints: Array<{ x: number; y: number }>,
     labelPos?: { x: number; y: number },
     labelWidth?: number,
     labelHeight?: number,

@@ -2,9 +2,7 @@
  * Simple SVG string builders to maintain portability without a DOM.
  */
 
-export interface SVGAttr {
-  [key: string]: string | number | undefined
-}
+export type SVGAttr = Record<string, string | number | undefined>
 
 /**
  * SVGBuilder: Simple SVG string builders to maintain portability without a DOM.

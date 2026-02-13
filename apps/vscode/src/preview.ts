@@ -7,14 +7,13 @@ export class UMLPreviewPanel {
   private readonly _panel: vscode.WebviewPanel
   private readonly _engine: UMLEngine
   private _documentUri: vscode.Uri | undefined
-  private _disposables: vscode.Disposable[] = []
+  private readonly _disposables: vscode.Disposable[] = []
 
   public static createOrShow(extensionUri: vscode.Uri) {
-    const column = vscode.window.activeTextEditor
-      ? vscode.window.activeTextEditor.viewColumn
-      : undefined
+    const column =
+      vscode.window.activeTextEditor != null ? vscode.window.activeTextEditor.viewColumn : undefined
 
-    if (UMLPreviewPanel.currentPanel) {
+    if (UMLPreviewPanel.currentPanel != null) {
       UMLPreviewPanel.currentPanel._panel.reveal(column)
       return
     }
@@ -37,19 +36,25 @@ export class UMLPreviewPanel {
     UMLPreviewPanel.currentPanel = new UMLPreviewPanel(panel, extensionUri)
   }
 
-  private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
+  private constructor(panel: vscode.WebviewPanel, _extensionUri: vscode.Uri) {
     this._panel = panel
     this._engine = new UMLEngine()
 
     this._update()
 
-    this._panel.onDidDispose(() => this.dispose(), null, this._disposables)
+    this._panel.onDidDispose(
+      () => {
+        this.dispose()
+      },
+      null,
+      this._disposables,
+    )
 
     this._panel.webview.onDidReceiveMessage(
       async (message) => {
         switch (message.command) {
           case 'exportSvg': {
-            if (!this._documentUri) {
+            if (this._documentUri == null) {
               vscode.window.showErrorMessage(
                 'No hay un documento activo asociado a esta previsualización.',
               )
@@ -69,7 +74,7 @@ export class UMLPreviewPanel {
               filters: { 'SVG files': ['svg'] },
             })
 
-            if (saveUri) {
+            if (saveUri != null) {
               await vscode.workspace.fs.writeFile(saveUri, Buffer.from(svgContent, 'utf8'))
               vscode.window.showInformationMessage('Diagrama exportado correctamente.')
             }
@@ -77,7 +82,6 @@ export class UMLPreviewPanel {
           }
           case 'alert':
             vscode.window.showErrorMessage(message.text)
-            return
         }
       },
       null,
@@ -86,10 +90,7 @@ export class UMLPreviewPanel {
 
     vscode.workspace.onDidChangeTextDocument(
       (e) => {
-        if (
-          vscode.window.activeTextEditor &&
-          e.document === vscode.window.activeTextEditor.document
-        ) {
+        if (e.document === vscode.window.activeTextEditor?.document) {
           this._update()
         }
       },
@@ -119,9 +120,9 @@ export class UMLPreviewPanel {
   public dispose() {
     UMLPreviewPanel.currentPanel = undefined
     this._panel.dispose()
-    while (this._disposables.length) {
+    while (this._disposables.length > 0) {
       const x = this._disposables.pop()
-      if (x) {
+      if (x != null) {
         x.dispose()
       }
     }
@@ -129,7 +130,7 @@ export class UMLPreviewPanel {
 
   private async _update() {
     const editor = vscode.window.activeTextEditor
-    if (!editor || editor.document.languageId !== 'umlts') {
+    if (editor?.document.languageId !== 'umlts') {
       return
     }
 
@@ -150,11 +151,7 @@ export class UMLPreviewPanel {
         vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.HighContrast
 
       const themeName: 'light' | 'dark' =
-        preferredTheme === 'auto'
-          ? isDark
-            ? 'dark'
-            : 'light'
-          : (preferredTheme as 'light' | 'dark')
+        preferredTheme === 'auto' ? (isDark ? 'dark' : 'light') : preferredTheme
 
       // Importar temas base (asumiendo que están exportados o accesibles)
       // Como estamos en el mismo monorepo, podemos usar los objetos directamente si los importamos

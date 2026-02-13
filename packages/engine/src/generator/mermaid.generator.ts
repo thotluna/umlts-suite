@@ -1,5 +1,5 @@
 import type { IRDiagram, IREntity, IRRelationship } from './ir/models'
-import { IREntityType, IRRelationshipType, IRVisibility } from './ir/models'
+import { IREntityType, IRRelationshipType } from './ir/models'
 
 /**
  * Generador de código Mermaid a partir de la Representación Intermedia (IR).
@@ -35,10 +35,10 @@ export class MermaidGenerator {
     entity.members
       .filter((member) => !member.relationshipKind)
       .forEach((member) => {
-        let line = `      `
+        let line = '      '
         line += member.visibility
 
-        if (member.parameters) {
+        if (member.parameters != null) {
           const abstractPrefix = member.isAbstract ? '*' : ''
           const staticSuffix = member.isStatic ? '$' : ''
           line += `${abstractPrefix}${member.name}${staticSuffix}(${member.parameters.map((p) => `${p.type} ${p.name}`).join(', ')})`
@@ -55,7 +55,7 @@ export class MermaidGenerator {
         lines.push(line)
       })
 
-    lines.push(`    }`)
+    lines.push('    }')
     return lines
   }
 

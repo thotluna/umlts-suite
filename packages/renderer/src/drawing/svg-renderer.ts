@@ -1,11 +1,15 @@
-import { LayoutResult, UMLPackage, UMLHierarchyItem, DiagramConfig } from '../core/types'
-import { Theme } from '../core/theme'
+import {
+  type LayoutResult,
+  UMLPackage,
+  type UMLHierarchyItem,
+  type DiagramConfig,
+} from '../core/types'
+import { type Theme } from '../core/theme'
 import { SVGBuilder as svg } from './svg-helpers'
 import { DrawingRegistry } from './drawable'
 
 // Ensure renderers are registered
 import './elements/class-node'
-import './elements/edges'
 import { renderMarkers } from './elements/edges'
 
 /**
@@ -34,7 +38,7 @@ export class SVGRenderer {
 
     // 4. Render Edges
     const edgesStr = model.edges
-      .map((edge, idx) => DrawingRegistry.render('Edge', edge, theme, config))
+      .map((edge, _idx) => DrawingRegistry.render('Edge', edge, theme, config))
       .join('')
 
     // Combine everything with proper grouping
@@ -99,8 +103,8 @@ export class SVGRenderer {
     const rect = svg.rect({
       x,
       y,
-      width: width,
-      height: height,
+      width,
+      height,
       fill: theme.packageBackground,
       stroke: theme.packageBorder,
       'stroke-width': 1.2,
