@@ -19,36 +19,34 @@ export enum TokenType {
   KW_CONFIG = 'KW_CONFIG',
 
   // Operators and Symbols
-  OP_INHERIT = 'OP_INHERIT',      // >>
-  OP_IMPLEMENT = 'OP_IMPLEMENT',  // >I
-  OP_COMP = 'OP_COMP',            // >*
-  OP_AGREG = 'OP_AGREG',          // >+
-  OP_USE = 'OP_USE',              // >-
-  OP_GENERIC_REL = 'OP_GENERIC_REL', // >
-  LT = 'LT',                      // <
-  GT = 'GT',                      // >
+  OP_INHERIT = 'OP_INHERIT', // >>
+  OP_IMPLEMENT = 'OP_IMPLEMENT', // >I
+  OP_COMP = 'OP_COMP', // >*
+  OP_AGREG = 'OP_AGREG', // >+
+  OP_USE = 'OP_USE', // >-
+  GT = 'GT', // >
+  LT = 'LT', // <
+  LBRACE = 'LBRACE', // {
+  RBRACE = 'RBRACE', // }
+  LPAREN = 'LPAREN', // (
+  RPAREN = 'RPAREN', // )
+  LBRACKET = 'LBRACKET', // [
+  RBRACKET = 'RBRACKET', // ]
+  COLON = 'COLON', // :
+  COMMA = 'COMMA', // ,
+  DOT = 'DOT', // .
+  RANGE = 'RANGE', // ..
+  PIPE = 'PIPE', // |
+  STAR = 'STAR', // *
 
-  LBRACE = 'LBRACE',              // {
-  RBRACE = 'RBRACE',              // }
-  LPAREN = 'LPAREN',              // (
-  RPAREN = 'RPAREN',              // )
-  LBRACKET = 'LBRACKET',          // [
-  RBRACKET = 'RBRACKET',          // ]
-  COLON = 'COLON',                // :
-  COMMA = 'COMMA',                // ,
-  DOT = 'DOT',                    // .
-  RANGE = 'RANGE',                // ..
-  PIPE = 'PIPE',                  // |
-  STAR = 'STAR',                  // *
+  VIS_PUB = 'VIS_PUB', // +
+  VIS_PRIV = 'VIS_PRIV', // -
+  VIS_PROT = 'VIS_PROT', // #
+  VIS_PACK = 'VIS_PACK', // ~
 
-  VIS_PUB = 'VIS_PUB',            // +
-  VIS_PRIV = 'VIS_PRIV',          // -
-  VIS_PROT = 'VIS_PROT',          // #
-  VIS_PACK = 'VIS_PACK',          // ~
-
-  MOD_STATIC = 'MOD_STATIC',      // $
-  MOD_ABSTRACT = 'MOD_ABSTRACT',  // *
-  MOD_ACTIVE = 'MOD_ACTIVE',      // &
+  MOD_STATIC = 'MOD_STATIC', // $
+  MOD_ABSTRACT = 'MOD_ABSTRACT', // *
+  MOD_ACTIVE = 'MOD_ACTIVE', // &
 
   // Identifiers and Literals
   IDENTIFIER = 'IDENTIFIER',
@@ -59,12 +57,12 @@ export enum TokenType {
   COMMENT = 'COMMENT',
   DOC_COMMENT = 'DOC_COMMENT',
   EOF = 'EOF',
-  UNKNOWN = 'UNKNOWN'
+  UNKNOWN = 'UNKNOWN',
 }
 
 export interface Token {
-  type: TokenType;
-  value: string;
-  line: number;
-  column: number;
+  type: TokenType
+  value: string
+  line: number
+  column: number
 }
