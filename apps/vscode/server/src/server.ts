@@ -121,7 +121,12 @@ connection.onCompletion((params) => {
 
   if (lastOpenBrace > lastCloseBrace) {
     const textBeforeBrace = textBefore.substring(0, lastOpenBrace).trim();
-    if (textBeforeBrace.endsWith('config')) {
+    // Heurística robusta: eliminamos comentarios de línea y de bloque para encontrar la keyword
+    const cleanTextBeforeBrace = textBeforeBrace
+      .replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '') // Elimina /* ... */ y // ...
+      .trim();
+
+    if (cleanTextBeforeBrace.endsWith('config')) {
       const properties = [
         { label: 'direction', detail: 'UP | DOWN | LEFT | RIGHT' },
         { label: 'spacing', detail: 'Distance between nodes (number)' },
@@ -129,11 +134,16 @@ connection.onCompletion((params) => {
         { label: 'routing', detail: 'ORTHOGONAL | POLYLINE | SPLINES' },
         { label: 'showVisibility', detail: 'true | false' },
         { label: 'showIcons', detail: 'true | false' },
-        { label: 'nodePadding', detail: 'Internal padding (number)' }
+        { label: 'nodePadding', detail: 'Internal padding (number)' },
+        { label: 'responsive', detail: 'true | false (SVG takes 100%)' },
+        { label: 'zoomLevel', detail: '1.0 = 100% (zoom adjustment)' },
+        { label: 'width', detail: 'Custom width (number or %)' },
+        { label: 'height', detail: 'Custom height (number or %)' }
       ];
 
-      // Check if we just typed 'direction:' to offer values
+      // Check if we just typed 'property:' to offer values
       const lineTextBefore = textBefore.split('\n').pop() || '';
+
       if (lineTextBefore.includes('direction:')) {
         return ['UP', 'DOWN', 'LEFT', 'RIGHT'].map(v => ({
           label: v,
@@ -141,7 +151,7 @@ connection.onCompletion((params) => {
         }));
       }
 
-      if (lineTextBefore.includes('showVisibility:') || lineTextBefore.includes('showIcons:')) {
+      if (lineTextBefore.includes('showVisibility:') || lineTextBefore.includes('showIcons:') || lineTextBefore.includes('responsive:')) {
         return ['true', 'false'].map(v => ({
           label: v,
           kind: CompletionItemKind.Keyword,
@@ -168,6 +178,9 @@ connection.onCompletion((params) => {
         detail: p.detail
       }));
     }
+
+    // Si estamos dentro de un bloque pero NO es config, por ahora no devolvemos nada o el flujo normal
+    // (Podríamos añadir otros bloques aquí en el futuro)
   }
 
   const keywords = [
