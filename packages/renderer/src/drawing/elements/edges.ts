@@ -21,21 +21,21 @@ const LABEL_OFFSET = 12;
  *   arrow    → markerWidth 10 → clearance 11
  */
 const END_CLEARANCE: Record<string, number> = {
-  Inheritance: 13,
-  Implementation: 13,
-  Association: 11,
-  Dependency: 11,
-  Composition: 2,  // diamond is at source → target end is a plain line
-  Aggregation: 2,
+  Inheritance: 13, INHERITANCE: 13,
+  Implementation: 13, IMPLEMENTATION: 13,
+  Association: 11, ASSOCIATION: 11,
+  Dependency: 11, DEPENDENCY: 11,
+  Composition: 2, COMPOSITION: 2,
+  Aggregation: 2, AGGREGATION: 2,
 };
 
 const START_CLEARANCE: Record<string, number> = {
-  Composition: 20,  // diamond marker sits at source node
-  Aggregation: 20,
-  Inheritance: 2,
-  Implementation: 2,
-  Association: 2,
-  Dependency: 2,
+  Composition: 20, COMPOSITION: 20,
+  Aggregation: 20, AGGREGATION: 20,
+  Inheritance: 2, INHERITANCE: 2,
+  Implementation: 2, IMPLEMENTATION: 2,
+  Association: 2, ASSOCIATION: 2,
+  Dependency: 2, DEPENDENCY: 2,
 };
 
 // ─── Public API ───────────────────────────────────────────────────────────────

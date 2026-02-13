@@ -8,13 +8,12 @@
     "apps/*"
   ],
   "scripts": {
-    "install:all": "npm install",
-    "build:engine": "npm run build -w packages/engine",
-    "build:renderer": "npm run build -w packages/renderer",
-    "build:vscode": "npm run compile -w apps/vscode",
-    "compile": "npm run build",
-    "build": "npm run build:engine && npm run build:renderer && npm run build:vscode",
-    "dev": "npm run watch -w apps/vscode"
+    "install:all": "pnpm install",
+    "build": "pnpm -r build",
+    "build:engine": "pnpm --filter @umlts/engine build",
+    "build:renderer": "pnpm --filter @umlts/renderer build",
+    "build:vscode": "pnpm --filter umlts-vscode build",
+    "dev": "pnpm --filter umlts-vscode watch"
   },
   "devDependencies": {
     "typescript": "^5.0.0"

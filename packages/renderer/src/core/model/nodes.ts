@@ -1,6 +1,20 @@
-
 import { IRMember, IRRelType } from '../contract/ir';
 import { measureNodeDimensions } from '../../layout/measure';
+
+/**
+ * Port side definition for ELK.
+ */
+export type PortSide = 'NORTH' | 'SOUTH' | 'EAST' | 'WEST';
+
+/**
+ * Connection point for edges on a node.
+ */
+export interface UMLPort {
+  id: string;
+  side: PortSide;
+  x: number;
+  y: number;
+}
 
 /**
  * Base abstract class for any item that can participate in the diagram hierarchy.
@@ -11,6 +25,7 @@ export abstract class UMLHierarchyItem {
   public y: number = 0;
   public width: number = 0;
   public height: number = 0;
+  public ports: UMLPort[] = [];
 
   constructor(
     public readonly id: string,
@@ -22,6 +37,10 @@ export abstract class UMLHierarchyItem {
     this.y = y;
     this.width = width;
     this.height = height;
+  }
+
+  public updatePorts(ports: UMLPort[]): void {
+    this.ports = ports;
   }
 }
 

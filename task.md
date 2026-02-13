@@ -29,7 +29,7 @@
 - [x] **BUG**: Etiquetas de roles se cortan en el renderizado (ej: `+ representación` -> `+ represent`)
 - [x] **BUG**: Fallo al nombrar una clase abstracta en línea (reportado por usuario)
 - [x] **FEAT**: Implementación completa de Clases Estáticas y Activas
-- [ ] **BUG**: El botón de exportar en la extensión (Preview) no funciona
+- [x] **BUG**: El botón de exportar en la extensión (Preview) no funciona
 - [x] Bug: Las relaciones se renderizan en (0,0) (como líneas huérfanas arriba a la izquierda).
   - Causa: ELK usa coordenadas relativas al contenedor, pero el renderizado SVG asume absolutas. Faltaba resolver los offsets jerárquicos de las aristas.
   - Solución: Implementada resolución recursiva de offsets de aristas y distribución por LCA.
@@ -124,3 +124,32 @@
 ### Herramientas de Desarrollo (LSP)
 - [x] **TASK**: Añadir autocompletado para el bloque `config` y sus propiedades
 - [x] **TASK**: Incluir ayuda contextual (tooltips) para opciones de configuración
+
+## Optimizaciones Avanzadas (ELK Expert Level)
+- [x] **TASK**: Implementar Puertos (Ports) en nodos de Clase
+    - [x] Definir interfaz de Ports en el modelo interno del Renderer
+    - [x] Añadir puertos cardinales (N, S, E, W) a cada nodo en la fase de Adaptación
+    - [x] Actualizar el generador de JSON para ELK con la estructura de `ports`
+- [x] **TASK**: Enrutamiento Ortogonal (Ángulos Rectos)
+    - [x] Investigar y aplicar `elk.edgeRouting: ORTHOGONAL`
+    - [x] Ajustar puntos de control para que el SVG dibuje líneas quebradas en lugar de rectas/curvas
+- [x] **TASK**: Refinar Jerarquía Completa
+    - [x] Asegurar que las aristas conecten puertos finales (`ClaseA.out` -> `ClaseB.in`)
+    - [x] Optimizar `layoutOptions` para minimizar cruces de líneas
+
+## Depuración y Calidad (VS Code Extension)
+- [x] **BUG**: Corregir errores de resolución de módulos (`ts-uml-engine` -> `@umlts/engine`)
+- [x] **FEAT**: Sincronizar autocompletado y ayuda contextual en `extension.ts`
+- [x] **IMPROVEMENT**: Soporte para propiedades de `config` contextuales
+- [x] **FIX**: Mapeo correcto de severidad de diagnósticos (Warnings vs Errors)
+- [x] **VERIFY**: Verificación de compilación exitosa de la extensión
+
+## Mantenimiento y Rendimiento (Pnpm & Workspace)
+- [x] **TASK**: Migrar la gestión de paquetes de `npm` a `pnpm`.
+- [x] **FIX**: Resolver dependencias faltantes de `vscode-languageserver` en `apps/vscode`.
+- [x] **IMPROVEMENT**: Configurar `NodeNext` en `server/tsconfig.json` para soporte nativo de `exports` de espacio de trabajo.
+- [x] **FIX**: Tipado fuerte en `server.ts` (eliminación de `any` y uso de interfaces de IR).
+- [x] **OPTIMIZATION**: Corregir bucle de construcción recursivo y habilitar `pnpm -r build` para paralelismo seguro.
+- [x] **IMPROVEMENT**: Optimizar el layout de ELK para reducir desorden, mejorar compacidad y minimizar cruces.
+- [x] **FEATURE**: Implementar sistema de auto-escalado (responsive) y zoom manual
+- [x] **IMPROVEMENT**: Mejorar legibilidad y encuadre dinámico (Auto-Fit corregido)

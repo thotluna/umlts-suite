@@ -17,7 +17,7 @@
   ],
   "dependencies": {
     "elkjs": "^0.9.1",
-    "@umlts/engine": "*"
+    "@umlts/engine": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

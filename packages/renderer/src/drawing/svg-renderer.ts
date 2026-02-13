@@ -38,12 +38,44 @@ export class SVGRenderer {
       svg.g({ class: 'edges' }, edgesStr) +
       svg.g({ class: 'nodes' }, nodesStr);
 
+    const viewBoxX = layoutResult.bbox?.x ?? 0;
+    const viewBoxY = layoutResult.bbox?.y ?? 0;
+    const viewBoxW = layoutResult.bbox?.width ?? totalWidth;
+    const viewBoxH = layoutResult.bbox?.height ?? totalHeight;
+
+    // Responsive handling
+    const isResponsive = config?.responsive === true; // Cambiamos a false por defecto
+
+    // Si NO es responsive, usamos el tamaño real del dibujo (bbox).
+    // Esto es vital para que visualizadores externos y el Webview puedan aplicar zoom manual sobre píxeles reales.
+    const finalWidth = isResponsive ? '100%' : (config?.width || viewBoxW);
+    const finalHeight = isResponsive ? '100%' : (config?.height || viewBoxH);
+
+    // Redondeamos los valores del viewBox
+    let vbx = Math.floor(viewBoxX);
+    let vby = Math.floor(viewBoxY);
+    let vbw = Math.ceil(viewBoxW);
+    let vbh = Math.ceil(viewBoxH);
+
+    // Aplicar zoomLevel si existe (1.0 = escala natural, > 1.0 acerca, < 1.0 aleja)
+    if (config?.zoomLevel && config.zoomLevel !== 1) {
+      const scaleFactor = 1 / config.zoomLevel;
+      const centerX = vbx + vbw / 2;
+      const centerY = vby + vbh / 2;
+      vbw = Math.ceil(vbw * scaleFactor);
+      vbh = Math.ceil(vbh * scaleFactor);
+      vbx = Math.floor(centerX - vbw / 2);
+      vby = Math.floor(centerY - vbh / 2);
+    }
+
     return svg.tag('svg', {
       xmlns: 'http://www.w3.org/2000/svg',
-      width: totalWidth,
-      height: totalHeight,
-      viewBox: `0 0 ${totalWidth} ${totalHeight}`,
-      style: `background-color: ${theme.canvasBackground}; font-family: ${theme.fontFamily};`
+      width: finalWidth,
+      height: finalHeight,
+      viewBox: `${vbx} ${vby} ${vbw} ${vbh}`,
+      preserveAspectRatio: 'xMidYMid meet',
+      // Eliminamos width/height del style para evitar conflictos con los atributos y forzamos block
+      style: `background-color: ${theme.canvasBackground}; font-family: ${theme.fontFamily}; display: block;`
     }, content);
   }
 

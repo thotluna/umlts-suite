@@ -61,19 +61,31 @@ export class UMLRenderer {
     if (dslConfig.theme) config.theme = dslConfig.theme;
 
     // Mapeo simple de opciones de layout
-    if (dslConfig.direction || dslConfig.spacing || dslConfig.nodePadding) {
+    if (dslConfig.direction || dslConfig.spacing || dslConfig.nodePadding || dslConfig.routing) {
       config.layout = {
         direction: dslConfig.direction as any,
         spacing: dslConfig.spacing,
-        nodePadding: dslConfig.nodePadding
+        nodePadding: dslConfig.nodePadding,
+        routing: dslConfig.routing as any
       };
     }
 
     // Mapeo simple de opciones de render
-    if (dslConfig.showVisibility !== undefined || dslConfig.showIcons !== undefined) {
+    if (
+      dslConfig.showVisibility !== undefined ||
+      dslConfig.showIcons !== undefined ||
+      dslConfig.responsive !== undefined ||
+      dslConfig.width !== undefined ||
+      dslConfig.height !== undefined ||
+      dslConfig.zoomLevel !== undefined
+    ) {
       config.render = {
         showVisibility: dslConfig.showVisibility,
-        showIcons: dslConfig.showIcons
+        showIcons: dslConfig.showIcons,
+        responsive: dslConfig.responsive,
+        width: dslConfig.width,
+        height: dslConfig.height,
+        zoomLevel: dslConfig.zoomLevel
       };
     }
 

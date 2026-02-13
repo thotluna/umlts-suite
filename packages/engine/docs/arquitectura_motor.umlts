@@ -1,6 +1,6 @@
 config {
     direction: DOWN
-    spacing: 100
+    spacing: 500
 }
 package Lexer {
 

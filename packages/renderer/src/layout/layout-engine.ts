@@ -17,10 +17,19 @@ const BASE_LAYOUT_OPTIONS = {
   'elk.algorithm': 'layered',
   'elk.direction': 'DOWN',
   'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
+  'elk.edgeRouting': 'UNDEFINED',
 
-  // Basic spacing for readability
-  'elk.spacing.nodeNode': '80',
-  'elk.padding': '[top=60,left=60,bottom=60,right=60]',
+  // Spacing optimizations
+  'elk.spacing.nodeNode': '50',
+  'elk.layered.spacing.nodeNodeBetweenLayers': '60',
+  'elk.spacing.componentComponent': '70',
+  'elk.padding': '[top=50,left=50,bottom=50,right=50]',
+  'elk.separateConnectedComponents': 'true',
+  // Eliminamos el aspectRatio fijo para evitar deformaciones masivas en diagramas grandes
+
+  // Layered specifics to reduce crossing and "messy" look
+  'elk.layered.nodePlacement.strategy': 'BRANDES_KOEPF',
+  'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
 };
 
 /**
@@ -47,6 +56,10 @@ export class LayoutEngine {
       layoutOptions['elk.padding'] = `[top=${p},left=${p},bottom=${p},right=${p}]`;
     }
 
+    if (config?.routing) {
+      layoutOptions['elk.edgeRouting'] = config.routing;
+    }
+
     // 1. Convert to ELK format recursively
     // Nodes that are not part of any package (i.e., top-level nodes)
     const topLevelNodes = model.nodes.filter(n => !n.namespace);
@@ -70,10 +83,14 @@ export class LayoutEngine {
 
     this.applyLayout(model, layoutedGraph);
 
+    // Calculate real bounding box of all elements to have a tight viewBox
+    const bbox = this.calculateModelBoundingBox(model);
+
     return {
       model,
       totalWidth: layoutedGraph.width ?? 800,
       totalHeight: layoutedGraph.height ?? 600,
+      bbox
     };
   }
 
@@ -101,7 +118,24 @@ export class LayoutEngine {
 
   private toElkNode(node: UMLNode): ElkNode {
     const { width, height } = node.getDimensions();
-    return { id: node.id, width, height };
+
+    // Create 4 cardinal ports for the node
+    const ports = [
+      { id: `${node.id}.n`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'NORTH' } },
+      { id: `${node.id}.s`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'SOUTH' } },
+      { id: `${node.id}.e`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'EAST' } },
+      { id: `${node.id}.w`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'WEST' } },
+    ];
+
+    return {
+      id: node.id,
+      width,
+      height,
+      ports,
+      layoutOptions: {
+        'elk.portConstraints': 'FIXED_SIDE'
+      }
+    };
   }
 
   /**
@@ -113,10 +147,24 @@ export class LayoutEngine {
 
     model.edges.forEach((edge, index) => {
       const lcaId = this.findLCA(edge.from, edge.to);
+
+      // Determine best ports based on relationship type and layout direction
+      // Heuristic for DOWN: Inheritance goes from North (Sub) to South (Super)
+      let sourcePortId = edge.from;
+      let targetPortId = edge.to;
+
+      if (edge.type === 'Inheritance' || edge.type === 'Implementation') {
+        sourcePortId = `${edge.from}.n`;
+        targetPortId = `${edge.to}.s`;
+      } else {
+        sourcePortId = `${edge.from}.s`;
+        targetPortId = `${edge.to}.n`;
+      }
+
       const elkEdge: ElkExtendedEdge = {
         id: `e${index}`,
-        sources: [edge.from],
-        targets: [edge.to],
+        sources: [sourcePortId],
+        targets: [targetPortId],
       };
 
       if (edge.label) {
@@ -216,7 +264,9 @@ export class LayoutEngine {
 
     if (container.edges) {
       for (const elkEdge of container.edges) {
-        const edgeKey = `${elkEdge.sources[0]}->${elkEdge.targets[0]}`;
+        const sourceId = this.stripPort(elkEdge.sources[0]);
+        const targetId = this.stripPort(elkEdge.targets[0]);
+        const edgeKey = `${sourceId}->${targetId}`;
         const edge = edgesByEntities.get(edgeKey);
 
         if (edge && elkEdge.sections && elkEdge.sections[0]) {
@@ -270,6 +320,70 @@ export class LayoutEngine {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
+
+  /**
+   * Calcula el área real ocupada únicamente por los elementos visuales (nodos y aristas).
+   * Ignoramos las dimensiones de los paquetes porque ELK les asigna tamaños con 
+   * márgenes que queremos eliminar en el encuadre inicial.
+   */
+  private calculateModelBoundingBox(model: DiagramModel) {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    const MARGIN = 30; // Margen de seguridad alrededor del contenido
+
+    // 1. Considerar solo Nodos
+    for (const node of model.nodes) {
+      minX = Math.min(minX, node.x);
+      minY = Math.min(minY, node.y);
+      maxX = Math.max(maxX, node.x + node.width);
+      maxY = Math.max(maxY, node.y + node.height);
+    }
+
+    // 2. Considerar Aristas
+    for (const edge of model.edges) {
+      if (edge.waypoints) {
+        for (const wp of edge.waypoints) {
+          minX = Math.min(minX, wp.x);
+          minY = Math.min(minY, wp.y);
+          maxX = Math.max(maxX, wp.x);
+          maxY = Math.max(maxY, wp.y);
+        }
+      }
+      if (edge.labelPos) {
+        minX = Math.min(minX, edge.labelPos.x);
+        minY = Math.min(minY, edge.labelPos.y);
+        maxX = Math.max(maxX, edge.labelPos.x + (edge.labelWidth || 0));
+        maxY = Math.max(maxY, edge.labelPos.y + (edge.labelHeight || 0));
+      }
+    }
+
+    // Fallback si no hay elementos
+    if (minX === Infinity) return { x: 0, y: 0, width: 800, height: 600 };
+
+    return {
+      x: minX - MARGIN,
+      y: minY - MARGIN,
+      width: (maxX - minX) + (MARGIN * 2),
+      height: (maxY - minY) + (MARGIN * 2)
+    };
+  }
+
+  /**
+   * Limpia el sufijo de puerto (.n, .s, .e, .w) de un ID de nodo de ELK.
+   */
+  private stripPort(id: string): string {
+    if (!id) return '';
+    const lastDot = id.lastIndexOf('.');
+    if (lastDot === -1) return id;
+    const suffix = id.substring(lastDot + 1);
+    if (['n', 's', 'e', 'w'].includes(suffix)) {
+      return id.substring(0, lastDot);
+    }
+    return id;
+  }
 
   private findPackage(packages: UMLPackage[], id: string): UMLPackage | undefined {
     for (const pkg of packages) {
