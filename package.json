@@ -16,9 +16,9 @@
     "lint": "eslint . --ext .ts,.js",
     "format": "prettier --write .",
     "test": "pnpm -r test",
-    "test:engine": "pnpm --filter @umlts/engine test",
-    "test:renderer": "pnpm --filter @umlts/renderer test",
-    "test:vscode": "pnpm --filter umlts-vscode test",
+    "test:engine": "pnpm --filter @umlts/engine test:run",
+    "test:renderer": "pnpm --filter @umlts/renderer test:run",
+    "test:vscode": "pnpm --filter umlts-vscode test:run",
     "dev": "pnpm --filter umlts-vscode watch",
     "prepare": "husky"
   },
