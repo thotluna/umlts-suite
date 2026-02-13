@@ -40,3 +40,8 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
+
+# Vitest Coverage
+coverage/
+coverage.json
+

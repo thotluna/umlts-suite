@@ -3,7 +3,7 @@
 El AST (Abstract Syntax Tree) es el contrato entre el compilador y cualquier motor de renderizado. Debe ser un objeto JSON puro, serializable y sin referencias circulares en su estructura de memoria.
 
 > [!NOTE]
-> **Referencias vs. Dependencias**: El AST no permite *referencias circulares de objetos* (nodos apuntando físicamente a otros nodos en memoria). Sin embargo, soporta perfectamente *dependencias circulares de dominio* (Clase A → Clase B → Clase A) porque las relaciones se almacenan como **strings** (nombres de las clases), no como punteros a objetos.
+> **Referencias vs. Dependencias**: El AST no permite _referencias circulares de objetos_ (nodos apuntando físicamente a otros nodos en memoria). Sin embargo, soporta perfectamente _dependencias circulares de dominio_ (Clase A → Clase B → Clase A) porque las relaciones se almacenan como **strings** (nombres de las clases), no como punteros a objetos.
 
 ## Estructura Raíz
 
@@ -23,6 +23,7 @@ El AST (Abstract Syntax Tree) es el contrato entre el compilador y cualquier mot
 ## Nodos Principales
 
 ### 1. Entidad (Class, Interface, Enum)
+
 ```json
 {
   "type": "Entity",
@@ -64,6 +65,7 @@ El AST (Abstract Syntax Tree) es el contrato entre el compilador y cualquier mot
 ```
 
 ### 2. Paquete (Package)
+
 ```json
 {
   "type": "Package",
@@ -75,7 +77,9 @@ El AST (Abstract Syntax Tree) es el contrato entre el compilador y cualquier mot
 ```
 
 ### 3. Relación Externa (Relationship)
+
 Se usa cuando la relación se define fuera del bloque de la entidad.
+
 ```json
 {
   "type": "ExternalRelationship",
@@ -90,6 +94,7 @@ Se usa cuando la relación se define fuera del bloque de la entidad.
 ```
 
 ## Consideraciones de Diseño
+
 1.  **Normalización de Nombres**: El Parser debe resolver los nombres de los paquetes. Si una clase `User` está en `package Auth`, en el AST el nombre debe ser `Auth.User`.
 2.  **Visibilidad por Defecto**: Si no se especifica, se guarda físicamente como `public` en el AST para simplificar el trabajo del renderizador.
 3.  **Multiplicidad**: El atajo `[]` debe venir ya normalizado como `0..*`.
