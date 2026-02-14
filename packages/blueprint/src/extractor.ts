@@ -147,7 +147,7 @@ export class BlueprintExtractor {
     const typeName = this.cleanType(type.getText())
     if (typeName === cls.getName()) return
 
-    // Avoid adding if it's already a property (Association/Aggregation/Composition)
+    // Avoid adding if it's already a property
     const isProperty = cls
       .getProperties()
       .some((p) => this.cleanType(p.getType().getText()) === typeName)
@@ -161,9 +161,9 @@ export class BlueprintExtractor {
 
   /**
    * Heuristic to detect relationship type using UMLTS operators.
-   * >* Composition: Instantiated inside the class (new).
-   * >+ Aggregation: Received in constructor and stored.
-   * >  Association: Simple property reference.
+   * >* - Composition
+   * >+ - Aggregation
+   * >- - Association
    */
   private detectRelationship(prop: PropertyDeclaration, cls: ClassDeclaration): string | null {
     const type = prop.getType()
@@ -187,7 +187,7 @@ export class BlueprintExtractor {
       }
     }
 
-    return '>' // Association
+    return '>-' // Association / Reference
   }
 
   private cleanType(type: string): string {
