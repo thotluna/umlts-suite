@@ -136,12 +136,18 @@ export class SemanticAnalyzer {
   ): void {
     if (TypeValidator.isPrimitive(typeName)) return
     const baseType = TypeValidator.getBaseTypeName(typeName)
+    const fromEntity = this.symbolTable.get(fromFQN)
+    const inferenceContext = fromEntity
+      ? { sourceType: fromEntity.type, relationshipKind: relType }
+      : undefined
+
     const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
       baseType,
       fromNamespace || '',
       {},
       line,
       column,
+      inferenceContext,
     )
 
     // Push relationship...
@@ -271,7 +277,15 @@ class ResolutionVisitor implements ASTVisitor {
   visitEntity(node: EntityNode): void {
     const ns = this.currentNamespace.join('.')
     const fromFQN = this.symbolTable.resolveFQN(node.name, ns).fqn
+    const fromEntity = this.symbolTable.get(fromFQN)
+
     node.relationships.forEach((rel) => {
+      // Calculate inference context
+      const relType = this.relationshipAnalyzer.mapRelationshipType(rel.kind)
+      const inferenceContext = fromEntity
+        ? { sourceType: fromEntity.type, relationshipKind: relType }
+        : undefined
+
       const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
         rel.target,
         ns,
@@ -280,6 +294,7 @@ class ResolutionVisitor implements ASTVisitor {
         },
         rel.line,
         rel.column,
+        inferenceContext,
       )
       this.relationshipAnalyzer.addRelationship(fromFQN, toFQN, rel.kind)
     })
@@ -287,6 +302,9 @@ class ResolutionVisitor implements ASTVisitor {
 
   visitRelationship(node: RelationshipNode): void {
     const ns = this.currentNamespace.join('.')
+    const relType = this.relationshipAnalyzer.mapRelationshipType(node.kind)
+
+    // Resolve 'from' entity first
     const fromFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
       node.from,
       ns,
@@ -296,6 +314,13 @@ class ResolutionVisitor implements ASTVisitor {
       node.line,
       node.column,
     )
+    const fromEntity = this.symbolTable.get(fromFQN)
+
+    // Inference for 'to' entity based on 'from' entity type
+    const inferenceContext = fromEntity
+      ? { sourceType: fromEntity.type, relationshipKind: relType }
+      : undefined
+
     const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
       node.to,
       ns,
@@ -304,6 +329,7 @@ class ResolutionVisitor implements ASTVisitor {
       },
       node.line,
       node.column,
+      inferenceContext,
     )
     this.relationshipAnalyzer.addRelationship(fromFQN, toFQN, node.kind, node)
   }

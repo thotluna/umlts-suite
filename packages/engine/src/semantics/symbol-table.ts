@@ -102,6 +102,7 @@ export class SymbolTable {
     name: string,
     namespace: string,
     modifiers?: { isAbstract?: boolean; isStatic?: boolean; isActive?: boolean },
+    expectedType: IREntityType = IREntityType.CLASS,
   ): FQNResolution {
     const resolution = this.resolveFQN(name, namespace)
     const existing = this.get(resolution.fqn)
@@ -110,7 +111,7 @@ export class SymbolTable {
       this.register({
         id: resolution.fqn,
         name: name.includes('.') ? name.split('.').pop()! : name,
-        type: IREntityType.CLASS, // Default to class, will be refined if definition is found
+        type: expectedType,
         members: [],
         isImplicit: true,
         isAbstract: modifiers?.isAbstract || false,

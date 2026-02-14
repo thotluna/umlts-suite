@@ -1,0 +1,109 @@
+
+package semantics {
+
+
+  class SymbolTable {
+    - entities: >* Map<string, IREntity>
+    
+    + register(entity: IREntity): void
+    + get(id: string): IREntity
+    + has(id: string): boolean
+    + resolveFQN(name: string, currentNamespace: string): FQNResolution
+    + resolveOrRegisterImplicit(name: string, namespace: string): FQNResolution
+  }
+
+  class SemanticAnalyzer {
+    - symbolTable: >* SymbolTable
+    - entityAnalyzer: >* analyzers.EntityAnalyzer
+    - relationshipAnalyzer: >* analyzers.RelationshipAnalyzer
+    - hierarchyValidator: >* validators.HierarchyValidator
+    - context: >- ParserContext
+    
+    + analyze(program: ProgramNode, context: ParserContext): IRDiagram
+    - inferRelationships(): void
+  }
+
+  // Visitors
+  class DiscoveryVisitor >I ASTVisitor {
+    - analyzer: >- SemanticAnalyzer
+    - symbolTable: >- SymbolTable
+    - entityAnalyzer: >- analyzers.EntityAnalyzer
+    
+    + visitEntity(node: EntityNode): void
+  }
+
+  class DefinitionVisitor >I ASTVisitor {
+    - symbolTable: >- SymbolTable
+    - entityAnalyzer: >- analyzers.EntityAnalyzer
+    
+    + visitEntity(node: EntityNode): void
+  }
+
+  class ResolutionVisitor >I ASTVisitor {
+    - analyzer: >- SemanticAnalyzer
+    - symbolTable: >- SymbolTable
+    - relationshipAnalyzer: >- analyzers.RelationshipAnalyzer
+    
+    + visitEntity(node: EntityNode): void
+    + visitRelationship(node: RelationshipNode): void
+  }
+
+  package analyzers {
+    class EntityAnalyzer {
+      - symbolTable: >- semantics.SymbolTable
+      - context: >- ParserContext
+      
+      + buildEntity(node: EntityNode, namespace: string): IREntity
+      + processMembers(entity: IREntity, node: EntityNode): void
+      - validateMemberType(typeName: string, namespace: string): void
+    }
+
+  class TypeInferrer {
+    - rules: >* Map<string, IREntityType>
+    + register(source: IREntityType, rel: IRRelationshipType, target: IREntityType): void
+    + infer(source: IREntityType, rel: IRRelationshipType): IREntityType
+  }
+
+  class RelationshipAnalyzer {
+    - symbolTable: >- semantics.SymbolTable
+    - typeInferrer: >* TypeInferrer
+    - hierarchyValidator: >- validators.HierarchyValidator
+    - relationships: >- IRRelationship[]
+    
+    + resolveOrRegisterImplicit(name: string, ns: string, ...): string
+    + addRelationship(fromFQN: string, toFQN: string, kind: string): void
+    + mapRelationshipType(kind: string): IRRelationshipType
+  }
+
+  package rules {
+    class DefaultInferenceRules {
+      $ registerDefaultInferenceRules(inferrer: TypeInferrer): void
+    }
+  }
+
+  package validators {
+    class HierarchyValidator {
+      - symbolTable: >- semantics.SymbolTable
+      
+      + validateRelationship(from: IREntity, to: IREntity, type: IRRelationshipType): void
+      + validateNoCycles(relationships: IRRelationship[]): void
+    }
+  }
+
+  package utils {
+    class TypeValidator {
+      $ isPrimitive(typeName: string): boolean
+      $ getBaseTypeName(typeName: string): string
+    }
+
+    class MultiplicityValidator {
+      $ parse(multiplicity: string): MultiplicityBounds
+      $ validateBounds(multiplicity: string): MultiplicityBounds
+    }
+
+    class FQNBuilder {
+      $ build(name: string, namespace: string): string
+      $ split(fqn: string): SplitResult
+    }
+  }
+}

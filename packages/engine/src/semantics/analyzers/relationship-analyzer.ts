@@ -1,5 +1,7 @@
 import type { IRRelationship } from '../../generator/ir/models'
-import { IRRelationshipType } from '../../generator/ir/models'
+import { IRRelationshipType, IREntityType } from '../../generator/ir/models'
+import { TypeInferrer } from './type-inferrer'
+import { registerDefaultInferenceRules } from '../rules/inference-rules'
 import type { SymbolTable } from '../symbol-table'
 import type { ParserContext } from '../../parser/parser.context'
 import { DiagnosticCode } from '../../parser/diagnostic.types'
@@ -13,15 +15,21 @@ import type { Token } from '../../lexer/token.types'
  * Handles creation and validation of relationships.
  */
 export class RelationshipAnalyzer {
+  private readonly typeInferrer: TypeInferrer
+
   constructor(
     private readonly symbolTable: SymbolTable,
     private readonly relationships: IRRelationship[],
     private readonly hierarchyValidator: HierarchyValidator,
     private readonly context?: ParserContext,
-  ) {}
+  ) {
+    this.typeInferrer = new TypeInferrer()
+    registerDefaultInferenceRules(this.typeInferrer)
+  }
 
   /**
    * Resolves a target entity and registers it as implicit if missing.
+   * Can optionally infer the target type based on the source entity and relationship.
    */
   public resolveOrRegisterImplicit(
     name: string,
@@ -29,8 +37,35 @@ export class RelationshipAnalyzer {
     modifiers?: { isAbstract?: boolean; isStatic?: boolean; isActive?: boolean },
     line?: number,
     column?: number,
+    inferenceContext?: { sourceType: IREntityType; relationshipKind: IRRelationshipType },
   ): string {
-    const result = this.symbolTable.resolveOrRegisterImplicit(name, namespace, modifiers)
+    let expectedType = IREntityType.CLASS
+
+    if (inferenceContext) {
+      const inferred = this.typeInferrer.infer(
+        inferenceContext.sourceType,
+        inferenceContext.relationshipKind,
+      )
+
+      if (inferred) {
+        expectedType = inferred
+      } else {
+        // Fallback to CLASS but report error strictly as requested
+        expectedType = IREntityType.CLASS
+        this.context?.addError(
+          `Cannot infer implicit entity type for relationship '${inferenceContext.relationshipKind}' from '${inferenceContext.sourceType}'. Defaulting target '${name}' to CLASS.`,
+          { line, column, type: TokenType.UNKNOWN, value: '' } as Token,
+          DiagnosticCode.SEMANTIC_INVALID_TYPE,
+        )
+      }
+    }
+
+    const result = this.symbolTable.resolveOrRegisterImplicit(
+      name,
+      namespace,
+      modifiers,
+      expectedType,
+    )
 
     if (result.isAmbiguous) {
       this.context?.addError(

@@ -220,6 +220,10 @@
 - [x] **FIX**: Soporte de relaciones por defecto (Asociación) para miembros sin operador
 - [x] **FIX**: Corregir arquitectura de `semantics.umlts` para reflejar la estructura real de paquetes (`parser`, `generator.ir`)
 - [x] **CHORE**: Traducir todos los mensajes de error y comentarios internos al inglés (Regla Global #2)
+- [x] **FEAT**: Implementar sistema de inferencia de tipos por contexto de relación (`TypeInferrer`)
+- [x] **FIX**: Resolver ambigüedades en entidades implícitas (`class >I B` ahora registra `B` como Interfaz)
+- [x] **TEST**: Alcanzar cobertura del 96% en el paquete `semantics`
+- [x] **DOC**: Actualizar `semantics.umlts` con la nueva arquitectura (TypeInferrer, rules)
 - [x] **PR**: Crear Pull Request "Refactor Semántico V2: Declaraciones Flexible y Resolución FQN Robusta"
 
 ## Próximos Pasos (V3)
