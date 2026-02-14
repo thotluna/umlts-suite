@@ -96,4 +96,28 @@ describe('Parser', () => {
     expect(rel.toMultiplicity).toBe('[*]')
     expect(rel.to).toBe('Post')
   })
+
+  it('should parse parameter multiplicity', () => {
+    const input = 'class Repo { + save(items: Item[1..*]): void }'
+    const tokens = LexerFactory.create(input).tokenize()
+    const parser = ParserFactory.create()
+    const ast = parser.parse(tokens)
+
+    const cls = ast.body[0] as EntityNode
+    const method = cls.body![0] as MethodNode
+    const param = method.parameters[0]
+    expect(param.name).toBe('items')
+    expect(param.multiplicity).toBe('[1..*]')
+  })
+
+  it('should parse new dependency operators (>- and >use)', () => {
+    const input = 'Service >- API Component >use Library'
+    const tokens = LexerFactory.create(input).tokenize()
+    const parser = ParserFactory.create()
+    const ast = parser.parse(tokens)
+
+    expect(ast.body).toHaveLength(2)
+    expect((ast.body[0] as RelationshipNode).kind).toBe('>-')
+    expect((ast.body[1] as RelationshipNode).kind).toBe('>use')
+  })
 })

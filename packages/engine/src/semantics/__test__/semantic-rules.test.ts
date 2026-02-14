@@ -32,7 +32,7 @@ describe('Semantic Rules', () => {
       (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
     )
     expect(error).toBeDefined()
-    expect(error?.message).toContain('Herencia inválida')
+    expect(error?.message).toContain('Invalid inheritance')
   })
 
   it('should detect realization mismatch (Class implementing Class)', () => {
@@ -48,7 +48,7 @@ describe('Semantic Rules', () => {
       (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_REALIZATION_INVALID,
     )
     expect(error).toBeDefined()
-    expect(error?.message).toContain('Realización inválida')
+    expect(error?.message).toContain('Invalid realization')
   })
 
   it('should detect direct cycles in inheritance', () => {
@@ -63,7 +63,7 @@ describe('Semantic Rules', () => {
       (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_CYCLE_DETECTED,
     )
     expect(error).toBeDefined()
-    expect(error?.message).toContain('Ciclo de herencia detectado: A -> A')
+    expect(error?.message).toContain('Inheritance cycle detected: A -> A')
   })
 
   it('should detect indirect cycles in inheritance', () => {
@@ -80,7 +80,7 @@ describe('Semantic Rules', () => {
       (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_CYCLE_DETECTED,
     )
     expect(error).toBeDefined()
-    expect(error?.message).toContain('Ciclo')
+    expect(error?.message).toContain('cycle')
   })
 
   it('should allow valid inheritance', () => {
@@ -112,7 +112,7 @@ describe('Semantic Rules', () => {
       (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_DUPLICATE_MEMBER,
     )
     expect(error).toBeDefined()
-    expect(error?.message).toContain('Miembro duplicado')
+    expect(error?.message).toContain('Duplicate member')
   })
 
   it('should detect duplicate entity definitions', () => {
@@ -124,7 +124,7 @@ describe('Semantic Rules', () => {
     analyzer.analyze(program, context)
 
     const diagnostics = context.getDiagnostics()
-    const error = diagnostics.find((d: Diagnostic) => d.message.includes('ya está definida'))
+    const error = diagnostics.find((d) => d.message.includes('is already defined'))
     expect(error).toBeDefined()
   })
 
@@ -143,5 +143,46 @@ describe('Semantic Rules', () => {
     expect(diagnostics.length).toBeGreaterThanOrEqual(2)
     expect(diagnostics.some((d) => d.code === DiagnosticCode.SEMANTIC_CYCLE_DETECTED)).toBe(true)
     expect(diagnostics.some((d) => d.code === DiagnosticCode.SEMANTIC_DUPLICATE_MEMBER)).toBe(true)
+  })
+
+  it('should resolve forward references in packages (Pass 1 Discovery)', () => {
+    const source = `
+      package P1 {
+        class A {
+          - b: >- B
+        }
+        
+        package Sub {
+          class B {}
+        }
+      }
+    `
+    const { analyzer, program, context } = parseAndAnalyze(source)
+    analyzer.analyze(program, context)
+    const diagnostics = context.getDiagnostics()
+
+    // No debería haber errores de "Entidad implícita" porque B se registra en la pasada 1
+    const implicitErrors = diagnostics.filter(
+      (d) => d.code === DiagnosticCode.SEMANTIC_IMPLICIT_ENTITY,
+    )
+    expect(implicitErrors.length).toBe(0)
+  })
+
+  it('should detect and report ambiguous entity resolution', () => {
+    const source = `
+      package P1 { class Target {} }
+      package P2 { class Target {} }
+      
+      class Source {
+          - t: Target
+      }
+    `
+    const { analyzer, program, context } = parseAndAnalyze(source)
+    analyzer.analyze(program, context)
+
+    const diagnostics = context.getDiagnostics()
+    const error = diagnostics.find((d) => d.code === DiagnosticCode.SEMANTIC_AMBIGUOUS_ENTITY)
+    expect(error).toBeDefined()
+    expect(error?.message).toContain('Ambiguity detected')
   })
 })

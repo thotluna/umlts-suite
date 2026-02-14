@@ -48,7 +48,7 @@ export class HierarchyValidator {
           const cycleStr = path.map((id) => this.symbolTable.get(id)?.name || id).join(' -> ')
 
           this.context.addError(
-            `Ciclo de herencia detectado: ${cycleStr}`,
+            `Inheritance cycle detected: ${cycleStr}`,
             undefined,
             DiagnosticCode.SEMANTIC_CYCLE_DETECTED,
           )
@@ -75,7 +75,7 @@ export class HierarchyValidator {
     if (type === IRRelationshipType.INHERITANCE) {
       if (from.type !== to.type) {
         this.context.addError(
-          `Herencia inválida: ${from.type} '${from.name}' no puede extender ${to.type} '${to.name}'.`,
+          `Invalid inheritance: ${from.type} '${from.name}' cannot extend ${to.type} '${to.name}'.`,
           {
             line: from.line || 1,
             column: from.column || 1,
@@ -90,7 +90,7 @@ export class HierarchyValidator {
     if (type === IRRelationshipType.IMPLEMENTATION) {
       if (from.type === IREntityType.CLASS && to.type === IREntityType.CLASS) {
         this.context.addError(
-          `Realización inválida: Una clase no puede implementar otra clase '${to.name}'. Usar herencia.`,
+          `Invalid realization: A class cannot implement another class '${to.name}'. Use inheritance.`,
           {
             line: from.line || 1,
             column: from.column || 1,

@@ -7,8 +7,8 @@ export class ParameterRule {
   private readonly typeRule = new TypeRule()
 
   public parse(context: ParserContext): ParameterNode {
-    const paramName = context.consume(TokenType.IDENTIFIER, 'Se esperaba el nombre del parámetro')
-    context.consume(TokenType.COLON, "Se esperaba ':'")
+    const paramName = context.consume(TokenType.IDENTIFIER, 'Parameter name expected')
+    context.consume(TokenType.COLON, "Expected ':'")
 
     // SOPORTE SECCIÓN 5.3: Operadores de relación en parámetros
     let relationshipKind: string | undefined
@@ -27,6 +27,16 @@ export class ParameterRule {
 
     const targetIsAbstract = context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)
     const typeAnnotation = this.typeRule.parse(context)
+    let multiplicity: string | undefined
+
+    if (context.check(TokenType.LBRACKET)) {
+      multiplicity = '['
+      context.advance()
+      while (!context.check(TokenType.RBRACKET) && !context.isAtEnd()) {
+        multiplicity += context.advance().value
+      }
+      multiplicity += context.consume(TokenType.RBRACKET, "Expected ']'").value
+    }
 
     return {
       type: ASTNodeType.PARAMETER,
@@ -34,6 +44,7 @@ export class ParameterRule {
       typeAnnotation,
       relationshipKind,
       targetIsAbstract,
+      multiplicity,
       line: paramName.line,
       column: paramName.column,
     }

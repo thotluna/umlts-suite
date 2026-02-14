@@ -21,7 +21,7 @@ export class EntityAnalyzer {
   ) {}
 
   /**
-   * Builds an IREntity from an EntityNode.
+   * Builds an IREntity from an EntityNode (shallow version, no members).
    */
   public buildEntity(node: EntityNode, namespace: string): IREntity {
     const fqn = FQNBuilder.build(node.name, namespace)
@@ -31,7 +31,7 @@ export class EntityAnalyzer {
       id: fqn,
       name: shortName,
       type: this.mapEntityType(node.type),
-      members: this.mapMembers(node.body ?? [], entityNamespace || ''),
+      members: [],
       isImplicit: false,
       isAbstract: node.isAbstract || false,
       isStatic: node.isStatic || false,
@@ -42,6 +42,13 @@ export class EntityAnalyzer {
       column: node.column,
       namespace: entityNamespace,
     }
+  }
+
+  /**
+   * Processes and fills the members of an already registered entity.
+   */
+  public processMembers(entity: IREntity, node: EntityNode): void {
+    entity.members = this.mapMembers(node.body ?? [], entity.namespace || '')
   }
 
   private mapEntityType(type: ASTNodeType): IREntityType {
@@ -63,7 +70,7 @@ export class EntityAnalyzer {
       .map((m) => {
         if (seenNames.has(m.name)) {
           this.context.addError(
-            `Miembro duplicado: '${m.name}' ya está definido en esta entidad.`,
+            `Duplicate member: '${m.name}' is already defined in this entity.`,
             { line: m.line, column: m.column, type: TokenType.UNKNOWN, value: '' } as Token,
             DiagnosticCode.SEMANTIC_DUPLICATE_MEMBER,
           )
@@ -71,14 +78,18 @@ export class EntityAnalyzer {
           seenNames.add(m.name)
         }
 
+        const isMethod = m.type === ASTNodeType.METHOD
+        const isAttribute = m.type === ASTNodeType.ATTRIBUTE
+
+        const relationshipKind = isAttribute
+          ? (m as AttributeNode).relationshipKind
+          : (m as MethodNode).returnRelationshipKind
+
         const typeName =
           (m as AttributeNode).typeAnnotation?.raw || (m as MethodNode).returnType?.raw
         if (typeName) {
           this.validateMemberType(typeName, namespace, m)
         }
-
-        const isMethod = m.type === ASTNodeType.METHOD
-        const isAttribute = m.type === ASTNodeType.ATTRIBUTE
 
         const irMember: IRMember = {
           name: m.name,
@@ -93,9 +104,7 @@ export class EntityAnalyzer {
                 relationshipKind: p.relationshipKind,
               }))
             : [],
-          relationshipKind: isAttribute
-            ? (m as AttributeNode).relationshipKind
-            : (m as MethodNode).returnRelationshipKind,
+          relationshipKind,
           multiplicity: isAttribute ? (m as AttributeNode).multiplicity : undefined,
           docs: m.docs,
           line: m.line,
@@ -119,18 +128,18 @@ export class EntityAnalyzer {
     if (TypeValidator.isPrimitive(typeName)) return
 
     const baseType = TypeValidator.getBaseTypeName(typeName)
-    const fqn = this.symbolTable.resolveFQN(baseType, namespace)
+    const result = this.symbolTable.resolveOrRegisterImplicit(baseType, namespace)
 
-    if (!this.symbolTable.has(fqn)) {
-      // If it's not known, it could be an implicit entity or an error.
-      // But here we just check if it's a valid reference.
-      // The feedback suggested validating attributes.
+    if (result.isAmbiguous) {
       this.context.addError(
-        `Tipo no resuelto: '${baseType}' no es un tipo primitivo ni una entidad conocida.`,
+        `Ambiguity detected: '${baseType}' matches multiple entities.`,
         { line: node.line, column: node.column, type: TokenType.UNKNOWN, value: '' } as Token,
-        DiagnosticCode.SEMANTIC_INVALID_TYPE,
+        DiagnosticCode.SEMANTIC_AMBIGUOUS_ENTITY,
       )
     }
+
+    // Silently register the implicit entity if it does not exist.
+    // We don't report diagnostics (neither error nor info) because inline declaration is a strength of the DSL.
   }
 
   private mapVisibility(v: string): IRVisibility {

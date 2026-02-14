@@ -78,7 +78,7 @@ export class MultiplicityValidator {
 
     if (!bounds) {
       context?.addError(
-        `Formato de multiplicidad inválido: '${multiplicity}'. Se esperaba un número o un rango (ej: '1', '0..1', '1..*').`,
+        `Invalid multiplicity format: '${multiplicity}'. Expected a number or a range (e.g., '1', '0..1', '1..*').`,
         { line, column, type: TokenType.UNKNOWN, value: multiplicity } as Token,
         DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY,
       )
@@ -87,9 +87,9 @@ export class MultiplicityValidator {
 
     if (bounds.upper < bounds.lower) {
       context?.addError(
-        `Multiplicidad inconsistente: El límite superior (${
+        `Inconsistent multiplicity: The upper bound (${
           bounds.upper === Infinity ? '*' : bounds.upper
-        }) debe ser mayor o igual al inferior (${bounds.lower}).`,
+        }) must be greater than or equal to the lower bound (${bounds.lower}).`,
         { line, column, type: TokenType.UNKNOWN, value: multiplicity } as Token,
         DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY,
       )

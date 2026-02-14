@@ -10,12 +10,18 @@ export class RelationshipRule implements StatementRule {
 
     try {
       const fromIsAbstract = context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)
+      const fromToken = context.peek()
       if (!context.check(TokenType.IDENTIFIER)) {
         if (fromIsAbstract) context.rollback(pos)
         return null
       }
+      let from = context.consume(TokenType.IDENTIFIER, 'Identifier expected').value
 
-      const fromToken = context.consume(TokenType.IDENTIFIER, 'Se esperaba un identificador')
+      // Support for FQN on origin
+      while (context.match(TokenType.DOT)) {
+        from += '.' + context.consume(TokenType.IDENTIFIER, 'Identifier expected after dot').value
+      }
+
       let fromMultiplicity: string | undefined
 
       if (context.check(TokenType.LBRACKET)) {
@@ -40,35 +46,33 @@ export class RelationshipRule implements StatementRule {
       }
 
       const toIsAbstract = context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)
-      const toToken = context.consume(
-        TokenType.IDENTIFIER,
-        'Se esperaba el nombre del objetivo de la relación',
-      )
-      let to = toToken.value
+      let to = context.consume(TokenType.IDENTIFIER, 'Target entity name expected').value
 
-      // Soporte para genéricos en el destino de la relación: B<T>
+      // Support for FQN on destination
+      while (context.match(TokenType.DOT)) {
+        to += '.' + context.consume(TokenType.IDENTIFIER, 'Identifier expected after dot').value
+      }
+
+      // Support for generics on destination: B<T>
       if (context.match(TokenType.LT)) {
         to += '<'
         while (!context.check(TokenType.GT) && !context.isAtEnd()) {
           to += context.advance().value
         }
-        to += context.consume(TokenType.GT, "Se esperaba '>'").value
+        to += context.consume(TokenType.GT, "Expected '>'").value
       }
 
       let label: string | undefined
       if (context.match(TokenType.COLON)) {
-        label = context.consume(
-          TokenType.STRING,
-          'Se esperaba una cadena de texto para la etiqueta',
-        ).value
+        label = context.consume(TokenType.STRING, 'Label string expected').value
       }
 
       return {
         type: ASTNodeType.RELATIONSHIP,
-        from: fromToken.value,
+        from,
         fromIsAbstract,
         fromMultiplicity,
-        to, // Ahora usamos la variable 'to' que incluye genéricos
+        to, // Ahora usamos la variable 'to' que incluye genéricos y FQNs
         toIsAbstract,
         toMultiplicity,
         kind,
@@ -104,7 +108,7 @@ export class RelationshipRule implements StatementRule {
     while (!context.check(TokenType.RBRACKET) && !context.isAtEnd()) {
       value += context.advance().value
     }
-    value += context.consume(TokenType.RBRACKET, "Se esperaba ']'").value
+    value += context.consume(TokenType.RBRACKET, "Expected ']'").value
     return value
   }
 }

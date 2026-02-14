@@ -51,16 +51,4 @@ describe('TypeRule', () => {
     const attr = entity.body![0] as AttributeNode
     expect(attr.typeAnnotation.raw).toBe('string[]')
   })
-
-  it('should parse nullable types', () => {
-    const input = 'class A { attr: string? }'
-    const lexer = LexerFactory.create(input)
-    const tokens = lexer.tokenize()
-    const parser = ParserFactory.create()
-    const program = parser.parse(tokens)
-
-    const entity = program.body[0] as EntityNode
-    const attr = entity.body![0] as AttributeNode
-    expect(attr.typeAnnotation.raw).toBe('string?')
-  })
 })

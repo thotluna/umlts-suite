@@ -25,7 +25,7 @@ export class MethodRule {
       } while (context.match(TokenType.COMMA))
     }
 
-    context.consume(TokenType.RPAREN, "Se esperaba ')' después de los parámetros")
+    context.consume(TokenType.RPAREN, "Expected ')' after parameters")
 
     let returnType: TypeNode = {
       type: ASTNodeType.TYPE,

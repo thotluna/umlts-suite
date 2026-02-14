@@ -13,7 +13,7 @@ export class AttributeRule {
     visibility: string,
     isStatic: boolean,
   ): AttributeNode {
-    context.consume(TokenType.COLON, "Se esperaba ':' después del nombre del atributo")
+    context.consume(TokenType.COLON, "Expected ':' after attribute name")
 
     // SOPORTE SECCIÓN 5.2 DE LA ESPECIFICACIÓN: Soporte de relaciones in-line
     let relationshipKind: string | undefined
@@ -39,7 +39,7 @@ export class AttributeRule {
       while (!context.check(TokenType.RBRACKET) && !context.isAtEnd()) {
         multiplicity += context.advance().value
       }
-      multiplicity += context.consume(TokenType.RBRACKET, "Se esperaba ']'").value
+      multiplicity += context.consume(TokenType.RBRACKET, "Expected ']'").value
     }
 
     return {

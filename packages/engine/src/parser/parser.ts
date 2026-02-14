@@ -28,11 +28,11 @@ export class Parser implements Orchestrator {
         if (stmt != null) {
           body.push(stmt)
         } else {
-          context.addError('Sentencia no reconocida')
+          context.addError('Unrecognized statement')
           this.synchronize(context)
         }
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Error sintáctico desconocido'
+        const message = error instanceof Error ? error.message : 'Unknown syntax error'
         context.addError(message)
         this.synchronize(context)
       }
