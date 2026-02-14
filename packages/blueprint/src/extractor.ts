@@ -33,21 +33,28 @@ export class BlueprintExtractor {
 
     let output = ''
     const sourceFiles = this.project.getSourceFiles()
+    const packages: Map<string, string> = new Map()
 
     for (const sourceFile of sourceFiles) {
       const packageName = this.derivePackageName(sourceFile.getFilePath())
-      output += `package ${packageName} {\n`
+      let packageContent = packages.get(packageName) || ''
 
       sourceFile.getInterfaces().forEach((itf) => {
-        output += this.extractInterface(itf)
+        packageContent += this.extractInterface(itf)
       })
 
       sourceFile.getClasses().forEach((cls) => {
-        output += this.extractClass(cls)
+        packageContent += this.extractClass(cls)
       })
 
-      output += `}\n\n`
+      if (packageContent) {
+        packages.set(packageName, packageContent)
+      }
     }
+
+    packages.forEach((content, name) => {
+      output += `package ${name} {\n${content}}\n\n`
+    })
 
     return output
   }
@@ -72,7 +79,7 @@ export class BlueprintExtractor {
   }
 
   private extractInterface(itf: InterfaceDeclaration): string {
-    const name = itf.getName()
+    const name = this.sanitizeIdentifier(itf.getName())
     const baseTypes = itf.getBaseTypes()
     const inheritance =
       baseTypes.length > 0
@@ -82,15 +89,18 @@ export class BlueprintExtractor {
     let body = `  interface ${name}${inheritance} {\n`
 
     itf.getProperties().forEach((prop) => {
-      body += `    ${prop.getName()}: ${this.cleanType(prop.getType().getText())}\n`
+      body += `    ${this.sanitizeIdentifier(prop.getName())}: ${this.cleanType(prop.getType().getText())}\n`
     })
 
     itf.getMethods().forEach((method) => {
       const params = method
         .getParameters()
-        .map((p) => `${p.getName()}: ${this.cleanType(p.getType().getText())}`)
+        .map(
+          (p) =>
+            `${this.sanitizeIdentifier(p.getName())}: ${this.cleanType(p.getType().getText())}`,
+        )
         .join(', ')
-      body += `    ${method.getName()}(${params}): ${this.cleanType(method.getReturnType().getText())}\n`
+      body += `    ${this.sanitizeIdentifier(method.getName())}(${params}): ${this.cleanType(method.getReturnType().getText())}\n`
     })
 
     body += `  }\n\n`
@@ -98,11 +108,13 @@ export class BlueprintExtractor {
   }
 
   private extractClass(cls: ClassDeclaration): string {
-    const name = cls.getName()
+    const name = this.sanitizeIdentifier(cls.getName() || '')
     if (!name) return ''
 
     const baseClass = cls.getBaseClass()
-    const inheritance = baseClass ? ` >> ${this.cleanType(baseClass.getName() || '')}` : ''
+    const inheritance = baseClass
+      ? ` >> ${this.sanitizeIdentifier(this.cleanType(baseClass.getName() || ''))}`
+      : ''
 
     const interfaces = cls.getImplements()
     const realization =
@@ -117,11 +129,12 @@ export class BlueprintExtractor {
       const visibility = this.getModifierVisibility(prop)
       const typeText = prop.getType().getText()
       const relOp = this.detectRelationship(prop, cls)
+      const propName = this.sanitizeIdentifier(prop.getName())
 
       if (relOp) {
-        body += `    ${visibility}${prop.getName()}: ${relOp} ${this.cleanType(typeText)}\n`
+        body += `    ${visibility}${propName}: ${relOp} ${this.cleanType(typeText)}\n`
       } else {
-        body += `    ${visibility}${prop.getName()}: ${this.cleanType(typeText)}\n`
+        body += `    ${visibility}${propName}: ${this.cleanType(typeText)}\n`
       }
     })
 
@@ -136,11 +149,11 @@ export class BlueprintExtractor {
         .getParameters()
         .map((p) => {
           this.collectTypeDependency(p.getType(), dependencies, cls)
-          return `${p.getName()}: ${this.cleanType(p.getType().getText())}`
+          return `${this.sanitizeIdentifier(p.getName())}: ${this.cleanType(p.getType().getText())}`
         })
         .join(', ')
 
-      body += `    ${visibility}${method.getName()}(${params}): ${this.cleanType(returnType)}\n`
+      body += `    ${visibility}${this.sanitizeIdentifier(method.getName())}(${params}): ${this.cleanType(returnType)}\n`
 
       // Analyze body for local variable dependencies
       method.getDescendantsOfKind(SyntaxKind.Identifier).forEach((id) => {
@@ -156,7 +169,7 @@ export class BlueprintExtractor {
       body += `  ${name} >- ${dep}\n`
     })
 
-    return body + '\n'
+    return body
   }
 
   private collectTypeDependency(type: Type, set: Set<string>, cls: ClassDeclaration): void {
@@ -218,7 +231,34 @@ export class BlueprintExtractor {
   }
 
   private cleanType(type: string): string {
-    return type.replace(/import\(.*?\)\./g, '').replace(/\[\]/g, '[]')
+    // 1. Remove import(...) - also inside generics
+    let cleaned = type.replace(/import\(.*?\)\./g, '')
+
+    // 2. If it contains object literals or function signatures, simplify it
+    // These are NOT supported by UMLTS grammar
+    if (cleaned.includes('{') || cleaned.includes('=>')) {
+      // If it's a generic with complex stuff inside, keep only the base name
+      // Example: Record<string, { a: 1 }> -> Record
+      const baseName = cleaned.split('<')[0]
+      if (baseName === cleaned) {
+        return cleaned.includes('{') ? 'Object' : 'Function'
+      }
+      return baseName.trim()
+    }
+
+    // 3. Normalize whitespace in generics for the UMLTS parser
+    // Parser expects simple identifiers in generics
+    cleaned = cleaned.replace(/,\s*/g, ', ')
+
+    return cleaned.trim()
+  }
+
+  private sanitizeIdentifier(name: string): string {
+    const keywords = ['config', 'class', 'interface', 'enum', 'package']
+    if (keywords.includes(name.toLowerCase())) {
+      return `_${name}`
+    }
+    return name
   }
 
   private getModifierVisibility(

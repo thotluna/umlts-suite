@@ -1,0 +1,122 @@
+package semantics {
+  class SemanticAnalyzer {
+    -symbolTable: >+ SymbolTable
+    -relationships: IRRelationship[]
+    -currentNamespace: string[]
+    -_config: >+ Record<string, unknown>
+    -context: >+ ParserContext
+    -entityAnalyzer: >+ EntityAnalyzer
+    -relationshipAnalyzer: >+ RelationshipAnalyzer
+    -hierarchyValidator: >+ HierarchyValidator
+    +analyze(program: ProgramNode, context: ParserContext): IRDiagram
+    +addConfig(options: Record<string, unknown>): void
+    -inferRelationships(): void
+    -inferFromType(fromFQN: string, typeName: string, fromNamespace: string, label: string, relType: IRRelationshipType, multiplicity: string, visibility: IRVisibility, line: number, column: number): void
+    -cleanupRedundantMembers(): void
+  }
+
+  SemanticAnalyzer >- IRDiagram
+  SemanticAnalyzer >- ProgramNode
+  SemanticAnalyzer >- Function
+  SemanticAnalyzer >- IREntity
+  SemanticAnalyzer >- IRMember
+  SemanticAnalyzer >- IRRelationshipType
+  SemanticAnalyzer >- IRRelationshipType.ASSOCIATION
+  SemanticAnalyzer >- IRVisibility
+  SemanticAnalyzer >- Object
+  SemanticAnalyzer >- IREntityType
+  SemanticAnalyzer >- IRVisibility.PUBLIC
+  class DiscoveryVisitor >I ASTVisitor {
+    +visitProgram(node: ProgramNode): void
+    +visitPackage(node: PackageNode): void
+    +visitEntity(node: EntityNode): void
+    +visitRelationship(_node: RelationshipNode): void
+    +visitComment(_node: CommentNode): void
+    +visitConfig(node: ConfigNode): void
+  }
+
+  DiscoveryVisitor >- ProgramNode
+  DiscoveryVisitor >- Function
+  DiscoveryVisitor >- StatementNode
+  DiscoveryVisitor >- PackageNode
+  DiscoveryVisitor >- EntityNode
+  DiscoveryVisitor >- IREntity
+  DiscoveryVisitor >- EntityAnalyzer
+  DiscoveryVisitor >- SymbolTable
+  DiscoveryVisitor >- ParserContext
+  DiscoveryVisitor >- TokenType.UNKNOWN
+  DiscoveryVisitor >- Token
+  DiscoveryVisitor >- DiagnosticCode.SEMANTIC_DUPLICATE_ENTITY
+  DiscoveryVisitor >- RelationshipNode
+  DiscoveryVisitor >- CommentNode
+  DiscoveryVisitor >- ConfigNode
+  DiscoveryVisitor >- SemanticAnalyzer
+  class DefinitionVisitor >I ASTVisitor {
+    +visitProgram(node: ProgramNode): void
+    +visitPackage(node: PackageNode): void
+    +visitEntity(node: EntityNode): void
+    +visitRelationship(_node: RelationshipNode): void
+    +visitComment(_node: CommentNode): void
+    +visitConfig(_node: ConfigNode): void
+  }
+
+  DefinitionVisitor >- ProgramNode
+  DefinitionVisitor >- Function
+  DefinitionVisitor >- StatementNode
+  DefinitionVisitor >- PackageNode
+  DefinitionVisitor >- EntityNode
+  DefinitionVisitor >- SymbolTable
+  DefinitionVisitor >- IREntity
+  DefinitionVisitor >- EntityAnalyzer
+  DefinitionVisitor >- RelationshipNode
+  DefinitionVisitor >- CommentNode
+  DefinitionVisitor >- ConfigNode
+  class ResolutionVisitor >I ASTVisitor {
+    +visitProgram(node: ProgramNode): void
+    +visitPackage(node: PackageNode): void
+    +visitEntity(node: EntityNode): void
+    +visitRelationship(node: RelationshipNode): void
+    +visitComment(_node: CommentNode): void
+    +visitConfig(_node: ConfigNode): void
+  }
+
+  ResolutionVisitor >- ProgramNode
+  ResolutionVisitor >- Function
+  ResolutionVisitor >- StatementNode
+  ResolutionVisitor >- PackageNode
+  ResolutionVisitor >- EntityNode
+  ResolutionVisitor >- SymbolTable
+  ResolutionVisitor >- IREntity
+  ResolutionVisitor >- RelationshipHeaderNode
+  ResolutionVisitor >- IRRelationshipType
+  ResolutionVisitor >- RelationshipAnalyzer
+  ResolutionVisitor >- Object
+  ResolutionVisitor >- IREntityType
+  ResolutionVisitor >- RelationshipNode
+  ResolutionVisitor >- CommentNode
+  ResolutionVisitor >- ConfigNode
+  interface FQNResolution {
+    fqn: string
+    isAmbiguous: boolean
+    candidates: string[]
+  }
+
+  class SymbolTable {
+    -entities: >+ Map<string, IREntity>
+    +register(entity: IREntity): void
+    +get(id: string): IREntity
+    +getAllEntities(): IREntity[]
+    +has(id: string): boolean
+    +resolveFQN(name: string, currentNamespace: string): FQNResolution
+    +resolveOrRegisterImplicit(name: string, namespace: string, modifiers: Object, expectedType: IREntityType): FQNResolution
+  }
+
+  SymbolTable >- IREntity
+  SymbolTable >- Function
+  SymbolTable >- ArrayConstructor
+  SymbolTable >- FQNResolution
+  SymbolTable >- Object
+  SymbolTable >- IREntityType
+  SymbolTable >- IREntityType.CLASS
+}
+
