@@ -236,6 +236,15 @@
 - [ ] Explorar soporte para Association Classes
 - [ ] Implementar autocompletado avanzado basado en la nueva resolución FQN
 
+## Ingeniería Inversa Blueprint (Extractor v1.0)
+
+- [x] **FEAT**: Create `@umlts/blueprint` package structure
+- [x] **FEAT**: Implement `BlueprintExtractor` based on `ts-morph`
+- [x] **FEAT**: Support for Inheritance, Realization, Association, Aggregation, and Composition
+- [x] **FEAT**: Implement Dependency detection (`>-`) via AST analysis of method bodies
+- [x] **DOC**: Document relationship heuristics (Visibility, Versatility, Momentarity)
+- [x] **IMPROVEMENT**: "Surgeon Effect" (Public Getters) and Global Versatility Map
+
 ## Ingeniería Inversa Quirúrgica (Surgeon Extractor)
 
 - [x] **TASK**: Definir workflow de extracción manual en `.agent/workflows/surgeon-extractor.md`
