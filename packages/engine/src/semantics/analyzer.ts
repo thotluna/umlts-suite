@@ -21,8 +21,8 @@ import type { Token } from '../lexer/token.types'
 import { IRRelationshipType, IRVisibility } from '../generator/ir/models'
 
 /**
- * Analizador Semántico que transforma el AST en una IR resuelta.
- * Orquesta la lógica mediante analizadores especializados.
+ * Semantic Analyzer that transforms the AST into a resolved IR.
+ * Orchestrates the logic through specialized analyzers.
  */
 export class SemanticAnalyzer {
   private readonly symbolTable = new SymbolTable()
@@ -38,7 +38,7 @@ export class SemanticAnalyzer {
   public analyze(program: ProgramNode, context: ParserContext): IRDiagram {
     this.context = context
 
-    // Inicializar sub-componentes
+    // Initialize sub-components
     this.hierarchyValidator = new HierarchyValidator(this.symbolTable, context)
     this.entityAnalyzer = new EntityAnalyzer(this.symbolTable, context)
     this.relationshipAnalyzer = new RelationshipAnalyzer(
@@ -48,10 +48,10 @@ export class SemanticAnalyzer {
       context,
     )
 
-    // Paso 1: Recolectar declaraciones explícitas
+    // Pass 1: Discovery (Register explicit entities)
     walkAST(
       program,
-      new DeclarationVisitor(
+      new DiscoveryVisitor(
         this,
         this.symbolTable,
         this.currentNamespace,
@@ -60,11 +60,18 @@ export class SemanticAnalyzer {
       ),
     )
 
-    // Paso 2: Procesar relaciones y crear entidades implícitas
+    // Pass 2: Definition (Members and Types)
     this.currentNamespace = []
     walkAST(
       program,
-      new RelationshipVisitor(
+      new DefinitionVisitor(this.symbolTable, this.currentNamespace, this.entityAnalyzer),
+    )
+
+    // Pass 3: Resolution (Relationships and Implicit Entities)
+    this.currentNamespace = []
+    walkAST(
+      program,
+      new ResolutionVisitor(
         this,
         this.symbolTable,
         this.relationships,
@@ -74,7 +81,7 @@ export class SemanticAnalyzer {
       ),
     )
 
-    // Paso 3: Inferencia y Validaciones Finales
+    // Pass 4: Inference and Final Validations
     this.inferRelationships()
     this.hierarchyValidator.validateNoCycles(this.relationships)
     this.cleanupRedundantMembers()
@@ -94,15 +101,22 @@ export class SemanticAnalyzer {
     const entities = this.symbolTable.getAllEntities()
     entities.forEach((entity) => {
       entity.members.forEach((member) => {
-        if (member.type && member.relationshipKind) {
+        if (member.type) {
+          // If no explicit operator, assume ASSOCIATION (Standard UML)
+          const relType = member.relationshipKind
+            ? this.relationshipAnalyzer.mapRelationshipType(member.relationshipKind)
+            : IRRelationshipType.ASSOCIATION
+
           this.inferFromType(
             entity.id,
             member.type,
             entity.namespace,
             member.name,
-            this.relationshipAnalyzer.mapRelationshipType(member.relationshipKind),
+            relType,
             member.multiplicity,
             member.visibility,
+            member.line,
+            member.column,
           )
         }
       })
@@ -117,10 +131,18 @@ export class SemanticAnalyzer {
     relType: IRRelationshipType = IRRelationshipType.ASSOCIATION,
     multiplicity?: string,
     visibility?: IRVisibility,
+    line?: number,
+    column?: number,
   ): void {
     if (TypeValidator.isPrimitive(typeName)) return
     const baseType = TypeValidator.getBaseTypeName(typeName)
-    const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(baseType, fromNamespace || '')
+    const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
+      baseType,
+      fromNamespace || '',
+      {},
+      line,
+      column,
+    )
 
     // Push relationship...
     this.relationships.push({
@@ -130,6 +152,8 @@ export class SemanticAnalyzer {
       label: label || '',
       toMultiplicity: multiplicity,
       visibility: visibility || IRVisibility.PUBLIC,
+      line,
+      column,
     })
   }
 
@@ -139,9 +163,14 @@ export class SemanticAnalyzer {
 }
 
 /**
- * Visitantes simplificados que delegan en los analyzers especializados.
+ * Semantic Analyzer Visitors.
+ * They implement a 3-pass strategy to resolve forward references.
  */
-class DeclarationVisitor implements ASTVisitor {
+
+/**
+ * Pass 1: Registers entities so they are known globally.
+ */
+class DiscoveryVisitor implements ASTVisitor {
   constructor(
     private readonly analyzer: SemanticAnalyzer,
     private readonly symbolTable: SymbolTable,
@@ -151,16 +180,12 @@ class DeclarationVisitor implements ASTVisitor {
   ) {}
 
   visitProgram(node: ProgramNode): void {
-    node.body.forEach((stmt) => {
-      walkAST(stmt, this)
-    })
+    node.body.forEach((stmt) => walkAST(stmt, this))
   }
 
   visitPackage(node: PackageNode): void {
     this.currentNamespace.push(node.name)
-    node.body.forEach((stmt) => {
-      walkAST(stmt, this)
-    })
+    node.body.forEach((stmt) => walkAST(stmt, this))
     this.currentNamespace.pop()
   }
 
@@ -170,7 +195,7 @@ class DeclarationVisitor implements ASTVisitor {
 
     if (existing != null && !existing.isImplicit) {
       this.context.addError(
-        `Entidad duplicada: '${entity.id}' ya está definida en este ámbito.`,
+        `Duplicate entity: '${entity.id}' is already defined in this scope.`,
         { line: node.line, column: node.column, type: TokenType.UNKNOWN, value: '' } as Token,
         DiagnosticCode.SEMANTIC_DUPLICATE_ENTITY,
       )
@@ -180,20 +205,50 @@ class DeclarationVisitor implements ASTVisitor {
     this.symbolTable.register(entity)
   }
 
-  visitRelationship(_node: RelationshipNode): void {
-    // Relationship resolution happens in second pass
-  }
-
-  visitComment(_node: CommentNode): void {
-    // Comments are ignored
-  }
-
+  visitRelationship(_node: RelationshipNode): void {}
+  visitComment(_node: CommentNode): void {}
   visitConfig(node: ConfigNode): void {
     this.analyzer.addConfig(node.options)
   }
 }
 
-class RelationshipVisitor implements ASTVisitor {
+/**
+ * Pass 2: Processes members and their types now that all entities are known.
+ */
+class DefinitionVisitor implements ASTVisitor {
+  constructor(
+    private readonly symbolTable: SymbolTable,
+    private readonly currentNamespace: string[],
+    private readonly entityAnalyzer: EntityAnalyzer,
+  ) {}
+
+  visitProgram(node: ProgramNode): void {
+    node.body.forEach((stmt) => walkAST(stmt, this))
+  }
+
+  visitPackage(node: PackageNode): void {
+    this.currentNamespace.push(node.name)
+    node.body.forEach((stmt) => walkAST(stmt, this))
+    this.currentNamespace.pop()
+  }
+
+  visitEntity(node: EntityNode): void {
+    const fqn = this.symbolTable.resolveFQN(node.name, this.currentNamespace.join('.')).fqn
+    const entity = this.symbolTable.get(fqn)
+    if (entity) {
+      this.entityAnalyzer.processMembers(entity, node)
+    }
+  }
+
+  visitRelationship(_node: RelationshipNode): void {}
+  visitComment(_node: CommentNode): void {}
+  visitConfig(_node: ConfigNode): void {}
+}
+
+/**
+ * Pass 3: Resolves relationships and generates implicit entities if required.
+ */
+class ResolutionVisitor implements ASTVisitor {
   constructor(
     private readonly analyzer: SemanticAnalyzer,
     private readonly symbolTable: SymbolTable,
@@ -204,46 +259,55 @@ class RelationshipVisitor implements ASTVisitor {
   ) {}
 
   visitProgram(node: ProgramNode): void {
-    node.body.forEach((stmt) => {
-      walkAST(stmt, this)
-    })
+    node.body.forEach((stmt) => walkAST(stmt, this))
   }
 
   visitPackage(node: PackageNode): void {
     this.currentNamespace.push(node.name)
-    node.body.forEach((stmt) => {
-      walkAST(stmt, this)
-    })
+    node.body.forEach((stmt) => walkAST(stmt, this))
     this.currentNamespace.pop()
   }
 
   visitEntity(node: EntityNode): void {
     const ns = this.currentNamespace.join('.')
-    const fromFQN = this.symbolTable.resolveFQN(node.name, ns)
+    const fromFQN = this.symbolTable.resolveFQN(node.name, ns).fqn
     node.relationships.forEach((rel) => {
-      const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(rel.target, ns, {
-        isAbstract: rel.targetIsAbstract,
-      })
+      const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
+        rel.target,
+        ns,
+        {
+          isAbstract: rel.targetIsAbstract,
+        },
+        rel.line,
+        rel.column,
+      )
       this.relationshipAnalyzer.addRelationship(fromFQN, toFQN, rel.kind)
     })
   }
 
   visitRelationship(node: RelationshipNode): void {
     const ns = this.currentNamespace.join('.')
-    const fromFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(node.from, ns, {
-      isAbstract: node.fromIsAbstract,
-    })
-    const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(node.to, ns, {
-      isAbstract: node.toIsAbstract,
-    })
+    const fromFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
+      node.from,
+      ns,
+      {
+        isAbstract: node.fromIsAbstract,
+      },
+      node.line,
+      node.column,
+    )
+    const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
+      node.to,
+      ns,
+      {
+        isAbstract: node.toIsAbstract,
+      },
+      node.line,
+      node.column,
+    )
     this.relationshipAnalyzer.addRelationship(fromFQN, toFQN, node.kind, node)
   }
 
-  visitComment(_node: CommentNode): void {
-    // Comments are ignored
-  }
-
-  visitConfig(_node: ConfigNode): void {
-    // Config handled in first pass
-  }
+  visitComment(_node: CommentNode): void {}
+  visitConfig(_node: ConfigNode): void {}
 }

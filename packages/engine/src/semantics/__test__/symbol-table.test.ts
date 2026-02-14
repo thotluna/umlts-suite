@@ -67,7 +67,7 @@ describe('SymbolTable', () => {
       }
       table.register(entity)
 
-      expect(table.resolveFQN('pkg.A')).toBe('pkg.A')
+      expect(table.resolveFQN('pkg.A').fqn).toBe('pkg.A')
     })
 
     it('should resolve hierarchical names', () => {
@@ -86,16 +86,17 @@ describe('SymbolTable', () => {
       }
       table.register(entity)
 
-      expect(table.resolveFQN('User', 'com.app')).toBe('com.app.User')
-      expect(table.resolveFQN('User', 'com.app.sub')).toBe('com.app.User')
-      expect(table.resolveFQN('User', 'com')).toBe('com.User')
+      expect(table.resolveFQN('User', 'com.app').fqn).toBe('com.app.User')
+      expect(table.resolveFQN('User', 'com.app.sub').fqn).toBe('com.app.User')
+      // With the new Global Scout, if com.User doesn't exist but com.app.User does, it resolves to the existing one
+      expect(table.resolveFQN('User', 'com').fqn).toBe('com.app.User')
     })
 
-    it('should resolve partial FQNs by suffix', () => {
+    it('should resolve deep global matches (Global Scout)', () => {
       const table = new SymbolTable()
       const entity: IREntity = {
-        id: 'org.core.Rules.EntityRule',
-        name: 'EntityRule',
+        id: 'semantics.analyzers.EntityAnalyzer',
+        name: 'EntityAnalyzer',
         type: IREntityType.CLASS,
         isImplicit: false,
         isAbstract: false,
@@ -107,13 +108,30 @@ describe('SymbolTable', () => {
       }
       table.register(entity)
 
-      expect(table.resolveFQN('Rules.EntityRule')).toBe('org.core.Rules.EntityRule')
+      // Should find it even if we are at a different namespace level
+      expect(table.resolveFQN('EntityAnalyzer', 'semantics').fqn).toBe(
+        'semantics.analyzers.EntityAnalyzer',
+      )
+    })
+
+    it('should detect ambiguity when multiple matches exist', () => {
+      const table = new SymbolTable()
+      const e1 = { id: 'pkg1.A', name: 'A', isImplicit: false } as IREntity
+      const e2 = { id: 'pkg2.sub.A', name: 'A', isImplicit: false } as IREntity
+
+      table.register(e1)
+      table.register(e2)
+
+      const result = table.resolveFQN('A')
+      expect(result.isAmbiguous).toBe(true)
+      expect(result.candidates).toContain('pkg1.A')
+      expect(result.candidates).toContain('pkg2.sub.A')
     })
 
     it('should fallback to contextualized name if not found', () => {
       const table = new SymbolTable()
-      expect(table.resolveFQN('NewClass', 'my.pkg')).toBe('my.pkg.NewClass')
-      expect(table.resolveFQN('NewClass')).toBe('NewClass')
+      expect(table.resolveFQN('NewClass', 'my.pkg').fqn).toBe('my.pkg.NewClass')
+      expect(table.resolveFQN('NewClass').fqn).toBe('NewClass')
     })
   })
 })

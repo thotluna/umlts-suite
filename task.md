@@ -166,7 +166,7 @@
 - [x] **OPTIMIZATION**: Corregir bucle de construcción recursivo y habilitar `pnpm -r build` para paralelismo seguro.
 - [x] **IMPROVEMENT**: Optimizar el layout de ELK para reducir desorden, mejorar compacidad y minimizar cruces.
 - [x] **FEATURE**: Implementar sistema de auto-escalado (responsive) y zoom manual
-- [x] **IMPROVEMENT**: Mejorar legibilidad y encuadre dinámico (Auto-Fit corregido)
+- [x] **IMPROVEMENT**: Mejorar legibilidad and encuadre dinámico (Auto-Fit corregido)
 - [x] **FIX**: Viewport del SVG ignora los límites de los paquetes (Clipping)
 - [/] **FIX**: Ruteo de aristas de herencia forzado a N->S provoca bucles innecesarios
 - [x] **FIX**: Robustecer autocompletado de `config` en LSP (Heurística de detección de contexto)
@@ -211,4 +211,18 @@
 - [x] **FEAT**: Implementar reglas de UML 2.5.1 sobre Propiedades/Atributos
   - [x] Validación de consistencia de multiplicidad (`upper >= lower`)
   - [x] Validación de agregación compuesta (multiplicidad del contenedor <= 1)
-  - [x] **BACKLOG**: Validación de Nombres de Subconjuntos (Requiere actualización del DSL)
+- [x] **REFAC**: Implementar estrategia de análisis de 3 pases (Discovery, Definition, Resolution)
+- [x] **FIX**: Mejora de resolución FQN con mecanismo "Global Scout"
+- [x] **FEAT**: Registro automático de entidades implícitas en tipos de miembros (Sencillez UMLTS)
+- [x] **FIX**: Soporte de multiplicidad en parámetros de métodos (ej: `name: type[1..*]`)
+- [x] **FIX**: Resolución de FQN en relaciones externas y paquetes anidados
+- [x] **FIX**: Ubicación precisa (Line/Col) en diagnósticos de entidades implícitas
+- [x] **FIX**: Soporte de relaciones por defecto (Asociación) para miembros sin operador
+- [x] **FIX**: Corregir arquitectura de `semantics.umlts` para reflejar la estructura real de paquetes (`parser`, `generator.ir`)
+- [x] **CHORE**: Traducir todos los mensajes de error y comentarios internos al inglés (Regla Global #2)
+- [x] **PR**: Crear Pull Request "Refactor Semántico V2: Declaraciones Flexible y Resolución FQN Robusta"
+
+## Próximos Pasos (V3)
+
+- [ ] Explorar soporte para Association Classes
+- [ ] Implementar autocompletado avanzado basado en la nueva resolución FQN

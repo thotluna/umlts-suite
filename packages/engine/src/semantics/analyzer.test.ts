@@ -3,6 +3,7 @@ import { LexerFactory } from '../lexer/lexer.factory'
 import { ParserFactory } from '../parser/parser.factory'
 import { SemanticAnalyzer } from './analyzer'
 import { IRRelationshipType } from '../generator/ir/models'
+import { ParserContext } from '../parser/parser.context'
 
 describe('SemanticAnalyzer', () => {
   it('should create an implicit entity when a relationship target is missing', () => {
@@ -12,9 +13,10 @@ describe('SemanticAnalyzer', () => {
     const ast = parser.parse(tokens)
 
     const analyzer = new SemanticAnalyzer()
-    const ir = analyzer.analyze(ast)
+    const context = new ParserContext(tokens)
+    const ir = analyzer.analyze(ast, context)
 
-    // Debe haber 2 entidades: Hero (explícita) y Person (implícita)
+    // Should have 2 entities: Hero (explicit) and Person (implicit)
     expect(ir.entities).toHaveLength(2)
 
     const hero = ir.entities.find((e) => e.name === 'Hero')
@@ -26,7 +28,7 @@ describe('SemanticAnalyzer', () => {
     expect(person).toBeDefined()
     expect(person!.isImplicit).toBe(true)
 
-    // La relación debe estar presente y resuelta
+    // Relationship should be present and resolved
     expect(ir.relationships).toHaveLength(1)
     expect(ir.relationships[0].from).toBe('Hero')
     expect(ir.relationships[0].to).toBe('Person')
@@ -47,7 +49,8 @@ describe('SemanticAnalyzer', () => {
     const ast = parser.parse(tokens)
 
     const analyzer = new SemanticAnalyzer()
-    const ir = analyzer.analyze(ast)
+    const context = new ParserContext(tokens)
+    const ir = analyzer.analyze(ast, context)
 
     const user = ir.entities.find((e) => e.id === 'core.User')
     const profile = ir.entities.find((e) => e.id === 'core.domain.Profile')
@@ -66,7 +69,8 @@ describe('SemanticAnalyzer', () => {
     const ast = parser.parse(tokens)
 
     const analyzer = new SemanticAnalyzer()
-    const ir = analyzer.analyze(ast)
+    const context = new ParserContext(tokens)
+    const ir = analyzer.analyze(ast, context)
 
     expect(ir.entities).toHaveLength(2)
     expect(ir.entities.every((e) => e.isImplicit)).toBe(true)
@@ -86,7 +90,8 @@ describe('SemanticAnalyzer', () => {
     const ast = parser.parse(tokens)
 
     const analyzer = new SemanticAnalyzer()
-    const ir = analyzer.analyze(ast)
+    const context = new ParserContext(tokens)
+    const ir = analyzer.analyze(ast, context)
 
     // Should have 2 relationships from DiagramNode to IRMember
     const rels = ir.relationships.filter(
