@@ -8,10 +8,10 @@ export class PackageRule implements StatementRule {
   public parse(context: ParserContext, orchestrator: Orchestrator): PackageNode | null {
     if (!context.check(TokenType.KW_PACKAGE)) return null
 
-    const startToken = context.consume(TokenType.KW_PACKAGE, "Se esperaba 'package'")
-    const nameToken = context.consume(TokenType.IDENTIFIER, 'Se esperaba el nombre del paquete')
+    const startToken = context.consume(TokenType.KW_PACKAGE, "Expected 'package'")
+    const nameToken = context.consume(TokenType.IDENTIFIER, 'Package name expected')
 
-    context.consume(TokenType.LBRACE, "Se esperaba '{' después del nombre del paquete")
+    context.consume(TokenType.LBRACE, "Expected '{' after package name")
 
     const body: StatementNode[] = []
     while (!context.check(TokenType.RBRACE) && !context.isAtEnd()) {
@@ -24,7 +24,7 @@ export class PackageRule implements StatementRule {
       }
     }
 
-    context.consume(TokenType.RBRACE, "Se esperaba '}' al cerrar el paquete")
+    context.consume(TokenType.RBRACE, "Expected '}' for package closing")
 
     return {
       type: ASTNodeType.PACKAGE,

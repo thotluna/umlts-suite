@@ -17,7 +17,7 @@ describe('Multiplicity and Composite Rules', () => {
       (d) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY,
     )
     expect(errors.length).toBe(1)
-    expect(errors[0].message).toContain('Multiplicidad inconsistente')
+    expect(errors[0].message).toContain('Inconsistent multiplicity')
   })
 
   it('should report error when upper multiplicity is less than lower multiplicity in relationships', () => {
@@ -32,7 +32,7 @@ describe('Multiplicity and Composite Rules', () => {
       (d) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY,
     )
     expect(errors.length).toBe(1)
-    expect(errors[0].message).toContain('Multiplicidad inconsistente')
+    expect(errors[0].message).toContain('Inconsistent multiplicity')
   })
 
   it('should report error in composite aggregation when whole end multiplicity is > 1', () => {
@@ -45,7 +45,7 @@ describe('Multiplicity and Composite Rules', () => {
 
     const errors = diagnostics.filter((d) => d.code === DiagnosticCode.SEMANTIC_COMPOSITE_VIOLATION)
     expect(errors.length).toBe(1)
-    expect(errors[0].message).toContain('Violación de Composición')
+    expect(errors[0].message).toContain('Composition Violation')
   })
 
   it('should NOT report error in composite aggregation when whole end multiplicity is 1', () => {
@@ -86,7 +86,7 @@ describe('Multiplicity and Composite Rules', () => {
       (d) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY,
     )
     expect(errors.length).toBe(1)
-    expect(errors[0].message).toContain('Formato de multiplicidad inválido')
+    expect(errors[0].message).toContain('Invalid multiplicity format')
   })
 
   it('should handle single value multiplicities correctly', () => {
