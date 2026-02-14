@@ -128,7 +128,7 @@ export class BlueprintExtractor {
 
     body += `  }\n\n`
 
-    // Internal Dependencies as UMLTS relations
+    // Internal Dependencies as UMLTS relations (Momentary Life)
     dependencies.forEach((dep) => {
       body += `  ${name} >- ${dep}\n`
     })
@@ -138,6 +138,7 @@ export class BlueprintExtractor {
 
   /**
    * Collects a type as a dependency if it's a complex entity and not the class itself or a property.
+   * Momentary Life: only for types used in methods that are not structural parts of the class.
    */
   private collectTypeDependency(type: Type, set: Set<string>, cls: ClassDeclaration): void {
     if (type.isBoolean() || type.isString() || type.isNumber() || type.isVoid() || type.isAny()) {
@@ -147,47 +148,37 @@ export class BlueprintExtractor {
     const typeName = this.cleanType(type.getText())
     if (typeName === cls.getName()) return
 
-    // Avoid adding if it's already a property
+    // If it is already a structural part (Attribute), it's NOT a "Momentary Use"
     const isProperty = cls
       .getProperties()
       .some((p) => this.cleanType(p.getType().getText()) === typeName)
     if (isProperty) return
 
-    // Simple heuristic: if it starts with Uppercase, it's likely an entity we care about
     if (/^[A-Z]/.test(typeName) && !typeName.includes('<') && !typeName.includes('[')) {
       set.add(typeName)
     }
   }
 
   /**
-   * Heuristic to detect relationship type using UMLTS operators.
-   * >* - Composition
-   * >+ - Aggregation
-   * >- - Association
+   * Heuristic to detect relationship type.
+   * Based on persistence (Properties have Long-Life) and Exclusivity (Visibility).
+   *
+   * >* Composition: Private/Protected Attribute (Exclusive use).
+   * >+ Aggregation: Public Attribute (Visible/Shared use).
    */
-  private detectRelationship(prop: PropertyDeclaration, cls: ClassDeclaration): string | null {
+  private detectRelationship(prop: PropertyDeclaration, _cls: ClassDeclaration): string | null {
     const type = prop.getType()
     if (type.isBoolean() || type.isString() || type.isNumber() || type.isArray()) return null
 
-    const initializer = prop.getInitializer()
-    if (initializer && initializer.getText().includes('new ')) {
-      return '>*' // Composition
+    const visibility = this.getModifierVisibility(prop)
+
+    // Rule: Private/Protected Properties = Composition (Internal life, exclusive to the class)
+    if (visibility === '-' || visibility === '#') {
+      return '>*'
     }
 
-    // Check constructor assignments
-    const constructors = cls.getConstructors()
-    for (const ctor of constructors) {
-      const text = ctor.getText()
-      if (text.includes(`this.${prop.getName()} = `)) {
-        const params = ctor.getParameters().map((p) => p.getName())
-        const assignment = text.match(new RegExp(`this.${prop.getName()}\\s*=\\s*(\\w+)`))
-        if (assignment && params.includes(assignment[1])) {
-          return '>+' // Aggregation
-        }
-      }
-    }
-
-    return '>-' // Association / Reference
+    // Rule: Public Properties = Aggregation (Shared life, exposed but structural)
+    return '>+'
   }
 
   private cleanType(type: string): string {
