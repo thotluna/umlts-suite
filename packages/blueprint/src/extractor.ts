@@ -7,6 +7,7 @@ import {
   MethodDeclaration,
   PropertySignature,
   Node,
+  Type,
 } from 'ts-morph'
 
 export interface BlueprintOptions {
@@ -17,6 +18,7 @@ export interface BlueprintOptions {
 
 export class BlueprintExtractor {
   private project: Project
+  private globalCounts: Map<string, number> = new Map()
 
   constructor() {
     this.project = new Project()
@@ -27,6 +29,8 @@ export class BlueprintExtractor {
   }
 
   public extract(): string {
+    this.analyzeGlobalVersatility()
+
     let output = ''
     const sourceFiles = this.project.getSourceFiles()
 
@@ -46,6 +50,25 @@ export class BlueprintExtractor {
     }
 
     return output
+  }
+
+  /**
+   * Phase 1: Global Scan for Versatility.
+   * Counts how many times each complex type is referenced across the entire project.
+   */
+  private analyzeGlobalVersatility(): void {
+    this.globalCounts.clear()
+    const allIdentifiers = this.project
+      .getSourceFiles()
+      .flatMap((sf) => sf.getDescendantsOfKind(SyntaxKind.Identifier))
+
+    allIdentifiers.forEach((id) => {
+      const type = id.getType()
+      if (type.isObject()) {
+        const typeName = this.cleanType(type.getText())
+        this.globalCounts.set(typeName, (this.globalCounts.get(typeName) || 0) + 1)
+      }
+    })
   }
 
   private extractInterface(itf: InterfaceDeclaration): string {
@@ -136,10 +159,6 @@ export class BlueprintExtractor {
     return body + '\n'
   }
 
-  /**
-   * Collects a type as a dependency if it's a complex entity and not the class itself or a property.
-   * Momentary Life: only for types used in methods that are not structural parts of the class.
-   */
   private collectTypeDependency(type: Type, set: Set<string>, cls: ClassDeclaration): void {
     if (type.isBoolean() || type.isString() || type.isNumber() || type.isVoid() || type.isAny()) {
       return
@@ -148,7 +167,6 @@ export class BlueprintExtractor {
     const typeName = this.cleanType(type.getText())
     if (typeName === cls.getName()) return
 
-    // If it is already a structural part (Attribute), it's NOT a "Momentary Use"
     const isProperty = cls
       .getProperties()
       .some((p) => this.cleanType(p.getType().getText()) === typeName)
@@ -159,31 +177,47 @@ export class BlueprintExtractor {
     }
   }
 
-  /**
-   * Heuristic to detect relationship type.
-   * Based on persistence (Properties have Long-Life) and Exclusivity (Visibility).
-   *
-   * >* Composition: Private/Protected Attribute (Exclusive use).
-   * >+ Aggregation: Public Attribute (Visible/Shared use).
-   */
-  private detectRelationship(prop: PropertyDeclaration, _cls: ClassDeclaration): string | null {
+  private detectRelationship(prop: PropertyDeclaration, cls: ClassDeclaration): string | null {
     const type = prop.getType()
     if (type.isBoolean() || type.isString() || type.isNumber() || type.isArray()) return null
 
+    const typeName = this.cleanType(type.getText())
     const visibility = this.getModifierVisibility(prop)
 
-    // Rule: Private/Protected Properties = Composition (Internal life, exclusive to the class)
-    if (visibility === '-' || visibility === '#') {
-      return '>*'
+    // Rule 1: Public Visibility = Aggregation (Shared/Visible)
+    if (visibility === '+') {
+      return '>+'
     }
 
-    // Rule: Public Properties = Aggregation (Shared life, exposed but structural)
-    return '>+'
+    // Rule 2: Surgeon Effect (The Getter check)
+    // If it is private but has a public getter, it's Aggregation
+    const propName = prop.getName()
+    const hasPublicGetter = cls.getMethods().some((m) => {
+      const name = m.getName()
+      const isPublic = this.getModifierVisibility(m) === '+'
+      return (
+        isPublic &&
+        (name === propName || name === `get${propName.charAt(0).toUpperCase()}${propName.slice(1)}`)
+      )
+    })
+
+    if (hasPublicGetter) {
+      return '>+'
+    }
+
+    // Rule 3: Versatility (Global counting)
+    // If several classes reference this type, it's likely a shared component (Aggregation)
+    const count = this.globalCounts.get(typeName) || 0
+    if (count > 2) {
+      // If it's used in and out, it's more of a shared aggregation than a private composition
+      return '>+'
+    }
+
+    // Rule 4: Private/Non-exposed/Low-versatility = Composition
+    return '>*'
   }
 
   private cleanType(type: string): string {
-    // Remove import("...") and keep only the class name
-    // Example: import("/path/to/models").User -> User
     return type.replace(/import\(.*?\)\./g, '').replace(/\[\]/g, '[]')
   }
 
