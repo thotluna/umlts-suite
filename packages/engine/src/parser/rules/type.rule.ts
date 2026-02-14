@@ -11,7 +11,7 @@ export class TypeRule {
     const token = context.peek()
 
     if (token.type !== TokenType.IDENTIFIER) {
-      throw new Error(`Se esperaba un tipo en línea ${token.line}, columna ${token.column}`)
+      throw new Error(`Expected type at line ${token.line}, column ${token.column}`)
     }
 
     let raw = context.advance().value
@@ -21,10 +21,7 @@ export class TypeRule {
 
     // Soporte para FQN (Fully Qualified Names): core.DiagramNode
     while (context.match(TokenType.DOT)) {
-      const nextPart = context.consume(
-        TokenType.IDENTIFIER,
-        'Se esperaba un identificador después del punto',
-      )
+      const nextPart = context.consume(TokenType.IDENTIFIER, 'Identifier expected after dot')
       raw += '.' + nextPart.value
       name = raw // En FQN, el nombre incluye el path
     }
@@ -46,7 +43,7 @@ export class TypeRule {
         }
       } while (!context.check(TokenType.GT) && !context.isAtEnd())
 
-      raw += context.consume(TokenType.GT, "Se esperaba '>'").value
+      raw += context.consume(TokenType.GT, "Expected '>'").value
     }
 
     // Soporte para arrays: Tipo[] o Tipo<T>[]
@@ -74,11 +71,6 @@ export class TypeRule {
       } else {
         break // Podría ser una multiplicidad, salimos
       }
-    }
-
-    // Soporte para tipos nublables: string?
-    if (context.match(TokenType.QUESTION)) {
-      raw += '?'
     }
 
     return {

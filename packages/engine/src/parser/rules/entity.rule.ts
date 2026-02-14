@@ -31,7 +31,7 @@ export class EntityRule implements StatementRule {
     if (token.type === TokenType.KW_INTERFACE) type = ASTNodeType.INTERFACE
     if (token.type === TokenType.KW_ENUM) type = ASTNodeType.ENUM
 
-    const nameToken = context.consume(TokenType.IDENTIFIER, 'Se esperaba el nombre de la entidad')
+    const nameToken = context.consume(TokenType.IDENTIFIER, 'Entity name expected')
 
     const docs = context.consumePendingDocs()
 
@@ -40,13 +40,10 @@ export class EntityRule implements StatementRule {
     if (context.match(TokenType.LT)) {
       typeParameters = []
       do {
-        const param = context.consume(
-          TokenType.IDENTIFIER,
-          'Se esperaba el nombre del parámetro de tipo',
-        )
+        const param = context.consume(TokenType.IDENTIFIER, 'Type parameter name expected')
         typeParameters.push(param.value)
       } while (context.match(TokenType.COMMA))
-      context.consume(TokenType.GT, "Se esperaba '>' después de los parámetros de tipo")
+      context.consume(TokenType.GT, "Expected '>' after type parameters")
     }
 
     // Parse relationship list in header
@@ -74,10 +71,7 @@ export class EntityRule implements StatementRule {
             continue
           }
           if (context.check(TokenType.IDENTIFIER)) {
-            const literalToken = context.consume(
-              TokenType.IDENTIFIER,
-              'Se esperaba el nombre del literal del enum',
-            )
+            const literalToken = context.consume(TokenType.IDENTIFIER, 'Enum literal name expected')
             body.push({
               type: ASTNodeType.ATTRIBUTE,
               name: literalToken.value,
@@ -86,8 +80,8 @@ export class EntityRule implements StatementRule {
               typeAnnotation: {
                 type: ASTNodeType.TYPE,
                 kind: 'simple',
-                name: 'any',
-                raw: 'any',
+                name: 'Object',
+                raw: 'Object',
                 line: literalToken.line,
                 column: literalToken.column,
               },
@@ -105,7 +99,7 @@ export class EntityRule implements StatementRule {
           if (member != null) body.push(member)
         }
       }
-      context.consume(TokenType.RBRACE, "Se esperaba '}'")
+      context.consume(TokenType.RBRACE, "Expected '}'")
     }
 
     return {
