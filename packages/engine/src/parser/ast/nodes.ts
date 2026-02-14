@@ -93,6 +93,7 @@ export interface ParameterNode extends ASTNode {
   typeAnnotation: TypeNode
   relationshipKind?: string | undefined
   targetIsAbstract?: boolean
+  multiplicity?: string | undefined
 }
 
 export interface RelationshipNode extends ASTNode {

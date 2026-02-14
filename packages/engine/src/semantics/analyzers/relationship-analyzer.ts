@@ -1,9 +1,8 @@
-import type { IRRelationship, IREntity } from '../../generator/ir/models'
-import { IRRelationshipType, IREntityType } from '../../generator/ir/models'
+import type { IRRelationship } from '../../generator/ir/models'
+import { IRRelationshipType } from '../../generator/ir/models'
 import type { SymbolTable } from '../symbol-table'
 import type { ParserContext } from '../../parser/parser.context'
 import { DiagnosticCode } from '../../parser/diagnostic.types'
-import { FQNBuilder } from '../utils/fqn-builder'
 import type { HierarchyValidator } from '../validators/hierarchy-validator'
 import type { RelationshipNode } from '../../parser/ast/nodes'
 import { MultiplicityValidator } from '../utils/multiplicity-validator'
@@ -28,38 +27,24 @@ export class RelationshipAnalyzer {
     name: string,
     namespace: string,
     modifiers?: { isAbstract?: boolean; isStatic?: boolean; isActive?: boolean },
+    line?: number,
+    column?: number,
   ): string {
-    const baseName = name.includes('<') ? name.substring(0, name.indexOf('<')) : name
-    const fqn = this.symbolTable.resolveFQN(baseName, namespace)
-    const existing = this.symbolTable.get(fqn)
+    const result = this.symbolTable.resolveOrRegisterImplicit(name, namespace, modifiers)
 
-    if (existing == null) {
-      const { name: shortName, namespace: entityNamespace } = FQNBuilder.split(fqn)
-
+    if (result.isAmbiguous) {
       this.context?.addError(
-        `Entidad implícita detectada: '${shortName}' no está definida explícitamente.`,
-        undefined,
-        DiagnosticCode.SEMANTIC_IMPLICIT_ENTITY,
+        `Ambigüedad detectada: '${name}' coincide con múltiples entidades: ${result.candidates?.join(
+          ', ',
+        )}. Por favor use el nombre cualificado.`,
+        { line, column, type: TokenType.UNKNOWN, value: '' } as Token,
+        DiagnosticCode.SEMANTIC_AMBIGUOUS_ENTITY,
       )
-      // Change severity to warning if needed, but for now we follow the feedback of "warning the user"
-      // Actually our DiagnosticSeverity is currently fixed in addError, we might need to adjust it.
-
-      const entity: IREntity = {
-        id: fqn,
-        name: shortName,
-        type: IREntityType.CLASS,
-        members: [],
-        isImplicit: true,
-        isAbstract: modifiers?.isAbstract || false,
-        isStatic: modifiers?.isStatic || false,
-        isActive: modifiers?.isActive || false,
-        namespace: entityNamespace,
-      }
-
-      this.symbolTable.register(entity)
     }
 
-    return fqn
+    // Registro silencioso de entidades implícitas
+
+    return result.fqn
   }
 
   /**
@@ -158,7 +143,7 @@ export class RelationshipAnalyzer {
     }
 
     // Dependency (lowest priority if symbols overlap)
-    if (['-->', '<<'].includes(k)) {
+    if (['-->', '<<', '>-', '>use'].includes(k)) {
       return IRRelationshipType.DEPENDENCY
     }
 

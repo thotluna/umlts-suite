@@ -114,13 +114,30 @@ export class ParserContext {
   }
 
   public addError(message: string, token?: Token, code?: DiagnosticCode): void {
+    this.addDiagnostic(message, DiagnosticSeverity.ERROR, token, code)
+  }
+
+  public addWarning(message: string, token?: Token, code?: DiagnosticCode): void {
+    this.addDiagnostic(message, DiagnosticSeverity.WARNING, token, code)
+  }
+
+  public addInfo(message: string, token?: Token, code?: DiagnosticCode): void {
+    this.addDiagnostic(message, DiagnosticSeverity.INFO, token, code)
+  }
+
+  public addDiagnostic(
+    message: string,
+    severity: DiagnosticSeverity,
+    token?: Token,
+    code?: DiagnosticCode,
+  ): void {
     const errorToken = token ?? this.peek()
     this.diagnostics.push({
       message,
       code,
       line: errorToken.line,
       column: errorToken.column,
-      severity: DiagnosticSeverity.ERROR,
+      severity,
     })
   }
 

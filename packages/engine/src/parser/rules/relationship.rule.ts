@@ -10,12 +10,21 @@ export class RelationshipRule implements StatementRule {
 
     try {
       const fromIsAbstract = context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)
+      const fromToken = context.peek()
       if (!context.check(TokenType.IDENTIFIER)) {
         if (fromIsAbstract) context.rollback(pos)
         return null
       }
+      let from = context.consume(TokenType.IDENTIFIER, 'Se esperaba un identificador').value
 
-      const fromToken = context.consume(TokenType.IDENTIFIER, 'Se esperaba un identificador')
+      // Soporte para FQN en el origen
+      while (context.match(TokenType.DOT)) {
+        from +=
+          '.' +
+          context.consume(TokenType.IDENTIFIER, 'Se esperaba un identificador después del punto')
+            .value
+      }
+
       let fromMultiplicity: string | undefined
 
       if (context.check(TokenType.LBRACKET)) {
@@ -40,11 +49,18 @@ export class RelationshipRule implements StatementRule {
       }
 
       const toIsAbstract = context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)
-      const toToken = context.consume(
+      let to = context.consume(
         TokenType.IDENTIFIER,
         'Se esperaba el nombre del objetivo de la relación',
-      )
-      let to = toToken.value
+      ).value
+
+      // Soporte para FQN en el destino
+      while (context.match(TokenType.DOT)) {
+        to +=
+          '.' +
+          context.consume(TokenType.IDENTIFIER, 'Se esperaba un identificador después del punto')
+            .value
+      }
 
       // Soporte para genéricos en el destino de la relación: B<T>
       if (context.match(TokenType.LT)) {
@@ -65,10 +81,10 @@ export class RelationshipRule implements StatementRule {
 
       return {
         type: ASTNodeType.RELATIONSHIP,
-        from: fromToken.value,
+        from,
         fromIsAbstract,
         fromMultiplicity,
-        to, // Ahora usamos la variable 'to' que incluye genéricos
+        to, // Ahora usamos la variable 'to' que incluye genéricos y FQNs
         toIsAbstract,
         toMultiplicity,
         kind,

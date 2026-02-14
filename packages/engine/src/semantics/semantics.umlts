@@ -1,0 +1,72 @@
+// Arquitectura del paquete semantics definida en el DSL UMLTS
+package semantics {
+    
+    class SemanticAnalyzer {
+        - symbolTable: >* SymbolTable
+        - relationships: >- generator.ir.IRRelationship[*]
+        - currentNamespace: String[*]
+        - context: >- parser.ParserContext
+        
+        - entityAnalyzer: >- analyzers.EntityAnalyzer
+        - relationshipAnalyzer: >- analyzers.RelationshipAnalyzer
+        - hierarchyValidator: >- validators.HierarchyValidator
+
+        + analyze(program: parser.ast.ProgramNode, context: parser.ParserContext): generator.ir.IRDiagram
+        - inferRelationships()
+        - inferFromType(fromFQN: String, typeName: String, label: String)
+    }
+
+    class SymbolTable {
+        - entities: Object
+        + register(entity: generator.ir.IREntity)
+        + get(id: String): generator.ir.IREntity
+        + resolveFQN(name: String, namespace: String): ResolutionResult
+        + has(id: String): Boolean
+    }
+
+    class ResolutionResult {
+        + fqn: String
+        + isAmbiguous: Boolean
+        + candidates: String[*]
+    }
+
+    package analyzers {
+        class EntityAnalyzer {
+            - symbolTable: >- semantics.SymbolTable
+            - context: >- parser.ParserContext
+            + buildEntity(node: Object, ns: String): generator.ir.IREntity
+            + processMembers(entity: generator.ir.IREntity, node: Object)
+        }
+
+        class RelationshipAnalyzer {
+            - symbolTable: >- semantics.SymbolTable
+            - context: >- parser.ParserContext
+            + addRelationship(from: String, to: String, kind: String)
+            + resolveOrRegisterImplicit(name: String, ns: String): String
+        }
+    }
+
+    package validators {
+        class HierarchyValidator {
+            - symbolTable: >- semantics.SymbolTable
+            - context: >- parser.ParserContext
+            + validateNoCycles(rels: generator.ir.IRRelationship[*])
+        }
+    }
+
+    package utils {
+        class TypeValidator {
+            + $ isPrimitive(type: String): Boolean
+            + $ getBaseTypeName(type: String): String
+        }
+
+        class FQNBuilder {
+            + $ build(name: String, ns: String): String
+            + $ split(fqn: String): Object
+        }
+    }
+
+    // Relaciones de herencia y dependencia adicionales
+    analyzers.EntityAnalyzer >- utils.TypeValidator
+    semantics.SemanticAnalyzer >- generator.ir.IRDiagram
+}
