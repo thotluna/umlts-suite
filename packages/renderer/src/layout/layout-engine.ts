@@ -32,7 +32,14 @@ const BASE_LAYOUT_OPTIONS = {
   'elk.spacing.componentComponent': '70',
   'elk.padding': '[top=50,left=50,bottom=50,right=50]',
   'elk.separateConnectedComponents': 'true',
-  // Eliminamos el aspectRatio fijo para evitar deformaciones masivas en diagramas grandes
+  'elk.layered.mergeEdges': 'false',
+  'elk.portConstraints': 'FREE',
+
+  // Long Hierarchical Edges optimizations
+  'elk.layered.spacing.edgeEdgeBetweenLayers': '25',
+  'elk.layered.spacing.edgeNodeBetweenLayers': '25',
+  'elk.layered.unnecessaryEdgeBends': 'true',
+  'elk.layered.compaction': 'true',
 
   // Layered specifics to reduce crossing and "messy" look
   'elk.layered.nodePlacement.strategy': 'BRANDES_KOEPF',
@@ -47,8 +54,6 @@ export class LayoutEngine {
     model: DiagramModel,
     config?: DiagramConfig['layout'],
   ): Promise<LayoutResult> {
-    const edgesByLCA = this.groupEdgesByLCA(model)
-
     // Prepare layout options based on configuration
     const layoutOptions: Record<string, string> = { ...BASE_LAYOUT_OPTIONS }
 
@@ -57,7 +62,11 @@ export class LayoutEngine {
     }
 
     if (config?.spacing) {
-      layoutOptions['elk.spacing.nodeNode'] = config.spacing.toString()
+      const s = config.spacing.toString()
+      layoutOptions['elk.spacing.nodeNode'] = s
+      layoutOptions['elk.layered.spacing.nodeNodeBetweenLayers'] = s
+      layoutOptions['elk.spacing.componentComponent'] = s
+      layoutOptions['elk.spacing.edgeNode'] = (config.spacing * 0.5).toString()
     }
 
     if (config?.nodePadding) {
@@ -68,6 +77,8 @@ export class LayoutEngine {
     if (config?.routing) {
       layoutOptions['elk.edgeRouting'] = config.routing
     }
+
+    const edgesByLCA = this.groupEdgesByLCA(model, layoutOptions)
 
     // 1. Convert to ELK format recursively
     // Nodes that are not part of any package (i.e., top-level nodes)
@@ -132,52 +143,31 @@ export class LayoutEngine {
   private toElkNode(node: UMLNode): ElkNode {
     const { width, height } = node.getDimensions()
 
-    // Create 4 cardinal ports for the node
-    const ports = [
-      { id: `${node.id}.n`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'NORTH' } },
-      { id: `${node.id}.s`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'SOUTH' } },
-      { id: `${node.id}.e`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'EAST' } },
-      { id: `${node.id}.w`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'WEST' } },
-    ]
-
     return {
       id: node.id,
       width,
       height,
-      ports,
       layoutOptions: {
-        'elk.portConstraints': 'FIXED_SIDE',
+        'elk.portConstraints': 'UNDEFINED',
       },
     }
   }
 
   /**
    * Groups edges by the ID of the package that is their Lowest Common Ancestor.
-   * Cross-package edges with no common parent package go to 'root'.
    */
-  private groupEdgesByLCA(model: DiagramModel): Map<string, ElkExtendedEdge[]> {
+  private groupEdgesByLCA(
+    model: DiagramModel,
+    _layoutOptions: Record<string, string>,
+  ): Map<string, ElkExtendedEdge[]> {
     const groups = new Map<string, ElkExtendedEdge[]>()
-
     model.edges.forEach((edge, index) => {
       const lcaId = this.findLCA(edge.from, edge.to)
 
-      // Determine best ports based on relationship type and layout direction
-      // Heuristic for DOWN: Inheritance goes from North (Sub) to South (Super)
-      let sourcePortId = edge.from
-      let targetPortId = edge.to
-
-      if (edge.type === 'Inheritance' || edge.type === 'Implementation') {
-        sourcePortId = `${edge.from}.n`
-        targetPortId = `${edge.to}.s`
-      } else {
-        sourcePortId = `${edge.from}.s`
-        targetPortId = `${edge.to}.n`
-      }
-
       const elkEdge: ElkExtendedEdge = {
         id: `e${index}`,
-        sources: [sourcePortId],
-        targets: [targetPortId],
+        sources: [edge.from],
+        targets: [edge.to],
       }
 
       if (edge.label) {
@@ -417,9 +407,6 @@ export class LayoutEngine {
     }
   }
 
-  /**
-   * Limpia el sufijo de puerto (.n, .s, .e, .w) de un ID de nodo de ELK.
-   */
   private stripPort(id: string): string {
     if (!id) return ''
     const lastDot = id.lastIndexOf('.')
