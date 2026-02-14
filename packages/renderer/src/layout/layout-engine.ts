@@ -32,15 +32,18 @@ const BASE_LAYOUT_OPTIONS = {
   'elk.spacing.componentComponent': '70',
   'elk.padding': '[top=50,left=50,bottom=50,right=50]',
   'elk.separateConnectedComponents': 'true',
-  // Eliminamos el aspectRatio fijo para evitar deformaciones masivas en diagramas grandes
+  'elk.layered.mergeEdges': 'false',
+  'elk.portConstraints': 'FREE',
+
+  // Long Hierarchical Edges optimizations
+  'elk.layered.spacing.edgeEdgeBetweenLayers': '25',
+  'elk.layered.spacing.edgeNodeBetweenLayers': '25',
+  'elk.layered.unnecessaryEdgeBends': 'true',
+  'elk.layered.compaction': 'true',
 
   // Layered specifics to reduce crossing and "messy" look
   'elk.layered.nodePlacement.strategy': 'BRANDES_KOEPF',
   'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
-  'elk.layered.mergeEdges': 'false',
-  'elk.layered.spacing.edgeNode': '30',
-  'elk.layered.spacing.edgeEdge': '20',
-  'elk.portConstraints': 'FREE',
 }
 
 /**
@@ -51,8 +54,6 @@ export class LayoutEngine {
     model: DiagramModel,
     config?: DiagramConfig['layout'],
   ): Promise<LayoutResult> {
-    const edgesByLCA = this.groupEdgesByLCA(model)
-
     // Prepare layout options based on configuration
     const layoutOptions: Record<string, string> = { ...BASE_LAYOUT_OPTIONS }
 
@@ -61,7 +62,11 @@ export class LayoutEngine {
     }
 
     if (config?.spacing) {
-      layoutOptions['elk.spacing.nodeNode'] = config.spacing.toString()
+      const s = config.spacing.toString()
+      layoutOptions['elk.spacing.nodeNode'] = s
+      layoutOptions['elk.layered.spacing.nodeNodeBetweenLayers'] = s
+      layoutOptions['elk.spacing.componentComponent'] = s
+      layoutOptions['elk.spacing.edgeNode'] = (config.spacing * 0.5).toString()
     }
 
     if (config?.nodePadding) {
@@ -72,6 +77,8 @@ export class LayoutEngine {
     if (config?.routing) {
       layoutOptions['elk.edgeRouting'] = config.routing
     }
+
+    const edgesByLCA = this.groupEdgesByLCA(model, layoutOptions)
 
     // 1. Convert to ELK format recursively
     // Nodes that are not part of any package (i.e., top-level nodes)
@@ -141,29 +148,26 @@ export class LayoutEngine {
       width,
       height,
       layoutOptions: {
-        'elk.portConstraints': 'FREE',
+        'elk.portConstraints': 'UNDEFINED',
       },
     }
   }
 
   /**
    * Groups edges by the ID of the package that is their Lowest Common Ancestor.
-   * Cross-package edges with no common parent package go to 'root'.
    */
-  private groupEdgesByLCA(model: DiagramModel): Map<string, ElkExtendedEdge[]> {
+  private groupEdgesByLCA(
+    model: DiagramModel,
+    _layoutOptions: Record<string, string>,
+  ): Map<string, ElkExtendedEdge[]> {
     const groups = new Map<string, ElkExtendedEdge[]>()
-
     model.edges.forEach((edge, index) => {
       const lcaId = this.findLCA(edge.from, edge.to)
 
-      // No pin ports manually anymore, let ELK distribute them (portConstraints: FREE)
-      const sourcePortId = edge.from
-      const targetPortId = edge.to
-
       const elkEdge: ElkExtendedEdge = {
         id: `e${index}`,
-        sources: [sourcePortId],
-        targets: [targetPortId],
+        sources: [edge.from],
+        targets: [edge.to],
       }
 
       if (edge.label) {
@@ -403,9 +407,6 @@ export class LayoutEngine {
     }
   }
 
-  /**
-   * Limpia el sufijo de puerto (.n, .s, .e, .w) de un ID de nodo de ELK.
-   */
   private stripPort(id: string): string {
     if (!id) return ''
     const lastDot = id.lastIndexOf('.')
