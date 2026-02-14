@@ -1,4 +1,5 @@
 import type { IREntity } from '../generator/ir/models'
+import { IREntityType } from '../generator/ir/models'
 
 export interface FQNResolution {
   fqn: string
@@ -109,7 +110,7 @@ export class SymbolTable {
       this.register({
         id: resolution.fqn,
         name: name.includes('.') ? name.split('.').pop()! : name,
-        type: (null as any), // Will be inferred later or kept as null
+        type: IREntityType.CLASS, // Default to class, will be refined if definition is found
         members: [],
         isImplicit: true,
         isAbstract: modifiers?.isAbstract || false,
