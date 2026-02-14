@@ -37,6 +37,10 @@ const BASE_LAYOUT_OPTIONS = {
   // Layered specifics to reduce crossing and "messy" look
   'elk.layered.nodePlacement.strategy': 'BRANDES_KOEPF',
   'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
+  'elk.layered.mergeEdges': 'false',
+  'elk.layered.spacing.edgeNode': '30',
+  'elk.layered.spacing.edgeEdge': '20',
+  'elk.portConstraints': 'FREE',
 }
 
 /**
@@ -132,21 +136,12 @@ export class LayoutEngine {
   private toElkNode(node: UMLNode): ElkNode {
     const { width, height } = node.getDimensions()
 
-    // Create 4 cardinal ports for the node
-    const ports = [
-      { id: `${node.id}.n`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'NORTH' } },
-      { id: `${node.id}.s`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'SOUTH' } },
-      { id: `${node.id}.e`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'EAST' } },
-      { id: `${node.id}.w`, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'WEST' } },
-    ]
-
     return {
       id: node.id,
       width,
       height,
-      ports,
       layoutOptions: {
-        'elk.portConstraints': 'FIXED_SIDE',
+        'elk.portConstraints': 'FREE',
       },
     }
   }
@@ -161,18 +156,9 @@ export class LayoutEngine {
     model.edges.forEach((edge, index) => {
       const lcaId = this.findLCA(edge.from, edge.to)
 
-      // Determine best ports based on relationship type and layout direction
-      // Heuristic for DOWN: Inheritance goes from North (Sub) to South (Super)
-      let sourcePortId = edge.from
-      let targetPortId = edge.to
-
-      if (edge.type === 'Inheritance' || edge.type === 'Implementation') {
-        sourcePortId = `${edge.from}.n`
-        targetPortId = `${edge.to}.s`
-      } else {
-        sourcePortId = `${edge.from}.s`
-        targetPortId = `${edge.to}.n`
-      }
+      // No pin ports manually anymore, let ELK distribute them (portConstraints: FREE)
+      const sourcePortId = edge.from
+      const targetPortId = edge.to
 
       const elkEdge: ElkExtendedEdge = {
         id: `e${index}`,

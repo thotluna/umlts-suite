@@ -148,6 +148,11 @@
 - [x] **TASK**: Refinar Jerarquía Completa
   - [x] Asegurar que las aristas conecten puertos finales (`ClaseA.out` -> `ClaseB.in`)
   - [x] Optimizar `layoutOptions` para minimizar cruces de líneas
+- [x] **FEAT**: Optimización de Layout (Long Hierarchical Edges)
+  - [x] Implementar espaciado dinámico basado en `config` (Horizontal y Vertical)
+  - [x] Migrar de puertos fijos a `portConstraints: FREE` para evitar embudos
+  - [x] Desactivar `mergeEdges` para trayectorias de aristas independientes
+  - [x] Optimizar cruce de paquetes mediante enrutamiento jerárquico nativo
 
 ## Depuración y Calidad (VS Code Extension)
 
@@ -230,3 +235,20 @@
 
 - [ ] Explorar soporte para Association Classes
 - [ ] Implementar autocompletado avanzado basado en la nueva resolución FQN
+
+## Ingeniería Inversa Quirúrgica (Surgeon Extractor)
+
+- [x] **TASK**: Definir workflow de extracción manual en `.agent/workflows/surgeon-extractor.md`
+- [x] **FEAT**: Implementar Pasada -1 (Configuración)
+  - [x] Lectura de `tsconfig.json` para resolución de Aliases (Heurística inicial implementada)
+  - [x] Mapeo de paquetes basado en estructura de carpetas de monorepo
+- [x] **FEAT**: Implementar Pasada 0 (Imports & Scope)
+  - [x] Escaneo de cabeceras para mapeo de FQNs vía imports
+  - [x] Identificación de dependencias externas (Shadowing)
+- [x] **FEAT**: Implementar Pasada 1 (Órganos)
+  - [x] Extracción de entidades (class/interface)
+  - [x] Mapeo de atributos estructurales para composición/agregación
+- [x] **FEAT**: Implementar Pasada 2 (Síntesis & Cirujano)
+  - [x] Escaneo de firmas de métodos para dependencias de uso
+  - [x] Aplicación del _Surgeon Effect_ (No duplicar líneas si hay relación estructural)
+- [x] **TEST**: Validar extracción del paquete `engine/semantics` sin ruido visual y compilación Exitosa (Verificado con CLI)
