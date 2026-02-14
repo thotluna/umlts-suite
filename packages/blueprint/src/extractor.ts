@@ -72,7 +72,7 @@ export class BlueprintExtractor {
     allIdentifiers.forEach((id) => {
       const type = id.getType()
       if (type.isObject()) {
-        const typeName = this.cleanType(type.getText())
+        const typeName = this.cleanSimpleType(type.getText())
         this.globalCounts.set(typeName, (this.globalCounts.get(typeName) || 0) + 1)
       }
     })
@@ -83,13 +83,13 @@ export class BlueprintExtractor {
     const baseTypes = itf.getBaseTypes()
     const inheritance =
       baseTypes.length > 0
-        ? ` >> ${baseTypes.map((t) => this.cleanType(t.getText())).join(', ')}`
+        ? ` >> ${baseTypes.map((t) => this.resolveTypeFQN(t, itf)).join(', ')}`
         : ''
 
     let body = `  interface ${name}${inheritance} {\n`
 
     itf.getProperties().forEach((prop) => {
-      body += `    ${this.sanitizeIdentifier(prop.getName())}: ${this.cleanType(prop.getType().getText())}\n`
+      body += `    ${this.sanitizeIdentifier(prop.getName())}: ${this.resolveTypeFQN(prop.getType(), itf)}\n`
     })
 
     itf.getMethods().forEach((method) => {
@@ -97,10 +97,10 @@ export class BlueprintExtractor {
         .getParameters()
         .map(
           (p) =>
-            `${this.sanitizeIdentifier(p.getName())}: ${this.cleanType(p.getType().getText())}`,
+            `${this.sanitizeIdentifier(p.getName())}: ${this.resolveTypeFQN(p.getType(), method)}`,
         )
         .join(', ')
-      body += `    ${this.sanitizeIdentifier(method.getName())}(${params}): ${this.cleanType(method.getReturnType().getText())}\n`
+      body += `    ${this.sanitizeIdentifier(method.getName())}(${params}): ${this.resolveTypeFQN(method.getReturnType(), method)}\n`
     })
 
     body += `  }\n\n`
@@ -108,33 +108,31 @@ export class BlueprintExtractor {
   }
 
   private extractClass(cls: ClassDeclaration): string {
-    const name = this.sanitizeIdentifier(cls.getName() || '')
-    if (!name) return ''
+    const className = this.sanitizeIdentifier(cls.getName() || '')
+    if (!className) return ''
 
     const baseClass = cls.getBaseClass()
-    const inheritance = baseClass
-      ? ` >> ${this.sanitizeIdentifier(this.cleanType(baseClass.getName() || ''))}`
-      : ''
+    const inheritance = baseClass ? ` >> ${this.resolveTypeFQN(baseClass.getType(), cls)}` : ''
 
     const interfaces = cls.getImplements()
     const realization =
       interfaces.length > 0
-        ? ` >I ${interfaces.map((i) => this.cleanType(i.getText())).join(', ')}`
+        ? ` >I ${interfaces.map((i) => this.resolveTypeFQN(i.getType(), cls)).join(', ')}`
         : ''
 
-    let body = `  class ${name}${inheritance}${realization} {\n`
+    let body = `  class ${className}${inheritance}${realization} {\n`
 
     // Attributes and Relationships
     cls.getProperties().forEach((prop) => {
       const visibility = this.getModifierVisibility(prop)
-      const typeText = prop.getType().getText()
+      const type = prop.getType()
       const relOp = this.detectRelationship(prop, cls)
       const propName = this.sanitizeIdentifier(prop.getName())
 
       if (relOp) {
-        body += `    ${visibility}${propName}: ${relOp} ${this.cleanType(typeText)}\n`
+        body += `    ${visibility}${propName}: ${relOp} ${this.resolveTypeFQN(type, cls)}\n`
       } else {
-        body += `    ${visibility}${propName}: ${this.cleanType(typeText)}\n`
+        body += `    ${visibility}${propName}: ${this.resolveTypeFQN(type, cls)}\n`
       }
     })
 
@@ -142,23 +140,28 @@ export class BlueprintExtractor {
     const dependencies = new Set<string>()
     cls.getMethods().forEach((method) => {
       const visibility = this.getModifierVisibility(method)
-      const returnType = method.getReturnType().getText()
-      this.collectTypeDependency(method.getReturnType(), dependencies, cls)
+      const returnType = method.getReturnType()
+      this.collectTypeDependency(returnType, dependencies, cls)
 
       const params = method
         .getParameters()
         .map((p) => {
           this.collectTypeDependency(p.getType(), dependencies, cls)
-          return `${this.sanitizeIdentifier(p.getName())}: ${this.cleanType(p.getType().getText())}`
+          return `${this.sanitizeIdentifier(p.getName())}: ${this.resolveTypeFQN(p.getType(), method)}`
         })
         .join(', ')
 
-      body += `    ${visibility}${this.sanitizeIdentifier(method.getName())}(${params}): ${this.cleanType(returnType)}\n`
+      const returnTypeFQN = this.resolveTypeFQN(returnType, method)
+      body += `    ${visibility}${this.sanitizeIdentifier(method.getName())}(${params}): ${returnTypeFQN}\n`
 
       // Analyze body for local variable dependencies
       method.getDescendantsOfKind(SyntaxKind.Identifier).forEach((id) => {
-        const type = id.getType()
-        this.collectTypeDependency(type, dependencies, cls)
+        try {
+          const type = id.getType()
+          this.collectTypeDependency(type, dependencies, cls)
+        } catch {
+          // Some identifiers might not be resolvable
+        }
       })
     })
 
@@ -166,7 +169,7 @@ export class BlueprintExtractor {
 
     // Internal Dependencies as UMLTS relations (Momentary Life)
     dependencies.forEach((dep) => {
-      body += `  ${name} >- ${dep}\n`
+      body += `  ${className} >- ${dep}\n`
     })
 
     return body
@@ -177,33 +180,58 @@ export class BlueprintExtractor {
       return
     }
 
-    const typeName = this.cleanType(type.getText())
-    if (typeName === cls.getName()) return
+    const typeFQN = this.resolveTypeFQN(type, cls)
+    const typeNameOnly = typeFQN.split('.').pop() || typeFQN
 
-    const isProperty = cls
-      .getProperties()
-      .some((p) => this.cleanType(p.getType().getText()) === typeName)
+    if (
+      typeNameOnly === cls.getName() ||
+      typeNameOnly === 'Object' ||
+      typeNameOnly === 'Function'
+    ) {
+      return
+    }
+
+    // Priority: If it is already a structural part (Attribute), do NOT create an external usage relationship
+    const isProperty = cls.getProperties().some((p) => {
+      const propFQN = this.resolveTypeFQN(p.getType(), cls)
+      return propFQN === typeFQN || propFQN === `${typeFQN}[]` || propFQN.startsWith(`${typeFQN}<`)
+    })
     if (isProperty) return
 
-    if (/^[A-Z]/.test(typeName) && !typeName.includes('<') && !typeName.includes('[')) {
-      set.add(typeName)
+    if (/^[A-Z]/.test(typeNameOnly) && !typeNameOnly.includes('<') && !typeNameOnly.includes('[')) {
+      set.add(typeFQN)
     }
   }
 
   private detectRelationship(prop: PropertyDeclaration, cls: ClassDeclaration): string | null {
     const type = prop.getType()
-    if (type.isBoolean() || type.isString() || type.isNumber() || type.isArray()) return null
 
-    const typeName = this.cleanType(type.getText())
+    // Handle Arrays: we care about the element type
+    let targetType = type
+    if (type.isArray()) {
+      targetType = type.getArrayElementType()!
+    }
+
+    if (
+      !targetType ||
+      targetType.isBoolean() ||
+      targetType.isString() ||
+      targetType.isNumber() ||
+      targetType.getText().includes('{')
+    ) {
+      return null
+    }
+
+    const typeFQN = this.resolveTypeFQN(targetType, cls)
+    const typeNameOnly = typeFQN.split('.').pop() || typeFQN
+    if (typeNameOnly === 'Object' || typeNameOnly === 'Function') return null
+
     const visibility = this.getModifierVisibility(prop)
 
-    // Rule 1: Public Visibility = Aggregation (Shared/Visible)
     if (visibility === '+') {
       return '>+'
     }
 
-    // Rule 2: Surgeon Effect (The Getter check)
-    // If it is private but has a public getter, it's Aggregation
     const propName = prop.getName()
     const hasPublicGetter = cls.getMethods().some((m) => {
       const name = m.getName()
@@ -218,27 +246,73 @@ export class BlueprintExtractor {
       return '>+'
     }
 
-    // Rule 3: Versatility (Global counting)
-    // If several classes reference this type, it's likely a shared component (Aggregation)
-    const count = this.globalCounts.get(typeName) || 0
+    const count = this.globalCounts.get(typeNameOnly) || 0
     if (count > 2) {
-      // If it's used in and out, it's more of a shared aggregation than a private composition
       return '>+'
     }
 
-    // Rule 4: Private/Non-exposed/Low-versatility = Composition
     return '>*'
   }
 
-  private cleanType(type: string): string {
-    // 1. Remove import(...) - also inside generics
+  private resolveTypeFQN(type: Type, contextNode: Node): string {
+    if (type.isArray()) {
+      const elementType = type.getArrayElementType()
+      if (elementType) {
+        return `${this.resolveTypeFQN(elementType, contextNode)}[]`
+      }
+    }
+
+    const text = type.getText(contextNode)
+
+    if (type.isObject() && text.includes('<')) {
+      const baseNameMatch = text.match(/^([^<]+)/)
+      if (baseNameMatch) {
+        const baseName = baseNameMatch[1]
+        const args = type.getTypeArguments()
+        if (args.length > 0) {
+          const resolvedArgs = args.map((arg) => this.resolveTypeFQN(arg, contextNode)).join(', ')
+          const resolvedBase = this.resolveBaseTypeFQN(type, baseName, contextNode)
+          return `${resolvedBase}<${resolvedArgs}>`
+        }
+      }
+    }
+
+    return this.resolveBaseTypeFQN(type, text, contextNode)
+  }
+
+  private resolveBaseTypeFQN(type: Type, originalText: string, contextNode: Node): string {
+    const symbol = type.getSymbol() || type.getAliasSymbol()
+    if (!symbol) return this.cleanSimpleType(originalText)
+
+    const declarations = symbol.getDeclarations()
+    if (declarations.length === 0) return this.cleanSimpleType(originalText)
+
+    const sourceFile = declarations[0].getSourceFile()
+    const filePath = sourceFile.getFilePath()
+
+    if (filePath.includes('node_modules') || filePath.includes('lib.d.ts')) {
+      return this.cleanSimpleType(symbol.getName())
+    }
+
+    const typePackage = this.derivePackageName(filePath)
+    const contextPackage = this.derivePackageName(contextNode.getSourceFile().getFilePath())
+
+    const typeName = this.cleanSimpleType(symbol.getName())
+
+    if (typePackage === contextPackage) {
+      return typeName
+    }
+
+    return `${typePackage}.${typeName}`
+  }
+
+  private cleanSimpleType(type: string): string {
     let cleaned = type.replace(/import\(.*?\)\./g, '')
 
-    // 2. If it contains object literals or function signatures, simplify it
-    // These are NOT supported by UMLTS grammar
+    // TypeScript's internal name for anonymous object literals
+    if (cleaned === '__type') return 'Object'
+
     if (cleaned.includes('{') || cleaned.includes('=>')) {
-      // If it's a generic with complex stuff inside, keep only the base name
-      // Example: Record<string, { a: 1 }> -> Record
       const baseName = cleaned.split('<')[0]
       if (baseName === cleaned) {
         return cleaned.includes('{') ? 'Object' : 'Function'
@@ -246,8 +320,6 @@ export class BlueprintExtractor {
       return baseName.trim()
     }
 
-    // 3. Normalize whitespace in generics for the UMLTS parser
-    // Parser expects simple identifiers in generics
     cleaned = cleaned.replace(/,\s*/g, ', ')
 
     return cleaned.trim()
