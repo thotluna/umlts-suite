@@ -98,7 +98,7 @@ export class ParserContext {
       return this.advance()
     }
 
-    throw new Error(`${message} en línea ${this.peek().line}, columna ${this.peek().column}`)
+    throw new Error(`${message} at line ${this.peek().line}, column ${this.peek().column}`)
   }
 
   public isAtEnd(): boolean {
@@ -114,13 +114,30 @@ export class ParserContext {
   }
 
   public addError(message: string, token?: Token, code?: DiagnosticCode): void {
+    this.addDiagnostic(message, DiagnosticSeverity.ERROR, token, code)
+  }
+
+  public addWarning(message: string, token?: Token, code?: DiagnosticCode): void {
+    this.addDiagnostic(message, DiagnosticSeverity.WARNING, token, code)
+  }
+
+  public addInfo(message: string, token?: Token, code?: DiagnosticCode): void {
+    this.addDiagnostic(message, DiagnosticSeverity.INFO, token, code)
+  }
+
+  public addDiagnostic(
+    message: string,
+    severity: DiagnosticSeverity,
+    token?: Token,
+    code?: DiagnosticCode,
+  ): void {
     const errorToken = token ?? this.peek()
     this.diagnostics.push({
       message,
       code,
       line: errorToken.line,
       column: errorToken.column,
-      severity: DiagnosticSeverity.ERROR,
+      severity,
     })
   }
 

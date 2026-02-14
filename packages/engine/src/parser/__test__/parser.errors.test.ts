@@ -20,7 +20,7 @@ describe('Parser Error Handling', () => {
 
     expect(ast.diagnostics).toBeDefined()
     expect(ast.diagnostics!.length).toBeGreaterThan(0)
-    expect(ast.diagnostics![0].message).toContain('Sentencia no reconocida')
+    expect(ast.diagnostics![0].message).toContain('Unrecognized statement')
   })
 
   it('should recover from an error inside a package', () => {
