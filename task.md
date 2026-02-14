@@ -270,6 +270,10 @@
 - [x] **FEAT**: Implement Dependency detection (`>-`) via AST analysis of method bodies
 - [x] **DOC**: Documentar heurísticas de relaciones basadas en Visibilidad, Versatilidad y Momentaneidad (`docs/blueprint-heuristics.md`)
 - [x] **IMPROVEMENT**: Implementar análisis de "Doble Pasada" (Global Versatility) y "Efecto Cirujano" (Getters públicos)
-- [ ] **IMPROVEMENT**: Refine FQN resolution in blueprint using actual file imports
+- [x] **IMPROVEMENT**: Refine FQN resolution in blueprint using actual file imports
 - [x] **IMPROVEMENT**: Add CLI support for blueprint to generate `.umlts` files from terminal
+<<<<<<< HEAD
 >>>>>>> 8de1333 (feat(blueprint): refine type cleaning to preserve simple generics)
+=======
+- [x] **IMPROVEMENT**: Sanitización de identificadores (keywords) y limpieza de tipos complejos (generics, Object, Function)
+>>>>>>> a2ea682 (chore: update motor.umlts and tasks before closing blueprint phase)
