@@ -1,153 +1,265 @@
-# Backlog
+# Tareas de Inicialización de Git
 
-- [x] Unificar `>` y `<>` como asociaciones bidireccionales (línea simple).
-- [x] Implementar `><` como asociación dirigida (punta de flecha abierta).
-- [x] Corregir renderizado de etiquetas y multiplicidad en relaciones.
-- [x] **Fix Urgente: Posicionamiento de errores semánticos** (ahora subrayan la línea correcta).
-- [x] **Fix Urgente: Precisión de subrayado** (el subrayado ahora cubre la palabra completa).
-- [x] **Fix Urgente: Higiene de IR** (bloquear creación de entidades/relaciones ilegales con paquetes).
+- [x] Crear el plan de implementación
+- [x] Configurar un `.gitignore` robusto
+- [x] Inicializar el repositorio Git (`git init`)
+- [x] Realizar el primer commit
+- [x] Verificar el estado final
 
-## Backlog
+- [x] Corrección de Sintaxis de Relaciones
+  - [x] Soporte de nombres cualificados (FQN) en Parser
+  - [x] Soporte de genéricos en reglas de relación
+  - [x] Reparación de lógica de namespaces para genéricos
+  - [x] Verificación de renderizado inter-paquete
+  - [x] Crear Specialist Class Diagrammer en `.agent/skills`
 
-- [x] **ALTA PRIORIDAD: Arquitectura Extensible de Lenguajes (Plugin System)**
-  - [x] **Core UML Purification**: Extraer tipos de TypeScript del motor core para dejarlo solo con los 5 `PrimitiveTypes` de UML 2.5.1.
-  - [x] **Plugin Infrastructure**: Implementar `LanguagePlugin` interface y `PluginManager` para cargar bibliotecas de modelos dinámicamente.
-  - [x] **Injection System**: Permitir que el Lexer y Parser se extiendan mediante hooks en los plugins (`matchToken`, `handleUnexpectedToken`).
-  - [x] **Language Mapping**: Sistema de reglas para que los plugins traduzcan sintaxis compacta (ej: `T[]` o `List<T>`) a semántica UML pura.
-  - [ ] **First Plugin: TypeScript**: Migrar la lógica actual de TS a su propio módulo de plug-in (En progreso: soporte para `?`).
+## Calibración Interactiva del DSL
 
-- [ ] **Fase: Estandarización UML 2.5.1 (Metamodelo)**.
-  - [x] **IR Redesign**: Migrar `IRMember` a `IRProperty` e `IROperation` siguiendo la Sintaxis Abstracta oficial.
-  - [x] **Refactor Analizadores**: Adaptar `EntityAnalyzer` y `RelationshipAnalyzer` al nuevo modelo estructurado.
-  - [x] **Refactor Renderer**: Actualizar el pipeline de dibujo para consumir Propiedades y Operaciones de forma agnóstico.
-  - [x] **Multiplicity Refactor**: Migrar de strings `"0..1"` a objetos estructurados `{ lower, upper }`.
+- [x] Aprender patrones base (Vehiculo, Moto)
+- [x] Aprender abstracción y agregación (Padre/Abuelo)
+- [x] Patrones de Composición y FQN (Monitor)
+- [x] Crear Cookbook de referencia
+- [x] **BACKLOG**: Repasar casos de genéricos (errores de concepción y renderizado)
 
-- [x] Implementar clases de asociación (`class C <> (A, B)`)
-  - [x] Definir nodo AST en `nodes.ts`
-  - [x] Actualizar modelos de IR en `models.ts`
-  - [x] Modificar `EntityRule` en el parser para soportar la sintaxis `<> (A[m], B[n])`
-  - [x] Implementar lógica en `SemanticAnalyzer` para vincular la clase con la relación
-  - [x] Añadir tests unitarios en `association-class.test.ts`
-- [x] Mejorar Expresividad (Recursividad y Encadenamiento)
-  - [x] Implementar encadenamiento de relaciones (`A >> B >> C`)
-  - [x] Soportar participantes recursivos (`class C <> (A >> E, B)`)
-  - [x] Validar restricción de binariedad (máximo 2 participantes principales)
-- [x] Actualizar el Renderer para soportar clases de asociación
-  - [x] Planificar la visualización (línea punteada hacia el centro de la clase)
-  - [x] Implementar actualización de `UMLEdge` y `SVGRenderer`
-- [x] Documentar en `UML_SPEC.md` la nueva sintaxis y comportamiento.
-- [x] **FEAT: Soporte para Restricciones XOR**
-  - [x] Implementar parsing de bloques `xor { ... }` y restricciones in-line.
-  - [x] Análisis semántico y propagación al IR.
-  - [x] Layout basado en atracción para grupos XOR.
-  - [x] Renderizado de líneas punteadas y etiquetas `{xor}`.
-- [x] **Renderer: Nueva Estrategia de Layout por Niveles**
-  - [x] Implementar fase de pre-procesamiento para cálculo de Rango (Rank) basado en relaciones.
-  - [x] Implementar inversión de flujo semántico para Herencia/Implementación.
-  - [x] Configurar pesos de aristas en ELK según prioridad semántica.
-- [x] **FEAT: Inline Members en Relaciones**
-  - [x] Permitir bloques `{ ... }` en relaciones para definir miembros de la clase origen.
-  - [x] Integrar con el Analizador Semántico para acumulación de miembros.
-- [x] **FEAT: Control de Visibilidad de Dependencias**
-  - [x] Implementar opción `showDependencies` en el bloque de configuración.
-  - [x] Filtrado de aristas en el pipeline de renderizado.
-- [ ] **Fase: Interoperabilidad Semántica (XMI/UMLDI)**
-  - [ ] **Engine**: Implementar exportador de XMI (Metamodelo UML 2.5.1).
-  - [ ] **Renderer**: Implementar exportador de UMLDI (Coordenadas y Geometría).
-  - [ ] **VS Code**: Comando "Export to Standard UML" para consolidar ambos XML.
+- [x] **BUG**: Corregir redundancia de atributos (no mostrar en cajetín si existe relación visual)
+  - [x] Análisis arquitectónico (Opción A seleccionada)
+  - [x] Extender `IRRelationship` con campo `visibility`
+  - [x] **Semantic Analysis & Validation** <!-- id: 3 -->
+    - [x] Implement semantic rules (Inheritance cycles, Type compatibility) <!-- id: 7 -->
+    - [x] Implement member uniqueness validation <!-- id: 8 -->
+  - [x] Adaptar renderer (si aplica) para mostrar visibilidad en roles
+- [x] **BUG**: Etiquetas de roles se cortan en el renderizado (ej: `+ representación` -> `+ represent`)
+- [x] **BUG**: Fallo al nombrar una clase abstracta en línea (reportado por usuario)
+- [x] **FEAT**: Implementación completa de Clases Estáticas y Activas
+- [x] **BUG**: El botón de exportar en la extensión (Preview) no funciona
+- [x] Bug: Las relaciones se renderizan en (0,0) (como líneas huérfanas arriba a la izquierda).
+  - Causa: ELK usa coordenadas relativas al contenedor, pero el renderizado SVG asume absolutas. Faltaba resolver los offsets jerárquicos de las aristas.
+  - Solución: Implementada resolución recursiva de offsets de aristas y distribución por LCA.
+- [x] **BUG**: Diagrama desconectado / Nodos fantasmas en arquitectura.
+  - Causa: `SymbolTable` no resolvía nombres con puntos de forma relativa.
+  - Solución: Corregida lógica de `resolveFQN` y actualizado script de arquitectura.
+- [x] **BUG**: Interfaces en relaciones de atributos se renderizan como clases
+  - Problema: En `arquitectura_motor.umlts` línea 135, `- relationships: >+ IRRelationship[]` muestra `IRRelationship` como clase en el diagrama, pero es una interfaz.
+  - Causa: El SemanticAnalyzer no propaga el tipo de entidad (interface vs class) cuando crea relaciones implícitas desde atributos.
+  - Solución propuesta: Extender la lógica de `resolveOrRegisterImplicit` para consultar el tipo real de la entidad referenciada y preservarlo en la entidad implícita.
+- [x] **BUG**: Múltiples relaciones al mismo tipo con roles diferentes solo renderiza una
+  - Problema: En `DiagramNode` hay dos atributos (`attributes: >* IRMember` y `methods: >* IRMember`) que apuntan al mismo tipo con roles diferentes, pero el diagrama solo muestra la relación "attributes".
+  - Causa: El motor de renderizado no maneja correctamente múltiples asociaciones desde la misma clase hacia el mismo tipo destino.
+  - Impacto: Se pierde información semántica importante cuando una clase tiene múltiples relaciones con roles distintos hacia el mismo tipo.
+  - Solución implementada: Modificado `shouldCreateInferredRel` para considerar el `label` al verificar duplicados, permitiendo múltiples relaciones hacia el mismo tipo cuando tienen roles diferentes.
+- [x] **BUG**: Duplicidad visual de paquetes al usar FQN externos
+  - Problema: Definir relaciones con FQN fuera de los bloques `package` provoca la creación de contenedores "fantasma" duplicados.
+  - Causa: `SymbolTable.resolveFQN` no resolvía sufijos globales, creando entidades implícitas duplicadas.
+  - Solución: Implementada resolución por sufijo global en `resolveFQN`.
 
-- [ ] **Advanced Autocomplete** (Sugerencias basadas en el SymbolTable).
-- [x] **Refactoring: Reverse Engineering** (Generación de diagramas desde código TS).
-  - [x] Implementar Lexer Atómico (Keywords, Identifiers, Symbols, Strings, Imports).
-  - [x] Resolución de FQNs mediante mapa de imports relativos.
-  - [x] Extracción de Anatomía de Clases (Atributos, Métodos, Modificadores y Tipos).
-  - [x] Sistema de detección de dependencias cruzadas (Herencia, Implementación, Referencias).
-  - [x] Refinamiento de grupos XOR en uniones complejas y nulabilidad.
-  - [x] Soporte para FQNs en cabeceras de relación y multiplicidad en retornos del motor.
-  - [x] Soporte para guiones en identificadores (kebab-case).
-  - [x] Crear README con comandos de generación en `@umlts/blueprint`.
+## Optimización del Layout
 
-## Bugs
+- [x] Investigar parámetros de ELK para compactación
+- [x] Crear plan de pruebas de parámetros
+- [x] Aplicar mejoras y verificar resultados
 
-- [x] Posicionamiento erróneo de diagnósticos semánticos (Hardcoded en línea 1).
-- [x] Colisión de nombres entre Paquetes y Clases implícitas.
-- [x] El ruteo de herencia a veces genera loops visuales en layouts complejos.
-- [x] **FIX**: Doble corchete en multiplicidades de atributos (`[[1..*]]`).
-- [x] **FIX**: Anclaje de línea de clase de asociación (la línea atravesaba la caja).
-- [x] **FEAT**: Optimización de layout para clases de asociación (ahora se dibujan cerca de sus participantes).
-- [x] **FIX**: Errores de tipos en tests de Inline Enums (posible acceso a undefined).
-- [x] **FIX**: Error "Cannot read properties of undefined (reading 'forEach')" en el Renderer.
-- [x] **FIX**: Reposicionamiento de diagnósticos y visibilidad de miembros en Hovers de VS Code.
-- [ ] **BUG**: El Parser falla al procesar Nombres Cualificados (`package.Class`) dentro de los diamantes de genéricos `<...>`.
-- [ ] **UX**: Mejorar el mensaje de error de herencia inválida (`class >> interface`) para sugerir el uso de realización (`>I`).
+## Ajuste Fino de Espaciado
 
-## Cumplimiento UML 2.5.1 (Roadmap)
+- [x] Aumentar espaciado vertical entre capas
+- [x] Duplicar espaciado vertical (Phase 2)
+- [x] Triplicar espaciado vertical (Phase 3)
+- [x] Ajuste Final de Parámetros (Phase 4)
+- [x] Verificar balance entre horizontal y vertical
 
-- [x] **Acyclic Hierarchies** (No herencia circular).
-- [x] **Multiplicity Consistency** (Composición <= 1).
-- [x] **Namespace Uniqueness** (No duplicados en el mismo scope).
-- [x] **Structural Integrity** (Enums e Interfaces no pueden ser "Whole" en composiciones).
-- [x] **Classifier Validation** (Prohibir asociaciones/herencia con Paquetes).
-- [x] **Modifiers: leaf, final, root** (Soportar y validar modificadores de herencia).
-  - [x] Propagación de `isFinal` e `isRoot` al `IREntity` (antes solo existía `isLeaf`).
-  - [x] `final` en operaciones mapeado a `isLeaf=true` (semántica UML equivalente).
-  - [x] Corrección de tests: tipos UML puros (`Real`, `Integer`) en lugar de TS (`number`) para tests sin plugin.
-  - [x] Corrección de multiplicidades simples (`[2]` = `{lower:2, upper:2}`) vs rangos (`[0..2]`).
-- [ ] **Redefinition & Subsets** (Poder decir que una propiedad redefine a otra).
-- [ ] **Derived Properties** (Sintaxis `/propiedad` y validación).
-- [ ] **Components & Ports** (Implementación de puertos físicos en límites de caja).
-- [ ] **Generalization Sets** (Poder agrupar herencias con etiquetas como `{complete, disjoint}`).
-- [x] **FEAT**: Soporte para **Generales e Interfaces Genéricas** (UML Templates).
-  - [x] Parsing de parámetros de tipo en entidades.
-  - [x] Soporte en Mermaid Generator (sintaxis `~T~`).
-  - [x] Renderizado de Template Box (recuadro punteado) en el SVG.
-  - [x] Soporte para **Binding de Templates** (ej. `Repository<User>`).
-    - [x] Detección automática de argumentos de tipo en relaciones.
-    - [x] Mapeo de parámetros y generación de etiqueta `«bind»`.
-    - [x] Renderizado multilínea en etiquetas de relación (Mermaid y SVG).
-- [ ] **FEAT**: Soporte para **Generalization Sets** (Disjoint/Complete) y Powertypes.
+## Refinamiento Visual
 
-# Bugs
+- [x] Aumentar tamaño de flechas y rombos (Phase 5)
+- [x] Ajustar MARKER_CLEARANCE para evitar solapamientos
+- [x] Verificación final de estética con escenario complejo
+- [x] Implementar dirección de layout (`config direction`)
+- [x] Corregir bug de colisión 'constructor' en Lexer
+- [x] Rediseño de Arquitectura (Motor)
+  - [x] Componente Lexer (Revisión técnica)
+  - [x] Corregir duplicidad de Matchers (Namespaces)
+  - [x] Componente Parser
+  - [x] Soporte de relaciones in-line en tipos de retorno de métodos
+  - [x] Componente Semantics
+  - [x] Componente Generator e IR
+  - [x] Reparación de errores del diagrama (skill UML Diagram Generation)
+    - [x] Corregir 5 referencias FQN incorrectas
+    - [x] Corregir declaración de enums (interface → enum)
+  - [x] Agregar paquete Engine (UMLEngine facade)
+  - [x] **FIX**: Soporte FQN en Parser y Analyzer (core.DiagramNode)
+  - [x] **IMPROVEMENT**: Mejor manejo de errores en VS Code Preview
+  - [x] **FIX**: ELK falla con edges cross-package → Simplificadas opciones de layout
 
-- [ ] **FIX**: Ruteo de aristas de herencia forzado a N->S provoca bucles innecesarios en algunos layouts complejos en proyectos grandes.
-- [ ] **BUG**: Asegurar que todas las relaciones de composición/agregación sean siempre navegables (flecha obligatoria).
-- [ ] **BUG**: Corregir inconsistencias visuales y semánticas en la herencia doble/múltiple (ej. `A >> B >> C`).
-- [x] Refactorización: Análisis Arquitectónico y Refinamiento <!-- id: 5 -->
-  - [x] Aplicar principios SOLID (OCP, DRY, KISS) en el Parser.
-  - [x] Eliminar dependencias de TokenType en el orquestador Parser.ts.
-  - [x] Implementar Representación Uniforme (StatementNode[]) en todas las reglas.
-  - [x] Centralizar lógica de recuperación (synchronize) en ParserContext.
-  - [x] Centralizar lógica de modificadores en `ParserContext.consumeModifiers()` (Cumplimiento DRY).
-  - [x] **Refactorización Arquitectónica de ParserContext** (Grado Profesional):
-    - [x] Extraer navegación a `TokenStream`.
-    - [x] Extraer gestión de errores a `DiagnosticReporter`.
-    - [x] Extraer gestión de documentación a `DocRegistry`.
-    - [x] Convertir `ParserContext` en una Fachada (Facade) de coordinación (Sandbox).
-    - [x] Elevar al `Parser` como protagonista.
-    - [x] **Limpieza Arquitectónica** (Anti-Smell): Eliminar Feature Envy y centralizar sincronización en `ParserContext` mediante predicados.
-  - [x] Validar principios SOLID (OCP, LSP, Alta Cohesión) en el pipeline del motor.
-  - [x] **Refinar Nodos de Sintaxis (AST Refactor)**:
-    - [x] Unificar propiedades de modificadores en una interfaz reutilizable `Modifiers`.
-    - [x] Actualizar `EntityNode`, `RelationshipHeaderNode`, `AttributeNode`, `MethodNode`, `ParameterNode` y `RelationshipNode` para usar `Modifiers`.
-    - [x] Actualizar capa semántica (`EntityAnalyzer`, `RelationshipAnalyzer`, `SymbolTable`) para soportar la nueva estructura AST.
-    - [x] Actualizar y validar diagramas de arquitectura (`parser.umlts`).
+## Arquitectura y Estructura (Renderer)
 
-- [x] **Gestión proactiva de errores y robustez (Post-Rebase)**:
-  - [x] Unificar `mapVisibility` para soportar palabras clave (public, private...) tras identificar fallos de mapeo.
-  - [x] Refactorizar `MethodRule` y `ParameterRule` para usar `consumeModifiers()` centralizado.
-  - [x] Asegurar integridad de tipos en `EntityAnalyzer` mediante narrowing explícito.
-  - [x] Validar construcción total del monorepo (`pnpm -r build`) y tests unitarios.
+- [x] Análisis arquitectónico del pipeline (Aprobado)
+- [x] Refactorización estructural por etapas del Pipeline:
+  - [x] Crear estructura de Vertical Slices (`adaptation/`, `layout/`, `drawing/`)
+  - [x] Mover componentes del Core a sus respectivas etapas
+  - [x] Reubicar Helpers (`utils/`) y Elementos (`elements/`) junto a sus consumidores
+  - [x] Actualizar imports
+  - [x] Verificar integridad del bundle
 
-# Notas de Implementación
+## Evolución Arquitectónica (Renderer V2)
 
-- Se ha rebasado con éxito `feat/layout-xor-enhancements` sobre `origin/main` tras la refactorización SOLID.
-- Todos los imports se han migrado de `parser/ast/nodes` a `syntax/nodes` para consolidar el lenguaje.
-- Se ha corregido un bug en `EntityAnalyzer` donde visibilidades como `protected` no se mapeaban correctamente desde palabras clave.
+- [x] Segregación del Core (`contract/` vs `model/`)
+- [x] Transformación a Modelo de Dominio Rico (Clases `UMLNode`, `UMLEdge`)
+- [x] Implementación de `SVGBuilder` y Patrón de Dibujo Desacoplado
+- [x] Formalización del Orquestador de Pipeline (`UMLRenderer`)
+- [x] Abstracción de Jerarquía (`UMLHierarchyItem`) para soporte agnóstico de contenedores
+- [x] Corrección de Bug de Layout Jerárquico (Offsets de aristas y proporciones)
 
-- [x] **Refinamiento de Análisis de Relaciones**:
-  - [x] Soporte para nombres de roles (Asociation Ends) mediante etiquetas explícitas o nombres de propiedad.
-  - [x] Mapeo de multiplicidades por defecto para colecciones (`List<T>`, `Array<T>`, `Set<T>`, etc. -> `0..*`).
-  - [x] Normalización de tipos primitivos (`string` -> `String`, `number` -> `Real`, `boolean` -> `Boolean`).
-  - [x] Eliminación de entidades redundantes para retornos `void` y otros tipos "vacíos".
-  - [x] Soporte para operadores de agregación (`>+`) y composición (`>*`) en miembros de clase.
-  - [x] Parsing de multiplicidades en parámetros de métodos y propiedades.
+## Publicación y Despliegue
+
+- [x] **TASK**: Login en NPM
+- [x] **TASK**: Configurar tokens de acceso (si es necesario)
+- [x] **TASK**: Verificar permisos de publicación
+
+## Refactorización del Motor (Parser V2)
+
+- [x] **TASK**: Descomposición de la "God Rule" `EntityRule`
+  - [x] Extraer `MemberRule` (Atributos y Métodos)
+  - [x] Extraer `ParameterRule`
+  - [x] Extraer `RelationshipHeaderRule` (Lógica de herencia/relaciones en cabeceras)
+  - [x] Implementar soporte para `EnumRule` especializada
+  - [x] Verificar integridad del AST y build
+
+## Soporte para Configuración de Diagrama (DSL)
+
+- [x] **TASK**: Definir sintaxis del bloque de configuración (ej: `config { ... }`)
+- [x] **TASK**: Actualizar Lexer con nuevos tokens (`config`, llaves, etc.)
+- [x] **TASK**: Implementar `ConfigRule` en el Parser
+- [x] **TASK**: Extender AST para incluir el nodo de configuración
+- [x] **TASK**: Propagar configuración a través de la IR
+- [x] **TASK**: Adaptar Renderer para consumir opciones dinámicas
+
+### Herramientas de Desarrollo (LSP)
+
+- [x] **TASK**: Añadir autocompletado para el bloque `config` y sus propiedades
+- [x] **TASK**: Incluir ayuda contextual (tooltips) para opciones de configuración
+
+## Optimizaciones Avanzadas (ELK Expert Level)
+
+- [x] **TASK**: Implementar Puertos (Ports) en nodos de Clase
+  - [x] Definir interfaz de Ports en el modelo interno del Renderer
+  - [x] Añadir puertos cardinales (N, S, E, W) a cada nodo en la fase de Adaptación
+  - [x] Actualizar el generador de JSON para ELK con la estructura de `ports`
+- [x] **TASK**: Enrutamiento Ortogonal (Ángulos Rectos)
+  - [x] Investigar y aplicar `elk.edgeRouting: ORTHOGONAL`
+  - [x] Ajustar puntos de control para que el SVG dibuje líneas quebradas en lugar de rectas/curvas
+- [x] **TASK**: Refinar Jerarquía Completa
+  - [x] Asegurar que las aristas conecten puertos finales (`ClaseA.out` -> `ClaseB.in`)
+  - [x] Optimizar `layoutOptions` para minimizar cruces de líneas
+- [x] **FEAT**: Optimización de Layout (Long Hierarchical Edges)
+  - [x] Implementar espaciado dinámico basado en `config` (Horizontal y Vertical)
+  - [x] Migrar de puertos fijos a `portConstraints: FREE` para evitar embudos
+  - [x] Desactivar `mergeEdges` para trayectorias de aristas independientes
+  - [x] Optimizar cruce de paquetes mediante enrutamiento jerárquico nativo
+
+## Depuración y Calidad (VS Code Extension)
+
+- [x] **BUG**: Corregir errores de resolución de módulos (`ts-uml-engine` -> `@umlts/engine`)
+- [x] **FEAT**: Sincronizar autocompletado y ayuda contextual en `extension.ts`
+- [x] **IMPROVEMENT**: Soporte para propiedades de `config` contextuales
+- [x] **FIX**: Mapeo correcto de severidad de diagnósticos (Warnings vs Errors)
+- [x] **VERIFY**: Verificación de compilación exitosa de la extensión
+
+## Mantenimiento y Rendimiento (Pnpm & Workspace)
+
+- [x] **TASK**: Migrar la gestión de paquetes de `npm` a `pnpm`.
+- [x] **FIX**: Resolver dependencias faltantes de `vscode-languageserver` en `apps/vscode`.
+- [x] **IMPROVEMENT**: Configurar `NodeNext` en `server/tsconfig.json` para soporte nativo de `exports` de espacio de trabajo.
+- [x] **FIX**: Tipado fuerte en `server.ts` (eliminación de `any` y uso de interfaces de IR).
+- [x] **OPTIMIZATION**: Corregir bucle de construcción recursivo y habilitar `pnpm -r build` para paralelismo seguro.
+- [x] **IMPROVEMENT**: Optimizar el layout de ELK para reducir desorden, mejorar compacidad y minimizar cruces.
+- [x] **FEATURE**: Implementar sistema de auto-escalado (responsive) y zoom manual
+- [x] **IMPROVEMENT**: Mejorar legibilidad and encuadre dinámico (Auto-Fit corregido)
+- [x] **FIX**: Viewport del SVG ignora los límites de los paquetes (Clipping)
+- [/] **FIX**: Ruteo de aristas de herencia forzado a N->S provoca bucles innecesarios
+- [x] **FIX**: Robustecer autocompletado de `config` en LSP (Heurística de detección de contexto)
+
+### Motor (@umlts/engine) - Preparación Alpha
+
+- [x] **FIX**: Corregir tests de Lexer (`TokenType.GT` mismatch)
+- [x] **FIX**: Corregir tests de Parser (Ajustar a `TypeNode` en lugar de strings)
+- [x] **CHORE**: Evaluar y mejorar cobertura de tests del motor
+- [x] **CHORE**: Actualizar versión a `0.8.0-alpha.1` e incluir `README` básico
+
+### Infraestructura de Calidad y CI
+
+- [x] **CHORE**: Configurar ESLint y Prettier (Base monorepo - "TS Standard")
+- [x] **CHORE**: Configurar Husky y lint-staged (Pre-commits)
+- [x] **CHORE**: Configurar GitHub Actions (CI para PRs: Lint + Test + Build)
+- [x] **CHORE**: Eliminar `any` y estandarizar tipos en `@umlts/engine` y `@umlts/renderer`
+- [x] **FIX**: Corregir uso de `any` en `packages/engine/src/semantics/__test__/semantic-rules.test.ts`
+- [x] **FIX**: Error de compilación en `index.ts` (faltaba instanciar `ParserContext` para `SemanticAnalyzer`)
+- [x] **FIX**: Validar relaciones de nivel superior y mejorar reporte de errores semánticos <!-- id: 189 -->
+- [x] **CHORE**: Corregir errores de formato Prettier y ESLint auto-fix <!-- id: 190 -->
+- [x] **FIX**: Resolver conflictos entre Prettier y el formateador interno de VS Code
+- [x] **CHORE**: Configurar ESLint y Prettier con `standard-with-typescript` y resolver conflictos de versión <!-- id: 196 -->
+- [x] **FIX**: Resolver errores de linter por reglas incompatibles de Standard v8 e ignorar archivos de configuración <!-- id: 197 -->
+- [x] **FIX**: Limpiar los 21 warnings restantes del linter (variables no usadas y console statements en herramientas) <!-- id: 198 -->
+
+## Refactorización del Análisis Semántico (V2)
+
+- [x] **ARCH**: Dividir `SemanticAnalyzer` en sub-componentes especializados <!-- id: 191 -->
+  - [x] Crear `EntityAnalyzer`, `RelationshipAnalyzer` y `ContextAnalyzer`
+  - [x] Implementar `TypeValidator`, `HierarchyValidator` y `FQNBuilder`
+- [x] **FEAT**: Implementar validación de tipos en miembros (atributos/parámetros) <!-- id: 192 -->
+- [x] **FEAT**: Añadir advertencias (Warnings) para entidades implícitas <!-- id: 193 -->
+- [x] **FIX**: Mejorar construcción de FQNs para soportar rutas absolutas <!-- id: 194 -->
+- [x] **TEST**: Verificar refactorización con batería de tests extendida <!-- id: 195 -->
+- [x] **FIX**: Depuración y resolución de fallos en CI (Build @umlts/renderer)
+  - [x] Corregir lógica de nulos en `LayoutEngine` (`elkNode.children ?? []`)
+  - [x] Estandarizar IR entre motor y renderer para evitar conflictos de tipos
+  - [x] Resolver advertencias de `any` implícito en el renderer
+  - [x] Verificar build y tests locales en todo el workspace
+  - [x] Purgar y verificar CI en GitHub
+- [x] **FEAT**: Implementar reglas de UML 2.5.1 sobre Propiedades/Atributos
+  - [x] Validación de consistencia de multiplicidad (`upper >= lower`)
+  - [x] Validación de agregación compuesta (multiplicidad del contenedor <= 1)
+- [x] **REFAC**: Implementar estrategia de análisis de 3 pases (Discovery, Definition, Resolution)
+- [x] **FIX**: Mejora de resolución FQN con mecanismo "Global Scout"
+- [x] **FEAT**: Registro automático de entidades implícitas en tipos de miembros (Sencillez UMLTS)
+- [x] **FIX**: Soporte de multiplicidad en parámetros de métodos (ej: `name: type[1..*]`)
+- [x] **FIX**: Resolución de FQN en relaciones externas y paquetes anidados
+- [x] **FIX**: Ubicación precisa (Line/Col) en diagnósticos de entidades implícitas
+- [x] **FIX**: Soporte de relaciones por defecto (Asociación) para miembros sin operador
+- [x] **FIX**: Corregir arquitectura de `semantics.umlts` para reflejar la estructura real de paquetes (`parser`, `generator.ir`)
+- [x] **CHORE**: Traducir todos los mensajes de error y comentarios internos al inglés (Regla Global #2)
+- [x] **FEAT**: Implementar sistema de inferencia de tipos por contexto de relación (`TypeInferrer`)
+- [x] **FIX**: Resolver ambigüedades en entidades implícitas (`class >I B` ahora registra `B` como Interfaz)
+- [x] **TEST**: Alcanzar cobertura del 96% en el paquete `semantics`
+- [x] **DOC**: Actualizar `semantics.umlts` con la nueva arquitectura (TypeInferrer, rules)
+- [x] **PR**: Crear Pull Request "Refactor Semántico V2: Declaraciones Flexible y Resolución FQN Robusta"
+
+## Próximos Pasos (V3)
+
+- [ ] Explorar soporte para Association Classes
+- [ ] Implementar autocompletado avanzado basado en la nueva resolución FQN
+
+## Ingeniería Inversa Blueprint (Extractor v1.0)
+
+- [x] **FEAT**: Create `@umlts/blueprint` package structure
+- [x] **FEAT**: Implement `BlueprintExtractor` based on `ts-morph`
+- [x] **FEAT**: Support for Inheritance, Realization, Association, Aggregation, and Composition
+- [x] **FEAT**: Implement Dependency detection (`>-`) via AST analysis of method bodies
+- [x] **DOC**: Document relationship heuristics (Visibility, Versatility, Momentarity)
+- [x] **IMPROVEMENT**: "Surgeon Effect" (Public Getters) and Global Versatility Map
+
+## Ingeniería Inversa Quirúrgica (Surgeon Extractor)
+
+- [x] **TASK**: Definir workflow de extracción manual en `.agent/workflows/surgeon-extractor.md`
+- [x] **FEAT**: Implementar Pasada -1 (Configuración)
+  - [x] Lectura de `tsconfig.json` para resolución de Aliases (Heurística inicial implementada)
+  - [x] Mapeo de paquetes basado en estructura de carpetas de monorepo
+- [x] **FEAT**: Implementar Pasada 0 (Imports & Scope)
+  - [x] Escaneo de cabeceras para mapeo de FQNs vía imports
+  - [x] Identificación de dependencias externas (Shadowing)
+- [x] **FEAT**: Implementar Pasada 1 (Órganos)
+  - [x] Extracción de entidades (class/interface)
+  - [x] Mapeo de atributos estructurales para composición/agregación
+- [x] **FEAT**: Implementar Pasada 2 (Síntesis & Cirujano)
+  - [x] Escaneo de firmas de métodos para dependencias de uso
+  - [x] Aplicación del _Surgeon Effect_ (No duplicar líneas si hay relación estructural)
+- [x] **TEST**: Validar extracción del paquete `engine/semantics` sin ruido visual y compilación Exitosa (Verificado con CLI)
+- [x] **FIX**: Corregir "ruido" en extracción de miembros (evitar capturar parámetros de métodos como propiedades)
+- [x] **IMPROVEMENT**: Implementar resolución FQN basada en imports para evitar duplicidad de clases en el diagrama
