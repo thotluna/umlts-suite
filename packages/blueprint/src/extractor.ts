@@ -103,24 +103,67 @@ export class BlueprintExtractor {
     })
 
     // Methods
+    const dependencies = new Set<string>()
     cls.getMethods().forEach((method) => {
       const visibility = this.getModifierVisibility(method)
+      const returnType = method.getReturnType().getText()
+      this.collectTypeDependency(method.getReturnType(), dependencies, cls)
+
       const params = method
         .getParameters()
-        .map((p) => `${p.getName()}: ${this.cleanType(p.getType().getText())}`)
+        .map((p) => {
+          this.collectTypeDependency(p.getType(), dependencies, cls)
+          return `${p.getName()}: ${this.cleanType(p.getType().getText())}`
+        })
         .join(', ')
-      body += `    ${visibility}${method.getName()}(${params}): ${this.cleanType(method.getReturnType().getText())}\n`
+
+      body += `    ${visibility}${method.getName()}(${params}): ${this.cleanType(returnType)}\n`
+
+      // Analyze body for local variable dependencies
+      method.getDescendantsOfKind(SyntaxKind.Identifier).forEach((id) => {
+        const type = id.getType()
+        this.collectTypeDependency(type, dependencies, cls)
+      })
     })
 
     body += `  }\n\n`
-    return body
+
+    // Internal Dependencies as UMLTS relations
+    dependencies.forEach((dep) => {
+      body += `  ${name} --D> ${dep}\n`
+    })
+
+    return body + '\n'
   }
 
   /**
-   * Heuristic to detect relationship type.
-   * o-- Agregación: Se recibe en el constructor pero se guarda.
-   * *-- Composición: Se instancia dentro de la clase (new).
-   * --> Asociación: Es una propiedad pero no está clara la dueñidad.
+   * Collects a type as a dependency if it's a complex entity and not the class itself or a property.
+   */
+  private collectTypeDependency(type: Type, set: Set<string>, cls: ClassDeclaration): void {
+    if (type.isBoolean() || type.isString() || type.isNumber() || type.isVoid() || type.isAny()) {
+      return
+    }
+
+    const typeName = this.cleanType(type.getText())
+    if (typeName === cls.getName()) return
+
+    // Avoid adding if it's already a property (Association/Aggregation/Composition)
+    const isProperty = cls
+      .getProperties()
+      .some((p) => this.cleanType(p.getType().getText()) === typeName)
+    if (isProperty) return
+
+    // Simple heuristic: if it starts with Uppercase, it's likely an entity we care about
+    if (/^[A-Z]/.test(typeName) && !typeName.includes('<') && !typeName.includes('[')) {
+      set.add(typeName)
+    }
+  }
+
+  /**
+   * Heuristic to detect relationship type using UMLTS operators.
+   * o-- Aggregation: Received in constructor and stored.
+   * *-- Composition: Instantiated inside the class (new).
+   * --> Association: Simple property reference.
    */
   private detectRelationship(prop: PropertyDeclaration, cls: ClassDeclaration): string | null {
     const type = prop.getType()
@@ -128,7 +171,7 @@ export class BlueprintExtractor {
 
     const initializer = prop.getInitializer()
     if (initializer && initializer.getText().includes('new ')) {
-      return '*--' // Composición (creación interna)
+      return '*--' // Composition
     }
 
     // Check constructor assignments
@@ -136,16 +179,15 @@ export class BlueprintExtractor {
     for (const ctor of constructors) {
       const text = ctor.getText()
       if (text.includes(`this.${prop.getName()} = `)) {
-        // Si se asigna desde un parámetro del ctor es Agregación
         const params = ctor.getParameters().map((p) => p.getName())
         const assignment = text.match(new RegExp(`this.${prop.getName()}\\s*=\\s*(\\w+)`))
         if (assignment && params.includes(assignment[1])) {
-          return 'o--'
+          return 'o--' // Aggregation
         }
       }
     }
 
-    return '-->' // Por defecto Asociación si es un objeto complejo
+    return '-->' // Association
   }
 
   private cleanType(type: string): string {
@@ -166,6 +208,7 @@ export class BlueprintExtractor {
 
   private derivePackageName(filePath: string): string {
     const parts = filePath.split('/')
-    return parts[parts.length - 2] || 'root'
+    const name = parts[parts.length - 2] || 'root'
+    return name.replace(/[^a-zA-Z0-9]/g, '_')
   }
 }
