@@ -130,7 +130,7 @@ export class BlueprintExtractor {
 
     // Internal Dependencies as UMLTS relations
     dependencies.forEach((dep) => {
-      body += `  ${name} --D> ${dep}\n`
+      body += `  ${name} >- ${dep}\n`
     })
 
     return body + '\n'
@@ -161,9 +161,9 @@ export class BlueprintExtractor {
 
   /**
    * Heuristic to detect relationship type using UMLTS operators.
-   * o-- Aggregation: Received in constructor and stored.
-   * *-- Composition: Instantiated inside the class (new).
-   * --> Association: Simple property reference.
+   * >* Composition: Instantiated inside the class (new).
+   * >+ Aggregation: Received in constructor and stored.
+   * >  Association: Simple property reference.
    */
   private detectRelationship(prop: PropertyDeclaration, cls: ClassDeclaration): string | null {
     const type = prop.getType()
@@ -171,7 +171,7 @@ export class BlueprintExtractor {
 
     const initializer = prop.getInitializer()
     if (initializer && initializer.getText().includes('new ')) {
-      return '*--' // Composition
+      return '>*' // Composition
     }
 
     // Check constructor assignments
@@ -182,12 +182,12 @@ export class BlueprintExtractor {
         const params = ctor.getParameters().map((p) => p.getName())
         const assignment = text.match(new RegExp(`this.${prop.getName()}\\s*=\\s*(\\w+)`))
         if (assignment && params.includes(assignment[1])) {
-          return 'o--' // Aggregation
+          return '>+' // Aggregation
         }
       }
     }
 
-    return '-->' // Association
+    return '>' // Association
   }
 
   private cleanType(type: string): string {
