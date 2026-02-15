@@ -54,6 +54,10 @@ export class SymbolMatcher implements TokenMatcher {
         reader.advance()
         return { type: TokenType.OP_AGREG, value: '>+', line: startLine, column: startColumn }
       }
+      if (next === '<') {
+        reader.advance()
+        return { type: TokenType.OP_ASSOC, value: '><', line: startLine, column: startColumn }
+      }
       if (next === '-') {
         reader.advance()
         return { type: TokenType.OP_USE, value: '>-', line: startLine, column: startColumn }
@@ -71,6 +75,7 @@ export class SymbolMatcher implements TokenMatcher {
           '>implements': TokenType.KW_IMPLEMENTS,
           '>comp': TokenType.KW_COMP,
           '>agreg': TokenType.KW_AGREG,
+          '>assoc': TokenType.KW_ASSOC,
           '>use': TokenType.KW_USE,
         }
 
@@ -91,6 +96,23 @@ export class SymbolMatcher implements TokenMatcher {
       reader.advance()
       reader.advance()
       return { type: TokenType.RANGE, value: '..', line: startLine, column: startColumn }
+    }
+
+    // Operadores que empiezan con < (Bidireccional y Generics)
+    if (char === '<') {
+      const snap = reader.snapshot()
+      reader.advance()
+      const next = reader.peek()
+
+      if (next === '>') {
+        reader.advance()
+        return { type: TokenType.OP_ASSOC_BIDIR, value: '<>', line: startLine, column: startColumn }
+      }
+
+      // Si no es un operador especial, devolvemos solo el <
+      reader.rollback(snap)
+      reader.advance()
+      return { type: TokenType.LT, value: '<', line: startLine, column: startColumn }
     }
 
     const symbolType = this.SYMBOLS[char]

@@ -38,7 +38,7 @@ describe('Lexer', () => {
   })
 
   it('should tokenize relations and symbols correctly', () => {
-    const input = '>> >I >* >+ >- >'
+    const input = '>> >I >* >+ >- >< > <>'
     const lexer = LexerFactory.create(input)
     const tokens = lexer.tokenize()
 
@@ -47,7 +47,9 @@ describe('Lexer', () => {
     expect(tokens[2].type).toBe(TokenType.OP_COMP)
     expect(tokens[3].type).toBe(TokenType.OP_AGREG)
     expect(tokens[4].type).toBe(TokenType.OP_USE)
-    expect(tokens[5].type).toBe(TokenType.GT)
+    expect(tokens[5].type).toBe(TokenType.OP_ASSOC)
+    expect(tokens[6].type).toBe(TokenType.GT)
+    expect(tokens[7].type).toBe(TokenType.OP_ASSOC_BIDIR)
   })
 
   it('should tokenize braces and other symbols', () => {
