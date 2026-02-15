@@ -165,3 +165,45 @@ class Guerrero >> Personaje {
     items: >* Espada[]
 }
 ```
+
+## 11. Clases de Asociación
+
+La clase de asociación une las propiedades de una clase con la semántica de una relación. Permite que la relación en sí misma tenga atributos y métodos.
+
+- **Sintaxis**: `class Nombre <> (Participante1 [m], Participante2 [n]) { ... }`
+- **Características**:
+  - Utiliza el operador de diamante vacío `<>` para indicar la asociación.
+  - Los participantes se definen entre paréntesis, separados por coma.
+  - Soporta multiplicidades individuales para cada extremo.
+  - **Restricción**: Solo se permiten exactamente 2 participantes (relación binaria).
+- **Ejemplo**:
+  ```text
+  class Matricula <> (Estudiante [1], Curso [*]) {
+    fecha: Date
+    nota: decimal
+  }
+  ```
+
+## 12. Expresividad Avanzada (Recursividad y Encadenamiento)
+
+UMLTS permite "bosquejar" estructuras complejas minimizando el número de líneas mediante el uso de recursividad sintáctica.
+
+### 12.1. Encadenamiento de Relaciones (Chaining)
+
+Es posible encadenar múltiples relaciones en una sola línea. El destino de una relación se convierte automáticamente en el origen de la siguiente.
+
+- **Sintaxis**: `A >> B >> C >> D`
+- **Multiplicidades en cadena**: `A [1] >> [*] B [1] >> [0..1] C`
+- **Resultado en el IR**: Se generan N-1 relaciones independientes que el motor resuelve y vincula.
+
+### 12.2. Participantes Recursivos
+
+Dentro de la declaración de una clase de asociación, los participantes pueden definir sus propias relaciones de herencia o dependencia "al vuelo".
+
+- **Sintaxis**: `class C <> (A >> E, B >> F)`
+- **Regla de Resolución**: El **primer identificador** encontrado es siempre el participante oficial de la asociación. Los elementos subsiguientes se procesan como relaciones paralelas de dicho participante.
+- **Ejemplo**:
+  ```text
+  // C vincula a A y B, pero también define que A hereda de E y B de F.
+  class C <> (A >> E, B >> F)
+  ```

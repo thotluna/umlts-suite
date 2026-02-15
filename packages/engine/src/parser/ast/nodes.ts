@@ -11,14 +11,16 @@ export enum ASTNodeType {
   COMMENT = 'Comment',
   TYPE = 'Type',
   CONFIG = 'Config',
+  ASSOCIATION_CLASS = 'AssociationClass',
 }
 
 export interface TypeNode extends ASTNode {
   type: ASTNodeType.TYPE
-  kind: 'simple' | 'generic' | 'array'
+  kind: 'simple' | 'generic' | 'array' | 'enum'
   raw: string
   name: string
   arguments?: TypeNode[]
+  values?: string[]
 }
 
 export interface ASTNode {
@@ -34,7 +36,13 @@ export interface ProgramNode extends ASTNode {
   diagnostics?: Array<import('../diagnostic.types').Diagnostic>
 }
 
-export type StatementNode = PackageNode | EntityNode | RelationshipNode | CommentNode | ConfigNode
+export type StatementNode =
+  | PackageNode
+  | EntityNode
+  | RelationshipNode
+  | AssociationClassNode
+  | CommentNode
+  | ConfigNode
 
 export interface PackageNode extends ASTNode {
   type: ASTNodeType.PACKAGE
@@ -106,6 +114,17 @@ export interface RelationshipNode extends ASTNode {
   toMultiplicity: string | undefined
   kind: string
   label: string | undefined
+}
+
+export interface AssociationClassNode extends ASTNode {
+  type: ASTNodeType.ASSOCIATION_CLASS
+  name: string
+  participants: {
+    name: string
+    multiplicity?: string
+    relationships?: RelationshipHeaderNode[]
+  }[]
+  body: MemberNode[] | undefined
 }
 
 export interface CommentNode extends ASTNode {

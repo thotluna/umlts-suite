@@ -169,9 +169,50 @@ export function renderEdge(
     )
   }
 
+  const extraElements: string[] = []
+  const renderOptions = options as DiagramConfig['render']
+
+  // ── Association Class Connector ──────────────────────────────────────────
+  if (edge.associationClassId && renderOptions?.nodes) {
+    const assocNode = renderOptions.nodes.get(edge.associationClassId)
+
+    if (assocNode) {
+      const mid = midpoint(wps)
+      const centerX = assocNode.x + assocNode.width / 2
+      const centerY = assocNode.y + assocNode.height / 2
+
+      // Calculate intersection point on node border
+      const dx = mid.x - centerX
+      const dy = mid.y - centerY
+
+      let targetX = centerX
+      let targetY = centerY
+
+      if (dx !== 0 || dy !== 0) {
+        const halfW = assocNode.width / 2
+        const halfH = assocNode.height / 2
+        const sx = Math.abs(halfW / dx)
+        const sy = Math.abs(halfH / dy)
+        const s = Math.min(sx, sy)
+        targetX = centerX + dx * s
+        targetY = centerY + dy * s
+      }
+
+      extraElements.push(
+        svg.path({
+          d: `M ${mid.x} ${mid.y} L ${targetX} ${targetY}`,
+          fill: 'none',
+          stroke: theme.edgeStroke,
+          'stroke-width': theme.edgeStrokeWidth,
+          'stroke-dasharray': '5,5',
+        }),
+      )
+    }
+  }
+
   return svg.g(
     { class: 'edge', 'data-from': edge.from, 'data-to': edge.to, 'data-index': index },
-    pathEl + labels.join(''),
+    pathEl + labels.join('') + extraElements.join(''),
   )
 }
 

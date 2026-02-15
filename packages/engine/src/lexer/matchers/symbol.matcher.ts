@@ -25,6 +25,7 @@ export class SymbolMatcher implements TokenMatcher {
     '<': TokenType.LT,
     '>': TokenType.GT,
     '?': TokenType.QUESTION,
+    '@': TokenType.AT,
   }
 
   public match(reader: LexerReader): Token | null {

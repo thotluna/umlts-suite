@@ -26,7 +26,11 @@ export class Parser implements Orchestrator {
 
         const stmt = this.parseStatement(context)
         if (stmt != null) {
-          body.push(stmt)
+          if (Array.isArray(stmt)) {
+            body.push(...stmt)
+          } else {
+            body.push(stmt)
+          }
         } else {
           context.addError('Unrecognized statement')
           this.synchronize(context)
@@ -72,7 +76,7 @@ export class Parser implements Orchestrator {
   /**
    * Intenta parsear una sentencia usando las reglas registradas.
    */
-  public parseStatement(context: ParserContext): StatementNode | null {
+  public parseStatement(context: ParserContext): StatementNode | StatementNode[] | null {
     if (context.isAtEnd()) return null
 
     for (const rule of this.rules) {

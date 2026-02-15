@@ -58,7 +58,7 @@ describe('Parser', () => {
     expect(attr1.typeAnnotation.name).toBe('string')
 
     const attr2 = cls.body![1] as AttributeNode
-    expect(attr2.multiplicity).toBe('[0..1]')
+    expect(attr2.multiplicity).toBe('0..1')
 
     const method = cls.body![2] as MethodNode
     expect(method.type).toBe(ASTNodeType.METHOD)
@@ -68,7 +68,7 @@ describe('Parser', () => {
   })
 
   it('should parse a class with relationship header', () => {
-    const input = 'class Admin >> User, >I IAuth {}'
+    const input = 'class Admin >> User >I IAuth {}'
     const tokens = LexerFactory.create(input).tokenize()
     const parser = ParserFactory.create()
     const ast = parser.parse(tokens)
@@ -91,9 +91,9 @@ describe('Parser', () => {
     const rel = ast.body[0] as RelationshipNode
     expect(rel.type).toBe(ASTNodeType.RELATIONSHIP)
     expect(rel.from).toBe('User')
-    expect(rel.fromMultiplicity).toBe('[1]')
+    expect(rel.fromMultiplicity).toBe('1')
     expect(rel.kind).toBe('>>')
-    expect(rel.toMultiplicity).toBe('[*]')
+    expect(rel.toMultiplicity).toBe('*')
     expect(rel.to).toBe('Post')
   })
 
@@ -107,7 +107,7 @@ describe('Parser', () => {
     const method = cls.body![0] as MethodNode
     const param = method.parameters[0]
     expect(param.name).toBe('items')
-    expect(param.multiplicity).toBe('[1..*]')
+    expect(param.multiplicity).toBe('1..*')
   })
 
   it('should parse new dependency operators (>- and >use)', () => {

@@ -16,8 +16,13 @@ export class PackageRule implements StatementRule {
     const body: StatementNode[] = []
     while (!context.check(TokenType.RBRACE) && !context.isAtEnd()) {
       const stmt = orchestrator.parseStatement(context)
-      if (stmt != null) body.push(stmt)
-      else {
+      if (stmt != null) {
+        if (Array.isArray(stmt)) {
+          body.push(...stmt)
+        } else {
+          body.push(stmt)
+        }
+      } else {
         // Si no hay match y no es fin de bloque, algo va mal.
         // Por ahora avanzamos para evitar bucle infinito.
         context.advance()

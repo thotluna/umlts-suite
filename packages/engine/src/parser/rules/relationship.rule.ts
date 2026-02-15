@@ -5,7 +5,7 @@ import type { ParserContext } from '../parser.context'
 import type { StatementRule } from '../rule.types'
 
 export class RelationshipRule implements StatementRule {
-  public parse(context: ParserContext): RelationshipNode | null {
+  public parse(context: ParserContext): RelationshipNode[] | null {
     const pos = context.getPosition()
 
     try {
@@ -30,57 +30,75 @@ export class RelationshipRule implements StatementRule {
         fromMultiplicity = context.prev().value
       }
 
-      // El siguiente token debe ser un tipo de relación válido
-      if (!this.isRelationshipType(context.peek().type)) {
+      const relationships: RelationshipNode[] = []
+
+      while (this.isRelationshipType(context.peek().type)) {
+        const kind = context.advance().value
+        let toMultiplicity: string | undefined
+
+        if (context.check(TokenType.LBRACKET)) {
+          toMultiplicity = this.parseMultiplicity(context)
+        } else if (context.match(TokenType.STRING)) {
+          toMultiplicity = context.prev().value
+        }
+
+        const toIsAbstract = context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)
+        let to = context.consume(TokenType.IDENTIFIER, 'Target entity name expected').value
+
+        // Support for FQN on destination
+        while (context.match(TokenType.DOT)) {
+          to += '.' + context.consume(TokenType.IDENTIFIER, 'Identifier expected after dot').value
+        }
+
+        // Support for generics on destination: B<T>
+        if (context.match(TokenType.LT)) {
+          to += '<'
+          while (!context.check(TokenType.GT) && !context.isAtEnd()) {
+            to += context.advance().value
+          }
+          to += context.consume(TokenType.GT, "Expected '>'").value
+        }
+
+        // Optional label (only for the link between current 'from' and 'to')
+        let label: string | undefined
+        if (context.match(TokenType.COLON)) {
+          label = context.consume(TokenType.STRING, 'Label string expected').value
+        }
+
+        relationships.push({
+          type: ASTNodeType.RELATIONSHIP,
+          from,
+          fromIsAbstract,
+          fromMultiplicity,
+          to,
+          toIsAbstract,
+          toMultiplicity,
+          kind,
+          label,
+          docs: context.consumePendingDocs(),
+          line: fromToken.line,
+          column: fromToken.column,
+        })
+
+        // Para el encadenamiento, el destino actual es el origen del siguiente
+        from = to
+        // Las multiplicidades y abstracción del nuevo 'from' deben resetearse o Parsearse de nuevo si el lenguaje lo permite
+        // En una cadena A [1] >> [2] B [3] >> [4] C:
+        // Rel1: A[1] >> [2] B
+        // Rel2: B[3] >> [4] C
+        // Necesitamos intentar parsear una nueva multiplicidad para el 'from' si existe
+        fromMultiplicity = undefined
+        if (context.check(TokenType.LBRACKET)) {
+          fromMultiplicity = this.parseMultiplicity(context)
+        }
+      }
+
+      if (relationships.length === 0) {
         context.rollback(pos)
         return null
       }
 
-      const kind = context.advance().value
-      let toMultiplicity: string | undefined
-
-      if (context.check(TokenType.LBRACKET)) {
-        toMultiplicity = this.parseMultiplicity(context)
-      } else if (context.match(TokenType.STRING)) {
-        toMultiplicity = context.prev().value
-      }
-
-      const toIsAbstract = context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)
-      let to = context.consume(TokenType.IDENTIFIER, 'Target entity name expected').value
-
-      // Support for FQN on destination
-      while (context.match(TokenType.DOT)) {
-        to += '.' + context.consume(TokenType.IDENTIFIER, 'Identifier expected after dot').value
-      }
-
-      // Support for generics on destination: B<T>
-      if (context.match(TokenType.LT)) {
-        to += '<'
-        while (!context.check(TokenType.GT) && !context.isAtEnd()) {
-          to += context.advance().value
-        }
-        to += context.consume(TokenType.GT, "Expected '>'").value
-      }
-
-      let label: string | undefined
-      if (context.match(TokenType.COLON)) {
-        label = context.consume(TokenType.STRING, 'Label string expected').value
-      }
-
-      return {
-        type: ASTNodeType.RELATIONSHIP,
-        from,
-        fromIsAbstract,
-        fromMultiplicity,
-        to, // Ahora usamos la variable 'to' que incluye genéricos y FQNs
-        toIsAbstract,
-        toMultiplicity,
-        kind,
-        label,
-        docs: context.consumePendingDocs(),
-        line: fromToken.line,
-        column: fromToken.column,
-      }
+      return relationships
     } catch (_e) {
       context.rollback(pos)
       return null
@@ -107,11 +125,12 @@ export class RelationshipRule implements StatementRule {
   }
 
   private parseMultiplicity(context: ParserContext): string {
-    let value = context.consume(TokenType.LBRACKET, '').value
+    context.consume(TokenType.LBRACKET, '')
+    let value = ''
     while (!context.check(TokenType.RBRACKET) && !context.isAtEnd()) {
       value += context.advance().value
     }
-    value += context.consume(TokenType.RBRACKET, "Expected ']'").value
+    context.consume(TokenType.RBRACKET, "Expected ']'")
     return value
   }
 }

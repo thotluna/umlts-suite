@@ -32,12 +32,12 @@ export class ParameterRule {
     let multiplicity: string | undefined
 
     if (context.check(TokenType.LBRACKET)) {
-      multiplicity = '['
+      multiplicity = ''
       context.advance()
       while (!context.check(TokenType.RBRACKET) && !context.isAtEnd()) {
         multiplicity += context.advance().value
       }
-      multiplicity += context.consume(TokenType.RBRACKET, "Expected ']'").value
+      context.consume(TokenType.RBRACKET, "Expected ']'")
     }
 
     return {

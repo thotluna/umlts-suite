@@ -67,6 +67,7 @@ export class IRAdapter {
       rel.visibility,
       rel.fromMultiplicity,
       rel.toMultiplicity,
+      rel.associationClassId,
     )
   }
 

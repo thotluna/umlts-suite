@@ -16,7 +16,7 @@ export class TypeRule {
 
     let raw = context.advance().value
     let name = raw
-    let kind: 'simple' | 'generic' | 'array' = 'simple'
+    let kind: 'simple' | 'generic' | 'array' | 'enum' = 'simple'
     let args: TypeNode[] | undefined
 
     // Soporte para FQN (Fully Qualified Names): core.DiagramNode
@@ -26,8 +26,28 @@ export class TypeRule {
       name = raw // En FQN, el nombre incluye el path
     }
 
-    // Soporte para genéricos: Tipo<T, K>
-    if (context.match(TokenType.LT)) {
+    // Soporte para enums inline: EnumName(VAL1 | VAL2)
+    let values: string[] | undefined
+    if (context.match(TokenType.LPAREN)) {
+      kind = 'enum'
+      values = []
+      raw += '('
+
+      while (!context.check(TokenType.RPAREN) && !context.isAtEnd()) {
+        if (context.check(TokenType.IDENTIFIER)) {
+          const val = context.consume(TokenType.IDENTIFIER, '').value
+          values.push(val)
+          raw += val
+        } else if (context.match(TokenType.PIPE)) {
+          raw += ' | '
+        } else {
+          context.advance()
+        }
+      }
+
+      raw += context.consume(TokenType.RPAREN, "Expected ')' after enum values").value
+    } else if (context.match(TokenType.LT)) {
+      // Soporte para genéricos: Tipo<T, K>
       kind = 'generic'
       raw += '<'
       args = []
@@ -79,6 +99,7 @@ export class TypeRule {
       name,
       raw,
       arguments: args,
+      values,
       line: token.line,
       column: token.column,
     }

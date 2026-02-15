@@ -1,8 +1,8 @@
 import { TokenType } from '../../lexer/token.types'
-import type { EntityNode, MemberNode, EntityType } from '../ast/nodes'
 import { ASTNodeType } from '../ast/nodes'
+import type { MemberNode, EntityType, AssociationClassNode, StatementNode } from '../ast/nodes'
 import type { ParserContext } from '../parser.context'
-import type { StatementRule } from '../rule.types'
+import type { StatementRule, Orchestrator } from '../rule.types'
 import { RelationshipHeaderRule } from './relationship-header.rule'
 import { MemberRule } from './member.rule'
 
@@ -10,7 +10,7 @@ export class EntityRule implements StatementRule {
   private readonly relationshipHeaderRule = new RelationshipHeaderRule()
   private readonly memberRule = new MemberRule()
 
-  public parse(context: ParserContext): EntityNode | null {
+  public parse(context: ParserContext, _orchestrator: Orchestrator): StatementNode | null {
     const pos = context.getPosition()
     let isActive = context.match(TokenType.KW_ACTIVE, TokenType.MOD_ACTIVE)
     let isAbstract = context.match(TokenType.KW_ABSTRACT, TokenType.MOD_ABSTRACT)
@@ -32,6 +32,60 @@ export class EntityRule implements StatementRule {
     if (token.type === TokenType.KW_ENUM) type = ASTNodeType.ENUM
 
     const nameToken = context.consume(TokenType.IDENTIFIER, 'Entity name expected')
+
+    // CHECK FOR ASSOCIATION CLASS: class C <> (A[m], B[n])
+    if (type === ASTNodeType.CLASS && context.match(TokenType.OP_ASSOC_BIDIR)) {
+      context.consume(TokenType.LPAREN, "Expected '(' after '<>' in association class")
+      const participants: AssociationClassNode['participants'] = []
+      do {
+        const pName = context.consume(TokenType.IDENTIFIER, 'Expected participant name').value
+
+        // 1. Multiplicidad: [1] o [0..*]
+        let pMultiplicity: string | undefined
+        if (context.match(TokenType.LBRACKET)) {
+          pMultiplicity = ''
+          while (!context.check(TokenType.RBRACKET) && !context.isAtEnd()) {
+            pMultiplicity += context.advance().value
+          }
+          context.consume(TokenType.RBRACKET, "Expected ']'")
+        }
+
+        // 2. Relaciones anidadas: >> E
+        // Pasamos null como multiplicity 'from' porque ya lo capturamos arriba si fuera necesario asociarlo
+        // En este contexto, pMultiplicity es del participante en la asociación principal (<>),
+        // no necesariamente del inicio de la cadena de herencia, pero visualmente está pegado al identificador.
+        const pRelationships = this.relationshipHeaderRule.parse(context)
+
+        participants.push({
+          name: pName,
+          multiplicity: pMultiplicity,
+          relationships: pRelationships,
+        })
+      } while (context.match(TokenType.COMMA))
+
+      context.consume(TokenType.RPAREN, "Expected ')' after participants")
+
+      // Parse body if present
+      let body: MemberNode[] | undefined
+      if (context.match(TokenType.LBRACE)) {
+        body = []
+        while (!context.check(TokenType.RBRACE) && !context.isAtEnd()) {
+          const member = this.memberRule.parse(context)
+          if (member != null) body.push(member)
+        }
+        context.consume(TokenType.RBRACE, "Expected '}'")
+      }
+
+      return {
+        type: ASTNodeType.ASSOCIATION_CLASS,
+        name: nameToken.value,
+        participants,
+        body,
+        line: token.line,
+        column: token.column,
+        docs: context.consumePendingDocs(),
+      } as AssociationClassNode
+    }
 
     const docs = context.consumePendingDocs()
 

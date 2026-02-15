@@ -16,52 +16,67 @@ import type { StatementRule } from '../rule.types'
  */
 export class ConfigRule implements StatementRule {
   public parse(context: ParserContext): ConfigNode | null {
-    if (!context.check(TokenType.KW_CONFIG)) {
-      return null
+    // 1. Sintaxis de bloque: config { ... }
+    if (context.match(TokenType.KW_CONFIG)) {
+      const configToken = context.prev()
+      context.consume(TokenType.LBRACE, "Expected '{' after 'config'.")
+      const options = this.parseBlockOptions(context)
+      context.consume(TokenType.RBRACE, "Expected '}' at the end of config block.")
+
+      return {
+        type: ASTNodeType.CONFIG,
+        options,
+        line: configToken.line,
+        column: configToken.column,
+      }
     }
 
-    const configToken = context.consume(TokenType.KW_CONFIG, "Expected 'config' keyword.")
-    context.consume(TokenType.LBRACE, "Expected '{' after 'config'.")
+    // 2. Sintaxis de línea: @key: value
+    if (context.match(TokenType.AT)) {
+      const atToken = context.prev()
+      const keyToken = context.consume(TokenType.IDENTIFIER, 'Expected configuration key after @.')
+      context.consume(TokenType.COLON, "Expected ':' after key.")
+      const value = this.parseValue(context)
 
+      return {
+        type: ASTNodeType.CONFIG,
+        options: { [keyToken.value]: value },
+        line: atToken.line,
+        column: atToken.column,
+      }
+    }
+
+    return null
+  }
+
+  private parseBlockOptions(context: ParserContext): Record<string, unknown> {
     const options: Record<string, unknown> = {}
-
     while (!context.isAtEnd() && !context.check(TokenType.RBRACE)) {
-      // Allow optional commas or just newlines
       if (context.match(TokenType.COMMA)) continue
 
       const keyToken = context.consume(TokenType.IDENTIFIER, 'Expected configuration key.')
       context.consume(TokenType.COLON, "Expected ':' after key.")
-
-      let value: unknown
-      if (context.check(TokenType.STRING)) {
-        value = context.consume(TokenType.STRING, '').value
-      } else if (context.check(TokenType.NUMBER)) {
-        value = Number(context.consume(TokenType.NUMBER, '').value)
-      } else if (
-        context.match(
-          TokenType.KW_PUBLIC,
-          TokenType.KW_PRIVATE,
-          TokenType.KW_PROTECTED,
-          TokenType.KW_INTERNAL,
-        )
-      ) {
-        // Some keywords might be used as values (like visibility)
-        value = context.prev().value
-      } else {
-        // Default to identifier value as string
-        value = context.consume(TokenType.IDENTIFIER, 'Expected configuration value.').value
-      }
-
-      options[keyToken.value] = value
+      options[keyToken.value] = this.parseValue(context)
     }
+    return options
+  }
 
-    context.consume(TokenType.RBRACE, "Expected '}' at the end of config block.")
-
-    return {
-      type: ASTNodeType.CONFIG,
-      options,
-      line: configToken.line,
-      column: configToken.column,
+  private parseValue(context: ParserContext): unknown {
+    if (context.check(TokenType.STRING)) {
+      return context.consume(TokenType.STRING, '').value
+    } else if (context.check(TokenType.NUMBER)) {
+      return Number(context.consume(TokenType.NUMBER, '').value)
+    } else if (
+      context.match(
+        TokenType.KW_PUBLIC,
+        TokenType.KW_PRIVATE,
+        TokenType.KW_PROTECTED,
+        TokenType.KW_INTERNAL,
+      )
+    ) {
+      return context.prev().value
+    } else {
+      return context.consume(TokenType.IDENTIFIER, 'Expected configuration value.').value
     }
   }
 }

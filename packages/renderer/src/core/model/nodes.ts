@@ -90,6 +90,7 @@ export class UMLEdge {
     public readonly visibility?: string,
     public readonly fromMultiplicity?: string,
     public readonly toMultiplicity?: string,
+    public readonly associationClassId?: string,
   ) {}
 
   public updateLayout(

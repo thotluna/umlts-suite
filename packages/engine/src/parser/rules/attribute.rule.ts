@@ -37,11 +37,11 @@ export class AttributeRule {
     let multiplicity: string | undefined
 
     if (context.match(TokenType.LBRACKET)) {
-      multiplicity = '['
+      multiplicity = ''
       while (!context.check(TokenType.RBRACKET) && !context.isAtEnd()) {
         multiplicity += context.advance().value
       }
-      multiplicity += context.consume(TokenType.RBRACKET, "Expected ']'").value
+      context.consume(TokenType.RBRACKET, "Expected ']'")
     }
 
     return {
