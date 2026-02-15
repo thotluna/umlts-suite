@@ -374,17 +374,17 @@ class ResolutionVisitor implements ASTVisitor {
 
     // Procesar relaciones anidadas en los participantes
     node.participants.forEach((p) => {
-      const fromFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
+      let currentFromFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
         p.name,
         ns,
         {},
         node.line,
         node.column,
       )
-      const fromEntity = this.symbolTable.get(fromFQN)
 
       p.relationships?.forEach((rel) => {
         const relType = this.relationshipAnalyzer.mapRelationshipType(rel.kind)
+        const fromEntity = this.symbolTable.get(currentFromFQN)
         const inferenceContext = fromEntity
           ? { sourceType: fromEntity.type, relationshipKind: relType }
           : undefined
@@ -397,7 +397,10 @@ class ResolutionVisitor implements ASTVisitor {
           rel.column,
           inferenceContext,
         )
-        this.relationshipAnalyzer.addRelationship(fromFQN, toFQN, rel.kind, rel)
+        this.relationshipAnalyzer.addRelationship(currentFromFQN, toFQN, rel.kind, rel)
+
+        // Advance in the chain: the current target becomes the source for the next link
+        currentFromFQN = toFQN
       })
     })
 

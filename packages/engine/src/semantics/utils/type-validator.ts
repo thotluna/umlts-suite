@@ -23,6 +23,8 @@ export class TypeValidator {
     'date',
     'time',
     'datetime',
+    'decimal',
+    'binary',
   ])
 
   /**
