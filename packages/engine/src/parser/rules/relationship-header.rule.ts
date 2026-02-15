@@ -23,10 +23,11 @@ export class RelationshipHeaderRule {
     ) {
       const kind = context.prev().value
       const targetIsAbstract = context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)
-      let target = context.consume(
+      const targetToken = context.consume(
         TokenType.IDENTIFIER,
         'Se esperaba el nombre del objetivo de la relación',
-      ).value
+      )
+      let target = targetToken.value
 
       // Opcionalmente consumir argumentos de tipo: <string>
       if (context.match(TokenType.LT)) {
@@ -42,8 +43,8 @@ export class RelationshipHeaderRule {
         kind,
         target,
         targetIsAbstract,
-        line: context.prev().line,
-        column: context.prev().column,
+        line: targetToken.line,
+        column: targetToken.column,
       })
 
       // Comma opcional

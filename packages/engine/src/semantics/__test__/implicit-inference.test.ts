@@ -93,7 +93,7 @@ describe('Implicit Entity Type Inference', () => {
       .getDiagnostics()
       .find((d) => d.code === DiagnosticCode.SEMANTIC_REALIZATION_INVALID)
     expect(error).toBeDefined()
-    expect(error?.message).toContain('Invalid realization')
+    expect(error?.message).toContain('Invalid implementation')
 
     // Verify B is still a CLASS
     const b = ir.entities.find((e) => e.name === 'B')

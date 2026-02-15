@@ -72,31 +72,56 @@ export class HierarchyValidator {
    * Validates a single inheritance/implementation relationship.
    */
   public validateRelationship(from: IREntity, to: IREntity, type: IRRelationshipType): void {
+    const errorToken: Token = {
+      line: from.line || 1,
+      column: from.column || 1,
+      type: TokenType.UNKNOWN,
+      value: from.name, // Use the entity name for length
+    }
+
+    // 1. RULE: Inheritance (>>) rules
     if (type === IRRelationshipType.INHERITANCE) {
+      // General match check
       if (from.type !== to.type) {
         this.context.addError(
-          `Invalid inheritance: ${from.type} '${from.name}' cannot extend ${to.type} '${to.name}'.`,
-          {
-            line: from.line || 1,
-            column: from.column || 1,
-            type: TokenType.UNKNOWN,
-            value: '',
-          } as Token,
+          `Invalid inheritance: ${from.type} '${from.name}' cannot extend ${to.type} '${to.name}'. Both must be of the same type.`,
+          errorToken,
+          DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
+        )
+        return
+      }
+
+      // Special case: Enums cannot extend/be extended
+      if (from.type === IREntityType.ENUM) {
+        this.context.addError(
+          `Invalid inheritance: Enums cannot participate in inheritance hierarchies ('${from.name}').`,
+          errorToken,
           DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
         )
       }
     }
 
+    // 2. RULE: Implementation (>I) rules
     if (type === IRRelationshipType.IMPLEMENTATION) {
-      if (from.type === IREntityType.CLASS && to.type === IREntityType.CLASS) {
+      // Target must be an Interface
+      if (to.type !== IREntityType.INTERFACE) {
+        const reco =
+          to.type === IREntityType.CLASS
+            ? 'Use inheritance (>>).'
+            : 'This relationship is not allowed in UML.'
         this.context.addError(
-          `Invalid realization: A class cannot implement another class '${to.name}'. Use inheritance.`,
-          {
-            line: from.line || 1,
-            column: from.column || 1,
-            type: TokenType.UNKNOWN,
-            value: '',
-          } as Token,
+          `Invalid implementation: '${from.name}' cannot implement ${to.type} '${to.name}'. Only interfaces can be implemented. ${reco}`,
+          errorToken,
+          DiagnosticCode.SEMANTIC_REALIZATION_INVALID,
+        )
+        return
+      }
+
+      // Source must be a Class (or theoretically a Component, which we map as Class for now)
+      if (from.type !== IREntityType.CLASS) {
+        this.context.addError(
+          `Invalid implementation: An ${from.type} ('${from.name}') cannot implement an interface. Only classes can satisfy interface contracts.`,
+          errorToken,
           DiagnosticCode.SEMANTIC_REALIZATION_INVALID,
         )
       }

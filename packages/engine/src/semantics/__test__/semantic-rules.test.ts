@@ -48,7 +48,7 @@ describe('Semantic Rules', () => {
       (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_REALIZATION_INVALID,
     )
     expect(error).toBeDefined()
-    expect(error?.message).toContain('Invalid realization')
+    expect(error?.message).toContain('Invalid implementation')
   })
 
   it('should detect direct cycles in inheritance', () => {
@@ -184,5 +184,35 @@ describe('Semantic Rules', () => {
     const error = diagnostics.find((d) => d.code === DiagnosticCode.SEMANTIC_AMBIGUOUS_ENTITY)
     expect(error).toBeDefined()
     expect(error?.message).toContain('Ambiguity detected')
+  })
+
+  it('should detect invalid aggregation on Enums', () => {
+    const source = `
+      enum Color { RED, BLUE }
+      class Car
+      Color >+ Car // Error: Enum cannot be the whole of an aggregation
+    `
+    const { analyzer, program, context } = parseAndAnalyze(source)
+    analyzer.analyze(program, context)
+
+    const diagnostics = context.getDiagnostics()
+    const error = diagnostics.find((d) => /enum/i.test(d.message) && /aggregation/i.test(d.message))
+    expect(error).toBeDefined()
+  })
+
+  it('should detect invalid composition on Interfaces', () => {
+    const source = `
+      interface IView
+      class Element
+      IView >* Element // Error: Interface cannot own parts via composition
+    `
+    const { analyzer, program, context } = parseAndAnalyze(source)
+    analyzer.analyze(program, context)
+
+    const diagnostics = context.getDiagnostics()
+    const error = diagnostics.find(
+      (d) => /interface/i.test(d.message) && /composition/i.test(d.message),
+    )
+    expect(error).toBeDefined()
   })
 })
