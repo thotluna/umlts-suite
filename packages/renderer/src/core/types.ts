@@ -1,4 +1,4 @@
-import type { DiagramModel } from './model/nodes'
+import { type DiagramModel, type UMLNode } from './model/nodes'
 
 export type * from './contract/ir'
 export * from './model/nodes'
@@ -30,5 +30,7 @@ export interface DiagramConfig {
     height?: number | string
     /** Nivel de zoom relativo (1.0 = 100%). Menor a 1.0 aleja, mayor acerca. */
     zoomLevel?: number
+    /** @internal Mapa de nodos para consultas rápiads durante el renderizado de edges */
+    nodes?: Map<string, UMLNode>
   }
 }

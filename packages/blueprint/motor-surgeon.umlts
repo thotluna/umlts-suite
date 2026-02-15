@@ -1,10 +1,46 @@
 config {
     direction: DOWN
 }
-package ModuloA {
-    class Cliente >> Servidor  // Herencia (Hijo arriba por default en ELK)
+package Billing.Core {
+  // 1. Jerarquía de Entidades Legales (Chaining)
+  // Definimos la cadena de herencia en una sola línea
+  Enterprise >> Organization >> LegalEntity
+  Startup >> Organization
+  // 2. Gestión de Suscripciones (Association Class con Recursividad)
+  // La clase 'Subscription' vincula a un 'Customer' con un 'Plan'.
+  // Al vuelo, definimos que el Plan tiene categorías y el Customer es un tipo de Entidad.
+  
+  class Subscription <> (
+    Customer [1] >> LegalEntity, 
+    Plan [*] >> BaseProduct >> CatalogItem
+  ) {
+    + startDate: Date
+    + status: > SubscriptionStatus(ACTIVE | CANCELLED | EXPIRED)
+    + priceOverride: decimal
+    
+    + calculateRenewalDate(): Date
+    - validateBillingAddress(): boolean
+  }
+  // 3. Composición de Facturas
+  class Invoice {
+    - invoiceNumber: string
+    - totalAmount: decimal
+    
+    // Composición: una factura tiene múltiples líneas
+    items: >* InvoiceLine[1..*]
+    
+    + generatePDF(): binary
+  }
 }
-class Servidor >> Base     // Herencia
-Base >- ModuloA.Cliente 
-
-class A > ModuloA   
+package Billing.Payments {
+  // 4. Cadena de Métodos de Pago
+  CreditCard >> PaymentMethod >> BasePayment
+  BankTransfer >> PaymentMethod
+  Crypto >> PaymentMethod
+  // 5. Relación entre Factura y Pago
+  // Una factura puede ser pagada por uno o más métodos de pago
+  Billing.Core.Invoice [1] >< [*] PaymentMethod : "paid by"
+}
+// 6. Relaciones externas rápidas (Chaining)
+// Definimos el flujo de logs del sistema
+Billing.Core.BaseProduct >> LoggableEntity >> System.BaseObject

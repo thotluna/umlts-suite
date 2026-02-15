@@ -25,10 +25,14 @@ export class ParserContext {
   }
 
   public peekNext(): Token {
-    if (this.current + 1 >= this.tokens.length) {
+    if (this.splitTokens.length > 1) {
+      return this.splitTokens[1]
+    }
+    const offset = this.splitTokens.length === 1 ? 0 : 1
+    if (this.current + offset >= this.tokens.length) {
       return this.tokens[this.tokens.length - 1]
     }
-    return this.tokens[this.current + 1]
+    return this.tokens[this.current + offset]
   }
 
   public prev(): Token {

@@ -5,6 +5,7 @@ import type {
   RelationshipNode,
   CommentNode,
   ConfigNode,
+  AssociationClassNode,
 } from '../parser/ast/nodes'
 import type { ASTVisitor } from '../parser/ast/visitor'
 import { walkAST } from '../parser/ast/visitor'
@@ -16,8 +17,7 @@ import { RelationshipAnalyzer } from './analyzers/relationship-analyzer'
 import { HierarchyValidator } from './validators/hierarchy-validator'
 import { TypeValidator } from './utils/type-validator'
 import { DiagnosticCode } from '../parser/diagnostic.types'
-import { TokenType } from '../lexer/token.types'
-import type { Token } from '../lexer/token.types'
+import { TokenType, type Token } from '../lexer/token.types'
 import { IRRelationshipType, IRVisibility } from '../generator/ir/models'
 
 /**
@@ -115,6 +115,8 @@ export class SemanticAnalyzer {
             relType,
             member.multiplicity,
             member.visibility,
+            undefined, // fromMultiplicity is not inferred from members
+            undefined, // associationClassId is not inferred from members
             member.line,
             member.column,
           )
@@ -129,8 +131,10 @@ export class SemanticAnalyzer {
     fromNamespace?: string,
     label?: string,
     relType: IRRelationshipType = IRRelationshipType.ASSOCIATION,
-    multiplicity?: string,
+    toMultiplicity?: string,
     visibility?: IRVisibility,
+    fromMultiplicity?: string,
+    associationClassId?: string,
     line?: number,
     column?: number,
   ): void {
@@ -155,8 +159,10 @@ export class SemanticAnalyzer {
       line,
       column,
       label,
-      toMultiplicity: multiplicity,
+      toMultiplicity,
+      fromMultiplicity,
       visibility,
+      associationClassId,
     })
   }
 
@@ -228,6 +234,11 @@ class DiscoveryVisitor implements ASTVisitor {
   visitConfig(node: ConfigNode): void {
     this.analyzer.addConfig(node.options)
   }
+
+  visitAssociationClass(node: AssociationClassNode): void {
+    const entity = this.entityAnalyzer.buildAssociationClass(node, this.currentNamespace.join('.'))
+    this.symbolTable.register(entity)
+  }
 }
 
 /**
@@ -261,6 +272,14 @@ class DefinitionVisitor implements ASTVisitor {
   visitRelationship(_node: RelationshipNode): void {}
   visitComment(_node: CommentNode): void {}
   visitConfig(_node: ConfigNode): void {}
+
+  visitAssociationClass(node: AssociationClassNode): void {
+    const fqn = this.symbolTable.resolveFQN(node.name, this.currentNamespace.join('.')).fqn
+    const entity = this.symbolTable.get(fqn)
+    if (entity && node.body) {
+      this.entityAnalyzer.processAssociationClassMembers(entity, node)
+    }
+  }
 }
 
 /**
@@ -348,4 +367,87 @@ class ResolutionVisitor implements ASTVisitor {
 
   visitComment(_node: CommentNode): void {}
   visitConfig(_node: ConfigNode): void {}
+
+  visitAssociationClass(node: AssociationClassNode): void {
+    const ns = this.currentNamespace.join('.')
+    const assocFQN = this.symbolTable.resolveFQN(node.name, ns).fqn
+
+    // Procesar relaciones anidadas en los participantes
+    node.participants.forEach((p) => {
+      const fromFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
+        p.name,
+        ns,
+        {},
+        node.line,
+        node.column,
+      )
+      const fromEntity = this.symbolTable.get(fromFQN)
+
+      p.relationships?.forEach((rel) => {
+        const relType = this.relationshipAnalyzer.mapRelationshipType(rel.kind)
+        const inferenceContext = fromEntity
+          ? { sourceType: fromEntity.type, relationshipKind: relType }
+          : undefined
+
+        const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
+          rel.target,
+          ns,
+          { isAbstract: rel.targetIsAbstract },
+          rel.line,
+          rel.column,
+          inferenceContext,
+        )
+        this.relationshipAnalyzer.addRelationship(fromFQN, toFQN, rel.kind, rel)
+      })
+    })
+
+    if (node.participants.length !== 2) {
+      const context = this.relationshipAnalyzer.getContext()
+      if (context) {
+        context.addError(
+          `Association class '${node.name}' must have exactly 2 participants, found ${node.participants.length}.`,
+          {
+            line: node.line,
+            column: node.column,
+            type: TokenType.IDENTIFIER,
+            value: node.name,
+          } as Token,
+          DiagnosticCode.SEMANTIC_INVALID_ASSOCIATION_CLASS,
+        )
+      }
+      if (node.participants.length < 2) return
+    }
+
+    const p1 = node.participants[0]
+    const p2 = node.participants[1]
+
+    const fromFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
+      p1.name,
+      ns,
+      {},
+      node.line,
+      node.column,
+    )
+    const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
+      p2.name,
+      ns,
+      {},
+      node.line,
+      node.column,
+    )
+
+    // Creamos la relación y la vinculamos a la clase
+    this.relationshipAnalyzer.addResolvedRelationship(
+      fromFQN,
+      toFQN,
+      IRRelationshipType.BIDIRECTIONAL,
+      {
+        line: node.line,
+        column: node.column,
+        fromMultiplicity: p1.multiplicity,
+        toMultiplicity: p2.multiplicity,
+        associationClassId: assocFQN,
+      },
+    )
+  }
 }

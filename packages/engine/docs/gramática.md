@@ -25,11 +25,15 @@ identifier     ::= (alpha | "_") (alpha | digit | "_" | ".")*
 ## 3. Entidades (Estructuras de Datos)
 
 ```ebnf
-entity_def     ::= [modifiers] entity_type identifier [modifiers] [inheritance_opt] [implementation_chain] body_opt
+entity_def     ::= [modifiers] entity_type identifier [modifiers] (inheritance_opt | association_class_opt)? [implementation_chain] body_opt
 
 modifiers      ::= (static_opt | abstract_opt | active_opt)*
 
-inheritance_opt ::= (">>" | ">extends") [abstract_opt] identifier
+inheritance_opt ::= (relationship_type [abstract_opt] identifier)+
+
+association_class_opt ::= "<>" "(" participant "," participant ")"
+
+participant    ::= identifier [multiplicity] [inheritance_opt]
 
 implementation_chain ::= ((">I" | ">implements") identifier)+
 
@@ -67,7 +71,7 @@ relationship_mark ::= ">*" | ">+" | ">>" | ">I"
 ```ebnf
 relationship_header ::= relationship_type identifier
 
-relationship_def    ::= identifier multiplicity_opt relationship_type multiplicity_opt [abstract_opt] identifier
+relationship_def    ::= identifier multiplicity_opt (relationship_type multiplicity_opt [abstract_opt] identifier)+
 
 multiplicity_opt    ::= multiplicity | empty
 
@@ -76,6 +80,7 @@ relationship_type   ::= ">>" | ">extends"
                       | ">*" | ">comp"
                       | ">+" | ">agreg"
                       | ">-" | ">use"
+                      | ">"  | "><" | "<>"
 ```
 
 ## 6. Multiplicidad y Enums

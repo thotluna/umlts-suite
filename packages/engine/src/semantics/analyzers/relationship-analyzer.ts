@@ -31,6 +31,10 @@ export class RelationshipAnalyzer {
     this.associationValidator = new AssociationValidator(context!)
   }
 
+  public getContext(): ParserContext | undefined {
+    return this.context
+  }
+
   /**
    * Resolves a target entity and registers it as implicit if missing.
    * Can optionally infer the target type based on the source entity and relationship.
@@ -101,6 +105,7 @@ export class RelationshipAnalyzer {
       toMultiplicity?: string
       fromMultiplicity?: string
       visibility?: IRVisibility
+      associationClassId?: string
     },
   ): void {
     const fromEntity = this.symbolTable.get(fromFQN)
@@ -132,6 +137,7 @@ export class RelationshipAnalyzer {
       toMultiplicity: meta.toMultiplicity,
       fromMultiplicity: meta.fromMultiplicity,
       visibility: meta.visibility || IRVisibility.PUBLIC,
+      associationClassId: meta.associationClassId,
     }
 
     this.relationships.push(irRel)

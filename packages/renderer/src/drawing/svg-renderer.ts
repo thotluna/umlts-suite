@@ -37,8 +37,11 @@ export class SVGRenderer {
       .join('')
 
     // 4. Render Edges
+    const nodesMap = new Map(model.nodes.map((n) => [n.id, n]))
     const edgesStr = model.edges
-      .map((edge, _idx) => DrawingRegistry.render('Edge', edge, theme, config))
+      .map((edge, _idx) =>
+        DrawingRegistry.render('Edge', edge, theme, { ...config, nodes: nodesMap }),
+      )
       .join('')
 
     // Combine everything with proper grouping

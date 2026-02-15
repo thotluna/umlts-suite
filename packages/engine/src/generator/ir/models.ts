@@ -87,6 +87,7 @@ export interface IRRelationship {
   toMultiplicity?: string | undefined
   label?: string
   visibility?: IRVisibility
+  associationClassId?: string // Link to the IREntity that represents the class aspect
   docs?: string | undefined
   line?: number
   column?: number

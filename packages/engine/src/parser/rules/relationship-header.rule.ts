@@ -46,9 +46,6 @@ export class RelationshipHeaderRule {
         line: targetToken.line,
         column: targetToken.column,
       })
-
-      // Comma opcional
-      context.match(TokenType.COMMA)
     }
 
     return relationships

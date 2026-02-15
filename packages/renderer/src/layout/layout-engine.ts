@@ -184,6 +184,29 @@ export class LayoutEngine {
 
       if (!groups.has(lcaId)) groups.set(lcaId, [])
       groups.get(lcaId)!.push(elkEdge)
+
+      if (edge.associationClassId) {
+        // We create a virtual chain: Source -> AssociationClass -> Target
+        // This encourages ELK to place the association class "between" the participants.
+        const chain = [
+          { s: edge.from, t: edge.associationClassId!, id: `v${index}_s` },
+          { s: edge.associationClassId!, t: edge.to, id: `v${index}_t` },
+        ]
+
+        chain.forEach((link) => {
+          const vLcaId = this.findLCA(link.s, link.t)
+          const vElkEdge: ElkExtendedEdge = {
+            id: link.id,
+            sources: [link.s],
+            targets: [link.t],
+            layoutOptions: {
+              'elk.edge.weight': '10', // High attraction
+            },
+          }
+          if (!groups.has(vLcaId)) groups.set(vLcaId, [])
+          groups.get(vLcaId)!.push(vElkEdge)
+        })
+      }
     })
 
     return groups

@@ -8,7 +8,13 @@ import { FQNBuilder } from '../utils/fqn-builder'
 import { MultiplicityValidator } from '../utils/multiplicity-validator'
 import { TokenType } from '../../lexer/token.types'
 import type { Token } from '../../lexer/token.types'
-import type { EntityNode, MemberNode, AttributeNode, MethodNode } from '../../parser/ast/nodes'
+import type {
+  EntityNode,
+  MemberNode,
+  AttributeNode,
+  MethodNode,
+  AssociationClassNode,
+} from '../../parser/ast/nodes'
 import { ASTNodeType } from '../../parser/ast/nodes'
 
 /**
@@ -45,9 +51,39 @@ export class EntityAnalyzer {
   }
 
   /**
+   * Builds an IREntity from an AssociationClassNode.
+   */
+  public buildAssociationClass(node: AssociationClassNode, namespace: string): IREntity {
+    const fqn = FQNBuilder.build(node.name, namespace)
+    const { name: shortName, namespace: entityNamespace } = FQNBuilder.split(fqn)
+
+    return {
+      id: fqn,
+      name: shortName,
+      type: IREntityType.CLASS,
+      members: [],
+      isImplicit: false,
+      isAbstract: false,
+      isStatic: false,
+      isActive: false,
+      docs: node.docs,
+      line: node.line,
+      column: node.column,
+      namespace: entityNamespace,
+    }
+  }
+
+  /**
    * Processes and fills the members of an already registered entity.
    */
   public processMembers(entity: IREntity, node: EntityNode): void {
+    entity.members = this.mapMembers(node.body ?? [], entity.namespace || '')
+  }
+
+  /**
+   * Processes members for an AssociationClass.
+   */
+  public processAssociationClassMembers(entity: IREntity, node: AssociationClassNode): void {
     entity.members = this.mapMembers(node.body ?? [], entity.namespace || '')
   }
 

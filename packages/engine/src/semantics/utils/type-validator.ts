@@ -30,9 +30,13 @@ export class TypeValidator {
    */
   public static isPrimitive(typeName: string): boolean {
     const baseType = typeName.replace(/[[\]]/g, '').toLowerCase()
-    const cleanBaseType = baseType.includes('<')
+    let cleanBaseType = baseType.includes('<')
       ? baseType.substring(0, baseType.indexOf('<'))
       : baseType
+
+    if (cleanBaseType.includes('(')) {
+      cleanBaseType = cleanBaseType.substring(0, cleanBaseType.indexOf('('))
+    }
 
     return this.PRIMITIVES.has(cleanBaseType)
   }
@@ -41,7 +45,13 @@ export class TypeValidator {
    * Cleans a generic or array type to get the base entity name.
    */
   public static getBaseTypeName(typeName: string): string {
-    const baseType = typeName.replace(/[[\]]/g, '')
-    return baseType.includes('<') ? baseType.substring(0, baseType.indexOf('<')) : baseType
+    let baseType = typeName.replace(/[[\]]/g, '')
+    if (baseType.includes('<')) {
+      baseType = baseType.substring(0, baseType.indexOf('<'))
+    }
+    if (baseType.includes('(')) {
+      baseType = baseType.substring(0, baseType.indexOf('('))
+    }
+    return baseType
   }
 }
