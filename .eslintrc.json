@@ -16,7 +16,7 @@
         "caughtErrorsIgnorePattern": "^_"
       }
     ],
-    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    // "no-console": ["warn", { "allow": ["warn", "error"] }],
     "prettier/prettier": ["error", { "semi": false }],
     "no-useless-constructor": "off",
     "@typescript-eslint/no-useless-constructor": "error",
