@@ -7,7 +7,6 @@ import { type UMLNode, type IRParameter } from '../core/types'
 const CHAR_WIDTH = 11.5 // More conservative to avoid clipping
 const LINE_HEIGHT = 26 // More compact but safe
 const HEADER_HEIGHT_NORMAL = 32
-const HEADER_HEIGHT_STEREOTYPE = 44
 const PADDING_BOTTOM = 8
 const MIN_WIDTH = 160
 
@@ -29,19 +28,31 @@ export function measureNodeDimensions(node: UMLNode): NodeDimensions {
   // 1. Calculate max width based on the longest string
   let maxChars = node.name.length
 
-  // Stereotypes like «interface», «enum», «abstract», «static» add to width and height
-  let hasStereotype = false
+  // Stereotypes like «interface», «enum», «abstract», «static», leaf, final, root add to width and height
+  let stereotypeCount = 0
   if (node.type !== 'Class') {
     maxChars = Math.max(maxChars, node.type.length + 4)
-    hasStereotype = true
+    stereotypeCount++
   }
   if (node.isAbstract) {
     maxChars = Math.max(maxChars, 12) // «abstract»
-    hasStereotype = true
+    stereotypeCount++
   }
   if (node.isStatic) {
     maxChars = Math.max(maxChars, 10) // «static»
-    hasStereotype = true
+    stereotypeCount++
+  }
+  if (node.isLeaf) {
+    maxChars = Math.max(maxChars, 6) // {leaf}
+    stereotypeCount++
+  }
+  if (node.isFinal) {
+    maxChars = Math.max(maxChars, 7) // «final»
+    stereotypeCount++
+  }
+  if (node.isRoot) {
+    maxChars = Math.max(maxChars, 6) // {root}
+    stereotypeCount++
   }
 
   // Generics like <T, K>
@@ -75,7 +86,7 @@ export function measureNodeDimensions(node: UMLNode): NodeDimensions {
   // We add some extra height if we have both attributes and methods for the divider
   const sectionDividerHeight = node.attributes.length > 0 && node.methods.length > 0 ? 8 : 0
 
-  const currentHeaderHeight = hasStereotype ? HEADER_HEIGHT_STEREOTYPE : HEADER_HEIGHT_NORMAL
+  const currentHeaderHeight = HEADER_HEIGHT_NORMAL + stereotypeCount * 14
   const height =
     currentHeaderHeight + memberCount * LINE_HEIGHT + sectionDividerHeight + PADDING_BOTTOM
 

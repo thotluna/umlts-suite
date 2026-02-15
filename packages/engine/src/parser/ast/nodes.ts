@@ -60,6 +60,9 @@ export interface EntityNode extends ASTNode {
   isAbstract: boolean
   isStatic: boolean
   isActive: boolean
+  isLeaf: boolean
+  isFinal: boolean
+  isRoot: boolean
   typeParameters?: string[] | undefined
 }
 
@@ -67,7 +70,14 @@ export interface RelationshipHeaderNode extends ASTNode {
   type: ASTNodeType.RELATIONSHIP
   kind: string // >>, >I, >*, etc.
   target: string
-  targetIsAbstract?: boolean
+  targetModifiers?: {
+    isAbstract?: boolean
+    isStatic?: boolean
+    isActive?: boolean
+    isLeaf?: boolean
+    isFinal?: boolean
+    isRoot?: boolean
+  }
 }
 
 export type MemberNode = MethodNode | AttributeNode | CommentNode
@@ -77,10 +87,19 @@ export interface AttributeNode extends ASTNode {
   name: string
   visibility: string
   isStatic: boolean
+  isLeaf: boolean
+  isFinal: boolean
   typeAnnotation: TypeNode
   multiplicity: string | undefined
   relationshipKind?: string | undefined
-  targetIsAbstract?: boolean
+  targetModifiers?: {
+    isAbstract?: boolean
+    isStatic?: boolean
+    isActive?: boolean
+    isLeaf?: boolean
+    isFinal?: boolean
+    isRoot?: boolean
+  }
 }
 
 export interface MethodNode extends ASTNode {
@@ -89,10 +108,19 @@ export interface MethodNode extends ASTNode {
   visibility: string
   isStatic: boolean
   isAbstract: boolean
+  isLeaf: boolean
+  isFinal: boolean
   parameters: ParameterNode[]
   returnType: TypeNode
   returnRelationshipKind?: string | undefined
-  returnTargetIsAbstract?: boolean
+  returnTargetModifiers?: {
+    isAbstract?: boolean
+    isStatic?: boolean
+    isActive?: boolean
+    isLeaf?: boolean
+    isFinal?: boolean
+    isRoot?: boolean
+  }
 }
 
 export interface ParameterNode extends ASTNode {
@@ -100,17 +128,38 @@ export interface ParameterNode extends ASTNode {
   name: string
   typeAnnotation: TypeNode
   relationshipKind?: string | undefined
-  targetIsAbstract?: boolean
+  targetModifiers?: {
+    isAbstract?: boolean
+    isStatic?: boolean
+    isActive?: boolean
+    isLeaf?: boolean
+    isFinal?: boolean
+    isRoot?: boolean
+  }
   multiplicity?: string
 }
 
 export interface RelationshipNode extends ASTNode {
   type: ASTNodeType.RELATIONSHIP
   from: string
-  fromIsAbstract: boolean
+  fromModifiers?: {
+    isAbstract?: boolean
+    isStatic?: boolean
+    isActive?: boolean
+    isLeaf?: boolean
+    isFinal?: boolean
+    isRoot?: boolean
+  }
   fromMultiplicity: string | undefined
   to: string
-  toIsAbstract: boolean
+  toModifiers?: {
+    isAbstract?: boolean
+    isStatic?: boolean
+    isActive?: boolean
+    isLeaf?: boolean
+    isFinal?: boolean
+    isRoot?: boolean
+  }
   toMultiplicity: string | undefined
   kind: string
   label: string | undefined

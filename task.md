@@ -47,7 +47,7 @@
 - [x] **Namespace Uniqueness** (No duplicados en el mismo scope).
 - [x] **Structural Integrity** (Enums e Interfaces no pueden ser "Whole" en composiciones).
 - [x] **Classifier Validation** (Prohibir asociaciones/herencia con Paquetes).
-- [ ] **Modifiers: leaf, final, root** (Soportar y validar modificadores de herencia).
+- [x] **Modifiers: leaf, final, root** (Soportar y validar modificadores de herencia).
 - [ ] **Redefinition & Subsets** (Poder decir que una propiedad redefine a otra).
 - [ ] **Derived Properties** (Sintaxis `/propiedad` y validación).
 - [ ] **Components & Ports** (Implementación de puertos físicos en límites de caja).

@@ -15,6 +15,8 @@ export class MethodRule {
     visibility: string,
     isStatic: boolean,
     isAbstract: boolean,
+    isLeaf: boolean,
+    isFinal: boolean,
   ): MethodNode {
     context.consume(TokenType.LPAREN, '')
     const parameters = []
@@ -36,7 +38,7 @@ export class MethodRule {
       column: name.column,
     }
     let returnRelationshipKind: string | undefined
-    let returnTargetIsAbstract = false
+    const returnTargetIsAbstract = false
 
     if (context.match(TokenType.COLON)) {
       // SOPORTE SECCIÓN 5.3: Operadores de relación en tipo de retorno
@@ -55,8 +57,62 @@ export class MethodRule {
         returnRelationshipKind = context.prev().value
       }
 
-      returnTargetIsAbstract = context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)
+      const returnModifiers = {
+        isAbstract: false,
+        isStatic: false,
+        isActive: false,
+        isLeaf: false,
+        isFinal: false,
+        isRoot: false,
+      }
+
+      let found = true
+      while (found) {
+        found = false
+        if (context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)) {
+          returnModifiers.isAbstract = true
+          found = true
+        }
+        if (context.match(TokenType.MOD_STATIC, TokenType.KW_STATIC)) {
+          returnModifiers.isStatic = true
+          found = true
+        }
+        if (context.match(TokenType.MOD_ACTIVE, TokenType.KW_ACTIVE)) {
+          returnModifiers.isActive = true
+          found = true
+        }
+        if (context.match(TokenType.MOD_LEAF, TokenType.KW_LEAF)) {
+          returnModifiers.isLeaf = true
+          found = true
+        }
+        if (context.match(TokenType.KW_FINAL)) {
+          returnModifiers.isFinal = true
+          found = true
+        }
+        if (context.match(TokenType.MOD_ROOT, TokenType.KW_ROOT)) {
+          returnModifiers.isRoot = true
+          found = true
+        }
+      }
+
       returnType = this.typeRule.parse(context)
+
+      return {
+        type: ASTNodeType.METHOD,
+        name: name.value,
+        visibility,
+        isStatic,
+        isAbstract,
+        isLeaf,
+        isFinal,
+        parameters,
+        returnType,
+        returnRelationshipKind,
+        returnTargetModifiers: returnModifiers,
+        docs: context.consumePendingDocs(),
+        line: name.line,
+        column: name.column,
+      }
     }
 
     return {
@@ -65,10 +121,19 @@ export class MethodRule {
       visibility,
       isStatic,
       isAbstract,
+      isLeaf,
+      isFinal,
       parameters,
       returnType,
       returnRelationshipKind,
-      returnTargetIsAbstract,
+      returnTargetModifiers: {
+        isAbstract: false,
+        isStatic: false,
+        isActive: false,
+        isLeaf: false,
+        isFinal: false,
+        isRoot: false,
+      },
       docs: context.consumePendingDocs(),
       line: name.line,
       column: name.column,

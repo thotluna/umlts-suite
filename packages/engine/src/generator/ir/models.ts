@@ -17,6 +17,15 @@ export enum IRVisibility {
   INTERNAL = '~',
 }
 
+export interface IRTargetModifiers {
+  isAbstract?: boolean
+  isStatic?: boolean
+  isActive?: boolean
+  isLeaf?: boolean
+  isFinal?: boolean
+  isRoot?: boolean
+}
+
 /**
  * Representa un parámetro de un método en la IR.
  */
@@ -24,6 +33,7 @@ export interface IRParameter {
   name: string
   type?: string
   relationshipKind?: string
+  targetModifiers?: IRTargetModifiers
 }
 
 /**
@@ -35,8 +45,11 @@ export interface IRMember {
   visibility: IRVisibility
   isStatic: boolean
   isAbstract: boolean
+  isLeaf: boolean
+  isFinal: boolean
   parameters?: IRParameter[]
   relationshipKind?: string
+  targetModifiers?: IRTargetModifiers
   multiplicity?: string
   line?: number
   column?: number
@@ -55,6 +68,9 @@ export interface IREntity {
   isAbstract: boolean
   isStatic: boolean
   isActive: boolean
+  isLeaf: boolean
+  isFinal: boolean
+  isRoot: boolean
   typeParameters?: string[] | undefined
   namespace?: string
   docs?: string | undefined

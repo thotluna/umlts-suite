@@ -56,6 +56,7 @@ export class SemanticAnalyzer {
         this.symbolTable,
         this.currentNamespace,
         this.entityAnalyzer,
+        this.hierarchyValidator,
         context,
       ),
     )
@@ -119,6 +120,7 @@ export class SemanticAnalyzer {
             undefined, // associationClassId is not inferred from members
             member.line,
             member.column,
+            member.targetModifiers,
           )
         }
       })
@@ -137,6 +139,14 @@ export class SemanticAnalyzer {
     associationClassId?: string,
     line?: number,
     column?: number,
+    targetModifiers?: {
+      isAbstract?: boolean
+      isStatic?: boolean
+      isActive?: boolean
+      isLeaf?: boolean
+      isFinal?: boolean
+      isRoot?: boolean
+    },
   ): void {
     if (TypeValidator.isPrimitive(typeName)) return
     const baseType = TypeValidator.getBaseTypeName(typeName)
@@ -148,7 +158,7 @@ export class SemanticAnalyzer {
     const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
       baseType,
       fromNamespace || '',
-      {},
+      targetModifiers || {},
       line,
       column,
       inferenceContext,
@@ -185,6 +195,7 @@ class DiscoveryVisitor implements ASTVisitor {
     private readonly symbolTable: SymbolTable,
     private readonly currentNamespace: string[],
     private readonly entityAnalyzer: EntityAnalyzer,
+    private readonly hierarchyValidator: HierarchyValidator,
     private readonly context: ParserContext,
   ) {}
 
@@ -227,6 +238,7 @@ class DiscoveryVisitor implements ASTVisitor {
     }
 
     this.symbolTable.register(entity)
+    this.hierarchyValidator.validateEntity(entity)
   }
 
   visitRelationship(_node: RelationshipNode): void {}
@@ -238,6 +250,7 @@ class DiscoveryVisitor implements ASTVisitor {
   visitAssociationClass(node: AssociationClassNode): void {
     const entity = this.entityAnalyzer.buildAssociationClass(node, this.currentNamespace.join('.'))
     this.symbolTable.register(entity)
+    this.hierarchyValidator.validateEntity(entity)
   }
 }
 
@@ -320,9 +333,7 @@ class ResolutionVisitor implements ASTVisitor {
       const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
         rel.target,
         ns,
-        {
-          isAbstract: rel.targetIsAbstract,
-        },
+        rel.targetModifiers,
         rel.line,
         rel.column,
         inferenceContext,
@@ -339,9 +350,7 @@ class ResolutionVisitor implements ASTVisitor {
     const fromFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
       node.from,
       ns,
-      {
-        isAbstract: node.fromIsAbstract,
-      },
+      node.fromModifiers,
       node.line,
       node.column,
     )
@@ -355,9 +364,7 @@ class ResolutionVisitor implements ASTVisitor {
     const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
       node.to,
       ns,
-      {
-        isAbstract: node.toIsAbstract,
-      },
+      node.toModifiers,
       node.line,
       node.column,
       inferenceContext,
@@ -392,7 +399,7 @@ class ResolutionVisitor implements ASTVisitor {
         const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
           rel.target,
           ns,
-          { isAbstract: rel.targetIsAbstract },
+          rel.targetModifiers,
           rel.line,
           rel.column,
           inferenceContext,

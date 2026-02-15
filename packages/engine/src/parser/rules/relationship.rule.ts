@@ -9,10 +9,47 @@ export class RelationshipRule implements StatementRule {
     const pos = context.getPosition()
 
     try {
-      const fromIsAbstract = context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)
+      const fromModifiers = {
+        isAbstract: false,
+        isStatic: false,
+        isActive: false,
+        isLeaf: false,
+        isFinal: false,
+        isRoot: false,
+      }
+
+      let found = true
+      while (found) {
+        found = false
+        if (context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)) {
+          fromModifiers.isAbstract = true
+          found = true
+        }
+        if (context.match(TokenType.MOD_STATIC, TokenType.KW_STATIC)) {
+          fromModifiers.isStatic = true
+          found = true
+        }
+        if (context.match(TokenType.MOD_ACTIVE, TokenType.KW_ACTIVE)) {
+          fromModifiers.isActive = true
+          found = true
+        }
+        if (context.match(TokenType.MOD_LEAF, TokenType.KW_LEAF)) {
+          fromModifiers.isLeaf = true
+          found = true
+        }
+        if (context.match(TokenType.KW_FINAL)) {
+          fromModifiers.isFinal = true
+          found = true
+        }
+        if (context.match(TokenType.MOD_ROOT, TokenType.KW_ROOT)) {
+          fromModifiers.isRoot = true
+          found = true
+        }
+      }
+
       const fromToken = context.peek()
       if (!context.check(TokenType.IDENTIFIER)) {
-        if (fromIsAbstract) context.rollback(pos)
+        if (Object.values(fromModifiers).some((v) => v)) context.rollback(pos)
         return null
       }
       let from = context.consume(TokenType.IDENTIFIER, 'Identifier expected').value
@@ -42,7 +79,44 @@ export class RelationshipRule implements StatementRule {
           toMultiplicity = context.prev().value
         }
 
-        const toIsAbstract = context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)
+        const toModifiers = {
+          isAbstract: false,
+          isStatic: false,
+          isActive: false,
+          isLeaf: false,
+          isFinal: false,
+          isRoot: false,
+        }
+
+        let foundTo = true
+        while (foundTo) {
+          foundTo = false
+          if (context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)) {
+            toModifiers.isAbstract = true
+            foundTo = true
+          }
+          if (context.match(TokenType.MOD_STATIC, TokenType.KW_STATIC)) {
+            toModifiers.isStatic = true
+            foundTo = true
+          }
+          if (context.match(TokenType.MOD_ACTIVE, TokenType.KW_ACTIVE)) {
+            toModifiers.isActive = true
+            foundTo = true
+          }
+          if (context.match(TokenType.MOD_LEAF, TokenType.KW_LEAF)) {
+            toModifiers.isLeaf = true
+            foundTo = true
+          }
+          if (context.match(TokenType.KW_FINAL)) {
+            toModifiers.isFinal = true
+            foundTo = true
+          }
+          if (context.match(TokenType.MOD_ROOT, TokenType.KW_ROOT)) {
+            toModifiers.isRoot = true
+            foundTo = true
+          }
+        }
+
         let to = context.consume(TokenType.IDENTIFIER, 'Target entity name expected').value
 
         // Support for FQN on destination
@@ -68,10 +142,10 @@ export class RelationshipRule implements StatementRule {
         relationships.push({
           type: ASTNodeType.RELATIONSHIP,
           from,
-          fromIsAbstract,
+          fromModifiers,
           fromMultiplicity,
           to,
-          toIsAbstract,
+          toModifiers,
           toMultiplicity,
           kind,
           label,
