@@ -252,3 +252,5 @@
   - [x] Escaneo de firmas de métodos para dependencias de uso
   - [x] Aplicación del _Surgeon Effect_ (No duplicar líneas si hay relación estructural)
 - [x] **TEST**: Validar extracción del paquete `engine/semantics` sin ruido visual y compilación Exitosa (Verificado con CLI)
+- [x] **FIX**: Corregir "ruido" en extracción de miembros (evitar capturar parámetros de métodos como propiedades)
+- [x] **IMPROVEMENT**: Implementar resolución FQN basada en imports para evitar duplicidad de clases en el diagrama

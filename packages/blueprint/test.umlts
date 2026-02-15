@@ -1,0 +1,7 @@
+config{
+  direction: "UP"
+  spacing: 100
+}
+
+class A >> B
+class C >> B
