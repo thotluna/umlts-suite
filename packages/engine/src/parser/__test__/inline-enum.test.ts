@@ -21,12 +21,12 @@ describe('Inline Enum Support', () => {
     expect(program.diagnostics || []).toHaveLength(0)
 
     const cls = program.body[0] as import('../ast/nodes').EntityNode
-    const attr = cls.body[0]
+    const attr = cls.body![0] as import('../ast/nodes').AttributeNode
     expect(attr.name).toBe('status')
     expect(attr.typeAnnotation.kind).toBe('enum')
     expect(attr.typeAnnotation.values).toContain('ACTIVE')
 
-    const attr2 = cls.body[1]
+    const attr2 = cls.body![1] as import('../ast/nodes').AttributeNode
     expect(attr2.name).toBe('Price')
   })
 
@@ -48,9 +48,10 @@ describe('Inline Enum Support', () => {
     expect(program.diagnostics || []).toHaveLength(0)
 
     const cls = program.body[0] as import('../ast/nodes').EntityNode
-    const members = cls.body
+    const members = cls.body!
     const statusAttr = members.find(
-      (m): m is import('../ast/nodes').AttributeNode => m.name === 'status',
+      (m): m is import('../ast/nodes').AttributeNode =>
+        m.type === 'Attribute' && m.name === 'status',
     )!
     expect(statusAttr).toBeDefined()
     expect(statusAttr.typeAnnotation.kind).toBe('enum')

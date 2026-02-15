@@ -38,6 +38,7 @@
 - [x] **FIX**: Doble corchete en multiplicidades de atributos (`[[1..*]]`).
 - [x] **FIX**: Anclaje de línea de clase de asociación (la línea atravesaba la caja).
 - [x] **FEAT**: Optimización de layout para clases de asociación (ahora se dibujan cerca de sus participantes).
+- [x] **FIX**: Errores de tipos en tests de Inline Enums (posible acceso a undefined).
 
 ## Cumplimiento UML 2.5.1 (Roadmap)
 
