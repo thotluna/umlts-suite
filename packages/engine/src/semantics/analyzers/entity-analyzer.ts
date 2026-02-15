@@ -103,7 +103,7 @@ export class EntityAnalyzer {
                 type: p.typeAnnotation?.raw,
                 relationshipKind: p.relationshipKind,
               }))
-            : [],
+            : undefined,
           relationshipKind,
           multiplicity: isAttribute ? (m as AttributeNode).multiplicity : undefined,
           docs: m.docs,
