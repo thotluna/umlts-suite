@@ -1,0 +1,93 @@
+package analyzers {
+  class EntityAnalyzer {
+    +buildEntity(node: ast.EntityNode, namespace: string): ir.IREntity
+    +processMembers(entity: ir.IREntity, node: ast.EntityNode): void
+    -mapEntityType(type: ast.ASTNodeType): ir.IREntityType
+    -mapMembers(members: ast.MemberNode[], namespace: string): ir.IRMember[]
+    -validateMemberType(typeName: string, namespace: string, node: ast.MemberNode): void
+    -mapVisibility(v: string): ir.IRVisibility
+  }
+
+  EntityAnalyzer >- ir.IREntity
+  EntityAnalyzer >- ast.EntityNode
+  EntityAnalyzer >- utils.FQNBuilder
+  EntityAnalyzer >- ir.IREntityType
+  EntityAnalyzer >- ast.EntityType
+  EntityAnalyzer >- ast.ASTNodeType
+  EntityAnalyzer >- ast.INTERFACE
+  EntityAnalyzer >- ir.INTERFACE
+  EntityAnalyzer >- ast.ENUM
+  EntityAnalyzer >- ir.ENUM
+  EntityAnalyzer >- ir.CLASS
+  EntityAnalyzer >- ast.MemberNode
+  EntityAnalyzer >- ir.IRMember
+  EntityAnalyzer >- SetConstructor
+  EntityAnalyzer >- ASTNodeType.METHOD | ASTNodeType.ATTRIBUTE | ASTNodeType.COMMENT
+  EntityAnalyzer >- MethodNode | AttributeNode
+  EntityAnalyzer >- parser.ParserContext
+  EntityAnalyzer >- lexer.UNKNOWN
+  EntityAnalyzer >- lexer.TokenType
+  EntityAnalyzer >- lexer.Token
+  EntityAnalyzer >- parser.DiagnosticCode
+  EntityAnalyzer >- parser.SEMANTIC_DUPLICATE_MEMBER
+  EntityAnalyzer >- ASTNodeType.METHOD | ASTNodeType.ATTRIBUTE
+  EntityAnalyzer >- ast.METHOD
+  EntityAnalyzer >- ast.ATTRIBUTE
+  EntityAnalyzer >- ast.AttributeNode
+  EntityAnalyzer >- ast.MethodNode
+  EntityAnalyzer >- ast.TypeNode
+  EntityAnalyzer >- ir.IRVisibility
+  EntityAnalyzer >- ast.ParameterNode
+  EntityAnalyzer >- utils.MultiplicityValidator
+  EntityAnalyzer >- utils.TypeValidator
+  EntityAnalyzer >- semantics.FQNResolution
+  EntityAnalyzer >- semantics.SymbolTable
+  EntityAnalyzer >- parser.SEMANTIC_AMBIGUOUS_ENTITY
+  EntityAnalyzer >- ir.PRIVATE
+  EntityAnalyzer >- ir.PROTECTED
+  EntityAnalyzer >- ir.INTERNAL
+  EntityAnalyzer >- ir.PUBLIC
+  class RelationshipAnalyzer {
+    -typeInferrer: >+ TypeInferrer
+    +resolveOrRegisterImplicit(name: string, namespace: string, modifiers: Object, line: number, column: number, inferenceContext: Object): string
+    +addRelationship(fromFQN: string, toFQN: string, kind: string, node: ast.RelationshipNode): void
+    +mapRelationshipType(kind: string): ir.IRRelationshipType
+  }
+
+  RelationshipAnalyzer >- ir.IREntityType
+  RelationshipAnalyzer >- ir.IRRelationshipType
+  RelationshipAnalyzer >- ir.CLASS
+  RelationshipAnalyzer >- parser.ParserContext
+  RelationshipAnalyzer >- lexer.UNKNOWN
+  RelationshipAnalyzer >- lexer.TokenType
+  RelationshipAnalyzer >- lexer.Token
+  RelationshipAnalyzer >- parser.DiagnosticCode
+  RelationshipAnalyzer >- parser.SEMANTIC_INVALID_TYPE
+  RelationshipAnalyzer >- semantics.FQNResolution
+  RelationshipAnalyzer >- semantics.SymbolTable
+  RelationshipAnalyzer >- parser.SEMANTIC_AMBIGUOUS_ENTITY
+  RelationshipAnalyzer >- ast.RelationshipNode
+  RelationshipAnalyzer >- ir.IREntity
+  RelationshipAnalyzer >- validators.HierarchyValidator
+  RelationshipAnalyzer >- ir.IRRelationship
+  RelationshipAnalyzer >- utils.MultiplicityBounds
+  RelationshipAnalyzer >- utils.MultiplicityValidator
+  RelationshipAnalyzer >- ir.COMPOSITION
+  RelationshipAnalyzer >- parser.SEMANTIC_COMPOSITE_VIOLATION
+  RelationshipAnalyzer >- ir.INHERITANCE
+  RelationshipAnalyzer >- ir.IMPLEMENTATION
+  RelationshipAnalyzer >- ir.AGGREGATION
+  RelationshipAnalyzer >- ir.REALIZATION
+  RelationshipAnalyzer >- ir.DEPENDENCY
+  RelationshipAnalyzer >- ir.ASSOCIATION
+  class TypeInferrer {
+    -rules: >* Map<string, ir.IREntityType>
+    +register(sourceType: ir.IREntityType, relationshipType: ir.IRRelationshipType, targetType: ir.IREntityType): void
+    +infer(sourceType: ir.IREntityType, relationshipType: ir.IRRelationshipType): ir.IREntityType
+    -getKey(source: ir.IREntityType, relationship: ir.IRRelationshipType): string
+  }
+
+  TypeInferrer >- ir.IREntityType
+  TypeInferrer >- ir.IRRelationshipType
+}
+

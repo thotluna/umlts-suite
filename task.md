@@ -233,8 +233,18 @@
 
 ## Próximos Pasos (V3)
 
+<<<<<<< HEAD
 - [ ] Explorar soporte para Association Classes
 - [ ] Implementar autocompletado avanzado basado en la nueva resolución FQN
+
+## Ingeniería Inversa Blueprint (Extractor v1.0)
+
+- [x] **FEAT**: Create `@umlts/blueprint` package structure
+- [x] **FEAT**: Implement `BlueprintExtractor` based on `ts-morph`
+- [x] **FEAT**: Support for Inheritance, Realization, Association, Aggregation, and Composition
+- [x] **FEAT**: Implement Dependency detection (`>-`) via AST analysis of method bodies
+- [x] **DOC**: Document relationship heuristics (Visibility, Versatility, Momentarity)
+- [x] **IMPROVEMENT**: "Surgeon Effect" (Public Getters) and Global Versatility Map
 
 ## Ingeniería Inversa Quirúrgica (Surgeon Extractor)
 
@@ -254,3 +264,16 @@
 - [x] **TEST**: Validar extracción del paquete `engine/semantics` sin ruido visual y compilación Exitosa (Verificado con CLI)
 - [x] **FIX**: Corregir "ruido" en extracción de miembros (evitar capturar parámetros de métodos como propiedades)
 - [x] **IMPROVEMENT**: Implementar resolución FQN basada en imports para evitar duplicidad de clases en el diagrama
+=======
+- [x] **FEAT**: Create `@umlts/blueprint` package for reverse engineering
+- [x] **FEAT**: Implement `BlueprintExtractor` with support for Inheritance, Realization, Association, Aggregation, and Composition
+- [x] **FEAT**: Implement Dependency detection (`>-`) via AST analysis of method bodies
+- [x] **DOC**: Documentar heurísticas de relaciones basadas en Visibilidad, Versatilidad y Momentaneidad (`docs/blueprint-heuristics.md`)
+- [x] **IMPROVEMENT**: Implementar análisis de "Doble Pasada" (Global Versatility) y "Efecto Cirujano" (Getters públicos)
+- [x] **IMPROVEMENT**: Refine FQN resolution in blueprint using actual file imports
+- [x] **IMPROVEMENT**: Add CLI support for blueprint to generate `.umlts` files from terminal
+<<<<<<< HEAD
+>>>>>>> 8de1333 (feat(blueprint): refine type cleaning to preserve simple generics)
+=======
+- [x] **IMPROVEMENT**: Sanitización de identificadores (keywords) y limpieza de tipos complejos (generics, Object, Function)
+>>>>>>> a2ea682 (chore: update motor.umlts and tasks before closing blueprint phase)

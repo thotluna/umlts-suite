@@ -1,0 +1,32 @@
+{
+  "name": "@umlts/blueprint",
+  "version": "0.1.0",
+  "description": "Reverse engineering tool for UMLTS",
+  "main": "dist/index.js",
+  "bin": {
+    "umlts-blueprint": "dist/index.js"
+  },
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "dev": "tsx src/index.ts"
+  },
+  "keywords": [
+    "uml",
+    "typescript",
+    "reverse-engineering",
+    "umlts"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "commander": "^14.0.3",
+    "ts-morph": "^25.0.1"
+  }
+}
