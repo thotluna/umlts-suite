@@ -42,6 +42,9 @@ export class EntityAnalyzer {
       isAbstract: node.isAbstract || false,
       isStatic: node.isStatic || false,
       isActive: node.isActive || false,
+      isLeaf: node.isLeaf || false,
+      isFinal: node.isFinal || false,
+      isRoot: node.isRoot || false,
       typeParameters: node.typeParameters,
       docs: node.docs,
       line: node.line,
@@ -66,6 +69,9 @@ export class EntityAnalyzer {
       isAbstract: false,
       isStatic: false,
       isActive: false,
+      isLeaf: false,
+      isFinal: false,
+      isRoot: false,
       docs: node.docs,
       line: node.line,
       column: node.column,
@@ -133,14 +139,22 @@ export class EntityAnalyzer {
           visibility: this.mapVisibility(m.visibility),
           isStatic: m.isStatic || false,
           isAbstract: isMethod ? (m as MethodNode).isAbstract : false,
+          isLeaf: m.isLeaf || false,
+          isFinal: m.isFinal || false,
           parameters: isMethod
             ? (m as MethodNode).parameters?.map((p) => ({
                 name: p.name,
                 type: p.typeAnnotation?.raw,
                 relationshipKind: p.relationshipKind,
+                targetModifiers: p.targetModifiers,
               }))
             : undefined,
           relationshipKind,
+          targetModifiers: isAttribute
+            ? (m as AttributeNode).targetModifiers
+            : isMethod
+              ? (m as MethodNode).returnTargetModifiers
+              : undefined,
           multiplicity: isAttribute ? (m as AttributeNode).multiplicity : undefined,
           docs: m.docs,
           line: m.line,
@@ -163,8 +177,15 @@ export class EntityAnalyzer {
   private validateMemberType(typeName: string, namespace: string, node: MemberNode): void {
     if (TypeValidator.isPrimitive(typeName)) return
 
+    const modifiers =
+      node.type === ASTNodeType.ATTRIBUTE
+        ? (node as AttributeNode).targetModifiers
+        : node.type === ASTNodeType.METHOD
+          ? (node as MethodNode).returnTargetModifiers
+          : undefined
+
     const baseType = TypeValidator.getBaseTypeName(typeName)
-    const result = this.symbolTable.resolveOrRegisterImplicit(baseType, namespace)
+    const result = this.symbolTable.resolveOrRegisterImplicit(baseType, namespace, modifiers)
 
     if (result.isAmbiguous) {
       this.context.addError(

@@ -16,6 +16,28 @@ export class HierarchyValidator {
   ) {}
 
   /**
+   * Validates internal consistency of an entity's hierarchy modifiers.
+   */
+  public validateEntity(entity: IREntity): void {
+    const errorToken: Token = {
+      line: entity.line || 1,
+      column: entity.column || 1,
+      type: TokenType.UNKNOWN,
+      value: entity.name,
+    }
+
+    // RULE: An entity cannot be both abstract and leaf/final
+    if (entity.isAbstract && (entity.isLeaf || entity.isFinal)) {
+      const modifier = entity.isLeaf ? 'leaf' : 'final'
+      this.context.addError(
+        `Invalid declaration: Entity '${entity.name}' cannot be both 'abstract' and '${modifier}'. Abstract entities must be extensible.`,
+        errorToken,
+        DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
+      )
+    }
+  }
+
+  /**
    * Validates that there are no inheritance cycles.
    */
   public validateNoCycles(relationships: IRRelationship[]): void {
@@ -89,6 +111,36 @@ export class HierarchyValidator {
           DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
         )
         return
+      }
+
+      // RULE: Cannot extend a leaf/final entity
+      if (to.isLeaf || to.isFinal) {
+        const modifier = to.isLeaf ? '{leaf}' : '<<final>>'
+        this.context.addError(
+          `Invalid inheritance: Entity '${from.name}' cannot extend '${to.name}' because it is marked as ${modifier}.`,
+          errorToken,
+          DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
+        )
+        return
+      }
+
+      // RULE: An entity cannot be both abstract and leaf/final
+      if (from.isAbstract && (from.isLeaf || from.isFinal)) {
+        const modifier = from.isLeaf ? 'leaf' : 'final'
+        this.context.addError(
+          `Invalid declaration: Entity '${from.name}' cannot be both 'abstract' and '${modifier}'. Abstract entities must be extensible.`,
+          errorToken,
+          DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
+        )
+      }
+
+      // RULE: An entity marked as 'root' cannot extend another entity
+      if (from.isRoot) {
+        this.context.addError(
+          `Invalid inheritance: Entity '${from.name}' is marked as {root} and cannot extend '${to.name}'.`,
+          errorToken,
+          DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
+        )
       }
 
       // Special case: Enums cannot extend/be extended

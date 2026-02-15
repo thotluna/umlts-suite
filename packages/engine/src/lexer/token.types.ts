@@ -18,6 +18,9 @@ export enum TokenType {
   KW_USE = 'KW_USE',
   KW_ACTIVE = 'KW_ACTIVE',
   KW_CONFIG = 'KW_CONFIG',
+  KW_LEAF = 'KW_LEAF',
+  KW_FINAL = 'KW_FINAL',
+  KW_ROOT = 'KW_ROOT',
   AT = 'AT', // @
 
   // Operators and Symbols
@@ -44,6 +47,7 @@ export enum TokenType {
   RANGE = 'RANGE', // ..
   PIPE = 'PIPE', // |
   STAR = 'STAR', // *
+  EXCLAMATION = 'EXCLAMATION', // !
 
   VIS_PUB = 'VIS_PUB', // +
   VIS_PRIV = 'VIS_PRIV', // -
@@ -53,6 +57,8 @@ export enum TokenType {
   MOD_STATIC = 'MOD_STATIC', // $
   MOD_ABSTRACT = 'MOD_ABSTRACT', // *
   MOD_ACTIVE = 'MOD_ACTIVE', // &
+  MOD_LEAF = 'MOD_LEAF', // !
+  MOD_ROOT = 'MOD_ROOT', // ^ (or maybe ~ but ~ is internal. let's use ^ for root)
 
   // Identifiers and Literals
   IDENTIFIER = 'IDENTIFIER',

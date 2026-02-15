@@ -116,7 +116,14 @@ export class SymbolTable {
   public resolveOrRegisterImplicit(
     name: string,
     namespace: string,
-    modifiers?: { isAbstract?: boolean; isStatic?: boolean; isActive?: boolean },
+    modifiers?: {
+      isAbstract?: boolean
+      isStatic?: boolean
+      isActive?: boolean
+      isLeaf?: boolean
+      isFinal?: boolean
+      isRoot?: boolean
+    },
     expectedType: IREntityType = IREntityType.CLASS,
   ): FQNResolution {
     const resolution = this.resolveFQN(name, namespace)
@@ -137,6 +144,9 @@ export class SymbolTable {
         isAbstract: modifiers?.isAbstract || false,
         isStatic: modifiers?.isStatic || false,
         isActive: modifiers?.isActive || false,
+        isLeaf: modifiers?.isLeaf || false,
+        isFinal: modifiers?.isFinal || false,
+        isRoot: modifiers?.isRoot || false,
         namespace: resolution.fqn.includes('.')
           ? resolution.fqn.split('.').slice(0, -1).join('.')
           : '',

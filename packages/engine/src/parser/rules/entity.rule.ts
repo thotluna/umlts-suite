@@ -12,19 +12,80 @@ export class EntityRule implements StatementRule {
 
   public parse(context: ParserContext, _orchestrator: Orchestrator): StatementNode | null {
     const pos = context.getPosition()
-    let isActive = context.match(TokenType.KW_ACTIVE, TokenType.MOD_ACTIVE)
-    let isAbstract = context.match(TokenType.KW_ABSTRACT, TokenType.MOD_ABSTRACT)
-    let isStatic = context.match(TokenType.KW_STATIC, TokenType.MOD_STATIC)
+    const modifiers = {
+      isAbstract: false,
+      isStatic: false,
+      isActive: false,
+      isLeaf: false,
+      isFinal: false,
+      isRoot: false,
+    }
+
+    let found = true
+    while (found) {
+      found = false
+      if (context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)) {
+        modifiers.isAbstract = true
+        found = true
+      }
+      if (context.match(TokenType.MOD_STATIC, TokenType.KW_STATIC)) {
+        modifiers.isStatic = true
+        found = true
+      }
+      if (context.match(TokenType.MOD_ACTIVE, TokenType.KW_ACTIVE)) {
+        modifiers.isActive = true
+        found = true
+      }
+      if (context.match(TokenType.MOD_LEAF, TokenType.KW_LEAF)) {
+        modifiers.isLeaf = true
+        found = true
+      }
+      if (context.match(TokenType.KW_FINAL)) {
+        modifiers.isFinal = true
+        found = true
+      }
+      if (context.match(TokenType.MOD_ROOT, TokenType.KW_ROOT)) {
+        modifiers.isRoot = true
+        found = true
+      }
+    }
 
     if (!context.match(TokenType.KW_CLASS, TokenType.KW_INTERFACE, TokenType.KW_ENUM)) {
       context.rollback(pos)
       return null
     }
 
-    // Support modifiers after keyword (e.g. class * MyClass or class $ MyClass)
-    if (!isActive) isActive = context.match(TokenType.KW_ACTIVE, TokenType.MOD_ACTIVE)
-    if (!isAbstract) isAbstract = context.match(TokenType.KW_ABSTRACT, TokenType.MOD_ABSTRACT)
-    if (!isStatic) isStatic = context.match(TokenType.KW_STATIC, TokenType.MOD_STATIC)
+    // Support modifiers after keyword (e.g. class * MyClass)
+    found = true
+    while (found) {
+      found = false
+      if (context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)) {
+        modifiers.isAbstract = true
+        found = true
+      }
+      if (context.match(TokenType.MOD_STATIC, TokenType.KW_STATIC)) {
+        modifiers.isStatic = true
+        found = true
+      }
+      if (context.match(TokenType.MOD_ACTIVE, TokenType.KW_ACTIVE)) {
+        modifiers.isActive = true
+        found = true
+      }
+      if (context.match(TokenType.MOD_LEAF, TokenType.KW_LEAF)) {
+        modifiers.isLeaf = true
+        found = true
+      }
+      if (context.match(TokenType.KW_FINAL)) {
+        modifiers.isFinal = true
+        found = true
+      }
+      if (context.match(TokenType.MOD_ROOT, TokenType.KW_ROOT)) {
+        modifiers.isRoot = true
+        found = true
+      }
+    }
+
+    const { isAbstract, isStatic, isActive, isLeaf, isFinal, isRoot } = modifiers
 
     const token = context.prev()
     let type: EntityType = ASTNodeType.CLASS
@@ -131,6 +192,8 @@ export class EntityRule implements StatementRule {
               name: literalToken.value,
               visibility: 'public',
               isStatic: true,
+              isLeaf: false,
+              isFinal: false,
               typeAnnotation: {
                 type: ASTNodeType.TYPE,
                 kind: 'simple',
@@ -162,6 +225,9 @@ export class EntityRule implements StatementRule {
       isAbstract,
       isStatic,
       isActive,
+      isLeaf,
+      isFinal,
+      isRoot,
       typeParameters,
       docs,
       relationships,

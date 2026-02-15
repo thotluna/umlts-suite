@@ -44,66 +44,70 @@ export function renderClassNode(
     })
   }
 
-  // Header separator
-  const headerSep = svg.line(x, y + HEADER_HEIGHT, x + width, y + HEADER_HEIGHT, {
+  // Header separator and content
+  const HEADER_HEIGHT_NORMAL = 32
+  let stereotypeCount = 0
+  const headerLines: { text: string; size: number; isBold?: boolean; isItalic?: boolean }[] = []
+
+  if (node.type !== 'Class') {
+    headerLines.push({ text: `«${node.type.toLowerCase()}»`, size: theme.fontSizeSmall })
+    stereotypeCount++
+  }
+  if (node.isAbstract) {
+    headerLines.push({ text: '«abstract»', size: theme.fontSizeSmall })
+    stereotypeCount++
+  }
+  if (node.isStatic) {
+    headerLines.push({ text: '«static»', size: theme.fontSizeSmall })
+    stereotypeCount++
+  }
+  if (node.isLeaf) {
+    headerLines.push({ text: '{leaf}', size: theme.fontSizeSmall })
+    stereotypeCount++
+  }
+  if (node.isFinal) {
+    headerLines.push({ text: '«final»', size: theme.fontSizeSmall })
+    stereotypeCount++
+  }
+  if (node.isRoot) {
+    headerLines.push({ text: '{root}', size: theme.fontSizeSmall })
+    stereotypeCount++
+  }
+
+  headerLines.push({
+    text: node.name,
+    size: theme.fontSizeBase,
+    isBold: true,
+    isItalic: node.isAbstract,
+  })
+
+  // We use the same calculation as in measureNodeDimensions to ensure visual consistency
+  const headerHeight = HEADER_HEIGHT_NORMAL + stereotypeCount * 14
+  const headerSep = svg.line(x, y + headerHeight, x + width, y + headerHeight, {
     stroke: theme.nodeDivider,
     'stroke-width': 1,
   })
 
-  // Stereotype and Name
-  let currentY = y + 14
   let headerContent = ''
+  // Center all lines in headerHeight
+  const totalContentHeight = headerLines.length * 14
+  let currentY = y + (headerHeight - totalContentHeight) / 2 + 10
 
-  if (node.type !== 'Class') {
+  for (const line of headerLines) {
     headerContent += svg.text(
       {
         x: x + width / 2,
         y: currentY,
         'text-anchor': 'middle',
         fill: theme.nodeHeaderText,
-        'font-size': theme.fontSizeSmall,
+        'font-size': line.size,
+        'font-weight': line.isBold ? 'bold' : 'normal',
+        'font-style': line.isItalic ? 'italic' : 'normal',
       },
-      `«${node.type.toLowerCase()}»`,
-    )
-    currentY += 14
-  } else if (node.isAbstract) {
-    headerContent += svg.text(
-      {
-        x: x + width / 2,
-        y: currentY,
-        'text-anchor': 'middle',
-        fill: theme.nodeHeaderText,
-        'font-size': theme.fontSizeSmall,
-      },
-      '«abstract»',
-    )
-    currentY += 14
-  } else if (node.isStatic) {
-    headerContent += svg.text(
-      {
-        x: x + width / 2,
-        y: currentY,
-        'text-anchor': 'middle',
-        fill: theme.nodeHeaderText,
-        'font-size': theme.fontSizeSmall,
-      },
-      '«static»',
+      line.text,
     )
     currentY += 14
   }
-
-  headerContent += svg.text(
-    {
-      x: x + width / 2,
-      y: node.type === 'Class' && !node.isAbstract && !node.isStatic ? y + 20 : currentY,
-      'text-anchor': 'middle',
-      fill: theme.nodeHeaderText,
-      'font-weight': 'bold',
-      'font-style': node.isAbstract ? 'italic' : 'normal',
-      'font-size': theme.fontSizeBase,
-    },
-    node.name,
-  )
 
   // Members (Attributes and Methods)
   let membersContent = ''
@@ -158,6 +162,12 @@ function renderMember(
 
   if (m.type) {
     label += `: ${m.type}`
+  }
+
+  if (m.isLeaf) {
+    label += ' {leaf}'
+  } else if (m.isFinal) {
+    label += ' {final}'
   }
 
   if (m.multiplicity) {

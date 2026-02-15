@@ -22,7 +22,44 @@ export class RelationshipHeaderRule {
       )
     ) {
       const kind = context.prev().value
-      const targetIsAbstract = context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)
+      const modifiers = {
+        isAbstract: false,
+        isStatic: false,
+        isActive: false,
+        isLeaf: false,
+        isFinal: false,
+        isRoot: false,
+      }
+
+      let found = true
+      while (found) {
+        found = false
+        if (context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)) {
+          modifiers.isAbstract = true
+          found = true
+        }
+        if (context.match(TokenType.MOD_STATIC, TokenType.KW_STATIC)) {
+          modifiers.isStatic = true
+          found = true
+        }
+        if (context.match(TokenType.MOD_ACTIVE, TokenType.KW_ACTIVE)) {
+          modifiers.isActive = true
+          found = true
+        }
+        if (context.match(TokenType.MOD_LEAF, TokenType.KW_LEAF)) {
+          modifiers.isLeaf = true
+          found = true
+        }
+        if (context.match(TokenType.KW_FINAL)) {
+          modifiers.isFinal = true
+          found = true
+        }
+        if (context.match(TokenType.MOD_ROOT, TokenType.KW_ROOT)) {
+          modifiers.isRoot = true
+          found = true
+        }
+      }
+
       const targetToken = context.consume(
         TokenType.IDENTIFIER,
         'Se esperaba el nombre del objetivo de la relación',
@@ -42,7 +79,7 @@ export class RelationshipHeaderRule {
         type: ASTNodeType.RELATIONSHIP,
         kind,
         target,
-        targetIsAbstract,
+        targetModifiers: modifiers,
         line: targetToken.line,
         column: targetToken.column,
       })

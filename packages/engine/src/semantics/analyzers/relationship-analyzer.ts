@@ -42,7 +42,14 @@ export class RelationshipAnalyzer {
   public resolveOrRegisterImplicit(
     name: string,
     namespace: string,
-    modifiers?: { isAbstract?: boolean; isStatic?: boolean; isActive?: boolean },
+    modifiers?: {
+      isAbstract?: boolean
+      isStatic?: boolean
+      isActive?: boolean
+      isLeaf?: boolean
+      isFinal?: boolean
+      isRoot?: boolean
+    },
     line?: number,
     column?: number,
     inferenceContext?: { sourceType: IREntityType; relationshipKind: IRRelationshipType },

@@ -17,6 +17,9 @@ export class IdentifierMatcher implements TokenMatcher {
     abstract: TokenType.KW_ABSTRACT,
     active: TokenType.KW_ACTIVE,
     config: TokenType.KW_CONFIG,
+    leaf: TokenType.KW_LEAF,
+    final: TokenType.KW_FINAL,
+    root: TokenType.KW_ROOT,
   })
 
   public match(reader: LexerReader): Token | null {
