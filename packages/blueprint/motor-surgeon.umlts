@@ -1,3 +1,10 @@
-class A >> B {
-  - c: > D
+config {
+    direction: DOWN
 }
+package ModuloA {
+    class Cliente >> Servidor  // Herencia (Hijo arriba por default en ELK)
+}
+class Servidor >> Base     // Herencia
+Base >- ModuloA.Cliente 
+
+class A > ModuloA   

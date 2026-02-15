@@ -27,12 +27,18 @@ export function activate(context: vscode.ExtensionContext) {
     lastDocumentUri = document.uri.toString()
 
     const vsDiagnostics: vscode.Diagnostic[] = result.diagnostics.map(
-      (diag: { line?: number; column?: number; severity: string; message: string }) => {
+      (diag: {
+        line?: number
+        column?: number
+        length?: number
+        severity: string
+        message: string
+      }) => {
         const range = new vscode.Range(
           (diag.line || 1) - 1,
-          diag.column || 0,
+          Math.max(0, (diag.column || 1) - 1),
           (diag.line || 1) - 1,
-          (diag.column || 0) + 1,
+          Math.max(0, (diag.column || 1) - 1) + (diag.length || 1),
         )
         const severity =
           diag.severity === 'Warning'

@@ -137,6 +137,7 @@ export class ParserContext {
       code,
       line: errorToken.line,
       column: errorToken.column,
+      length: errorToken.value.length || 1,
       severity,
     })
   }

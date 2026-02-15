@@ -12,6 +12,21 @@ export interface FQNResolution {
  */
 export class SymbolTable {
   private readonly entities = new Map<string, IREntity>()
+  private readonly namespaces = new Set<string>()
+
+  /**
+   * Registers a namespace (Package) to prevent collisions with entities.
+   */
+  public registerNamespace(fqn: string): void {
+    this.namespaces.add(fqn)
+  }
+
+  /**
+   * Checks if a name is already used as a namespace.
+   */
+  public isNamespace(fqn: string): boolean {
+    return this.namespaces.has(fqn)
+  }
 
   /**
    * Registers an entity. If it already exists and is implicit, overwrites it with the explicit one.
@@ -108,6 +123,11 @@ export class SymbolTable {
     const existing = this.get(resolution.fqn)
 
     if (!existing) {
+      if (this.isNamespace(resolution.fqn)) {
+        // We don't register it, it will be caught by AssociationValidator
+        return resolution
+      }
+
       this.register({
         id: resolution.fqn,
         name: name.includes('.') ? name.split('.').pop()! : name,

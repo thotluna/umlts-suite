@@ -150,16 +150,13 @@ export class SemanticAnalyzer {
       inferenceContext,
     )
 
-    // Push relationship...
-    this.relationships.push({
-      from: fromFQN,
-      to: toFQN,
-      type: relType,
-      label: label || '',
-      toMultiplicity: multiplicity,
-      visibility: visibility || IRVisibility.PUBLIC,
+    // Use full validation flow
+    this.relationshipAnalyzer.addResolvedRelationship(fromFQN, toFQN, relType, {
       line,
       column,
+      label,
+      toMultiplicity: multiplicity,
+      visibility,
     })
   }
 
@@ -190,6 +187,12 @@ class DiscoveryVisitor implements ASTVisitor {
   }
 
   visitPackage(node: PackageNode): void {
+    const fqn =
+      this.currentNamespace.length > 0
+        ? `${this.currentNamespace.join('.')}.${node.name}`
+        : node.name
+    this.symbolTable.registerNamespace(fqn)
+
     this.currentNamespace.push(node.name)
     node.body.forEach((stmt) => walkAST(stmt, this))
     this.currentNamespace.pop()
@@ -202,6 +205,15 @@ class DiscoveryVisitor implements ASTVisitor {
     if (existing != null && !existing.isImplicit) {
       this.context.addError(
         `Duplicate entity: '${entity.id}' is already defined in this scope.`,
+        { line: node.line, column: node.column, type: TokenType.UNKNOWN, value: '' } as Token,
+        DiagnosticCode.SEMANTIC_DUPLICATE_ENTITY,
+      )
+      return
+    }
+
+    if (this.symbolTable.isNamespace(entity.id)) {
+      this.context.addError(
+        `Namespace collision: '${entity.id}' is already defined as a Package. Entities cannot have the same name as a package in the same scope.`,
         { line: node.line, column: node.column, type: TokenType.UNKNOWN, value: '' } as Token,
         DiagnosticCode.SEMANTIC_DUPLICATE_ENTITY,
       )
@@ -296,7 +308,7 @@ class ResolutionVisitor implements ASTVisitor {
         rel.column,
         inferenceContext,
       )
-      this.relationshipAnalyzer.addRelationship(fromFQN, toFQN, rel.kind)
+      this.relationshipAnalyzer.addRelationship(fromFQN, toFQN, rel.kind, rel)
     })
   }
 

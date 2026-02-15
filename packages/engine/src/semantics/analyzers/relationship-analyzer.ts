@@ -1,12 +1,14 @@
 import type { IRRelationship } from '../../generator/ir/models'
-import { IRRelationshipType, IREntityType } from '../../generator/ir/models'
+import { IRRelationshipType, IREntityType, IRVisibility } from '../../generator/ir/models'
 import { TypeInferrer } from './type-inferrer'
 import { registerDefaultInferenceRules } from '../rules/inference-rules'
 import type { SymbolTable } from '../symbol-table'
 import type { ParserContext } from '../../parser/parser.context'
 import { DiagnosticCode } from '../../parser/diagnostic.types'
 import type { HierarchyValidator } from '../validators/hierarchy-validator'
-import type { RelationshipNode } from '../../parser/ast/nodes'
+import { AssociationValidator } from '../validators/association-validator'
+import { ASTNodeType } from '../../parser/ast/nodes'
+import type { RelationshipNode, RelationshipHeaderNode, ASTNode } from '../../parser/ast/nodes'
 import { MultiplicityValidator } from '../utils/multiplicity-validator'
 import { TokenType } from '../../lexer/token.types'
 import type { Token } from '../../lexer/token.types'
@@ -16,6 +18,7 @@ import type { Token } from '../../lexer/token.types'
  */
 export class RelationshipAnalyzer {
   private readonly typeInferrer: TypeInferrer
+  private readonly associationValidator: AssociationValidator
 
   constructor(
     private readonly symbolTable: SymbolTable,
@@ -25,6 +28,7 @@ export class RelationshipAnalyzer {
   ) {
     this.typeInferrer = new TypeInferrer()
     registerDefaultInferenceRules(this.typeInferrer)
+    this.associationValidator = new AssociationValidator(context!)
   }
 
   /**
@@ -83,22 +87,86 @@ export class RelationshipAnalyzer {
   }
 
   /**
-   * Adds a relationship to the IR.
+   * Adds a relationship to the IR using a pre-resolved relationship type.
+   * Useful for inferred relationships from attributes/methods.
    */
-  public addRelationship(
+  public addResolvedRelationship(
     fromFQN: string,
     toFQN: string,
-    kind: string,
-    node?: RelationshipNode,
+    type: IRRelationshipType,
+    meta: {
+      line?: number
+      column?: number
+      label?: string
+      toMultiplicity?: string
+      fromMultiplicity?: string
+      visibility?: IRVisibility
+    },
   ): void {
     const fromEntity = this.symbolTable.get(fromFQN)
     const toEntity = this.symbolTable.get(toFQN)
+
+    if (fromEntity != null && toEntity != null) {
+      this.hierarchyValidator.validateRelationship(fromEntity, toEntity, type)
+      this.associationValidator.validate(fromEntity, toEntity, type)
+    }
+
+    const isValidTarget = this.associationValidator.validateTarget(
+      toFQN,
+      type,
+      this.symbolTable,
+      meta.line,
+      meta.column,
+      toFQN.split('.').pop(), // Target name from FQN
+    )
+
+    if (!isValidTarget) return
+
+    const irRel: IRRelationship = {
+      from: fromFQN,
+      to: toFQN,
+      type,
+      line: meta.line,
+      column: meta.column,
+      label: meta.label,
+      toMultiplicity: meta.toMultiplicity,
+      fromMultiplicity: meta.fromMultiplicity,
+      visibility: meta.visibility || IRVisibility.PUBLIC,
+    }
+
+    this.relationships.push(irRel)
+  }
+
+  /**
+   * Adds a relationship to the IR.
+   */
+  public addRelationship(fromFQN: string, toFQN: string, kind: string, node?: ASTNode): void {
     const relType = this.mapRelationshipType(kind)
+
+    // Extract target name for length calculation
+    let targetName = toFQN.split('.').pop()
+    if (node != null && node.type === ASTNodeType.RELATIONSHIP) {
+      if ('to' in node) targetName = (node as RelationshipNode).to
+      if ('target' in node) targetName = (node as RelationshipHeaderNode).target
+    }
+
+    const isValidTarget = this.associationValidator.validateTarget(
+      toFQN,
+      relType,
+      this.symbolTable,
+      node?.line,
+      node?.column,
+      targetName,
+    )
+
+    if (!isValidTarget) return // Abort
+
+    const fromEntity = this.symbolTable.get(fromFQN)
+    const toEntity = this.symbolTable.get(toFQN)
 
     if (fromEntity != null && toEntity != null) {
       this.hierarchyValidator.validateRelationship(fromEntity, toEntity, relType)
-    } else {
-      // Validate that both exist or report if they are effectively missing
+      this.associationValidator.validate(fromEntity, toEntity, relType)
     }
 
     const irRel: IRRelationship = {
@@ -110,40 +178,41 @@ export class RelationshipAnalyzer {
       docs: node?.docs,
     }
 
-    if (node != null) {
-      if (node.fromMultiplicity) {
-        irRel.fromMultiplicity = node.fromMultiplicity
+    if (node != null && 'fromMultiplicity' in node) {
+      const relNode = node as RelationshipNode
+      if (relNode.fromMultiplicity) {
+        irRel.fromMultiplicity = relNode.fromMultiplicity
         const bounds = MultiplicityValidator.validateBounds(
-          node.fromMultiplicity,
-          node.line,
-          node.column,
+          relNode.fromMultiplicity,
+          relNode.line,
+          relNode.column,
           this.context,
         )
 
-        // Composite Aggregation: Part's owner (whole) multiplicity cannot be > 1
         if (relType === IRRelationshipType.COMPOSITION && bounds && bounds.upper > 1) {
+          const errorToken: Token = {
+            line: relNode.line || 1,
+            column: relNode.column || 1,
+            type: TokenType.UNKNOWN,
+            value: relNode.fromMultiplicity, // Use the multiplicity string for highlighting
+          }
           this.context?.addError(
             `Composition Violation: An object cannot be part of more than one composite at the same time (upper multiplicity > 1 on container end).`,
-            {
-              line: node.line,
-              column: node.column,
-              type: TokenType.UNKNOWN,
-              value: node.fromMultiplicity,
-            } as Token,
+            errorToken,
             DiagnosticCode.SEMANTIC_COMPOSITE_VIOLATION,
           )
         }
       }
-      if (node.toMultiplicity) {
-        irRel.toMultiplicity = node.toMultiplicity
+      if (relNode.toMultiplicity) {
+        irRel.toMultiplicity = relNode.toMultiplicity
         MultiplicityValidator.validateBounds(
-          node.toMultiplicity,
-          node.line,
-          node.column,
+          relNode.toMultiplicity,
+          relNode.line,
+          relNode.column,
           this.context,
         )
       }
-      if (node.label) irRel.label = node.label
+      if (relNode.label) irRel.label = relNode.label
     }
 
     this.relationships.push(irRel)
