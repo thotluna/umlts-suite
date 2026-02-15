@@ -1,39 +1,36 @@
-# Backlog
+# UMLTS Suite - Project Tracking
 
-- [ ] Soporte para **Association Classes**- [x] Unificar `>` y `<>` como asociaciones bidireccionales (línea simple).
-- [x] Implementar `><` como asociación dirigida (punta de flecha abierta).
-- [x] Corregir renderizado de etiquetas y multiplicidad en relaciones.
-- [x] **Fix Urgente: Posicionamiento de errores semánticos** (ahora subrayan la línea correcta).
-- [x] **Fix Urgente: Precisión de subrayado** (el subrayado ahora cubre la palabra completa).
-- [x] **Fix Urgente: Higiene de IR** (bloquear creación de entidades/relaciones ilegales con paquetes).
+## 🚀 Fixes Urgentes (Completados)
 
-## Backlog
+- [x] **Precisión Diagnóstica**: Los errores semánticos ahora subrayan la línea y columna exactas.
+- [x] **Subrayado Completo**: El resaltado de errores cubre la palabra completa del identificador problemático.
+- [x] **Higiene de IR**: Bloqueo de creación de entidades o relaciones ilegales (ej. asociaciones a paquetes).
+- [x] **Namespace Safety**: Prevención de colisiones de nombres entre Paquetes y Clases (explícitas o implícitas).
+- [x] **Unificación de Relaciones**: `>` y `<>` ahora se manejan consistentemente como asociaciones.
+- [x] **Flechas Abiertas**: Implementación de `><` para asociaciones dirigidas.
+- [x] **Metadatos Visuales**: Corrección del renderizado de etiquetas y multiplicidad en el generador.
 
-- [ ] **Association Classes** (Clases de asociación mediante rombo o línea punteada).
-- [ ] **Research: XMI/UMLDI** (Interoperabilidad con otras herramientas).
-- [ ] **Advanced Autocomplete** (Sugerencias basadas en el SymbolTable).
-- [ ] **Refactoring: Reverse Engineering** (Generación de diagramas desde código TS/Java).
+## 📋 Proóximas Funcionalidades (Backlog)
 
-## Bugs
+- [ ] **Association Classes**: Soporte para clases de asociación mediante simbología de rombo o línea punteada.
+- [ ] **Advanced Autocomplete**: Sugerencias inteligentes basadas en el `SymbolTable` actual.
+- [ ] **Research: XMI/UMLDI**: Investigar estándares de interoperabilidad para exportación a otras herramientas UML.
+- [ ] **Reverse Engineering**: Refactorización para permitir la generación de diagramas a partir de código fuente TS/Java.
 
-- [x] Posicionamiento erróneo de diagnósticos semánticos (Hardcoded en línea 1).
-- [x] Colisión de nombres entre Paquetes y Clases implícitas.
-- [ ] El ruteo de herencia a veces genera loops visuales en layouts complejos.
+## 🐛 Bugs Conocidos
 
-## Cumplimiento UML 2.5.1 (Roadmap)
+- [ ] **Visual Loops**: El ruteo de herencia forzado (N->S) puede generar bucles visuales innecesarios en layouts muy densos.
+- [ ] **Layout Complexity**: Optimización del enrutamiento ortogonal en diagramas con alta densidad de cruces.
 
-- [x] **Acyclic Hierarchies** (No herencia circular).
-- [x] **Multiplicity Consistency** (Composición <= 1).
-- [x] **Namespace Uniqueness** (No duplicados en el mismo scope).
-- [x] **Structural Integrity** (Enums e Interfaces no pueden ser "Whole" en composiciones).
-- [x] **Classifier Validation** (Prohibir asociaciones/herencia con Paquetes).
-- [ ] **Modifiers: leaf, final, root** (Soportar y validar modificadores de herencia).
-- [ ] **Redefinition & Subsets** (Poder decir que una propiedad redefine a otra).
-- [ ] **Derived Properties** (Sintaxis `/propiedad` y validación).
-- [ ] **Components & Ports** (Implementación de puertos físicos en límites de caja).
-- [ ] **Generalization Sets** (Poder agrupar herencias con etiquetas como `{complete, disjoint}`).
-- [ ] **FEAT**: Soporte para **Generalization Sets** (Disjoint/Complete) y Powertypes.
+## ✅ Cumplimiento UML 2.5.1 (Roadmap)
 
-# Bugs
-
-- [ ] **FIX**: Ruteo de aristas de herencia forzado a N->S provoca bucles innecesarios en algunos layouts complejos en proyectos grandes.
+- [x] **Acyclic Hierarchies**: Validación de no existencia de herencia circular.
+- [x] **Multiplicity Consistency**: Validación de que una parte no puede pertenecer a más de un composite (<= 1).
+- [x] **Namespace Uniqueness**: Garantía de nombres únicos dentro de un mismo scope.
+- [x] **Structural Integrity**: Validación de que Enums e Interfaces no pueden ser "Whole" en composiciones.
+- [x] **Classifier Validation**: Prohibición estricta de asociaciones o herencias dirigidas a un Paquete.
+- [ ] **Inheritance Modifiers**: Soporte y validación para `leaf`, `final`, y `root`.
+- [ ] **Redefinition & Subsets**: Capacidad de definir que una propiedad redefine o es subconjunto de otra.
+- [ ] **Derived Properties**: Soporte para la sintaxis `/propiedad` y su lógica de validación.
+- [ ] **Components & Ports**: Implementación de puertos físicos y conectores en límites de componentes.
+- [ ] **Generalization Sets**: Agrupación de herencias con restricciones `{complete, disjoint}` y soporte para Powertypes.
