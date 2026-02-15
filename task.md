@@ -230,11 +230,21 @@
 - [x] **TEST**: Alcanzar cobertura del 96% en el paquete `semantics`
 - [x] **DOC**: Actualizar `semantics.umlts` con la nueva arquitectura (TypeInferrer, rules)
 - [x] **PR**: Crear Pull Request "Refactor Semántico V2: Declaraciones Flexible y Resolución FQN Robusta"
+- [x] **FEAT**: Implementación completa de Relación de Asociación
+  - [x] Unidireccional: Token `><` (`OP_ASSOC`)
+  - [x] Bidireccional: Token `<>` (`OP_ASSOC_BIDIR`)
+  - [x] Actualización de documentación en Skills (`SKILL.md`)
+  - [x] Corrección de Tests Unitarios (`lexer.test.ts`)
+  - [x] **CHORE**: Migración de build del motor a formato Dual (CJS + ESM) usando `tsup`
 
 ## Próximos Pasos (V3)
 
 - [ ] Explorar soporte para Association Classes
 - [ ] Implementar autocompletado avanzado basado en la nueva resolución FQN
+- [ ] **RESEARCH**: Interoperabilidad Estándar (OMG XMI & UMLDI)
+  - [ ] Investigar especificación XMI 2.5.1 para serialización del modelo semántico (Entities, Relations)
+  - [ ] Investigar UMLDI (Diagram Interchange) para persistencia de layout (Posiciones, Rutas)
+  - [ ] Evaluar viabilidad de exportador XMI para compatibilidad con Enterprise Architect/MagicDraw
 
 ## Ingeniería Inversa Blueprint (Extractor v1.0)
 

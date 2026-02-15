@@ -14,6 +14,7 @@ export enum TokenType {
   KW_IMPLEMENTS = 'KW_IMPLEMENTS',
   KW_COMP = 'KW_COMP',
   KW_AGREG = 'KW_AGREG',
+  KW_ASSOC = 'KW_ASSOC',
   KW_USE = 'KW_USE',
   KW_ACTIVE = 'KW_ACTIVE',
   KW_CONFIG = 'KW_CONFIG',
@@ -24,6 +25,9 @@ export enum TokenType {
   OP_COMP = 'OP_COMP', // >*
   OP_AGREG = 'OP_AGREG', // >+
   OP_USE = 'OP_USE', // >-
+  OP_ASSOC = 'OP_ASSOC', // ><
+  OP_ASSOC_BIDIR = 'OP_ASSOC_BIDIR', // <>
+
   GT = 'GT', // >
   LT = 'LT', // <
   QUESTION = 'QUESTION', // ?

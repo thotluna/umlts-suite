@@ -152,36 +152,49 @@ export class RelationshipAnalyzer {
   public mapRelationshipType(kind: string): IRRelationshipType {
     const k = kind.toLowerCase().trim()
 
-    // Inheritance symbols/keywords
-    if (['extend', 'extends', '<|--', '--|>', '>>'].includes(k)) {
+    // Inheritance (>>)
+    if (['>>', 'extends', 'extend'].includes(k)) {
       return IRRelationshipType.INHERITANCE
     }
 
-    // Implementation symbols/keywords
-    if (['implement', 'implements', '..|>', '<|..', '>i'].includes(k)) {
+    // Implementation (>I)
+    if (['>i', 'implements', 'implement'].includes(k)) {
       return IRRelationshipType.IMPLEMENTATION
     }
 
-    // Composition
-    if (['*', 'o', '*--', '--*', '>*'].includes(k)) {
+    // Composition (>*)
+    if (['>*', 'comp', 'composition'].includes(k)) {
       return IRRelationshipType.COMPOSITION
     }
 
-    // Aggregation
-    if (['o--', '--o', '>o'].includes(k)) {
+    // Aggregation (>+)
+    // Note: The lexer token for aggregation is >+ but some legacy code might check >o.
+    // We strictly follow the DSL: >+
+    if (['>+', 'agreg', 'aggregation'].includes(k)) {
       return IRRelationshipType.AGGREGATION
     }
 
-    // Realization
+    // Association (><)
+    if (['><', 'assoc', 'association'].includes(k)) {
+      return IRRelationshipType.ASSOCIATION
+    }
+
+    // Usage/Dependency (>-, >use)
+    if (['>-', '>use', 'use', 'dependency'].includes(k)) {
+      return IRRelationshipType.DEPENDENCY
+    }
+
+    // Realization (Internal concept, typically mapped from Implements but kept for safety)
     if (['realize', 'realizes'].includes(k)) {
       return IRRelationshipType.REALIZATION
     }
 
-    // Dependency (lowest priority if symbols overlap)
-    if (['-->', '<<', '>-', '>use'].includes(k)) {
-      return IRRelationshipType.DEPENDENCY
+    // Bidirectional Association (<>)
+    if (['<>', 'bidir', 'bidirectional'].includes(k)) {
+      return IRRelationshipType.BIDIRECTIONAL
     }
 
+    // Default fallback
     return IRRelationshipType.ASSOCIATION
   }
 }

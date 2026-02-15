@@ -2,13 +2,14 @@
   "name": "@umlts/engine",
   "version": "1.0.0",
   "description": "",
-  "main": "./dist/exports.js",
-  "types": "./dist/exports.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.mjs",
   "exports": {
     ".": {
-      "types": "./dist/exports.d.ts",
-      "import": "./dist/exports.js",
-      "require": "./dist/exports.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
     }
   },
   "files": [
@@ -16,7 +17,7 @@
   ],
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "tsup src/index.ts --format cjs,esm --dts --sourcemap",
     "generate": "tsx tools/cli/main.ts",
     "test": "vitest src",
     "test:run": "vitest run src",
@@ -28,6 +29,7 @@
     "@vitest/coverage-v8": "^4.0.18",
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",
+    "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
