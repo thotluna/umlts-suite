@@ -33,6 +33,8 @@ const END_CLEARANCE: Record<string, number> = {
   COMPOSITION: 2,
   Aggregation: 2,
   AGGREGATION: 2,
+  Bidirectional: 2,
+  BIDIRECTIONAL: 2,
 }
 
 const START_CLEARANCE: Record<string, number> = {
@@ -48,6 +50,8 @@ const START_CLEARANCE: Record<string, number> = {
   ASSOCIATION: 2,
   Dependency: 2,
   DEPENDENCY: 2,
+  Bidirectional: 2,
+  BIDIRECTIONAL: 2,
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -76,6 +80,7 @@ export function renderEdge(
 
   const isDashed = type === 'Implementation' || type === 'Dependency'
   const isDiamond = type === 'Composition' || type === 'Aggregation'
+  const isBidirectional = type === 'Bidirectional' || type === 'BIDIRECTIONAL'
 
   const pathEl = svg.path({
     d,
@@ -83,10 +88,11 @@ export function renderEdge(
     stroke: theme.edgeStroke,
     'stroke-width': theme.edgeStrokeWidth,
     ...(isDashed ? { 'stroke-dasharray': '6,4' } : {}),
-    // Diamonds go at source, everything else goes at target
-    ...(isDiamond
-      ? { 'marker-start': `url(#marker-${type.toLowerCase()})` }
-      : { 'marker-end': `url(#marker-${type.toLowerCase()})` }),
+    // Bidirectional has no markers. Diamonds go at source, everything else goes at target.
+    ...(!isBidirectional &&
+      (isDiamond
+        ? { 'marker-start': `url(#marker-${type.toLowerCase()})` }
+        : { 'marker-end': `url(#marker-${type.toLowerCase()})` })),
   })
 
   // ── Multiplicity labels ──────────────────────────────────────────────────

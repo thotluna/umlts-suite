@@ -28,5 +28,7 @@ export type IRRelType =
   | 'COMPOSITION'
   | 'AGGREGATION'
   | 'DEPENDENCY'
+  | 'Bidirectional'
+  | 'BIDIRECTIONAL'
 
 export type { IR, IREntity, IRRelationship, IRMember, IRParameter }
