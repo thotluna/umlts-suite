@@ -26,6 +26,7 @@ export function registerDefaultInferenceRules(inferrer: TypeInferrer): void {
     IRRelationshipType.AGGREGATION,
     IRRelationshipType.DEPENDENCY,
     IRRelationshipType.REALIZATION,
+    IRRelationshipType.BIDIRECTIONAL,
   ]
 
   standardRelationships.forEach((rel) => {

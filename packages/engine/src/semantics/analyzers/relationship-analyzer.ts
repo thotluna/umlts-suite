@@ -189,8 +189,8 @@ export class RelationshipAnalyzer {
       return IRRelationshipType.REALIZATION
     }
 
-    // Bidirectional Association (<>)
-    if (['<>', 'bidir', 'bidirectional'].includes(k)) {
+    // Bidirectional/Undirected Association (>)
+    if (['>', '<>', 'bidir', 'bidirectional'].includes(k)) {
       return IRRelationshipType.BIDIRECTIONAL
     }
 

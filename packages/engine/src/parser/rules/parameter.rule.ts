@@ -19,6 +19,8 @@ export class ParameterRule {
         TokenType.OP_COMP,
         TokenType.OP_AGREG,
         TokenType.OP_USE,
+        TokenType.OP_ASSOC,
+        TokenType.OP_ASSOC_BIDIR,
         TokenType.GT,
       )
     ) {
