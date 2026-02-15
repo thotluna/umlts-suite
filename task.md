@@ -239,7 +239,7 @@
 
 ## Próximos Pasos (V3)
 
-- [ ] Explorar soporte para Association Classes
+- [ ] Explorar soporte para Association Classes (Definición de sintaxis y mapeo en IR)
 - [ ] Implementar autocompletado avanzado basado en la nueva resolución FQN
 - [ ] **RESEARCH**: Interoperabilidad Estándar (OMG XMI & UMLDI)
   - [ ] Investigar especificación XMI 2.5.1 para serialización del modelo semántico (Entities, Relations)

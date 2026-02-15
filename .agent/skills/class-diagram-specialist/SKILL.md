@@ -45,12 +45,13 @@ class Moto {
 
 | Symbol | Keyword Alias | UML Meaning                                       |
 | :----- | :------------ | :------------------------------------------------ |
+| `>`    |               | **Association** (Line)                            |
 | `>>`   | `>extends`    | **Inheritance** (Single only)                     |
 | `>I`   | `>implements` | **Implementation** (Multiple allowed by chaining) |
 | `>*`   | `>comp`       | **Composition** (Strong ownership)                |
 | `>+`   | `>agreg`      | **Aggregation** (Weak ownership)                  |
 | `>-`   | `>use`        | **Dependency** (Usage)                            |
-| `><`   | `>assoc`      | **Association** (Connection)                      |
+| `><`   | `>assoc`      | **Directed Association**                          |
 | `<>`   | `>bidir`      | **Bidirectional Association** (Mutual connection) |
 
 ### 3. Qualified Names (FQN) & Generics
