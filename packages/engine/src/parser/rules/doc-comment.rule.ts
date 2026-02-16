@@ -1,17 +1,18 @@
 import { TokenType } from '../../lexer/token.types'
+import type { StatementNode } from '../ast/nodes'
 import type { ParserContext } from '../parser.context'
-import type { StatementRule } from '../rule.types'
+import type { StatementRule, Orchestrator } from '../rule.types'
 
 export class DocCommentRule implements StatementRule {
   public canStart(context: ParserContext): boolean {
     return context.check(TokenType.DOC_COMMENT)
   }
 
-  public parse(context: ParserContext): [] | null {
+  public parse(context: ParserContext, _orchestrator: Orchestrator): StatementNode[] {
     if (context.match(TokenType.DOC_COMMENT)) {
       context.setPendingDocs(context.prev().value)
       return []
     }
-    return null
+    return []
   }
 }

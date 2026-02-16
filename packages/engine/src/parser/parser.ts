@@ -18,13 +18,9 @@ export class Parser implements Orchestrator {
 
     while (!context.isAtEnd()) {
       try {
-        const stmt = this.parseStatement(context)
-        if (stmt != null) {
-          if (Array.isArray(stmt)) {
-            body.push(...stmt)
-          } else {
-            body.push(stmt)
-          }
+        const nodes = this.parseStatement(context)
+        if (nodes.length > 0) {
+          body.push(...nodes)
         } else {
           context.addError('Unrecognized statement')
           this.synchronize(context)
@@ -55,14 +51,15 @@ export class Parser implements Orchestrator {
   /**
    * Intenta parsear una sentencia usando las reglas registradas.
    */
-  public parseStatement(context: ParserContext): StatementNode | StatementNode[] | null {
-    if (context.isAtEnd()) return null
+  public parseStatement(context: ParserContext): StatementNode[] {
+    if (context.isAtEnd()) return []
 
+    const startPos = context.getPosition()
     for (const rule of this.rules) {
-      const node = rule.parse(context, this)
-      if (node != null) return node
+      const nodes = rule.parse(context, this)
+      if (nodes.length > 0 || context.getPosition() > startPos) return nodes
     }
 
-    return null
+    return []
   }
 }
