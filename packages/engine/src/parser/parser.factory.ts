@@ -5,6 +5,8 @@ import { EntityRule } from './rules/entity.rule'
 import { RelationshipRule } from './rules/relationship.rule'
 import { ConfigRule } from './rules/config.rule'
 
+import { DocCommentRule } from './rules/doc-comment.rule'
+
 export class ParserFactory {
   /**
    * Crea una instancia del Parser con las reglas estándar de UMLTS.
@@ -12,6 +14,7 @@ export class ParserFactory {
   public static create(): Parser {
     const rules = [
       new ConfigRule(),
+      new DocCommentRule(),
       new CommentRule(),
       new PackageRule(),
       new EntityRule(),

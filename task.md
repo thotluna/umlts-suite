@@ -57,3 +57,10 @@
 # Bugs
 
 - [ ] **FIX**: Ruteo de aristas de herencia forzado a N->S provoca bucles innecesarios en algunos layouts complejos en proyectos grandes.
+- [x] Refactorización: Análisis Arquitectónico y Refinamiento <!-- id: 5 -->
+  - [x] Aplicar principios SOLID (OCP, DRY, KISS) en el Parser.
+  - [x] Eliminar dependencias de TokenType en el orquestador Parser.ts.
+  - [x] Implementar Representación Uniforme (StatementNode[]) en todas las reglas.
+  - [x] Centralizar lógica de recuperación (synchronize) en ParserContext.
+  - [x] Centralizar lógica de modificadores en `ParserContext.consumeModifiers()` (Cumplimiento DRY).
+  - [x] Validar principios SOLID (OCP, LSP, Alta Cohesión) en el pipeline del motor.

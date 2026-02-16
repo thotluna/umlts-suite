@@ -5,6 +5,10 @@ import type { ParserContext } from '../parser.context'
 import type { StatementRule, Orchestrator } from '../rule.types'
 
 export class PackageRule implements StatementRule {
+  public canStart(context: ParserContext): boolean {
+    return context.check(TokenType.KW_PACKAGE)
+  }
+
   public parse(context: ParserContext, orchestrator: Orchestrator): PackageNode | null {
     if (!context.check(TokenType.KW_PACKAGE)) return null
 

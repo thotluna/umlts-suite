@@ -10,6 +10,12 @@ export interface StatementRule {
     context: ParserContext,
     orchestrator: Orchestrator,
   ) => StatementNode | StatementNode[] | null
+
+  /**
+   * Indica si la regla puede comenzar con el token actual.
+   * Útil para recuperación de errores y sincronización.
+   */
+  canStart: (context: ParserContext) => boolean
 }
 
 /**

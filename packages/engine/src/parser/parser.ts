@@ -1,5 +1,4 @@
 import type { Token } from '../lexer/token.types'
-import { TokenType } from '../lexer/token.types'
 import { ASTNodeType } from './ast/nodes'
 import type { ProgramNode, StatementNode } from './ast/nodes'
 import { ParserContext } from './parser.context'
@@ -19,11 +18,6 @@ export class Parser implements Orchestrator {
 
     while (!context.isAtEnd()) {
       try {
-        if (context.match(TokenType.DOC_COMMENT)) {
-          context.setPendingDocs(context.prev().value)
-          continue
-        }
-
         const stmt = this.parseStatement(context)
         if (stmt != null) {
           if (Array.isArray(stmt)) {
@@ -52,25 +46,10 @@ export class Parser implements Orchestrator {
   }
 
   /**
-   * Se recupera de un error saltando tokens hasta un punto seguro (valla).
+   * Se recupera de un error delegando en el context la búsqueda de un punto seguro.
    */
   private synchronize(context: ParserContext): void {
-    context.advance()
-
-    while (!context.isAtEnd()) {
-      // Si el token anterior terminó una sentencia o el actual comienza una nueva
-      if (context.prev().type === TokenType.RBRACE) return
-
-      switch (context.peek().type) {
-        case TokenType.KW_CLASS:
-        case TokenType.KW_INTERFACE:
-        case TokenType.KW_ENUM:
-        case TokenType.KW_PACKAGE:
-          return
-      }
-
-      context.advance()
-    }
+    context.sync(() => this.rules.some((rule) => rule.canStart(context)))
   }
 
   /**

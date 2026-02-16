@@ -5,6 +5,25 @@ import type { ParserContext } from '../parser.context'
 import type { StatementRule } from '../rule.types'
 
 export class RelationshipRule implements StatementRule {
+  public canStart(context: ParserContext): boolean {
+    return (
+      context.check(TokenType.IDENTIFIER) ||
+      context.checkAny(
+        TokenType.MOD_ABSTRACT,
+        TokenType.KW_ABSTRACT,
+        TokenType.MOD_STATIC,
+        TokenType.KW_STATIC,
+        TokenType.MOD_ACTIVE,
+        TokenType.KW_ACTIVE,
+        TokenType.MOD_LEAF,
+        TokenType.KW_LEAF,
+        TokenType.KW_FINAL,
+        TokenType.MOD_ROOT,
+        TokenType.KW_ROOT,
+      )
+    )
+  }
+
   public parse(context: ParserContext): RelationshipNode[] | null {
     const pos = context.getPosition()
 
