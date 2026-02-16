@@ -7,12 +7,11 @@ export class ParserContext {
   private readonly tokens: Token[]
   private current = 0
   private readonly diagnostics: Diagnostic[] = []
+  private splitTokens: Token[] = []
 
   constructor(tokens: Token[]) {
     this.tokens = tokens
   }
-
-  private splitTokens: Token[] = []
 
   public peek(): Token {
     if (this.splitTokens.length > 0) {
@@ -47,6 +46,20 @@ export class ParserContext {
     return this.prev()
   }
 
+  public getPosition(): number {
+    return this.current
+  }
+
+  public rollback(position: number): void {
+    this.current = position
+  }
+
+  public isAtEnd(): boolean {
+    return this.splitTokens.length === 0 && this.peek().type === TokenType.EOF
+  }
+
+  // -------------------------
+
   public check(type: TokenType): boolean {
     if (this.isAtEnd()) return false
     const token = this.peek()
@@ -62,6 +75,48 @@ export class ParserContext {
 
   public checkAny(...types: TokenType[]): boolean {
     return types.some((type) => this.check(type))
+  }
+
+  public consumeModifiers() {
+    const modifiers = {
+      isAbstract: false,
+      isStatic: false,
+      isActive: false,
+      isLeaf: false,
+      isFinal: false,
+      isRoot: false,
+    }
+
+    let found = true
+    while (found) {
+      found = false
+      if (this.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)) {
+        modifiers.isAbstract = true
+        found = true
+      }
+      if (this.match(TokenType.MOD_STATIC, TokenType.KW_STATIC)) {
+        modifiers.isStatic = true
+        found = true
+      }
+      if (this.match(TokenType.MOD_ACTIVE, TokenType.KW_ACTIVE)) {
+        modifiers.isActive = true
+        found = true
+      }
+      if (this.match(TokenType.MOD_LEAF, TokenType.KW_LEAF)) {
+        modifiers.isLeaf = true
+        found = true
+      }
+      if (this.match(TokenType.KW_FINAL)) {
+        modifiers.isFinal = true
+        found = true
+      }
+      if (this.match(TokenType.MOD_ROOT, TokenType.KW_ROOT)) {
+        modifiers.isRoot = true
+        found = true
+      }
+    }
+
+    return modifiers
   }
 
   public match(...types: TokenType[]): boolean {
@@ -109,17 +164,44 @@ export class ParserContext {
     throw new Error(`${message} at line ${this.peek().line}, column ${this.peek().column}`)
   }
 
-  public isAtEnd(): boolean {
-    return this.splitTokens.length === 0 && this.peek().type === TokenType.EOF
+  /**
+   * Intenta consumir un token. Si no existe, registra el error pero devuelve un token sintético
+   * para permitir que la regla continúe (Error Tolerance).
+   */
+  public softConsume(type: TokenType, message: string): Token {
+    if (this.check(type)) {
+      return this.consume(type, message)
+    }
+
+    const token = this.peek()
+    this.addError(message, token)
+    return {
+      type,
+      value: `<missing:${type}>`,
+      line: token.line,
+      column: token.column,
+    }
   }
 
-  public getPosition(): number {
-    return this.current
+  /**
+   * Sincroniza el stream después de un error, saltando tokens hasta un punto seguro.
+   * Encapsula el conocimiento de los tokens (ej. RBRACE) para liberar al orquestador.
+   * @param canStartNew Función que determina si el estado actual permite iniciar una nueva sentencia.
+   */
+  public sync(canStartNew: () => boolean): void {
+    this.advance()
+
+    while (!this.isAtEnd()) {
+      // Punto seguro: el token anterior cerró un bloque
+      if (this.prev().type === TokenType.RBRACE) return
+      // Punto seguro: alguna regla puede empezar aquí
+      if (canStartNew()) return
+
+      this.advance()
+    }
   }
 
-  public rollback(position: number): void {
-    this.current = position
-  }
+  // -------------------------
 
   public addError(message: string, token?: Token, code?: DiagnosticCode): void {
     this.addDiagnostic(message, DiagnosticSeverity.ERROR, token, code)
@@ -158,6 +240,8 @@ export class ParserContext {
     return this.diagnostics.some((d) => d.severity === DiagnosticSeverity.ERROR)
   }
 
+  // -------------------------
+
   private pendingDocs: string | undefined
 
   public setPendingDocs(docs: string): void {
@@ -168,23 +252,5 @@ export class ParserContext {
     const docs = this.pendingDocs
     this.pendingDocs = undefined
     return docs
-  }
-
-  /**
-   * Sincroniza el stream después de un error, saltando tokens hasta un punto seguro.
-   * Encapsula el conocimiento de los tokens (ej. RBRACE) para liberar al orquestador.
-   * @param canStartNew Función que determina si el estado actual permite iniciar una nueva sentencia.
-   */
-  public sync(canStartNew: () => boolean): void {
-    this.advance()
-
-    while (!this.isAtEnd()) {
-      // Punto seguro: el token anterior cerró un bloque
-      if (this.prev().type === TokenType.RBRACE) return
-      // Punto seguro: alguna regla puede empezar aquí
-      if (canStartNew()) return
-
-      this.advance()
-    }
   }
 }
