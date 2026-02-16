@@ -28,10 +28,15 @@
   - [x] Análisis semántico y propagación al IR.
   - [x] Layout basado en atracción para grupos XOR.
   - [x] Renderizado de líneas punteadas y etiquetas `{xor}`.
+- [x] **Renderer: Nueva Estrategia de Layout por Niveles**
+  - [x] Implementar fase de pre-procesamiento para cálculo de Rango (Rank) basado en relaciones.
+  - [x] Implementar inversión de flujo semántico para Herencia/Implementación.
+  - [x] Configurar pesos de aristas en ELK según prioridad semántica.
 - [ ] **Fase: Interoperabilidad Semántica (XMI/UMLDI)**
   - [ ] **Engine**: Implementar exportador de XMI (Metamodelo UML 2.5.1).
   - [ ] **Renderer**: Implementar exportador de UMLDI (Coordenadas y Geometría).
   - [ ] **VS Code**: Comando "Export to Standard UML" para consolidar ambos XML.
+
 - [ ] **Advanced Autocomplete** (Sugerencias basadas en el SymbolTable).
 - [ ] **Refactoring: Reverse Engineering** (Generación de diagramas desde código TS/Java).
 

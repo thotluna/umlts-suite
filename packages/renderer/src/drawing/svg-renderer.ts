@@ -48,12 +48,13 @@ export class SVGRenderer {
     const constraintsStr = this.renderConstraints(model, theme)
 
     // Combine everything with proper grouping
+    // Las restricciones (XOR) van al final para que queden encima de nodos y aristas
     const content =
       defs +
       svg.g({ class: 'packages' }, packagesStr) +
       svg.g({ class: 'edges' }, edgesStr) +
-      svg.g({ class: 'constraints' }, constraintsStr) +
-      svg.g({ class: 'nodes' }, nodesStr)
+      svg.g({ class: 'nodes' }, nodesStr) +
+      svg.g({ class: 'constraints' }, constraintsStr)
 
     const viewBoxX = layoutResult.bbox?.x ?? 0
     const viewBoxY = layoutResult.bbox?.y ?? 0
@@ -161,43 +162,104 @@ export class SVGRenderer {
 
         if (groupEdges.length < 2) return ''
 
-        // Get midpoints of all involved edges
-        const points = groupEdges
-          .filter((e) => e.waypoints && e.waypoints.length >= 2)
-          .map((e) => midpoint(e.waypoints!))
+        // Identificar el nodo común para dibujar el arco XOR cerca de la unión
+        const edge1 = groupEdges[0]
+        const edge2 = groupEdges[1]
 
-        if (points.length < 2) return ''
+        let commonNodeId: string | null = null
+        if (edge1.from === edge2.from) commonNodeId = edge1.from
+        else if (edge1.to === edge2.to) commonNodeId = edge1.to
+        else if (edge1.from === edge2.to) commonNodeId = edge1.from
+        else if (edge1.to === edge2.from) commonNodeId = edge1.to
 
-        // Draw a dashed path connecting the midpoints
-        // We generate a simple path connecting them in sequence
-        const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+        if (!commonNodeId) {
+          // Si no hay nodo común (raro en XOR), usamos los puntos medios como fallback
+          const p1 = midpoint(edge1.waypoints!)
+          const p2 = midpoint(edge2.waypoints!)
+          return this.drawXorElements([p1, p2], theme)
+        }
 
-        const line = svg.path({
-          d,
-          fill: 'none',
-          stroke: theme.edgeStroke,
-          'stroke-width': 1,
-          'stroke-dasharray': '4,4',
-        })
+        // Obtener puntos a una distancia un poco mayor (70px) para no pisar las multiplicidades
+        const p1 = this.getPointNearNode(edge1, commonNodeId, 70)
+        const p2 = this.getPointNearNode(edge2, commonNodeId, 70)
 
-        // Draw the {xor} label at the center of the first segment for simplicity
-        const labelX = (points[0].x + points[1].x) / 2
-        const labelY = (points[0].y + points[1].y) / 2
-
-        const label = svg.text(
-          {
-            x: labelX,
-            y: labelY - 5,
-            fill: theme.edgeStroke,
-            'font-size': '10px',
-            'font-style': 'italic',
-            'text-anchor': 'middle',
-          },
-          '{xor}',
-        )
-
-        return svg.g({ class: 'constraint-xor' }, line + label)
+        return this.drawXorElements([p1, p2], theme)
       })
       .join('')
+  }
+
+  /**
+   * Obtiene un punto en la arista a una distancia fija desde el nodo indicado.
+   */
+  private getPointNearNode(
+    edge: { from: string; waypoints?: Array<{ x: number; y: number }> },
+    nodeId: string,
+    distance: number,
+  ): { x: number; y: number } {
+    const wps = edge.waypoints || []
+    const fromStart = edge.from === nodeId
+    const points = fromStart ? wps : [...wps].reverse()
+
+    let currentDist = 0
+    for (let i = 0; i < points.length - 1; i++) {
+      const a = points[i]
+      const b = points[i + 1]
+      const dx = b.x - a.x
+      const dy = b.y - a.y
+      const len = Math.sqrt(dx * dx + dy * dy)
+
+      if (currentDist + len >= distance) {
+        const ratio = (distance - currentDist) / len
+        return { x: a.x + dx * ratio, y: a.y + dy * ratio }
+      }
+      currentDist += len
+    }
+    return points[points.length - 1]
+  }
+
+  /**
+   * Dibuja los elementos visuales del XOR (línea y etiqueta).
+   */
+  private drawXorElements(points: { x: number; y: number }[], theme: Theme): string {
+    const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+
+    const line = svg.path({
+      d,
+      fill: 'none',
+      stroke: theme.edgeStroke,
+      'stroke-width': 1.2,
+      'stroke-dasharray': '5,5',
+    })
+
+    const labelX = (points[0].x + points[1].x) / 2
+    const labelY = (points[0].y + points[1].y) / 2
+
+    // Fondo para la etiqueta para asegurar visibilidad absoluta
+    const bg = svg.rect({
+      x: labelX - 22,
+      y: labelY - 10,
+      width: 44,
+      height: 20,
+      fill: theme.canvasBackground,
+      stroke: theme.edgeStroke,
+      'stroke-width': 0.5,
+      rx: 4,
+    })
+
+    const label = svg.text(
+      {
+        x: labelX,
+        y: labelY,
+        fill: theme.edgeStroke,
+        'font-size': '13px',
+        'font-weight': 'bold',
+        'font-style': 'italic',
+        'text-anchor': 'middle',
+        'dominant-baseline': 'central',
+      },
+      '{xor}',
+    )
+
+    return svg.g({ class: 'constraint-xor' }, line + bg + label)
   }
 }
