@@ -3,6 +3,7 @@ import {
   UMLPackage,
   type UMLHierarchyItem,
   type DiagramConfig,
+  type DiagramModel,
 } from '../core/types'
 import { type Theme } from '../core/theme'
 import { SVGBuilder as svg } from './svg-helpers'
@@ -10,7 +11,7 @@ import { DrawingRegistry } from './drawable'
 
 // Ensure renderers are registered
 import './elements/class-node'
-import { renderMarkers } from './elements/edges'
+import { renderMarkers, midpoint } from './elements/edges'
 
 /**
  * SVGRenderer: Orchestrates the generation of the SVG string from a layouted result.
@@ -44,11 +45,14 @@ export class SVGRenderer {
       )
       .join('')
 
+    const constraintsStr = this.renderConstraints(model, theme)
+
     // Combine everything with proper grouping
     const content =
       defs +
       svg.g({ class: 'packages' }, packagesStr) +
       svg.g({ class: 'edges' }, edgesStr) +
+      svg.g({ class: 'constraints' }, constraintsStr) +
       svg.g({ class: 'nodes' }, nodesStr)
 
     const viewBoxX = layoutResult.bbox?.x ?? 0
@@ -139,5 +143,61 @@ export class SVGRenderer {
       .join('')
 
     return svg.g({ class: 'package', 'data-name': pkg.name }, rect + label + childrenStr)
+  }
+
+  /**
+   * Renders relationship constraints (like XOR).
+   */
+  private renderConstraints(model: DiagramModel, theme: Theme): string {
+    const xorConstraints = (model.constraints || []).filter((c) => c.kind === 'xor')
+    if (xorConstraints.length === 0) return ''
+
+    return xorConstraints
+      .map((constraint) => {
+        const groupId = (constraint.targets as string[])[0]
+        const groupEdges = model.edges.filter((e) =>
+          e.constraints?.some((ec) => ec.kind === 'xor_member' && ec.targets.includes(groupId)),
+        )
+
+        if (groupEdges.length < 2) return ''
+
+        // Get midpoints of all involved edges
+        const points = groupEdges
+          .filter((e) => e.waypoints && e.waypoints.length >= 2)
+          .map((e) => midpoint(e.waypoints!))
+
+        if (points.length < 2) return ''
+
+        // Draw a dashed path connecting the midpoints
+        // We generate a simple path connecting them in sequence
+        const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+
+        const line = svg.path({
+          d,
+          fill: 'none',
+          stroke: theme.edgeStroke,
+          'stroke-width': 1,
+          'stroke-dasharray': '4,4',
+        })
+
+        // Draw the {xor} label at the center of the first segment for simplicity
+        const labelX = (points[0].x + points[1].x) / 2
+        const labelY = (points[0].y + points[1].y) / 2
+
+        const label = svg.text(
+          {
+            x: labelX,
+            y: labelY - 5,
+            fill: theme.edgeStroke,
+            'font-size': '10px',
+            'font-style': 'italic',
+            'text-anchor': 'middle',
+          },
+          '{xor}',
+        )
+
+        return svg.g({ class: 'constraint-xor' }, line + label)
+      })
+      .join('')
   }
 }

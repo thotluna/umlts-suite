@@ -1,4 +1,4 @@
-import { type IRMember, type IRRelType } from '../contract/ir'
+import { type IRMember, type IRRelType, type IRConstraint } from '../contract/ir'
 import { measureNodeDimensions } from '../../layout/measure'
 
 /**
@@ -94,6 +94,7 @@ export class UMLEdge {
     public readonly fromMultiplicity?: string,
     public readonly toMultiplicity?: string,
     public readonly associationClassId?: string,
+    public readonly constraints?: IRConstraint[],
   ) {}
 
   public updateLayout(
@@ -126,4 +127,5 @@ export interface DiagramModel {
   nodes: UMLNode[]
   edges: UMLEdge[]
   packages: UMLPackage[]
+  constraints: IRConstraint[]
 }

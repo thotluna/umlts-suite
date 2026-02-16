@@ -209,6 +209,47 @@ export class LayoutEngine {
       }
     })
 
+    // ── XOR Constraint Virtual Edges ─────────────────────────────────────────
+    model.constraints.forEach((constraint, cIdx) => {
+      if (constraint.kind === 'xor' && constraint.targets.length === 1) {
+        const groupId = constraint.targets[0]
+        const groupEdges = model.edges.filter((e) =>
+          e.constraints?.some((ec) => ec.kind === 'xor_member' && ec.targets.includes(groupId)),
+        )
+
+        if (groupEdges.length > 1) {
+          // Identify all distinct endpoints involved in the XOR group
+          const endpoints = new Set<string>()
+          groupEdges.forEach((e) => {
+            endpoints.add(e.from)
+            endpoints.add(e.to)
+          })
+
+          const endpointArray = Array.from(endpoints)
+
+          // Inject virtual edges between all pairs of endpoints to keep them close
+          // This creates a "cluster" effect for the XOR participants.
+          for (let i = 0; i < endpointArray.length; i++) {
+            for (let j = i + 1; j < endpointArray.length; j++) {
+              const s = endpointArray[i]
+              const t = endpointArray[j]
+              const vLcaId = this.findLCA(s, t)
+              const vElkEdge: ElkExtendedEdge = {
+                id: `v_xor_${cIdx}_${i}_${j}`,
+                sources: [s],
+                targets: [t],
+                layoutOptions: {
+                  'elk.edge.weight': '5', // Moderate attraction
+                },
+              }
+              if (!groups.has(vLcaId)) groups.set(vLcaId, [])
+              groups.get(vLcaId)!.push(vElkEdge)
+            }
+          }
+        }
+      }
+    })
+
     return groups
   }
 
