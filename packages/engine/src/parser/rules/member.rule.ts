@@ -41,34 +41,7 @@ export class MemberRule {
       visibility = context.prev().value
     }
 
-    const modifiers = {
-      isStatic: false,
-      isAbstract: false,
-      isLeaf: false,
-      isFinal: false,
-    }
-
-    let found = true
-    while (found) {
-      found = false
-      if (context.match(TokenType.KW_STATIC, TokenType.MOD_STATIC)) {
-        modifiers.isStatic = true
-        found = true
-      }
-      if (context.match(TokenType.KW_ABSTRACT, TokenType.MOD_ABSTRACT)) {
-        modifiers.isAbstract = true
-        found = true
-      }
-      if (context.match(TokenType.KW_LEAF, TokenType.MOD_LEAF)) {
-        modifiers.isLeaf = true
-        found = true
-      }
-      if (context.match(TokenType.KW_FINAL)) {
-        modifiers.isFinal = true
-        found = true
-      }
-    }
-
+    const modifiers = context.consumeModifiers()
     const { isStatic, isAbstract, isLeaf, isFinal } = modifiers
 
     const nameToken = context.consume(TokenType.IDENTIFIER, 'Se esperaba el nombre del miembro')

@@ -13,27 +13,35 @@ export class PackageRule implements StatementRule {
     if (!context.check(TokenType.KW_PACKAGE)) return null
 
     const startToken = context.consume(TokenType.KW_PACKAGE, "Expected 'package'")
-    const nameToken = context.consume(TokenType.IDENTIFIER, 'Package name expected')
+    // Si falta el nombre, registramos el error pero seguimos adelante con un placeholder
+    const nameToken = context.softConsume(TokenType.IDENTIFIER, 'Package name expected')
 
-    context.consume(TokenType.LBRACE, "Expected '{' after package name")
-
-    const body: StatementNode[] = []
-    while (!context.check(TokenType.RBRACE) && !context.isAtEnd()) {
-      const stmt = orchestrator.parseStatement(context)
-      if (stmt != null) {
-        if (Array.isArray(stmt)) {
-          body.push(...stmt)
-        } else {
-          body.push(stmt)
-        }
-      } else {
-        // Si no hay match y no es fin de bloque, algo va mal.
-        // Por ahora avanzamos para evitar bucle infinito.
-        context.advance()
-      }
+    // Si falta la llave, registramos el error. Si no está, el bucle de abajo probablemente no se ejecute
+    // o se recupere en el siguiente token válido.
+    const hasLBrace = context.match(TokenType.LBRACE)
+    if (!hasLBrace) {
+      context.addError("Expected '{' after package name")
     }
 
-    context.consume(TokenType.RBRACE, "Expected '}' for package closing")
+    const body: StatementNode[] = []
+    if (hasLBrace) {
+      while (!context.check(TokenType.RBRACE) && !context.isAtEnd()) {
+        const stmt = orchestrator.parseStatement(context)
+        if (stmt != null) {
+          if (Array.isArray(stmt)) {
+            body.push(...stmt)
+          } else {
+            body.push(stmt)
+          }
+        } else {
+          // Si no hay match y no es fin de bloque, algo va mal.
+          // En modo tolerante, registramos el error y saltamos el token problemático.
+          context.addError('Unrecognized statement inside package', context.peek())
+          context.advance()
+        }
+      }
+      context.softConsume(TokenType.RBRACE, "Expected '}' for package closing")
+    }
 
     return {
       type: ASTNodeType.PACKAGE,
