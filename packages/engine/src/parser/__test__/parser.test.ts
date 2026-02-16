@@ -8,7 +8,7 @@ import {
   type AttributeNode,
   type MethodNode,
   type RelationshipNode,
-} from '../ast/nodes'
+} from '../../syntax/nodes'
 
 describe('Parser', () => {
   it('should parse a simple class', () => {

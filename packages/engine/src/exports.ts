@@ -17,4 +17,4 @@ export type {
 export { MermaidGenerator } from './generator/mermaid.generator'
 
 // Exportación de diagnósticos
-export type { Diagnostic, DiagnosticSeverity } from './parser/diagnostic.types'
+export type { Diagnostic, DiagnosticSeverity } from './syntax/diagnostic.types'

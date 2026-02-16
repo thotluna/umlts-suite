@@ -1,6 +1,11 @@
-import { TokenType } from '../../lexer/token.types'
-import { ASTNodeType } from '../ast/nodes'
-import type { MemberNode, EntityType, AssociationClassNode, StatementNode } from '../ast/nodes'
+import { TokenType } from '../../syntax/token.types'
+import { ASTNodeType } from '../../syntax/nodes'
+import type {
+  MemberNode,
+  EntityType,
+  AssociationClassNode,
+  StatementNode,
+} from '../../syntax/nodes'
 import type { ParserContext } from '../parser.context'
 import type { StatementRule, Orchestrator } from '../rule.types'
 import { RelationshipHeaderRule } from './relationship-header.rule'

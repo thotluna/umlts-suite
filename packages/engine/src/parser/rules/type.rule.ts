@@ -1,5 +1,5 @@
-import { TokenType } from '../../lexer/token.types'
-import { ASTNodeType, type TypeNode } from '../ast/nodes'
+import { TokenType } from '../../syntax/token.types'
+import { ASTNodeType, type TypeNode } from '../../syntax/nodes'
 import type { ParserContext } from '../parser.context'
 
 export class TypeRule {

@@ -1,5 +1,5 @@
-import type { Token } from './token.types'
-import { TokenType } from './token.types'
+import type { Token } from '../syntax/token.types'
+import { TokenType } from '../syntax/token.types'
 import { LexerReader } from './lexer.reader'
 import type { TokenMatcher } from './matcher.types'
 

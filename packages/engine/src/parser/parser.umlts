@@ -1,0 +1,56 @@
+config {
+    direction: UP
+    spacing: 100
+}
+package parser{
+  class parser >I Orchestrator{
+    -rules: >* StatementRule[0..*]
+
+  }
+}
+package syntax{
+
+  enum DiagnosticSeverity
+  enum DiagnosticCode
+
+  interface Diagnostic{
+    code: >+ DiagnosticCode[0..1]
+    severity: >+ DiagnosticSeverity[0..1]
+  }
+
+  enum ASTNodeType
+  interface ASTNode >+ ASTNodeType
+  interface TypeNode >> ASTNode{
+    arguments: >+ TypeNode[0..*]
+  }
+
+  interface StatementNode{}
+
+
+  interface ProgramNode >> ASTNode {
+    type: ASTNodeType.PROGRAM
+    body: >+ StatementNode[0..*]
+    diagnostics: >+ Diagnostic[0..*]
+  }
+
+  interface packageNode >> StatementNode >> ASTNode{
+    type: ASTNodeType.PACKAGE
+    name: string
+    body: >+ StatementNode[0..*]
+  }
+
+  interface EntityNode >> ASTNode {
+    type: >+ ASTNodeType
+    name: string
+    relationships: RelationshipHeaderNode[]
+    body: MemberNode[] 
+  }
+  
+  interface RelationshipHeaderNode >> ASTNode {
+    type: >+ ASTNodeType
+    kind: string // >>, >I, >*, etc.
+    target: string
+  }
+    
+
+}

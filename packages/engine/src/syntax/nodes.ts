@@ -1,3 +1,5 @@
+import type { Diagnostic } from './diagnostic.types'
+
 export enum ASTNodeType {
   PROGRAM = 'Program',
   PACKAGE = 'Package',
@@ -33,7 +35,7 @@ export interface ASTNode {
 export interface ProgramNode extends ASTNode {
   type: ASTNodeType.PROGRAM
   body: StatementNode[]
-  diagnostics?: Array<import('../diagnostic.types').Diagnostic>
+  diagnostics?: Diagnostic[]
 }
 
 export type StatementNode =

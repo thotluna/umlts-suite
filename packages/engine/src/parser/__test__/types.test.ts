@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { ParserFactory } from '../parser.factory'
 import { LexerFactory } from '../../lexer/lexer.factory'
-import { type EntityNode, type AttributeNode } from '../ast/nodes'
+import { type EntityNode, type AttributeNode } from '../../syntax/nodes'
 
 describe('TypeRule', () => {
   it('should parse simple types', () => {

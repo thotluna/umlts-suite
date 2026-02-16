@@ -1,7 +1,7 @@
 import { ParserContext } from '../../parser/parser.context'
-import { DiagnosticCode } from '../../parser/diagnostic.types'
-import { TokenType } from '../../lexer/token.types'
-import type { Token } from '../../lexer/token.types'
+import { DiagnosticCode } from '../../syntax/diagnostic.types'
+import { TokenType } from '../../syntax/token.types'
+import type { Token } from '../../syntax/token.types'
 
 export interface MultiplicityBounds {
   lower: number

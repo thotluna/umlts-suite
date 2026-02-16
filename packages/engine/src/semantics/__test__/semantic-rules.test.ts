@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { LexerFactory } from '../../lexer/lexer.factory'
 import { ParserFactory } from '../../parser/parser.factory'
 import { SemanticAnalyzer } from '../analyzer'
-import { DiagnosticCode, DiagnosticSeverity, type Diagnostic } from '../../parser/diagnostic.types'
+import { DiagnosticCode, DiagnosticSeverity, type Diagnostic } from '../../syntax/diagnostic.types'
 import { ParserContext } from '../../parser/parser.context'
 import { DiagnosticReporter } from '../../parser/diagnostic-reporter'
 

@@ -2,20 +2,20 @@ import type { IRMember, IREntity } from '../../generator/ir/models'
 import { IREntityType, IRVisibility } from '../../generator/ir/models'
 import type { SymbolTable } from '../symbol-table'
 import type { ParserContext } from '../../parser/parser.context'
-import { DiagnosticCode } from '../../parser/diagnostic.types'
+import { DiagnosticCode } from '../../syntax/diagnostic.types'
 import { TypeValidator } from '../utils/type-validator'
 import { FQNBuilder } from '../utils/fqn-builder'
 import { MultiplicityValidator } from '../utils/multiplicity-validator'
-import { TokenType } from '../../lexer/token.types'
-import type { Token } from '../../lexer/token.types'
+import { TokenType } from '../../syntax/token.types'
+import type { Token } from '../../syntax/token.types'
 import type {
   EntityNode,
   MemberNode,
   AttributeNode,
   MethodNode,
   AssociationClassNode,
-} from '../../parser/ast/nodes'
-import { ASTNodeType } from '../../parser/ast/nodes'
+} from '../../syntax/nodes'
+import { ASTNodeType } from '../../syntax/nodes'
 
 /**
  * Handles the declaration of entities and their members.

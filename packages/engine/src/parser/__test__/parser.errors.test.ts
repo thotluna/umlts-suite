@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { LexerFactory } from '../../lexer/lexer.factory'
 import { ParserFactory } from '../parser.factory'
-import { ASTNodeType, type PackageNode } from '../ast/nodes'
+import { ASTNodeType, type PackageNode } from '../../syntax/nodes'
 
 describe('Parser Error Handling', () => {
   it('should report error for unrecognized statement and continue', () => {

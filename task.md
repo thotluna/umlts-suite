@@ -57,6 +57,8 @@
 # Bugs
 
 - [ ] **FIX**: Ruteo de aristas de herencia forzado a N->S provoca bucles innecesarios en algunos layouts complejos en proyectos grandes.
+- [ ] **BUG**: Asegurar que todas las relaciones de composición/agregación sean siempre navegables (flecha obligatoria).
+- [ ] **BUG**: Corregir inconsistencias visuales y semánticas en la herencia doble/múltiple (ej. `A >> B >> C`).
 - [x] Refactorización: Análisis Arquitectónico y Refinamiento <!-- id: 5 -->
   - [x] Aplicar principios SOLID (OCP, DRY, KISS) en el Parser.
   - [x] Eliminar dependencias de TokenType en el orquestador Parser.ts.

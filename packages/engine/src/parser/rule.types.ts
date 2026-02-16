@@ -1,5 +1,5 @@
 import type { ParserContext } from './parser.context'
-import type { StatementNode } from './ast/nodes'
+import type { StatementNode } from '../syntax/nodes'
 
 export interface StatementRule {
   /**

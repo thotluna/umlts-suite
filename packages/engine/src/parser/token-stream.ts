@@ -1,4 +1,4 @@
-import { TokenType, type Token } from '../lexer/token.types'
+import { TokenType, type Token } from '../syntax/token.types'
 
 /**
  * TokenStream: Gestiona la navegación y el estado de los tokens.
