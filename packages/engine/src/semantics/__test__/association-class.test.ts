@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { LexerFactory } from '../../lexer/lexer.factory'
 import { ParserFactory } from '../../parser/parser.factory'
 import { ParserContext } from '../../parser/parser.context'
+import { DiagnosticReporter } from '../../parser/diagnostic-reporter'
 import { SemanticAnalyzer } from '../analyzer'
 
 describe('Association Class Support', () => {
@@ -11,7 +12,8 @@ describe('Association Class Support', () => {
     const parser = ParserFactory.create()
     const program = parser.parse(tokens)
     const analyzer = new SemanticAnalyzer()
-    const context = new ParserContext(tokens)
+    const reporter = new DiagnosticReporter()
+    const context = new ParserContext(tokens, reporter)
     return analyzer.analyze(program, context)
   }
 
@@ -116,7 +118,8 @@ describe('Association Class Support', () => {
     const parser = ParserFactory.create()
     const program = parser.parse(tokens)
     const analyzer = new SemanticAnalyzer()
-    const context = new ParserContext(tokens)
+    const reporter = new DiagnosticReporter()
+    const context = new ParserContext(tokens, reporter)
     analyzer.analyze(program, context)
 
     const diagnostics = context.getDiagnostics()

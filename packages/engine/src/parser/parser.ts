@@ -2,8 +2,14 @@ import type { Token } from '../lexer/token.types'
 import { ASTNodeType } from './ast/nodes'
 import type { ProgramNode, StatementNode } from './ast/nodes'
 import { ParserContext } from './parser.context'
+import { DiagnosticReporter } from './diagnostic-reporter'
 import type { StatementRule, Orchestrator } from './rule.types'
 
+/**
+ * Parser: El protagonista y cerebro del proceso de transformación.
+ * Orquesta las reglas, gestiona el ciclo de vida del reporte de errores
+ * y aplica las estrategias de recuperación (Panic Mode).
+ */
 export class Parser implements Orchestrator {
   private readonly rules: StatementRule[]
 
@@ -12,7 +18,10 @@ export class Parser implements Orchestrator {
   }
 
   public parse(tokens: Token[]): ProgramNode {
-    const context = new ParserContext(tokens)
+    // El Parser (Cerebro) inicializa los recursos de la sesión
+    const reporter = new DiagnosticReporter()
+    const context = new ParserContext(tokens, reporter)
+
     const body: StatementNode[] = []
     const firstToken = context.peek()
 
@@ -22,13 +31,15 @@ export class Parser implements Orchestrator {
         if (nodes.length > 0) {
           body.push(...nodes)
         } else {
-          context.addError('Unrecognized statement')
-          this.synchronize(context)
+          // Si ninguna regla consumió nada y no estamos al final, hay fuego
+          throw new Error('Unrecognized statement')
         }
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Unknown syntax error'
-        context.addError(message)
-        this.synchronize(context)
+        reporter.addError(message, context.peek())
+
+        // El Parser toma el mando estratégico: "Busca un punto seguro"
+        context.sync(() => this.rules.some((rule) => rule.canStart(context)))
       }
     }
 
@@ -37,19 +48,12 @@ export class Parser implements Orchestrator {
       body,
       line: firstToken?.line ?? 1,
       column: firstToken?.column ?? 1,
-      diagnostics: context.getDiagnostics(),
+      diagnostics: reporter.getDiagnostics(),
     }
   }
 
   /**
-   * Se recupera de un error delegando en el context la búsqueda de un punto seguro.
-   */
-  private synchronize(context: ParserContext): void {
-    context.sync(() => this.rules.some((rule) => rule.canStart(context)))
-  }
-
-  /**
-   * Intenta parsear una sentencia usando las reglas registradas.
+   * Intenta parsear una sentencia delegando en las reglas registradas.
    */
   public parseStatement(context: ParserContext): StatementNode[] {
     if (context.isAtEnd()) return []

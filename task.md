@@ -63,4 +63,11 @@
   - [x] Implementar Representación Uniforme (StatementNode[]) en todas las reglas.
   - [x] Centralizar lógica de recuperación (synchronize) en ParserContext.
   - [x] Centralizar lógica de modificadores en `ParserContext.consumeModifiers()` (Cumplimiento DRY).
+  - [x] **Refactorización Arquitectónica de ParserContext** (Grado Profesional):
+    - [x] Extraer navegación a `TokenStream`.
+    - [x] Extraer gestión de errores a `DiagnosticReporter`.
+    - [x] Extraer gestión de documentación a `DocRegistry`.
+    - [x] Convertir `ParserContext` en una Fachada (Facade) de coordinación (Sandbox).
+    - [x] Elevar al `Parser` como protagonista.
+    - [x] **Limpieza Arquitectónica** (Anti-Smell): Eliminar Feature Envy y centralizar sincronización en `ParserContext` mediante predicados.
   - [x] Validar principios SOLID (OCP, LSP, Alta Cohesión) en el pipeline del motor.
