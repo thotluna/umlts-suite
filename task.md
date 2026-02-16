@@ -22,7 +22,12 @@
 - [x] Actualizar el Renderer para soportar clases de asociación
   - [x] Planificar la visualización (línea punteada hacia el centro de la clase)
   - [x] Implementar actualización de `UMLEdge` y `SVGRenderer`
-- [ ] Documentar en `UML_SPEC.md` la nueva sintaxis y comportamiento.
+- [x] Documentar en `UML_SPEC.md` la nueva sintaxis y comportamiento.
+- [x] **FEAT: Soporte para Restricciones XOR**
+  - [x] Implementar parsing de bloques `xor { ... }` y restricciones in-line.
+  - [x] Análisis semántico y propagación al IR.
+  - [x] Layout basado en atracción para grupos XOR.
+  - [x] Renderizado de líneas punteadas y etiquetas `{xor}`.
 - [ ] **Fase: Interoperabilidad Semántica (XMI/UMLDI)**
   - [ ] **Engine**: Implementar exportador de XMI (Metamodelo UML 2.5.1).
   - [ ] **Renderer**: Implementar exportador de UMLDI (Coordenadas y Geometría).
