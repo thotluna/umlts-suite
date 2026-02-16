@@ -1,5 +1,5 @@
 import { TokenType } from '../../lexer/token.types'
-import type { StatementNode, PackageNode } from '../ast/nodes'
+import type { StatementNode } from '../ast/nodes'
 import { ASTNodeType } from '../ast/nodes'
 import type { ParserContext } from '../parser.context'
 import type { StatementRule, Orchestrator } from '../rule.types'
@@ -9,8 +9,8 @@ export class PackageRule implements StatementRule {
     return context.check(TokenType.KW_PACKAGE)
   }
 
-  public parse(context: ParserContext, orchestrator: Orchestrator): PackageNode | null {
-    if (!context.check(TokenType.KW_PACKAGE)) return null
+  public parse(context: ParserContext, orchestrator: Orchestrator): StatementNode[] {
+    if (!context.check(TokenType.KW_PACKAGE)) return []
 
     const startToken = context.consume(TokenType.KW_PACKAGE, "Expected 'package'")
     // Si falta el nombre, registramos el error pero seguimos adelante con un placeholder
@@ -26,13 +26,9 @@ export class PackageRule implements StatementRule {
     const body: StatementNode[] = []
     if (hasLBrace) {
       while (!context.check(TokenType.RBRACE) && !context.isAtEnd()) {
-        const stmt = orchestrator.parseStatement(context)
-        if (stmt != null) {
-          if (Array.isArray(stmt)) {
-            body.push(...stmt)
-          } else {
-            body.push(stmt)
-          }
+        const nodes = orchestrator.parseStatement(context)
+        if (nodes.length > 0) {
+          body.push(...nodes)
         } else {
           // Si no hay match y no es fin de bloque, algo va mal.
           // En modo tolerante, registramos el error y saltamos el token problemático.
@@ -43,12 +39,14 @@ export class PackageRule implements StatementRule {
       context.softConsume(TokenType.RBRACE, "Expected '}' for package closing")
     }
 
-    return {
-      type: ASTNodeType.PACKAGE,
-      name: nameToken.value,
-      body,
-      line: startToken.line,
-      column: startToken.column,
-    }
+    return [
+      {
+        type: ASTNodeType.PACKAGE,
+        name: nameToken.value,
+        body,
+        line: startToken.line,
+        column: startToken.column,
+      },
+    ]
   }
 }

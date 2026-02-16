@@ -4,6 +4,7 @@ import { ParserFactory } from '../../parser/parser.factory'
 import { SemanticAnalyzer } from '../analyzer'
 import { DiagnosticCode, DiagnosticSeverity } from '../../parser/diagnostic.types'
 import { ParserContext } from '../../parser/parser.context'
+import { DiagnosticReporter } from '../../parser/diagnostic-reporter'
 import { IREntityType } from '../../generator/ir/models'
 
 describe('Implicit Entity Type Inference', () => {
@@ -13,7 +14,8 @@ describe('Implicit Entity Type Inference', () => {
     const parser = ParserFactory.create()
     const program = parser.parse(tokens)
     const analyzer = new SemanticAnalyzer()
-    const context = new ParserContext(tokens)
+    const reporter = new DiagnosticReporter()
+    const context = new ParserContext(tokens, reporter)
 
     const ir = analyzer.analyze(program, context)
     return { parser, analyzer, program, context, ir }

@@ -1,8 +1,8 @@
 import { TokenType } from '../../lexer/token.types'
-import type { RelationshipNode } from '../ast/nodes'
+import type { StatementNode, RelationshipNode } from '../ast/nodes'
 import { ASTNodeType } from '../ast/nodes'
 import type { ParserContext } from '../parser.context'
-import type { StatementRule } from '../rule.types'
+import type { StatementRule, Orchestrator } from '../rule.types'
 
 export class RelationshipRule implements StatementRule {
   public canStart(context: ParserContext): boolean {
@@ -24,7 +24,7 @@ export class RelationshipRule implements StatementRule {
     )
   }
 
-  public parse(context: ParserContext): RelationshipNode[] | null {
+  public parse(context: ParserContext, _orchestrator: Orchestrator): StatementNode[] {
     const pos = context.getPosition()
 
     try {
@@ -33,7 +33,7 @@ export class RelationshipRule implements StatementRule {
       const fromToken = context.peek()
       if (!context.check(TokenType.IDENTIFIER)) {
         if (Object.values(fromModifiers).some((v) => v)) context.rollback(pos)
-        return null
+        return []
       }
       let from = context.consume(TokenType.IDENTIFIER, 'Identifier expected').value
 
@@ -116,13 +116,13 @@ export class RelationshipRule implements StatementRule {
 
       if (relationships.length === 0) {
         context.rollback(pos)
-        return null
+        return []
       }
 
       return relationships
     } catch (_e) {
       context.rollback(pos)
-      return null
+      return []
     }
   }
 

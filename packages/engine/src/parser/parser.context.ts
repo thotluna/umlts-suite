@@ -1,80 +1,102 @@
-import type { Token } from '../lexer/token.types'
-import { TokenType } from '../lexer/token.types'
+import { TokenType, type Token } from '../lexer/token.types'
 import type { Diagnostic, DiagnosticCode } from './diagnostic.types'
-import { DiagnosticSeverity } from './diagnostic.types'
+import { TokenStream } from './token-stream'
+import { DiagnosticReporter } from './diagnostic-reporter'
+import { DocRegistry } from './doc-registry'
 
+/**
+ * ParserContext: Fachada (Facade) que coordina los subsistemas del parser.
+ * Delega la navegación a TokenStream, los errores a DiagnosticReporter y
+ * la documentación a DocRegistry.
+ */
 export class ParserContext {
-  private readonly tokens: Token[]
-  private current = 0
-  private readonly diagnostics: Diagnostic[] = []
-  private splitTokens: Token[] = []
+  private readonly stream: TokenStream
+  private readonly errors: DiagnosticReporter
+  private readonly docs: DocRegistry
 
-  constructor(tokens: Token[]) {
-    this.tokens = tokens
+  constructor(tokens: Token[], errors: DiagnosticReporter) {
+    this.stream = new TokenStream(tokens)
+    this.errors = errors
+    this.docs = new DocRegistry()
   }
 
+  // --- Delegación a TokenStream ---
+
   public peek(): Token {
-    if (this.splitTokens.length > 0) {
-      return this.splitTokens[0]
-    }
-    if (this.current >= this.tokens.length) {
-      return this.tokens[this.tokens.length - 1]
-    }
-    return this.tokens[this.current]
+    return this.stream.peek()
   }
 
   public peekNext(): Token {
-    if (this.splitTokens.length > 1) {
-      return this.splitTokens[1]
-    }
-    const offset = this.splitTokens.length === 1 ? 0 : 1
-    if (this.current + offset >= this.tokens.length) {
-      return this.tokens[this.tokens.length - 1]
-    }
-    return this.tokens[this.current + offset]
+    return this.stream.peekNext()
   }
 
   public prev(): Token {
-    return this.tokens[this.current - 1]
+    return this.stream.prev()
   }
 
   public advance(): Token {
-    if (this.splitTokens.length > 0) {
-      return this.splitTokens.shift()!
-    }
-    if (!this.isAtEnd()) this.current++
-    return this.prev()
+    return this.stream.advance()
   }
 
   public getPosition(): number {
-    return this.current
+    return this.stream.getPosition()
   }
 
   public rollback(position: number): void {
-    this.current = position
+    this.stream.rollback(position)
   }
 
   public isAtEnd(): boolean {
-    return this.splitTokens.length === 0 && this.peek().type === TokenType.EOF
+    return this.stream.isAtEnd()
   }
 
-  // -------------------------
-
   public check(type: TokenType): boolean {
-    if (this.isAtEnd()) return false
-    const token = this.peek()
-    if (token.type === type) return true
-
-    // Si buscamos un carácter individual y tenemos uno compuesto que empieza con él
-    if (token.type === TokenType.OP_INHERIT && type === TokenType.GT) {
-      return true
-    }
-
-    return false
+    return this.stream.check(type)
   }
 
   public checkAny(...types: TokenType[]): boolean {
     return types.some((type) => this.check(type))
+  }
+
+  // --- Lógica de coordinación (Facade Logic) ---
+
+  public match(...types: TokenType[]): boolean {
+    for (const type of types) {
+      if (this.check(type)) {
+        // Si el stream necesita dividir el token, lo hace y devuelve true
+        if (this.stream.splitAndAdvance(type)) {
+          return true
+        }
+        this.advance()
+        return true
+      }
+    }
+    return false
+  }
+
+  public consume(type: TokenType, message: string): Token {
+    if (this.check(type)) {
+      if (this.stream.splitAndAdvance(type)) {
+        return { ...this.stream.prev(), type, value: '>' } // Casos especiales de splitting
+      }
+      return this.advance()
+    }
+    throw new Error(`${message} at line ${this.peek().line}, column ${this.peek().column}`)
+  }
+
+  public softConsume(type: TokenType, message: string): Token {
+    if (this.check(type)) {
+      return this.consume(type, message)
+    }
+
+    const token = this.peek()
+    this.addError(message, token)
+    return {
+      type,
+      value: `<missing:${type}>`,
+      line: token.line,
+      column: token.column,
+    }
   }
 
   public consumeModifiers() {
@@ -115,142 +137,60 @@ export class ParserContext {
         found = true
       }
     }
-
     return modifiers
   }
 
-  public match(...types: TokenType[]): boolean {
-    for (const type of types) {
-      if (this.check(type)) {
-        const token = this.peek()
-        if (token.type === TokenType.OP_INHERIT && type === TokenType.GT) {
-          this.current++ // consume >> real
-          this.splitTokens.push({
-            ...token,
-            type: TokenType.GT,
-            value: '>',
-            column: token.column + 1,
-          })
-          // We don't return the split token here, just return true
-          // The caller will then call advance() (implied) or we just return true
-          // Wait, match() SHOULD consume the token.
-          // By incrementing this.current and pushing to splitTokens, we effectively
-          // consumed the first half of >>.
-          return true
-        }
-        this.advance()
-        return true
-      }
-    }
-    return false
-  }
-
-  public consume(type: TokenType, message: string): Token {
-    if (this.check(type)) {
-      const token = this.peek()
-      if (token.type === TokenType.OP_INHERIT && type === TokenType.GT) {
-        this.current++ // consume >> real
-        this.splitTokens.push({
-          ...token,
-          type: TokenType.GT,
-          value: '>',
-          column: token.column + 1,
-        })
-        return { ...token, type: TokenType.GT, value: '>' }
-      }
-      return this.advance()
-    }
-
-    throw new Error(`${message} at line ${this.peek().line}, column ${this.peek().column}`)
-  }
-
   /**
-   * Intenta consumir un token. Si no existe, registra el error pero devuelve un token sintético
-   * para permitir que la regla continúe (Error Tolerance).
+   * Sincroniza el stream avanzando hasta encontrar un punto seguro (un delimitador o el inicio de una regla).
+   * @param isPointOfNoReturn - Predicado que define si el token actual permite iniciar un nuevo parseo seguro.
    */
-  public softConsume(type: TokenType, message: string): Token {
-    if (this.check(type)) {
-      return this.consume(type, message)
-    }
+  public sync(isPointOfNoReturn: () => boolean): void {
+    if (this.isAtEnd()) return
 
-    const token = this.peek()
-    this.addError(message, token)
-    return {
-      type,
-      value: `<missing:${type}>`,
-      line: token.line,
-      column: token.column,
-    }
-  }
-
-  /**
-   * Sincroniza el stream después de un error, saltando tokens hasta un punto seguro.
-   * Encapsula el conocimiento de los tokens (ej. RBRACE) para liberar al orquestador.
-   * @param canStartNew Función que determina si el estado actual permite iniciar una nueva sentencia.
-   */
-  public sync(canStartNew: () => boolean): void {
+    // Avanzamos al menos uno para salir del token problemático
     this.advance()
 
     while (!this.isAtEnd()) {
-      // Punto seguro: el token anterior cerró un bloque
+      // Puntos seguros de sincronización:
+      // 1. Después de un bloque (})
       if (this.prev().type === TokenType.RBRACE) return
-      // Punto seguro: alguna regla puede empezar aquí
-      if (canStartNew()) return
+
+      // 2. El inicio de una sentencia reconocida por el orquestador
+      if (isPointOfNoReturn()) return
 
       this.advance()
     }
   }
 
-  // -------------------------
+  // --- Delegación a DiagnosticReporter ---
 
   public addError(message: string, token?: Token, code?: DiagnosticCode): void {
-    this.addDiagnostic(message, DiagnosticSeverity.ERROR, token, code)
+    this.errors.addError(message, token ?? this.peek(), code)
   }
 
   public addWarning(message: string, token?: Token, code?: DiagnosticCode): void {
-    this.addDiagnostic(message, DiagnosticSeverity.WARNING, token, code)
+    this.errors.addWarning(message, token ?? this.peek(), code)
   }
 
   public addInfo(message: string, token?: Token, code?: DiagnosticCode): void {
-    this.addDiagnostic(message, DiagnosticSeverity.INFO, token, code)
-  }
-
-  public addDiagnostic(
-    message: string,
-    severity: DiagnosticSeverity,
-    token?: Token,
-    code?: DiagnosticCode,
-  ): void {
-    const errorToken = token ?? this.peek()
-    this.diagnostics.push({
-      message,
-      code,
-      line: errorToken.line,
-      column: errorToken.column,
-      length: errorToken.value.length || 1,
-      severity,
-    })
+    this.errors.addInfo(message, token ?? this.peek(), code)
   }
 
   public getDiagnostics(): Diagnostic[] {
-    return this.diagnostics
+    return this.errors.getDiagnostics()
   }
 
   public hasErrors(): boolean {
-    return this.diagnostics.some((d) => d.severity === DiagnosticSeverity.ERROR)
+    return this.errors.hasErrors()
   }
 
-  // -------------------------
-
-  private pendingDocs: string | undefined
+  // --- Delegación a DocRegistry ---
 
   public setPendingDocs(docs: string): void {
-    this.pendingDocs = docs
+    this.docs.setPendingDocs(docs)
   }
 
   public consumePendingDocs(): string | undefined {
-    const docs = this.pendingDocs
-    this.pendingDocs = undefined
-    return docs
+    return this.docs.consumePendingDocs()
   }
 }

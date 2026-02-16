@@ -1,8 +1,8 @@
 import { TokenType } from '../../lexer/token.types'
-import type { ConfigNode } from '../ast/nodes'
+import type { StatementNode, ConfigNode } from '../ast/nodes'
 import { ASTNodeType } from '../ast/nodes'
 import type { ParserContext } from '../parser.context'
-import type { StatementRule } from '../rule.types'
+import type { StatementRule, Orchestrator } from '../rule.types'
 
 /**
  * ConfigRule: Parses the 'config { ... }' block.
@@ -19,7 +19,7 @@ export class ConfigRule implements StatementRule {
     return context.check(TokenType.KW_CONFIG) || context.check(TokenType.AT)
   }
 
-  public parse(context: ParserContext): ConfigNode | null {
+  public parse(context: ParserContext, _orchestrator: Orchestrator): StatementNode[] {
     // 1. Sintaxis de bloque: config { ... }
     if (context.match(TokenType.KW_CONFIG)) {
       const configToken = context.prev()
@@ -27,12 +27,14 @@ export class ConfigRule implements StatementRule {
       const options = this.parseBlockOptions(context)
       context.consume(TokenType.RBRACE, "Expected '}' at the end of config block.")
 
-      return {
-        type: ASTNodeType.CONFIG,
-        options,
-        line: configToken.line,
-        column: configToken.column,
-      }
+      return [
+        {
+          type: ASTNodeType.CONFIG,
+          options,
+          line: configToken.line,
+          column: configToken.column,
+        },
+      ]
     }
 
     // 2. Sintaxis de línea: @key: value
@@ -42,15 +44,17 @@ export class ConfigRule implements StatementRule {
       context.consume(TokenType.COLON, "Expected ':' after key.")
       const value = this.parseValue(context)
 
-      return {
-        type: ASTNodeType.CONFIG,
-        options: { [keyToken.value]: value },
-        line: atToken.line,
-        column: atToken.column,
-      }
+      return [
+        {
+          type: ASTNodeType.CONFIG,
+          options: { [keyToken.value]: value },
+          line: atToken.line,
+          column: atToken.column,
+        } as ConfigNode,
+      ]
     }
 
-    return null
+    return []
   }
 
   private parseBlockOptions(context: ParserContext): Record<string, unknown> {

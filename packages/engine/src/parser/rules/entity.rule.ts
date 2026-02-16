@@ -29,13 +29,13 @@ export class EntityRule implements StatementRule {
     )
   }
 
-  public parse(context: ParserContext, _orchestrator: Orchestrator): StatementNode | null {
+  public parse(context: ParserContext, _orchestrator: Orchestrator): StatementNode[] {
     const pos = context.getPosition()
     const modifiers = context.consumeModifiers()
 
     if (!context.match(TokenType.KW_CLASS, TokenType.KW_INTERFACE, TokenType.KW_ENUM)) {
       context.rollback(pos)
-      return null
+      return []
     }
 
     // Support modifiers after keyword (e.g. class * MyClass)
@@ -102,15 +102,17 @@ export class EntityRule implements StatementRule {
         context.softConsume(TokenType.RBRACE, "Expected '}'")
       }
 
-      return {
-        type: ASTNodeType.ASSOCIATION_CLASS,
-        name: nameToken.value,
-        participants,
-        body,
-        line: token.line,
-        column: token.column,
-        docs: context.consumePendingDocs(),
-      } as AssociationClassNode
+      return [
+        {
+          type: ASTNodeType.ASSOCIATION_CLASS,
+          name: nameToken.value,
+          participants,
+          body,
+          line: token.line,
+          column: token.column,
+          docs: context.consumePendingDocs(),
+        } as AssociationClassNode,
+      ]
     }
 
     const docs = context.consumePendingDocs()
@@ -198,21 +200,23 @@ export class EntityRule implements StatementRule {
       context.softConsume(TokenType.RBRACE, "Expected '}'")
     }
 
-    return {
-      type,
-      name: nameToken.value,
-      isAbstract,
-      isStatic,
-      isActive,
-      isLeaf,
-      isFinal,
-      isRoot,
-      typeParameters,
-      docs,
-      relationships,
-      body,
-      line: token.line,
-      column: token.column,
-    }
+    return [
+      {
+        type,
+        name: nameToken.value,
+        isAbstract,
+        isStatic,
+        isActive,
+        isLeaf,
+        isFinal,
+        isRoot,
+        typeParameters,
+        docs,
+        relationships,
+        body,
+        line: token.line,
+        column: token.column,
+      },
+    ]
   }
 }

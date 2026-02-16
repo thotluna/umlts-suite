@@ -4,6 +4,7 @@ import { ParserFactory } from '../../parser/parser.factory'
 import { SemanticAnalyzer } from '../analyzer'
 import { DiagnosticCode, DiagnosticSeverity, type Diagnostic } from '../../parser/diagnostic.types'
 import { ParserContext } from '../../parser/parser.context'
+import { DiagnosticReporter } from '../../parser/diagnostic-reporter'
 
 describe('Semantic Rules', () => {
   const parseAndAnalyze = (source: string) => {
@@ -14,7 +15,8 @@ describe('Semantic Rules', () => {
     const analyzer = new SemanticAnalyzer()
 
     // Creamos un contexto limpio para el análisis semántico
-    const context = new ParserContext(tokens)
+    const reporter = new DiagnosticReporter()
+    const context = new ParserContext(tokens, reporter)
 
     return { parser, analyzer, program, context }
   }

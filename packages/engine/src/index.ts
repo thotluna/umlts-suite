@@ -3,6 +3,7 @@ import { ParserFactory } from './parser/parser.factory'
 import { SemanticAnalyzer } from './semantics/analyzer'
 import type { IRDiagram } from './generator/ir/models'
 import { ParserContext } from './parser/parser.context'
+import { DiagnosticReporter } from './parser/diagnostic-reporter'
 import type { Diagnostic } from './parser/diagnostic.types'
 import type { Token } from './lexer/token.types'
 
@@ -44,22 +45,23 @@ export class UMLEngine {
     const parser = ParserFactory.create()
     const ast = parser.parse(tokens)
 
-    // Acumulamos diagnósticos del parser
+    // Acumulamos diagnósticos iniciales (Parser ya los tiene enast.diagnostics si usamos un reporter local allí,
+    // pero para máxima integración, vamos a centralizar el reporte)
     if (ast.diagnostics != null) {
       diagnostics.push(...ast.diagnostics)
     }
 
     // 3. Análisis Semántico
-    // IMPORTANTE: Instanciamos un nuevo analizador por cada parseo para evitar
-    // la filtración de estado entre cambios de código (evita duplicados acumulados).
-    const context = new ParserContext(tokens)
+    // Necesitamos un context para el analyzer que comparta los errores si queremos,
+    // o uno nuevo que capture solo los semánticos.
+    // Dado que ParserContext ahora requiere un reporter, vamos a dárselo.
+    const reporter = new DiagnosticReporter()
+    const context = new ParserContext(tokens, reporter)
     const analyzer = new SemanticAnalyzer()
     const diagram = analyzer.analyze(ast, context)
 
     // Acumulamos diagnósticos del analizador semántico
-    if (context.hasErrors()) {
-      diagnostics.push(...context.getDiagnostics())
-    }
+    diagnostics.push(...reporter.getDiagnostics())
 
     return {
       diagram,
