@@ -60,6 +60,10 @@ export class ParserContext {
     return false
   }
 
+  public checkAny(...types: TokenType[]): boolean {
+    return types.some((type) => this.check(type))
+  }
+
   public match(...types: TokenType[]): boolean {
     for (const type of types) {
       if (this.check(type)) {
@@ -164,5 +168,23 @@ export class ParserContext {
     const docs = this.pendingDocs
     this.pendingDocs = undefined
     return docs
+  }
+
+  /**
+   * Sincroniza el stream después de un error, saltando tokens hasta un punto seguro.
+   * Encapsula el conocimiento de los tokens (ej. RBRACE) para liberar al orquestador.
+   * @param canStartNew Función que determina si el estado actual permite iniciar una nueva sentencia.
+   */
+  public sync(canStartNew: () => boolean): void {
+    this.advance()
+
+    while (!this.isAtEnd()) {
+      // Punto seguro: el token anterior cerró un bloque
+      if (this.prev().type === TokenType.RBRACE) return
+      // Punto seguro: alguna regla puede empezar aquí
+      if (canStartNew()) return
+
+      this.advance()
+    }
   }
 }

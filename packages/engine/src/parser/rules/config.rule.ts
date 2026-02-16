@@ -15,6 +15,10 @@ import type { StatementRule } from '../rule.types'
  * }
  */
 export class ConfigRule implements StatementRule {
+  public canStart(context: ParserContext): boolean {
+    return context.check(TokenType.KW_CONFIG) || context.check(TokenType.AT)
+  }
+
   public parse(context: ParserContext): ConfigNode | null {
     // 1. Sintaxis de bloque: config { ... }
     if (context.match(TokenType.KW_CONFIG)) {

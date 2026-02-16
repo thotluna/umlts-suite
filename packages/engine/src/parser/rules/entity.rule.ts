@@ -10,6 +10,25 @@ export class EntityRule implements StatementRule {
   private readonly relationshipHeaderRule = new RelationshipHeaderRule()
   private readonly memberRule = new MemberRule()
 
+  public canStart(context: ParserContext): boolean {
+    return context.checkAny(
+      TokenType.KW_CLASS,
+      TokenType.KW_INTERFACE,
+      TokenType.KW_ENUM,
+      TokenType.MOD_ABSTRACT,
+      TokenType.KW_ABSTRACT,
+      TokenType.MOD_STATIC,
+      TokenType.KW_STATIC,
+      TokenType.MOD_ACTIVE,
+      TokenType.KW_ACTIVE,
+      TokenType.MOD_LEAF,
+      TokenType.KW_LEAF,
+      TokenType.KW_FINAL,
+      TokenType.MOD_ROOT,
+      TokenType.KW_ROOT,
+    )
+  }
+
   public parse(context: ParserContext, _orchestrator: Orchestrator): StatementNode | null {
     const pos = context.getPosition()
     const modifiers = {
