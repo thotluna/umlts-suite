@@ -73,3 +73,8 @@
     - [x] Elevar al `Parser` como protagonista.
     - [x] **Limpieza Arquitectónica** (Anti-Smell): Eliminar Feature Envy y centralizar sincronización en `ParserContext` mediante predicados.
   - [x] Validar principios SOLID (OCP, LSP, Alta Cohesión) en el pipeline del motor.
+  - [x] **Refinar Nodos de Sintaxis (AST Refactor)**:
+    - [x] Unificar propiedades de modificadores en una interfaz reutilizable `Modifiers`.
+    - [x] Actualizar `EntityNode`, `RelationshipHeaderNode`, `AttributeNode`, `MethodNode`, `ParameterNode` y `RelationshipNode` para usar `Modifiers`.
+    - [x] Actualizar capa semántica (`EntityAnalyzer`, `RelationshipAnalyzer`, `SymbolTable`) para soportar la nueva estructura AST.
+    - [x] Actualizar y validar diagramas de arquitectura (`parser.umlts`).

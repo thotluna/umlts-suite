@@ -54,17 +54,21 @@ export interface PackageNode extends ASTNode {
 
 export type EntityType = ASTNodeType.CLASS | ASTNodeType.INTERFACE | ASTNodeType.ENUM
 
+export interface Modifiers {
+  isAbstract?: boolean
+  isStatic?: boolean
+  isActive?: boolean
+  isLeaf?: boolean
+  isFinal?: boolean
+  isRoot?: boolean
+}
+
 export interface EntityNode extends ASTNode {
   type: EntityType
   name: string
   relationships: RelationshipHeaderNode[]
   body: MemberNode[] | undefined
-  isAbstract: boolean
-  isStatic: boolean
-  isActive: boolean
-  isLeaf: boolean
-  isFinal: boolean
-  isRoot: boolean
+  modifiers: Modifiers
   typeParameters?: string[] | undefined
 }
 
@@ -72,14 +76,7 @@ export interface RelationshipHeaderNode extends ASTNode {
   type: ASTNodeType.RELATIONSHIP
   kind: string // >>, >I, >*, etc.
   target: string
-  targetModifiers?: {
-    isAbstract?: boolean
-    isStatic?: boolean
-    isActive?: boolean
-    isLeaf?: boolean
-    isFinal?: boolean
-    isRoot?: boolean
-  }
+  targetModifiers?: Modifiers
 }
 
 export type MemberNode = MethodNode | AttributeNode | CommentNode
@@ -88,41 +85,22 @@ export interface AttributeNode extends ASTNode {
   type: ASTNodeType.ATTRIBUTE
   name: string
   visibility: string
-  isStatic: boolean
-  isLeaf: boolean
-  isFinal: boolean
+  modifiers: Modifiers
   typeAnnotation: TypeNode
   multiplicity: string | undefined
   relationshipKind?: string | undefined
-  targetModifiers?: {
-    isAbstract?: boolean
-    isStatic?: boolean
-    isActive?: boolean
-    isLeaf?: boolean
-    isFinal?: boolean
-    isRoot?: boolean
-  }
+  targetModifiers?: Modifiers
 }
 
 export interface MethodNode extends ASTNode {
   type: ASTNodeType.METHOD
   name: string
   visibility: string
-  isStatic: boolean
-  isAbstract: boolean
-  isLeaf: boolean
-  isFinal: boolean
+  modifiers: Modifiers
   parameters: ParameterNode[]
   returnType: TypeNode
   returnRelationshipKind?: string | undefined
-  returnTargetModifiers?: {
-    isAbstract?: boolean
-    isStatic?: boolean
-    isActive?: boolean
-    isLeaf?: boolean
-    isFinal?: boolean
-    isRoot?: boolean
-  }
+  returnTargetModifiers?: Modifiers
 }
 
 export interface ParameterNode extends ASTNode {
@@ -130,38 +108,17 @@ export interface ParameterNode extends ASTNode {
   name: string
   typeAnnotation: TypeNode
   relationshipKind?: string | undefined
-  targetModifiers?: {
-    isAbstract?: boolean
-    isStatic?: boolean
-    isActive?: boolean
-    isLeaf?: boolean
-    isFinal?: boolean
-    isRoot?: boolean
-  }
+  targetModifiers?: Modifiers
   multiplicity?: string
 }
 
 export interface RelationshipNode extends ASTNode {
   type: ASTNodeType.RELATIONSHIP
   from: string
-  fromModifiers?: {
-    isAbstract?: boolean
-    isStatic?: boolean
-    isActive?: boolean
-    isLeaf?: boolean
-    isFinal?: boolean
-    isRoot?: boolean
-  }
+  fromModifiers?: Modifiers
   fromMultiplicity: string | undefined
   to: string
-  toModifiers?: {
-    isAbstract?: boolean
-    isStatic?: boolean
-    isActive?: boolean
-    isLeaf?: boolean
-    isFinal?: boolean
-    isRoot?: boolean
-  }
+  toModifiers?: Modifiers
   toMultiplicity: string | undefined
   kind: string
   label: string | undefined

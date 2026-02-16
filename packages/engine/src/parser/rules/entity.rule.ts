@@ -53,8 +53,6 @@ export class EntityRule implements StatementRule {
     modifiers.isFinal = modifiers.isFinal || postModifiers.isFinal
     modifiers.isRoot = modifiers.isRoot || postModifiers.isRoot
 
-    const { isAbstract, isStatic, isActive, isLeaf, isFinal, isRoot } = modifiers
-
     const token = context.prev()
     let type: EntityType = ASTNodeType.CLASS
     if (token.type === TokenType.KW_INTERFACE) type = ASTNodeType.INTERFACE
@@ -163,9 +161,11 @@ export class EntityRule implements StatementRule {
               type: ASTNodeType.ATTRIBUTE,
               name: literalToken.value,
               visibility: 'public',
-              isStatic: true,
-              isLeaf: false,
-              isFinal: false,
+              modifiers: {
+                isStatic: true,
+                isLeaf: false,
+                isFinal: false,
+              },
               typeAnnotation: {
                 type: ASTNodeType.TYPE,
                 kind: 'simple',
@@ -209,12 +209,7 @@ export class EntityRule implements StatementRule {
       {
         type,
         name: nameToken.value,
-        isAbstract,
-        isStatic,
-        isActive,
-        isLeaf,
-        isFinal,
-        isRoot,
+        modifiers,
         typeParameters,
         docs,
         relationships,

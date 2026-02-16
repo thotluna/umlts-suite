@@ -62,7 +62,7 @@ describe('Parser', () => {
 
     const method = cls.body![2] as MethodNode
     expect(method.type).toBe(ASTNodeType.METHOD)
-    expect(method.isStatic).toBe(true)
+    expect(method.modifiers.isStatic).toBe(true)
     expect(method.parameters).toHaveLength(1)
     expect(method.returnType.name).toBe('boolean')
   })

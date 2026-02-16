@@ -6,6 +6,7 @@ import type {
   CommentNode,
   ConfigNode,
   AssociationClassNode,
+  Modifiers,
 } from '../syntax/nodes'
 import type { ASTVisitor } from '../syntax/visitor'
 import { walkAST } from '../syntax/visitor'
@@ -139,14 +140,7 @@ export class SemanticAnalyzer {
     associationClassId?: string,
     line?: number,
     column?: number,
-    targetModifiers?: {
-      isAbstract?: boolean
-      isStatic?: boolean
-      isActive?: boolean
-      isLeaf?: boolean
-      isFinal?: boolean
-      isRoot?: boolean
-    },
+    targetModifiers?: Modifiers,
   ): void {
     if (TypeValidator.isPrimitive(typeName)) return
     const baseType = TypeValidator.getBaseTypeName(typeName)

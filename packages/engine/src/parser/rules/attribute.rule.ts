@@ -1,6 +1,6 @@
 import type { Token } from '../../syntax/token.types'
 import { TokenType } from '../../syntax/token.types'
-import { ASTNodeType, type AttributeNode } from '../../syntax/nodes'
+import { ASTNodeType, type AttributeNode, type Modifiers } from '../../syntax/nodes'
 import type { ParserContext } from '../parser.context'
 import { TypeRule } from './type.rule'
 
@@ -11,9 +11,7 @@ export class AttributeRule {
     context: ParserContext,
     name: Token,
     visibility: string,
-    isStatic: boolean,
-    isLeaf: boolean,
-    isFinal: boolean,
+    modifiers: Modifiers,
   ): AttributeNode {
     context.consume(TokenType.COLON, "Expected ':' after attribute name")
 
@@ -34,7 +32,7 @@ export class AttributeRule {
       relationshipKind = context.prev().value
     }
 
-    const modifiers = context.consumeModifiers()
+    const targetModifiers = context.consumeModifiers()
 
     const typeAnnotation = this.typeRule.parse(context)
     let multiplicity: string | undefined
@@ -51,13 +49,11 @@ export class AttributeRule {
       type: ASTNodeType.ATTRIBUTE,
       name: name.value,
       visibility,
-      isStatic,
-      isLeaf,
-      isFinal,
+      modifiers,
       typeAnnotation,
       multiplicity,
       relationshipKind,
-      targetModifiers: modifiers,
+      targetModifiers,
       docs: context.consumePendingDocs(),
       line: name.line,
       column: name.column,

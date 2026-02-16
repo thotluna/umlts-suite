@@ -8,7 +8,12 @@ import { DiagnosticCode } from '../../syntax/diagnostic.types'
 import type { HierarchyValidator } from '../validators/hierarchy-validator'
 import { AssociationValidator } from '../validators/association-validator'
 import { ASTNodeType } from '../../syntax/nodes'
-import type { RelationshipNode, RelationshipHeaderNode, ASTNode } from '../../syntax/nodes'
+import type {
+  RelationshipNode,
+  RelationshipHeaderNode,
+  ASTNode,
+  Modifiers,
+} from '../../syntax/nodes'
 import { MultiplicityValidator } from '../utils/multiplicity-validator'
 import { TokenType } from '../../syntax/token.types'
 import type { Token } from '../../syntax/token.types'
@@ -42,14 +47,7 @@ export class RelationshipAnalyzer {
   public resolveOrRegisterImplicit(
     name: string,
     namespace: string,
-    modifiers?: {
-      isAbstract?: boolean
-      isStatic?: boolean
-      isActive?: boolean
-      isLeaf?: boolean
-      isFinal?: boolean
-      isRoot?: boolean
-    },
+    modifiers?: Modifiers,
     line?: number,
     column?: number,
     inferenceContext?: { sourceType: IREntityType; relationshipKind: IRRelationshipType },

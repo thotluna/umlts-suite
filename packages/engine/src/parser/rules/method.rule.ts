@@ -1,6 +1,6 @@
 import type { Token } from '../../syntax/token.types'
 import { TokenType } from '../../syntax/token.types'
-import { ASTNodeType, type MethodNode, type TypeNode } from '../../syntax/nodes'
+import { ASTNodeType, type MethodNode, type TypeNode, type Modifiers } from '../../syntax/nodes'
 import type { ParserContext } from '../parser.context'
 import { TypeRule } from './type.rule'
 import { ParameterRule } from './parameter.rule'
@@ -13,10 +13,7 @@ export class MethodRule {
     context: ParserContext,
     name: Token,
     visibility: string,
-    isStatic: boolean,
-    isAbstract: boolean,
-    isLeaf: boolean,
-    isFinal: boolean,
+    modifiers: Modifiers,
   ): MethodNode {
     context.consume(TokenType.LPAREN, '')
     const parameters = []
@@ -38,7 +35,6 @@ export class MethodRule {
       column: name.column,
     }
     let returnRelationshipKind: string | undefined
-    const returnTargetIsAbstract = false
 
     if (context.match(TokenType.COLON)) {
       // SOPORTE SECCIÓN 5.3: Operadores de relación en tipo de retorno
@@ -101,10 +97,7 @@ export class MethodRule {
         type: ASTNodeType.METHOD,
         name: name.value,
         visibility,
-        isStatic,
-        isAbstract,
-        isLeaf,
-        isFinal,
+        modifiers,
         parameters,
         returnType,
         returnRelationshipKind,
@@ -119,10 +112,7 @@ export class MethodRule {
       type: ASTNodeType.METHOD,
       name: name.value,
       visibility,
-      isStatic,
-      isAbstract,
-      isLeaf,
-      isFinal,
+      modifiers,
       parameters,
       returnType,
       returnRelationshipKind,

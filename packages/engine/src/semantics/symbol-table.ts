@@ -1,5 +1,6 @@
 import type { IREntity } from '../generator/ir/models'
 import { IREntityType } from '../generator/ir/models'
+import type { Modifiers } from '../syntax/nodes'
 
 export interface FQNResolution {
   fqn: string
@@ -116,14 +117,7 @@ export class SymbolTable {
   public resolveOrRegisterImplicit(
     name: string,
     namespace: string,
-    modifiers?: {
-      isAbstract?: boolean
-      isStatic?: boolean
-      isActive?: boolean
-      isLeaf?: boolean
-      isFinal?: boolean
-      isRoot?: boolean
-    },
+    modifiers?: Modifiers,
     expectedType: IREntityType = IREntityType.CLASS,
   ): FQNResolution {
     const resolution = this.resolveFQN(name, namespace)

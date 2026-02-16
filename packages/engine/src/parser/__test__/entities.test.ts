@@ -49,9 +49,9 @@ describe('EntityRule', () => {
     const parser = ParserFactory.create()
     const ast = parser.parse(tokens)
 
-    expect((ast.body[0] as EntityNode).isActive).toBe(true)
-    expect((ast.body[1] as EntityNode).isAbstract).toBe(true)
-    expect((ast.body[2] as EntityNode).isAbstract).toBe(true)
-    expect((ast.body[3] as EntityNode).isActive).toBe(true)
+    expect((ast.body[0] as EntityNode).modifiers.isActive).toBe(true)
+    expect((ast.body[1] as EntityNode).modifiers.isAbstract).toBe(true)
+    expect((ast.body[2] as EntityNode).modifiers.isAbstract).toBe(true)
+    expect((ast.body[3] as EntityNode).modifiers.isActive).toBe(true)
   })
 })
