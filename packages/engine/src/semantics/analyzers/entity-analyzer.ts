@@ -14,8 +14,10 @@ import type {
   AttributeNode,
   MethodNode,
   AssociationClassNode,
+  ConstraintNode,
 } from '../../syntax/nodes'
 import { ASTNodeType } from '../../syntax/nodes'
+import type { ConstraintAnalyzer } from './constraint-analyzer'
 
 /**
  * Handles the declaration of entities and their members.
@@ -23,6 +25,7 @@ import { ASTNodeType } from '../../syntax/nodes'
 export class EntityAnalyzer {
   constructor(
     private readonly symbolTable: SymbolTable,
+    private readonly constraintAnalyzer: ConstraintAnalyzer,
     private readonly context: ParserContext,
   ) {}
 
@@ -146,10 +149,17 @@ export class EntityAnalyzer {
                 name: p.name,
                 type: p.typeAnnotation?.raw,
                 relationshipKind: p.relationshipKind,
+                isNavigable: p.isNavigable,
                 targetModifiers: p.targetModifiers,
+                constraints: p.constraints?.map((c: ConstraintNode) =>
+                  this.constraintAnalyzer.process(c),
+                ),
               }))
             : undefined,
           relationshipKind,
+          isNavigable: isAttribute
+            ? (m as AttributeNode).isNavigable
+            : (m as MethodNode).isNavigable,
           targetModifiers: isAttribute
             ? (m as AttributeNode).targetModifiers
             : isMethod
@@ -159,6 +169,9 @@ export class EntityAnalyzer {
           docs: m.docs,
           line: m.line,
           column: m.column,
+          constraints: (m as AttributeNode | MethodNode).constraints?.map((c: ConstraintNode) =>
+            this.constraintAnalyzer.process(c),
+          ),
         }
 
         if (isAttribute && (m as AttributeNode).multiplicity) {

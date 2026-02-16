@@ -7,6 +7,7 @@ import type {
   CommentNode,
   ConfigNode,
   AssociationClassNode,
+  ConstraintNode,
 } from './nodes'
 import { ASTNodeType } from './nodes'
 
@@ -21,6 +22,7 @@ export interface ASTVisitor<T = void> {
   visitComment: (node: CommentNode) => T
   visitConfig: (node: ConfigNode) => T
   visitAssociationClass: (node: AssociationClassNode) => T
+  visitConstraint: (node: ConstraintNode) => T
 }
 
 /**
@@ -45,6 +47,8 @@ export function walkAST<T>(node: ASTNode, visitor: ASTVisitor<T>): T {
       return visitor.visitConfig(node as ConfigNode)
     case ASTNodeType.ASSOCIATION_CLASS:
       return visitor.visitAssociationClass(node as AssociationClassNode)
+    case ASTNodeType.CONSTRAINT:
+      return visitor.visitConstraint(node as ConstraintNode)
     default:
       throw new Error(`Tipo de nodo no visitable: ${node.type}`)
   }

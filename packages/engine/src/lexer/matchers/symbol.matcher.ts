@@ -51,10 +51,28 @@ export class SymbolMatcher implements TokenMatcher {
       }
       if (next === '*') {
         reader.advance()
+        if (reader.peek() === '|') {
+          reader.advance()
+          return {
+            type: TokenType.OP_COMP_NON_NAVIGABLE,
+            value: '>*|',
+            line: startLine,
+            column: startColumn,
+          }
+        }
         return { type: TokenType.OP_COMP, value: '>*', line: startLine, column: startColumn }
       }
       if (next === '+') {
         reader.advance()
+        if (reader.peek() === '|') {
+          reader.advance()
+          return {
+            type: TokenType.OP_AGREG_NON_NAVIGABLE,
+            value: '>+|',
+            line: startLine,
+            column: startColumn,
+          }
+        }
         return { type: TokenType.OP_AGREG, value: '>+', line: startLine, column: startColumn }
       }
       if (next === '<') {

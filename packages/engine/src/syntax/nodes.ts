@@ -14,6 +14,7 @@ export enum ASTNodeType {
   TYPE = 'Type',
   CONFIG = 'Config',
   ASSOCIATION_CLASS = 'AssociationClass',
+  CONSTRAINT = 'Constraint',
 }
 
 export interface TypeNode extends ASTNode {
@@ -45,6 +46,7 @@ export type StatementNode =
   | AssociationClassNode
   | CommentNode
   | ConfigNode
+  | ConstraintNode
 
 export interface PackageNode extends ASTNode {
   type: ASTNodeType.PACKAGE
@@ -76,6 +78,7 @@ export interface RelationshipHeaderNode extends ASTNode {
   type: ASTNodeType.RELATIONSHIP
   kind: string // >>, >I, >*, etc.
   target: string
+  isNavigable: boolean
   targetModifiers?: Modifiers
 }
 
@@ -89,6 +92,8 @@ export interface AttributeNode extends ASTNode {
   typeAnnotation: TypeNode
   multiplicity: string | undefined
   relationshipKind?: string | undefined
+  isNavigable?: boolean
+  constraints?: ConstraintNode[]
   targetModifiers?: Modifiers
 }
 
@@ -100,6 +105,8 @@ export interface MethodNode extends ASTNode {
   parameters: ParameterNode[]
   returnType: TypeNode
   returnRelationshipKind?: string | undefined
+  isNavigable?: boolean
+  constraints?: ConstraintNode[]
   returnTargetModifiers?: Modifiers
 }
 
@@ -108,7 +115,10 @@ export interface ParameterNode extends ASTNode {
   name: string
   typeAnnotation: TypeNode
   relationshipKind?: string | undefined
+  isNavigable?: boolean
+  constraints?: ConstraintNode[]
   targetModifiers?: Modifiers
+
   multiplicity?: string
 }
 
@@ -121,7 +131,9 @@ export interface RelationshipNode extends ASTNode {
   toModifiers?: Modifiers
   toMultiplicity: string | undefined
   kind: string
+  isNavigable: boolean
   label: string | undefined
+  constraints?: ConstraintNode[]
 }
 
 export interface AssociationClassNode extends ASTNode {
@@ -143,4 +155,12 @@ export interface CommentNode extends ASTNode {
 export interface ConfigNode extends ASTNode {
   type: ASTNodeType.CONFIG
   options: Record<string, unknown>
+}
+
+export interface ConstraintNode extends ASTNode {
+  type: ASTNodeType.CONSTRAINT
+  kind: string // 'xor', 'ordered', 'unique', etc.
+  targets?: string[] // For global constraints
+  body?: StatementNode[] // For block xor { ... }
+  expression?: string // Raw text inside { ... }
 }
