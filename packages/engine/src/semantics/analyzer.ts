@@ -172,12 +172,7 @@ export class SemanticAnalyzer {
     targetModifiers?: Modifiers,
     memberConstraints?: IRConstraint[],
   ): void {
-    if (
-      TypeValidator.isPrimitive(typeName) &&
-      !TypeValidator.isUtility(typeName) &&
-      !TypeValidator.isCollection(typeName)
-    )
-      return
+    if (TypeValidator.isPrimitive(typeName)) return
     const decomposed = TypeValidator.decomposeGeneric(typeName)
     const baseType = decomposed.baseName
     const fromEntity = this.symbolTable.get(fromFQN)
@@ -189,57 +184,21 @@ export class SemanticAnalyzer {
     // Skip if target is a generic parameter of the current entity
     if (fromEntity?.typeParameters?.includes(baseType)) return
 
-    let finalToFQN: string
-    let finalRelType = relType
-    let finalLabel = label
-    let finalToMultiplicity = toMultiplicity
+    if (TypeValidator.isPrimitive(baseType)) return
 
-    if (TypeValidator.isUtility(typeName) && decomposed.args.length > 0) {
-      // Scenario 2: Utility Types -> Dependency «derive» towards the first argument
-      const realTarget = decomposed.args[0]
-      if (TypeValidator.isPrimitive(realTarget)) return
+    const finalToFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
+      baseType,
+      fromNamespace || '',
+      targetModifiers || {},
+      line,
+      column,
+      inferenceContext,
+      fromEntity?.typeParameters,
+    )
 
-      finalToFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-        realTarget,
-        fromNamespace || '',
-        targetModifiers || {},
-        line,
-        column,
-        inferenceContext,
-      )
-      finalRelType = IRRelationshipType.DEPENDENCY
-      finalLabel = finalLabel ? `${finalLabel}\n«derive»` : '«derive»'
-    } else if (TypeValidator.isCollection(typeName) && decomposed.args.length > 0) {
-      // Scenario 3: Collections -> Association with multiplicity * towards the first argument
-      const realTarget = decomposed.args[0]
-      if (TypeValidator.isPrimitive(realTarget)) return
-
-      finalToFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-        realTarget,
-        fromNamespace || '',
-        targetModifiers || {},
-        line,
-        column,
-        inferenceContext,
-      )
-      finalToMultiplicity = '*'
-      if (
-        decomposed.baseName.toLowerCase() === 'array' ||
-        decomposed.baseName.toLowerCase() === 'list'
-      ) {
-        finalLabel = finalLabel ? `${finalLabel}\n{ordered}` : '{ordered}'
-      }
-    } else {
-      if (TypeValidator.isPrimitive(baseType)) return
-      finalToFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-        baseType,
-        fromNamespace || '',
-        targetModifiers || {},
-        line,
-        column,
-        inferenceContext,
-      )
-    }
+    const finalRelType = relType
+    const finalLabel = label
+    const finalToMultiplicity = toMultiplicity
 
     // Use full validation flow
     this.relationshipAnalyzer.addResolvedRelationship(fromFQN, finalToFQN, finalRelType, {

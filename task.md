@@ -9,6 +9,15 @@
 
 ## Backlog
 
+## Backlog
+
+- [ ] **ALTA PRIORIDAD: Arquitectura Extensible de Lenguajes (Plugin System)**
+  - [ ] **Core UML Purification**: Extraer tipos de TypeScript del motor core para dejarlo solo con los 5 `PrimitiveTypes` de UML 2.5.1.
+  - [ ] **Plugin Infrastructure**: Implementar `LanguagePlugin` interface y `PluginManager` para cargar bibliotecas de modelos dinámicamente.
+  - [ ] **Injection System**: Permitir que el `SymbolTable` se pre-pueble mediante plugins (`engine.load(TSPlugin)`).
+  - [ ] **Language Mapping**: Sistema de reglas para que los plugins traduzcan sintaxis compacta (ej: `T[]` o `List<T>`) a semántica UML pura.
+  - [ ] **First Plugin: TypeScript**: Migrar la lógica actual de TS a su propio módulo de plug-in.
+
 - [x] Implementar clases de asociación (`class C <> (A, B)`)
   - [x] Definir nodo AST en `nodes.ts`
   - [x] Actualizar modelos de IR en `models.ts`

@@ -1,55 +1,20 @@
 /**
- * Utility for validating types and references.
+ * Utility for validating types and references according to UML 2.5.1.
  */
 export class TypeValidator {
+  /**
+   * The five official UML Primitive Types from the ISO/IEC 19505-2 / OMG specification.
+   */
   public static readonly PRIMITIVES = new Set([
-    'string',
-    'number',
+    'integer',
     'boolean',
-    'any',
-    'void',
-    'null',
-    'undefined',
-    'never',
-    'unknown',
-    'object',
-    'symbol',
-    'bigint',
-    'array',
-    'list',
-    'set',
-    'map',
-    'promise',
-    'observable',
-    'partial',
-    'pick',
-    'omit',
-    'record',
-    'required',
-    'readonly',
-    'exclude',
-    'extract',
-    'nonnullable',
-    'returntype',
+    'string',
+    'unlimitednatural',
+    'real',
   ])
-
-  public static readonly UTILITIES = new Set([
-    'partial',
-    'pick',
-    'omit',
-    'record',
-    'required',
-    'readonly',
-    'exclude',
-    'extract',
-    'nonnullable',
-    'returntype',
-  ])
-
-  public static readonly COLLECTIONS = new Set(['array', 'list', 'collection', 'set', 'iterable'])
 
   /**
-   * Checks if a type name is a primitive.
+   * Checks if a type name is a normative UML primitive.
    */
   public static isPrimitive(typeName: string): boolean {
     const baseType = typeName.replace(/[[\]]/g, '').toLowerCase()
@@ -62,22 +27,6 @@ export class TypeValidator {
     }
 
     return this.PRIMITIVES.has(cleanBaseType)
-  }
-
-  /**
-   * Checks if a type is a TypeScript utility.
-   */
-  public static isUtility(typeName: string): boolean {
-    const base = this.getBaseTypeName(typeName).toLowerCase()
-    return this.UTILITIES.has(base)
-  }
-
-  /**
-   * Checks if a type is a collection.
-   */
-  public static isCollection(typeName: string): boolean {
-    const base = this.getBaseTypeName(typeName).toLowerCase()
-    return this.COLLECTIONS.has(base)
   }
 
   /**
@@ -95,8 +44,7 @@ export class TypeValidator {
   }
 
   /**
-   * Decomposes a type name like "Repository<User, string>" into
-   * { baseName: "Repository", arguments: ["User", "string"] }
+   * Decomposes a type name into its base name and generic arguments.
    */
   public static decomposeGeneric(typeName: string): { baseName: string; args: string[] } {
     const baseName = this.getBaseTypeName(typeName)
@@ -107,7 +55,6 @@ export class TypeValidator {
 
     if (start !== -1 && end !== -1 && end > start) {
       const argsStr = typeName.substring(start + 1, end)
-      // Basic splitting by comma, avoiding nested generics (simple version for now)
       let depth = 0
       let current = ''
       for (const char of argsStr) {
