@@ -104,6 +104,7 @@ export interface MethodNode extends ASTNode {
   modifiers: Modifiers
   parameters: ParameterNode[]
   returnType: TypeNode
+  returnMultiplicity?: string
   returnRelationshipKind?: string | undefined
   isNavigable?: boolean
   constraints?: ConstraintNode[]

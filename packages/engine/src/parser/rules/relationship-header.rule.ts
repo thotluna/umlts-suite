@@ -35,6 +35,9 @@ export class RelationshipHeaderRule {
         'Se esperaba el nombre del objetivo de la relación',
       )
       let target = targetToken.value
+      while (context.match(TokenType.DOT)) {
+        target += '.' + context.consume(TokenType.IDENTIFIER, 'Identifier expected after dot').value
+      }
 
       // Opcionalmente consumir argumentos de tipo: <string>
       if (context.match(TokenType.LT)) {
