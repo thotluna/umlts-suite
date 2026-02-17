@@ -87,7 +87,7 @@ export class SymbolTable {
       }
     }
 
-    // 3. Global search by suffix (Global Scout)
+    // 4. Global search by suffix (Global Scout)
     // Helps resolving things like 'Target' when 'pkg1.Target' and 'pkg2.Target' might exist.
     const suffix = name.includes('.') ? name : '.' + name
     const matches = this.getAllEntities().filter(
@@ -106,7 +106,19 @@ export class SymbolTable {
       }
     }
 
-    // 4. Fallback: Contextualize in current namespace or return as is
+    // 5. Generic resolution attempt: If 'Repository<User>', try resolving 'Repository'
+    if (name.includes('<')) {
+      const baseName = name.split('<')[0]
+      const baseResolution = this.resolveFQN(baseName, currentNamespace)
+      const baseEntity = this.get(baseResolution.fqn)
+
+      // Only resolve to base if it's a known generic template
+      if (baseEntity && baseEntity.typeParameters && baseEntity.typeParameters.length > 0) {
+        return baseResolution
+      }
+    }
+
+    // 6. Fallback: Contextualize in current namespace or return as is
     const fqn = currentNamespace ? `${currentNamespace}.${name}` : name
     return { fqn, isAmbiguous: false }
   }

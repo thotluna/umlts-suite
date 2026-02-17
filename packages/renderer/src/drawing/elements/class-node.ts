@@ -16,8 +16,8 @@ export function renderClassNode(
 ): string {
   const { x = 0, y = 0, width = 160, height = 40 } = node
 
-  const HEADER_HEIGHT = 32
   const LINE_HEIGHT = 24
+  const HEADER_LINE_HEIGHT = 16
 
   // Background and border
   const bg = svg.rect({
@@ -45,7 +45,7 @@ export function renderClassNode(
   }
 
   // Header separator and content
-  const HEADER_HEIGHT_NORMAL = 32
+  const HEADER_HEIGHT_NORMAL = 40
   let stereotypeCount = 0
   const headerLines: { text: string; size: number; isBold?: boolean; isItalic?: boolean }[] = []
 
@@ -90,28 +90,31 @@ export function renderClassNode(
 
   let headerContent = ''
   // Center all lines in headerHeight
-  const totalContentHeight = headerLines.length * 14
-  let currentY = y + (headerHeight - totalContentHeight) / 2 + 10
+  const totalContentHeight = headerLines.length * HEADER_LINE_HEIGHT
+  let currentY = y + (headerHeight - totalContentHeight) / 2 + HEADER_LINE_HEIGHT / 2
 
   for (const line of headerLines) {
+    const isStereotype = line.text.startsWith('«') || line.text.startsWith('{')
     headerContent += svg.text(
       {
         x: x + width / 2,
         y: currentY,
         'text-anchor': 'middle',
+        'dominant-baseline': 'central',
         fill: theme.nodeHeaderText,
         'font-size': line.size,
         'font-weight': line.isBold ? 'bold' : 'normal',
         'font-style': line.isItalic ? 'italic' : 'normal',
+        opacity: isStereotype ? 0.8 : 1,
       },
-      line.text,
+      svg.escape(line.text),
     )
-    currentY += 14
+    currentY += HEADER_LINE_HEIGHT
   }
 
   // Members (Attributes and Methods)
   let membersContent = ''
-  let memberY = y + HEADER_HEIGHT + 18
+  let memberY = y + headerHeight + 20 // Start after header with padding
 
   // Attributes
   for (const attr of node.attributes) {
@@ -134,9 +137,43 @@ export function renderClassNode(
     memberY += LINE_HEIGHT
   }
 
+  // Template Parameters (Generics) - UML Standard: dashed box in top-right
+  let templateBox = ''
+  if (node.typeParameters && node.typeParameters.length > 0) {
+    const paramsText = node.typeParameters.join(', ')
+    const boxWidth = Math.max(30, paramsText.length * 8 + 10)
+    const boxHeight = 20
+    const boxX = x + width - boxWidth / 2
+    const boxY = y - boxHeight / 2
+
+    templateBox = svg.g(
+      {},
+      svg.rect({
+        x: boxX,
+        y: boxY,
+        width: boxWidth,
+        height: boxHeight,
+        fill: theme.nodeBackground,
+        stroke: theme.nodeBorder,
+        'stroke-width': 1,
+        'stroke-dasharray': '3,3',
+      }) +
+        svg.text(
+          {
+            x: boxX + boxWidth / 2,
+            y: boxY + boxHeight / 2 + 4,
+            'text-anchor': 'middle',
+            fill: theme.nodeHeaderText,
+            'font-size': theme.fontSizeSmall,
+          },
+          svg.escape(paramsText),
+        ),
+    )
+  }
+
   return svg.g(
     { class: 'node', 'data-id': node.id, cursor: 'pointer' },
-    bg + activeLines + headerSep + headerContent + membersContent,
+    bg + activeLines + headerSep + headerContent + membersContent + templateBox,
   )
 }
 
@@ -183,7 +220,7 @@ function renderMember(
       'font-style': m.isAbstract ? 'italic' : 'normal',
       'text-decoration': m.isStatic ? 'underline' : 'none',
     },
-    label,
+    svg.escape(label),
   )
 }
 

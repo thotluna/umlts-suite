@@ -4,6 +4,7 @@ import {
   IRVisibility,
   type IRRelationship,
   type IRConstraint,
+  type IREntity,
 } from '../../generator/ir/models'
 import { TypeInferrer } from './type-inferrer'
 import { registerDefaultInferenceRules } from '../rules/inference-rules'
@@ -13,6 +14,7 @@ import { DiagnosticCode } from '../../syntax/diagnostic.types'
 import type { HierarchyValidator } from '../validators/hierarchy-validator'
 import { AssociationValidator } from '../validators/association-validator'
 import { ASTNodeType } from '../../syntax/nodes'
+import { TypeValidator } from '../utils/type-validator'
 import type {
   RelationshipNode,
   RelationshipHeaderNode,
@@ -56,7 +58,15 @@ export class RelationshipAnalyzer {
     line?: number,
     column?: number,
     inferenceContext?: { sourceType: IREntityType; relationshipKind: IRRelationshipType },
+    typeParameters?: string[],
   ): string {
+    // If it's a generic parameter of the current context, we treat it as a "virtual" entity
+    // that won't be registered in the symbol table to avoid orphan boxes.
+    const baseName = TypeValidator.getBaseTypeName(name)
+    if (typeParameters?.includes(baseName)) {
+      return baseName // Return as-is, won't be found in SymbolTable, won't be rendered as a box
+    }
+
     let expectedType = IREntityType.CLASS
 
     if (inferenceContext) {
@@ -119,6 +129,7 @@ export class RelationshipAnalyzer {
       isNavigable?: boolean
       constraintGroupId?: string
       constraints?: IRConstraint[]
+      originalTarget?: string // NEW: to detect binding
     },
   ): void {
     const fromEntity = this.symbolTable.get(fromFQN)
@@ -140,13 +151,21 @@ export class RelationshipAnalyzer {
 
     if (!isValidTarget) return
 
+    let finalLabel = meta.label
+    if (meta.originalTarget && toEntity) {
+      const bindingLabel = this.extractBindingLabel(meta.originalTarget, toEntity)
+      if (bindingLabel) {
+        finalLabel = finalLabel ? `${finalLabel}\n${bindingLabel}` : bindingLabel
+      }
+    }
+
     const irRel: IRRelationship = {
       from: fromFQN,
       to: toFQN,
       type,
       line: meta.line,
       column: meta.column,
-      label: meta.label,
+      label: finalLabel,
       toMultiplicity: meta.toMultiplicity,
       fromMultiplicity: meta.fromMultiplicity,
       visibility: meta.visibility || IRVisibility.PUBLIC,
@@ -176,9 +195,16 @@ export class RelationshipAnalyzer {
 
     // Extract target name for length calculation
     let targetName = toFQN.split('.').pop()
+    let originalTarget = ''
     if (node != null && node.type === ASTNodeType.RELATIONSHIP) {
-      if ('to' in node) targetName = (node as RelationshipNode).to
-      if ('target' in node) targetName = (node as RelationshipHeaderNode).target
+      if ('to' in node) {
+        targetName = (node as RelationshipNode).to
+        originalTarget = (node as RelationshipNode).to
+      }
+      if ('target' in node) {
+        targetName = (node as RelationshipHeaderNode).target
+        originalTarget = (node as RelationshipHeaderNode).target
+      }
     }
 
     const isValidTarget = this.associationValidator.validateTarget(
@@ -200,6 +226,11 @@ export class RelationshipAnalyzer {
       this.associationValidator.validate(fromEntity, toEntity, relType)
     }
 
+    let finalLabel: string | undefined
+    if (originalTarget && toEntity) {
+      finalLabel = this.extractBindingLabel(originalTarget, toEntity)
+    }
+
     const irRel: IRRelationship = {
       from: fromFQN,
       to: toFQN,
@@ -207,6 +238,7 @@ export class RelationshipAnalyzer {
       line: node?.line,
       column: node?.column,
       docs: node?.docs,
+      label: finalLabel,
       isNavigable: (node as RelationshipNode | RelationshipHeaderNode)?.isNavigable ?? true,
       constraints: constraintGroupId
         ? [{ kind: 'xor_member', targets: [constraintGroupId] }]
@@ -247,10 +279,31 @@ export class RelationshipAnalyzer {
           this.context,
         )
       }
-      if (relNode.label) irRel.label = relNode.label
+      if (relNode.label) {
+        // If binding label exists, combine them
+        irRel.label = irRel.label ? `${relNode.label}\n${irRel.label}` : relNode.label
+      }
     }
 
     this.relationships.push(irRel)
+  }
+
+  private extractBindingLabel(targetStr: string, entity: IREntity): string | undefined {
+    const decomposed = TypeValidator.decomposeGeneric(targetStr)
+    if (decomposed.args.length === 0) return undefined
+
+    const params = entity.typeParameters || []
+    const mapping = decomposed.args
+      .map((arg: string, i: number) => {
+        const paramName = params[i] || `P${i + 1}`
+        if (arg === paramName) return null
+        return `${paramName} -> ${arg}`
+      })
+      .filter((m): m is string => m !== null)
+
+    if (mapping.length === 0) return undefined
+
+    return `«bind» <${mapping.join(', ')}>`
   }
 
   public mapRelationshipType(kind: string): IRRelationshipType {

@@ -111,7 +111,7 @@ export function renderEdge(
           'font-size': theme.fontSizeSmall,
           'text-anchor': pos.anchor,
         },
-        edge.fromMultiplicity,
+        svg.escape(edge.fromMultiplicity),
       ),
     )
   }
@@ -128,7 +128,7 @@ export function renderEdge(
           'font-size': theme.fontSizeSmall,
           'text-anchor': pos.anchor,
         },
-        edge.toMultiplicity,
+        svg.escape(edge.toMultiplicity),
       ),
     )
   }
@@ -153,18 +153,26 @@ export function renderEdge(
       textAnchor = 'start'
     }
 
+    const labelLines = displayText.split('\n')
+    const lineHeight = 14
+
     labels.push(
       svg.text(
         {
           x,
-          y,
+          y: y - ((labelLines.length - 1) * lineHeight) / 2, // Centrado vertical
           fill: theme.multiplicityText,
           'font-size': theme.fontSizeSmall,
           'font-style': 'italic',
           'text-anchor': textAnchor,
           'dominant-baseline': 'central',
         },
-        displayText,
+        labelLines
+          .map(
+            (line, i) =>
+              `<tspan x="${x}" dy="${i === 0 ? 0 : lineHeight}">${svg.escape(line)}</tspan>`,
+          )
+          .join(''),
       ),
     )
   }

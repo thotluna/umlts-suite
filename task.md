@@ -76,6 +76,14 @@
 - [ ] **Derived Properties** (Sintaxis `/propiedad` y validación).
 - [ ] **Components & Ports** (Implementación de puertos físicos en límites de caja).
 - [ ] **Generalization Sets** (Poder agrupar herencias con etiquetas como `{complete, disjoint}`).
+- [x] **FEAT**: Soporte para **Generales e Interfaces Genéricas** (UML Templates).
+  - [x] Parsing de parámetros de tipo en entidades.
+  - [x] Soporte en Mermaid Generator (sintaxis `~T~`).
+  - [x] Renderizado de Template Box (recuadro punteado) en el SVG.
+  - [x] Soporte para **Binding de Templates** (ej. `Repository<User>`).
+    - [x] Detección automática de argumentos de tipo en relaciones.
+    - [x] Mapeo de parámetros y generación de etiqueta `«bind»`.
+    - [x] Renderizado multilínea en etiquetas de relación (Mermaid y SVG).
 - [ ] **FEAT**: Soporte para **Generalization Sets** (Disjoint/Complete) y Powertypes.
 
 # Bugs

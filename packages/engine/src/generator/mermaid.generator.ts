@@ -25,7 +25,12 @@ export class MermaidGenerator {
     const lines: string[] = []
     const typeLabel = this.getTypeLabel(entity)
 
-    lines.push(`    class ${this.escapeId(entity.id)}["${entity.name}"] {`)
+    const typeParams =
+      entity.typeParameters && entity.typeParameters.length > 0
+        ? `~${entity.typeParameters.join(', ')}~`
+        : ''
+
+    lines.push(`    class ${this.escapeId(entity.id)}${typeParams}["${entity.name}"] {`)
 
     if (typeLabel) {
       lines.push(`      <<${typeLabel}>>`)
@@ -67,7 +72,8 @@ export class MermaidGenerator {
     let line = `    ${from} ${arrow} ${to}`
 
     // Estándar UML: Los nombres de atributos in-line son ROLES en el destino
-    const roleLabel = rel.label ? ` ${rel.label.replace(/:/g, '-').trim()}` : ''
+    const label = rel.label ? rel.label.replace(/\n/g, '<br/>') : ''
+    const roleLabel = label ? ` ${label.replace(/:/g, '-').trim()}` : ''
     const toMult = rel.toMultiplicity ? `${rel.toMultiplicity}${roleLabel}` : roleLabel
 
     if (rel.fromMultiplicity || toMult) {

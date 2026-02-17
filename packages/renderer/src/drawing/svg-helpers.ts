@@ -24,10 +24,15 @@ export class SVGBuilder {
     return this.tag('rect', attrs)
   }
 
+  public static escape(content: string): string {
+    return content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  }
+
   public static text(attrs: SVGAttr, content: string): string {
-    // Simple escape for common XML entities
-    const escaped = content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    return this.tag('text', attrs, escaped)
+    // We expect content to be already escaped or containing raw SVG (like tspans)
+    // For general usage, we usually escape. But here we might pass tspans.
+    // Let's keep it consistent: the caller should handle escaping if they pass complex content.
+    return this.tag('text', attrs, content)
   }
 
   public static path(attrs: SVGAttr): string {
