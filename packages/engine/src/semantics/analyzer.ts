@@ -308,7 +308,9 @@ class DefinitionVisitor implements ASTVisitor {
     const fqn = this.symbolTable.resolveFQN(node.name, this.currentNamespace.join('.')).fqn
     const entity = this.symbolTable.get(fqn)
     if (entity) {
-      this.entityAnalyzer.processMembers(entity, node)
+      if (node.body && node.body.length > 0) {
+        this.entityAnalyzer.appendMembers(entity, node.body)
+      }
 
       // Register any xor constraints found on members into the global constraints list
       entity.members.forEach((member) => {
@@ -321,7 +323,17 @@ class DefinitionVisitor implements ASTVisitor {
     }
   }
 
-  visitRelationship(_node: RelationshipNode): void {}
+  visitRelationship(node: RelationshipNode): void {
+    if (node.body && node.body.length > 0) {
+      const ns = this.currentNamespace.join('.')
+      const fromFQN = this.symbolTable.resolveFQN(node.from, ns).fqn
+      const fromEntity = this.symbolTable.get(fromFQN)
+      if (fromEntity) {
+        this.entityAnalyzer.appendMembers(fromEntity, node.body)
+      }
+    }
+  }
+
   visitComment(_node: CommentNode): void {}
   visitConfig(_node: ConfigNode): void {}
 

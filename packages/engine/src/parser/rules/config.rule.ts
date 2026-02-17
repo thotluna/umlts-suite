@@ -84,7 +84,10 @@ export class ConfigRule implements StatementRule {
     ) {
       return context.prev().value
     } else {
-      return context.consume(TokenType.IDENTIFIER, 'Expected configuration value.').value
+      const val = context.consume(TokenType.IDENTIFIER, 'Expected configuration value.').value
+      if (val === 'true') return true
+      if (val === 'false') return false
+      return val
     }
   }
 }

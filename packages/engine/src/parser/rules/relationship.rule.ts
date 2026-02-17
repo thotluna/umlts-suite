@@ -1,12 +1,19 @@
 import { TokenType } from '../../syntax/token.types'
-import type { StatementNode, RelationshipNode, ConstraintNode } from '../../syntax/nodes'
+import type {
+  StatementNode,
+  RelationshipNode,
+  ConstraintNode,
+  MemberNode,
+} from '../../syntax/nodes'
 import { ASTNodeType } from '../../syntax/nodes'
-
 import type { ParserContext } from '../parser.context'
 import type { StatementRule, Orchestrator } from '../rule.types'
 import { ConstraintRule } from './constraint.rule'
+import { MemberRule } from './member.rule'
 
 export class RelationshipRule implements StatementRule {
+  private readonly memberRule = new MemberRule()
+
   public canStart(context: ParserContext): boolean {
     return (
       context.check(TokenType.IDENTIFIER) ||
@@ -93,15 +100,56 @@ export class RelationshipRule implements StatementRule {
           label = context.consume(TokenType.STRING, 'Label string expected').value
         }
 
-        // Optional constraints
+        // Optional block for members/constraints
         const constraints: ConstraintNode[] = []
-        if (context.check(TokenType.LBRACE)) {
-          // We need to avoid infinite recursion or complex dependencies
-          // Since ConstraintRule is already in the orchestrator, we can use a direct call or a helper
-          // For simplicity, we'll re-implement the inline part or use the orchestrator if possible
-          // But RelationshipRule doesn't easily call other rules' private methods.
-          // Let's use a simple inline capture here or refactor ConstraintRule helper.
-          constraints.push(ConstraintRule.parseInline(context))
+        const body: MemberNode[] = []
+        if (context.match(TokenType.LBRACE)) {
+          while (!context.check(TokenType.RBRACE) && !context.isAtEnd()) {
+            // Documentación
+            if (context.match(TokenType.DOC_COMMENT)) {
+              context.setPendingDocs(context.prev().value)
+              continue
+            }
+
+            // Comentarios
+            if (context.match(TokenType.COMMENT)) {
+              body.push({
+                type: ASTNodeType.COMMENT,
+                value: context.prev().value,
+                line: context.prev().line,
+                column: context.prev().column,
+              })
+              continue
+            }
+
+            // Restricciones anidadas { ... }
+            if (context.check(TokenType.LBRACE)) {
+              constraints.push(ConstraintRule.parseInline(context))
+              continue
+            }
+
+            // Intentar parsear como miembro
+            try {
+              const posBefore = context.getPosition()
+              const member = this.memberRule.parse(context)
+              if (member) {
+                body.push(member)
+              } else {
+                context.rollback(posBefore)
+                // Si no es un miembro reconocido, intentamos como restricción de palabra clave
+                if (context.checkAny(TokenType.KW_XOR)) {
+                  constraints.push(ConstraintRule.parseInline(context))
+                } else {
+                  context.addError('Unrecognized content in relationship block', context.peek())
+                  context.advance()
+                }
+              }
+            } catch (_e) {
+              // Fallback: tal vez sea una restricción personalizada
+              constraints.push(ConstraintRule.parseInline(context))
+            }
+          }
+          context.consume(TokenType.RBRACE, "Expected '}' at end of relationship block")
         }
 
         relationships.push({

@@ -134,6 +134,7 @@ export interface RelationshipNode extends ASTNode {
   isNavigable: boolean
   label: string | undefined
   constraints?: ConstraintNode[]
+  body?: MemberNode[]
 }
 
 export interface AssociationClassNode extends ASTNode {

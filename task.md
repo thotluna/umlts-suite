@@ -32,6 +32,12 @@
   - [x] Implementar fase de pre-procesamiento para cálculo de Rango (Rank) basado en relaciones.
   - [x] Implementar inversión de flujo semántico para Herencia/Implementación.
   - [x] Configurar pesos de aristas en ELK según prioridad semántica.
+- [x] **FEAT: Inline Members en Relaciones**
+  - [x] Permitir bloques `{ ... }` en relaciones para definir miembros de la clase origen.
+  - [x] Integrar con el Analizador Semántico para acumulación de miembros.
+- [x] **FEAT: Control de Visibilidad de Dependencias**
+  - [x] Implementar opción `showDependencies` en el bloque de configuración.
+  - [x] Filtrado de aristas en el pipeline de renderizado.
 - [ ] **Fase: Interoperabilidad Semántica (XMI/UMLDI)**
   - [ ] **Engine**: Implementar exportador de XMI (Metamodelo UML 2.5.1).
   - [ ] **Renderer**: Implementar exportador de UMLDI (Coordenadas y Geometría).
