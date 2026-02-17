@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 import type { ConstraintNode } from '../../syntax/nodes'
-=======
-import type { ConstraintNode } from '../../parser/ast/nodes'
->>>>>>> a5d1e8a (feat: implement XOR relationship constraints support)
+
 import type { IRConstraint, IRRelationship } from '../../generator/ir/models'
 import type { SymbolTable } from '../symbol-table'
 import type { ParserContext } from '../../parser/parser.context'

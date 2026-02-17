@@ -1,10 +1,6 @@
-<<<<<<< HEAD
 import { TokenType } from '../../syntax/token.types'
 import { ASTNodeType, type ConstraintNode, type StatementNode } from '../../syntax/nodes'
-=======
-import { TokenType } from '../../lexer/token.types'
-import { ASTNodeType, ConstraintNode, StatementNode } from '../ast/nodes'
->>>>>>> a5d1e8a (feat: implement XOR relationship constraints support)
+
 import type { ParserContext } from '../parser.context'
 import type { StatementRule, Orchestrator } from '../rule.types'
 

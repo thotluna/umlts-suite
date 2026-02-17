@@ -140,10 +140,10 @@ export class EntityAnalyzer {
           name: m.name,
           type: typeName,
           visibility: this.mapVisibility(m.visibility),
-          isStatic: m.modifiers?.isStatic || false,
+          isStatic: (m as AttributeNode | MethodNode).modifiers?.isStatic || false,
           isAbstract: isMethod ? (m as MethodNode).modifiers?.isAbstract || false : false,
-          isLeaf: m.modifiers?.isLeaf || false,
-          isFinal: m.modifiers?.isFinal || false,
+          isLeaf: (m as AttributeNode | MethodNode).modifiers?.isLeaf || false,
+          isFinal: (m as AttributeNode | MethodNode).modifiers?.isFinal || false,
           parameters: isMethod
             ? (m as MethodNode).parameters?.map((p) => ({
                 name: p.name,
@@ -213,12 +213,16 @@ export class EntityAnalyzer {
   }
 
   private mapVisibility(v: string): IRVisibility {
-    switch (v) {
+    switch (v?.toLowerCase()) {
       case '-':
+      case 'private':
         return IRVisibility.PRIVATE
       case '#':
+      case 'protected':
         return IRVisibility.PROTECTED
       case '~':
+      case 'internal':
+      case 'package':
         return IRVisibility.INTERNAL
       default:
         return IRVisibility.PUBLIC

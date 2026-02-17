@@ -88,3 +88,16 @@
     - [x] Actualizar `EntityNode`, `RelationshipHeaderNode`, `AttributeNode`, `MethodNode`, `ParameterNode` y `RelationshipNode` para usar `Modifiers`.
     - [x] Actualizar capa semántica (`EntityAnalyzer`, `RelationshipAnalyzer`, `SymbolTable`) para soportar la nueva estructura AST.
     - [x] Actualizar y validar diagramas de arquitectura (`parser.umlts`).
+
+- [x] **Gestión proactiva de errores y robustez (Post-Rebase)**:
+  - [x] Unificar `mapVisibility` para soportar palabras clave (public, private...) tras identificar fallos de mapeo.
+  - [x] Refactorizar `MethodRule` y `ParameterRule` para usar `consumeModifiers()` centralizado.
+  - [x] Asegurar integridad de tipos en `EntityAnalyzer` mediante narrowing explícito.
+  - [x] Validar construcción total del monorepo (`pnpm -r build`) y tests unitarios.
+
+# Notas de Implementación
+
+- Se ha rebasado con éxito `feat/layout-xor-enhancements` sobre `origin/main` tras la refactorización SOLID.
+- Todos los imports se han migrado de `parser/ast/nodes` a `syntax/nodes` para consolidar el lenguaje.
+- Se ha corregido un bug en `EntityAnalyzer` donde visibilidades como `protected` no se mapeaban correctamente desde palabras clave.
+- Los tests de navegabilidad y restricciones XOR han sido validados y pasan con éxito.
