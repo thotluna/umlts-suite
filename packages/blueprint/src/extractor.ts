@@ -1,351 +1,443 @@
-import {
-  Project,
-  ClassDeclaration,
-  InterfaceDeclaration,
-  SyntaxKind,
-  PropertyDeclaration,
-  MethodDeclaration,
-  PropertySignature,
-  Node,
-  Type,
-} from 'ts-morph'
+import * as path from 'path'
+import { DiscoveryReport, DiscoveryService } from './scanner/discovery.service'
+import { FileSystemProvider } from './scanner/providers/filesystem.provider'
+import { BlueprintLexer } from './core/lexer/lexer'
+import { SourceReader } from './reader/source-reader'
+import { KeywordMatcher } from './core/lexer/matchers/keyword.matcher'
+import { IdentifierMatcher } from './core/lexer/matchers/identifier.matcher'
+import { SymbolMatcher } from './core/lexer/matchers/symbol.matcher'
+import { ImportMatcher } from './core/lexer/matchers/import.matcher'
+import { TokenType } from './core/lexer/types'
+import { StringMatcher } from './core/lexer/matchers/string.matcher'
+import { TypeExpressionParser } from './core/parser/type-parser'
+import { SemanticAnalyzer } from './core/parser/semantics/analyzer'
+import { UMLTSGenerator, UMLTSEntity } from './generator/umlts-generator'
+import { RelationshipKind } from './core/parser/semantics/types'
+import { TypeTranslator } from './core/parser/translation/translator'
 
-export interface BlueprintOptions {
-  includeMethods?: boolean
-  includeProperties?: boolean
-  excludePatterns?: string[]
-}
-
+/**
+ * Orquestador principal de la extracción.
+ */
 export class BlueprintExtractor {
-  private project: Project
-  private globalCounts: Map<string, number> = new Map()
+  private discovery: DiscoveryService
+  private reader: SourceReader
+  private lexer: BlueprintLexer
+  private importMatcher = new ImportMatcher()
+  private typeParser = new TypeExpressionParser()
+  private semanticAnalyzer = new SemanticAnalyzer()
+  private generator = new UMLTSGenerator()
+  private translator = new TypeTranslator()
 
   constructor() {
-    this.project = new Project()
+    this.discovery = new DiscoveryService()
+    this.discovery.registerProvider(new FileSystemProvider())
+    this.reader = new SourceReader()
+
+    const matchers = [
+      this.importMatcher,
+      new KeywordMatcher(),
+      new IdentifierMatcher(),
+      new StringMatcher(),
+      new SymbolMatcher(),
+    ]
+
+    this.lexer = new BlueprintLexer(this.reader, matchers)
   }
 
-  public addSourceFiles(patterns: string | string[]): void {
-    this.project.addSourceFilesAtPaths(patterns)
-  }
+  public async extract(input: string, rootDir: string = process.cwd()): Promise<string> {
+    const report = await this.discovery.discover(input)
+    this.logDiscovery(report)
 
-  public extract(): string {
-    this.analyzeGlobalVersatility()
+    for (const unit of report.units) {
+      /* eslint-disable no-console */
+      console.log(`\n📖 Analizando: ${unit.name}`)
 
-    let output = ''
-    const sourceFiles = this.project.getSourceFiles()
-    const packages: Map<string, string> = new Map()
+      const relativePath = path.relative(rootDir, path.dirname(unit.uri))
+      const currentPackage = relativePath.replace(/\//g, '.') || 'root'
+      const resolutionMap = new Map<string, string>()
 
-    for (const sourceFile of sourceFiles) {
-      const packageName = this.derivePackageName(sourceFile.getFilePath())
-      let packageContent = packages.get(packageName) || ''
+      this.reader.open(unit.uri)
+      const tokens = await this.lexer.tokenize()
 
-      sourceFile.getInterfaces().forEach((itf) => {
-        packageContent += this.extractInterface(itf)
-      })
+      let currentEntityFqn: string | null = null
+      let currentEntityObj: UMLTSEntity | null = null
+      let braceLevel = 0
+      let pendingModifiers: string[] = []
 
-      sourceFile.getClasses().forEach((cls) => {
-        packageContent += this.extractClass(cls)
-      })
+      for (let i = 0; i < tokens.length; i++) {
+        const token = tokens[i]
 
-      if (packageContent) {
-        packages.set(packageName, packageContent)
-      }
-    }
-
-    packages.forEach((content, name) => {
-      output += `package ${name} {\n${content}}\n\n`
-    })
-
-    return output
-  }
-
-  /**
-   * Phase 1: Global Scan for Versatility.
-   * Counts how many times each complex type is referenced across the entire project.
-   */
-  private analyzeGlobalVersatility(): void {
-    this.globalCounts.clear()
-    const allIdentifiers = this.project
-      .getSourceFiles()
-      .flatMap((sf) => sf.getDescendantsOfKind(SyntaxKind.Identifier))
-
-    allIdentifiers.forEach((id) => {
-      const type = id.getType()
-      if (type.isObject()) {
-        const typeName = this.cleanSimpleType(type.getText())
-        this.globalCounts.set(typeName, (this.globalCounts.get(typeName) || 0) + 1)
-      }
-    })
-  }
-
-  private extractInterface(itf: InterfaceDeclaration): string {
-    const name = this.sanitizeIdentifier(itf.getName())
-    const baseTypes = itf.getBaseTypes()
-    const inheritance =
-      baseTypes.length > 0
-        ? ` >> ${baseTypes.map((t) => this.resolveTypeFQN(t, itf)).join(', ')}`
-        : ''
-
-    let body = `  interface ${name}${inheritance} {\n`
-
-    itf.getProperties().forEach((prop) => {
-      body += `    ${this.sanitizeIdentifier(prop.getName())}: ${this.resolveTypeFQN(prop.getType(), itf)}\n`
-    })
-
-    itf.getMethods().forEach((method) => {
-      const params = method
-        .getParameters()
-        .map(
-          (p) =>
-            `${this.sanitizeIdentifier(p.getName())}: ${this.resolveTypeFQN(p.getType(), method)}`,
-        )
-        .join(', ')
-      body += `    ${this.sanitizeIdentifier(method.getName())}(${params}): ${this.resolveTypeFQN(method.getReturnType(), method)}\n`
-    })
-
-    body += `  }\n\n`
-    return body
-  }
-
-  private extractClass(cls: ClassDeclaration): string {
-    const className = this.sanitizeIdentifier(cls.getName() || '')
-    if (!className) return ''
-
-    const baseClass = cls.getBaseClass()
-    const inheritance = baseClass ? ` >> ${this.resolveTypeFQN(baseClass.getType(), cls)}` : ''
-
-    const interfaces = cls.getImplements()
-    const realization =
-      interfaces.length > 0
-        ? ` >I ${interfaces.map((i) => this.resolveTypeFQN(i.getType(), cls)).join(', ')}`
-        : ''
-
-    let body = `  class ${className}${inheritance}${realization} {\n`
-
-    // Attributes and Relationships
-    cls.getProperties().forEach((prop) => {
-      const visibility = this.getModifierVisibility(prop)
-      const type = prop.getType()
-      const relOp = this.detectRelationship(prop, cls)
-      const propName = this.sanitizeIdentifier(prop.getName())
-
-      if (relOp) {
-        body += `    ${visibility}${propName}: ${relOp} ${this.resolveTypeFQN(type, cls)}\n`
-      } else {
-        body += `    ${visibility}${propName}: ${this.resolveTypeFQN(type, cls)}\n`
-      }
-    })
-
-    // Methods
-    const dependencies = new Set<string>()
-    cls.getMethods().forEach((method) => {
-      const visibility = this.getModifierVisibility(method)
-      const returnType = method.getReturnType()
-      this.collectTypeDependency(returnType, dependencies, cls)
-
-      const params = method
-        .getParameters()
-        .map((p) => {
-          this.collectTypeDependency(p.getType(), dependencies, cls)
-          return `${this.sanitizeIdentifier(p.getName())}: ${this.resolveTypeFQN(p.getType(), method)}`
-        })
-        .join(', ')
-
-      const returnTypeFQN = this.resolveTypeFQN(returnType, method)
-      body += `    ${visibility}${this.sanitizeIdentifier(method.getName())}(${params}): ${returnTypeFQN}\n`
-
-      // Analyze body for local variable dependencies
-      method.getDescendantsOfKind(SyntaxKind.Identifier).forEach((id) => {
-        try {
-          const type = id.getType()
-          this.collectTypeDependency(type, dependencies, cls)
-        } catch {
-          // Some identifiers might not be resolvable
+        if (token.type === TokenType.SYMBOL) {
+          if (token.value === '{') braceLevel++
+          if (token.value === '}') {
+            braceLevel--
+            if (braceLevel === 0) {
+              if (currentEntityObj) this.generator.addEntity(currentEntityObj)
+              currentEntityFqn = null
+              currentEntityObj = null
+            }
+          }
         }
-      })
-    })
 
-    body += `  }\n\n`
+        if (token.type === TokenType.IMPORT && braceLevel === 0) {
+          const info = this.importMatcher.parse(token.value)
+          if (info && info.path.startsWith('.')) {
+            const absolutePath = path.resolve(path.dirname(unit.uri), info.path)
+            const targetDir = path.dirname(absolutePath)
+            const resolvedPackage = path.relative(rootDir, targetDir).replace(/\//g, '.')
+            info.entities.forEach((entity) => resolutionMap.set(entity, resolvedPackage))
+          }
+        }
 
-    // Internal Dependencies as UMLTS relations (Momentary Life)
-    dependencies.forEach((dep) => {
-      body += `  ${className} >- ${dep}\n`
-    })
+        if (
+          token.type === TokenType.KEYWORD &&
+          ['public', 'private', 'protected', 'static', 'readonly', 'abstract'].includes(token.value)
+        ) {
+          if (braceLevel <= 1) pendingModifiers.push(token.value)
+          continue
+        }
 
-    return body
-  }
+        const isEntityKeyword =
+          token.type === TokenType.KEYWORD && ['class', 'interface', 'type'].includes(token.value)
+        if (isEntityKeyword) {
+          const kind = token.value.toUpperCase() as 'CLASS' | 'INTERFACE' | 'TYPE'
+          let j = i + 1
+          while (j < tokens.length && tokens[j].type !== TokenType.IDENTIFIER) j++
 
-  private collectTypeDependency(type: Type, set: Set<string>, cls: ClassDeclaration): void {
-    if (type.isBoolean() || type.isString() || type.isNumber() || type.isVoid() || type.isAny()) {
-      return
-    }
+          if (j < tokens.length && tokens[j].type === TokenType.IDENTIFIER) {
+            const { analysis: nameAnalysis, consumedCount: nameConsumed } = this.typeParser.parse(
+              tokens,
+              j,
+            )
+            const root = nameAnalysis.root
+            const entityName = root.name
+            const referencedName = tokens[j].value
+            const resolvedPkg = resolutionMap.get(referencedName) || currentPackage
+            currentEntityFqn = `${resolvedPkg}.${entityName}`
 
-    const typeFQN = this.resolveTypeFQN(type, cls)
-    const typeNameOnly = typeFQN.split('.').pop() || typeFQN
+            currentEntityObj = {
+              kind,
+              name: entityName,
+              packageName: resolvedPkg,
+              members: [],
+              modifiers: [...pendingModifiers],
+            }
+            pendingModifiers = []
 
-    if (
-      typeNameOnly === cls.getName() ||
-      typeNameOnly === 'Object' ||
-      typeNameOnly === 'Function'
-    ) {
-      return
-    }
+            console.log(`\n   [Entity] ${kind} ${currentEntityFqn}`)
 
-    // Priority: If it is already a structural part (Attribute), do NOT create an external usage relationship
-    const isProperty = cls.getProperties().some((p) => {
-      const propFQN = this.resolveTypeFQN(p.getType(), cls)
-      return propFQN === typeFQN || propFQN === `${typeFQN}[]` || propFQN.startsWith(`${typeFQN}<`)
-    })
-    if (isProperty) return
+            let definitionRoot = root
+            const nextIdx = j + nameConsumed
+            if (kind === 'TYPE' && tokens[nextIdx]?.value === '=') {
+              const { analysis: defAnalysis, consumedCount: defConsumed } = this.typeParser.parse(
+                tokens,
+                nextIdx + 1,
+              )
+              definitionRoot = defAnalysis.root
 
-    if (/^[A-Z]/.test(typeNameOnly) && !typeNameOnly.includes('<') && !typeNameOnly.includes('[')) {
-      set.add(typeFQN)
-    }
-  }
+              const semantics = this.semanticAnalyzer.analyze(
+                currentEntityFqn,
+                definitionRoot,
+                'alias',
+              )
+              semantics.forEach((rel) => {
+                const pkg = resolutionMap.get(rel.target) || currentPackage
+                this.generator.addExternalRelationship({ ...rel, target: `${pkg}.${rel.target}` })
+                console.log(`      [Rel] ${rel.kind} -> ${pkg}.${rel.target}`)
+              })
 
-  private detectRelationship(prop: PropertyDeclaration, cls: ClassDeclaration): string | null {
-    const type = prop.getType()
+              i = nextIdx + defConsumed
+              if (currentEntityObj) {
+                this.generator.addEntity(currentEntityObj)
+                currentEntityObj = null
+                currentEntityFqn = null
+              }
+            } else {
+              i = j + nameConsumed - 1
+            }
 
-    // Handle Arrays: we care about the element type
-    let targetType = type
-    if (type.isArray()) {
-      targetType = type.getArrayElementType()!
-    }
+            if (definitionRoot.members && definitionRoot.members.length > 0) {
+              definitionRoot.members.forEach((m) => {
+                const semantics = this.semanticAnalyzer.analyze(
+                  currentEntityFqn!,
+                  m.type,
+                  'field',
+                  m.name,
+                )
+                const { multiplicity, cleanType, stereotypes } = this.translator.translate(m.type)
+                const isComplex =
+                  semantics.length > 1 ||
+                  semantics.some((s) => s.xorGroup || s.kind === RelationshipKind.REFINEMENT)
+                const relSymbol =
+                  !isComplex && semantics.length > 0
+                    ? this.getRelSymbol(semantics[0].kind)
+                    : undefined
 
-    if (
-      !targetType ||
-      targetType.isBoolean() ||
-      targetType.isString() ||
-      targetType.isNumber() ||
-      targetType.getText().includes('{')
-    ) {
-      return null
-    }
+                if (isComplex) {
+                  semantics.forEach((s) => {
+                    const pkg = resolutionMap.get(s.target) || currentPackage
+                    this.generator.addExternalRelationship({
+                      ...s,
+                      target: `${pkg}.${s.target}`,
+                    })
+                  })
+                }
 
-    const typeFQN = this.resolveTypeFQN(targetType, cls)
-    const typeNameOnly = typeFQN.split('.').pop() || typeFQN
-    if (typeNameOnly === 'Object' || typeNameOnly === 'Function') return null
+                currentEntityObj?.members.push({
+                  name: m.name,
+                  type: cleanType,
+                  visibility: '+',
+                  isStatic: false,
+                  isAbstract: false,
+                  stereotype: stereotypes.length > 0 ? stereotypes.join(', ') : undefined,
+                  multiplicity:
+                    multiplicity || (semantics.length === 1 ? semantics[0].multiplicity : '1'),
+                  relSymbol,
+                })
+                console.log(`      [Member] ${m.name}: ${m.type.fullLabel}`)
+              })
+            }
+            braceLevel = 0
+          }
+        }
 
-    const visibility = this.getModifierVisibility(prop)
+        if (token.type === TokenType.IDENTIFIER && currentEntityFqn && braceLevel === 1) {
+          const memberName = token.value
+          const next = tokens[i + 1]
 
-    if (visibility === '+') {
-      return '>+'
-    }
+          if (next && next.type === TokenType.SYMBOL) {
+            const vis = pendingModifiers.includes('private')
+              ? '-'
+              : pendingModifiers.includes('protected')
+                ? '#'
+                : '+'
 
-    const propName = prop.getName()
-    const hasPublicGetter = cls.getMethods().some((m) => {
-      const name = m.getName()
-      const isPublic = this.getModifierVisibility(m) === '+'
-      return (
-        isPublic &&
-        (name === propName || name === `get${propName.charAt(0).toUpperCase()}${propName.slice(1)}`)
-      )
-    })
+            if (next.value === '(') {
+              const params: string[] = []
+              let j = i + 2
+              while (
+                j < tokens.length &&
+                !(tokens[j].type === TokenType.SYMBOL && tokens[j].value === ')')
+              ) {
+                if (tokens[j].type === TokenType.IDENTIFIER) {
+                  const paramName = tokens[j].value
+                  if (tokens[j + 1]?.value === ':') {
+                    const { analysis, consumedCount } = this.typeParser.parse(tokens, j + 2)
+                    const semantics = this.semanticAnalyzer.analyze(
+                      currentEntityFqn,
+                      analysis.root,
+                      'param',
+                      paramName,
+                    )
 
-    if (hasPublicGetter) {
-      return '>+'
-    }
+                    const { multiplicity, cleanType } = this.translator.translate(analysis.root)
 
-    const count = this.globalCounts.get(typeNameOnly) || 0
-    if (count > 2) {
-      return '>+'
-    }
+                    const needsExternalRel =
+                      semantics.length > 1 ||
+                      semantics.some((s) => s.xorGroup || s.kind === RelationshipKind.REFINEMENT)
+                    const isComplex = semantics.length > 1 || semantics.some((s) => s.xorGroup)
 
-    return '>*'
-  }
+                    const relSymbol =
+                      !isComplex && semantics.length > 0
+                        ? this.getRelSymbol(semantics[0].kind)
+                        : undefined
 
-  private resolveTypeFQN(type: Type, contextNode: Node): string {
-    if (type.isArray()) {
-      const elementType = type.getArrayElementType()
-      if (elementType) {
-        return `${this.resolveTypeFQN(elementType, contextNode)}[]`
-      }
-    }
+                    if (needsExternalRel) {
+                      semantics.forEach((s) => {
+                        const pkg = resolutionMap.get(s.target) || currentPackage
+                        this.generator.addExternalRelationship({
+                          ...s,
+                          target: `${pkg}.${s.target}`,
+                        })
+                      })
+                    }
 
-    const text = type.getText(contextNode)
+                    const relPart = relSymbol ? `${relSymbol} ` : ''
+                    const multPart =
+                      multiplicity && multiplicity !== '1' ? ` [${multiplicity}]` : ''
+                    params.push(`${paramName}: ${relPart}${cleanType}${multPart}`)
 
-    if (type.isObject() && text.includes('<')) {
-      const baseNameMatch = text.match(/^([^<]+)/)
-      if (baseNameMatch) {
-        const baseName = baseNameMatch[1]
-        const args = type.getTypeArguments()
-        if (args.length > 0) {
-          const resolvedArgs = args.map((arg) => this.resolveTypeFQN(arg, contextNode)).join(', ')
-          const resolvedBase = this.resolveBaseTypeFQN(type, baseName, contextNode)
-          return `${resolvedBase}<${resolvedArgs}>`
+                    j += consumedCount + 1
+                  } else {
+                    params.push(`${paramName}: any`)
+                  }
+                }
+                j++
+                if (tokens[j]?.value === ',') j++
+              }
+
+              let returnTypeInfo = {
+                multiplicity: '1',
+                cleanType: 'void',
+                stereotypes: [] as string[],
+              }
+              let returnRelSymbol: string | undefined
+              if (tokens[j]?.value === ')' && tokens[j + 1]?.value === ':') {
+                const { analysis, consumedCount } = this.typeParser.parse(tokens, j + 2)
+                const returnSemantics = this.semanticAnalyzer.analyze(
+                  currentEntityFqn!,
+                  analysis.root,
+                  'return',
+                  memberName,
+                )
+                const needsExternalRel =
+                  returnSemantics.length > 1 ||
+                  returnSemantics.some((s) => s.xorGroup || s.kind === RelationshipKind.REFINEMENT)
+                const isComplex =
+                  returnSemantics.length > 1 || returnSemantics.some((s) => s.xorGroup)
+
+                if (needsExternalRel) {
+                  returnSemantics.forEach((s) => {
+                    const pkg = resolutionMap.get(s.target) || currentPackage
+                    this.generator.addExternalRelationship({
+                      ...s,
+                      target: `${pkg}.${s.target}`,
+                    })
+                  })
+                }
+
+                if (!isComplex && returnSemantics.length > 0) {
+                  returnRelSymbol = this.getRelSymbol(returnSemantics[0].kind)
+                }
+                returnTypeInfo = this.translator.translate(analysis.root)
+                j += consumedCount + 1
+              }
+
+              currentEntityObj?.members.push({
+                name: `${memberName}(${params.join(', ')})`,
+                type: returnTypeInfo.cleanType,
+                visibility: vis,
+                isStatic: pendingModifiers.includes('static'),
+                isAbstract: pendingModifiers.includes('abstract'),
+                stereotype:
+                  returnTypeInfo.stereotypes.length > 0
+                    ? returnTypeInfo.stereotypes.join(', ')
+                    : undefined,
+                relSymbol: returnRelSymbol,
+                multiplicity: returnTypeInfo.multiplicity,
+              })
+
+              console.log(`      [Method] ${vis}${memberName}(...): ${returnTypeInfo.cleanType}`)
+              pendingModifiers = []
+              i = j
+            } else if (next.value === ':' || next.value === '=') {
+              if (next.value === ':') {
+                const { analysis, consumedCount } = this.typeParser.parse(tokens, i + 2)
+                const semantics = this.semanticAnalyzer.analyze(
+                  currentEntityFqn,
+                  analysis.root,
+                  'field',
+                  memberName,
+                )
+                const { multiplicity, cleanType, stereotypes } = this.translator.translate(
+                  analysis.root,
+                )
+
+                const needsExternalRel =
+                  semantics.length > 1 ||
+                  semantics.some((s) => s.xorGroup || s.kind === RelationshipKind.REFINEMENT)
+
+                const isComplex = semantics.length > 1 || semantics.some((s) => s.xorGroup)
+
+                const relSymbol =
+                  !isComplex && semantics.length > 0
+                    ? this.getRelSymbol(semantics[0].kind)
+                    : undefined
+
+                if (needsExternalRel) {
+                  semantics.forEach((s) => {
+                    const pkg = resolutionMap.get(s.target) || currentPackage
+                    this.generator.addExternalRelationship({
+                      ...s,
+                      target: `${pkg}.${s.target}`,
+                    })
+                  })
+                }
+
+                currentEntityObj?.members.push({
+                  name: memberName,
+                  type: cleanType,
+                  visibility: vis,
+                  isStatic: pendingModifiers.includes('static'),
+                  isAbstract: pendingModifiers.includes('abstract'),
+                  stereotype: stereotypes.length > 0 ? stereotypes.join(', ') : undefined,
+                  relSymbol,
+                  multiplicity:
+                    multiplicity || (semantics.length === 1 ? semantics[0].multiplicity : '1'),
+                })
+
+                console.log(`      [Attribute] ${vis}${memberName}: ${cleanType}`)
+                i += consumedCount + 1
+              }
+              pendingModifiers = []
+              const startLine = token.line
+              while (i < tokens.length) {
+                if (tokens[i].type === TokenType.SYMBOL && tokens[i].value === ';') break
+                if (tokens[i + 1] && tokens[i + 1].line !== startLine) break
+                i++
+              }
+            }
+          }
+        }
+
+        if (token.type === TokenType.KEYWORD && currentEntityObj && braceLevel === 0) {
+          if (token.value === 'extends' || token.value === 'implements') {
+            const isExtends = token.value === 'extends'
+            let j = i + 1
+            while (
+              j < tokens.length &&
+              !(tokens[j].type === TokenType.SYMBOL && tokens[j].value === '{')
+            ) {
+              if (tokens[j].type === TokenType.IDENTIFIER) {
+                const { analysis, consumedCount } = this.typeParser.parse(tokens, j)
+                const baseName = tokens[j].value
+                const pkg = resolutionMap.get(baseName) || currentPackage
+                const fullTarget = `${pkg}.${analysis.root.fullLabel}`
+
+                if (isExtends) {
+                  currentEntityObj.extends = fullTarget
+                } else {
+                  currentEntityObj.implements = currentEntityObj.implements || []
+                  currentEntityObj.implements.push(fullTarget)
+                }
+
+                j += consumedCount
+                if (tokens[j]?.value === ',') {
+                  j++
+                  continue
+                }
+                break
+              }
+              j++
+            }
+            i = j - 1
+          }
         }
       }
     }
-
-    return this.resolveBaseTypeFQN(type, text, contextNode)
+    return this.generator.generate()
   }
 
-  private resolveBaseTypeFQN(type: Type, originalText: string, contextNode: Node): string {
-    const symbol = type.getSymbol() || type.getAliasSymbol()
-    if (!symbol) return this.cleanSimpleType(originalText)
-
-    const declarations = symbol.getDeclarations()
-    if (declarations.length === 0) return this.cleanSimpleType(originalText)
-
-    const sourceFile = declarations[0].getSourceFile()
-    const filePath = sourceFile.getFilePath()
-
-    if (filePath.includes('node_modules') || filePath.includes('lib.d.ts')) {
-      return this.cleanSimpleType(symbol.getName())
+  private getRelSymbol(kind: RelationshipKind): string {
+    switch (kind) {
+      case RelationshipKind.COMPOSITION:
+        return '>*'
+      case RelationshipKind.AGGREGATION:
+        return '>+'
+      case RelationshipKind.ASSOCIATION:
+        return '><'
+      case RelationshipKind.DEPENDENCY:
+        return '>-'
+      case RelationshipKind.REFINEMENT:
+        return '>-'
+      default:
+        return '>-'
     }
-
-    const typePackage = this.derivePackageName(filePath)
-    const contextPackage = this.derivePackageName(contextNode.getSourceFile().getFilePath())
-
-    const typeName = this.cleanSimpleType(symbol.getName())
-
-    if (typePackage === contextPackage) {
-      return typeName
-    }
-
-    return `${typePackage}.${typeName}`
   }
 
-  private cleanSimpleType(type: string): string {
-    let cleaned = type.replace(/import\(.*?\)\./g, '')
-
-    // TypeScript's internal name for anonymous object literals
-    if (cleaned === '__type') return 'Object'
-
-    if (cleaned.includes('{') || cleaned.includes('=>')) {
-      const baseName = cleaned.split('<')[0]
-      if (baseName === cleaned) {
-        return cleaned.includes('{') ? 'Object' : 'Function'
-      }
-      return baseName.trim()
-    }
-
-    cleaned = cleaned.replace(/,\s*/g, ', ')
-
-    return cleaned.trim()
-  }
-
-  private sanitizeIdentifier(name: string): string {
-    const keywords = ['config', 'class', 'interface', 'enum', 'package']
-    if (keywords.includes(name.toLowerCase())) {
-      return `_${name}`
-    }
-    return name
-  }
-
-  private getModifierVisibility(
-    node: PropertyDeclaration | MethodDeclaration | PropertySignature,
-  ): string {
-    if (Node.isModifierable(node)) {
-      if (node.hasModifier(SyntaxKind.PrivateKeyword)) return '-'
-      if (node.hasModifier(SyntaxKind.ProtectedKeyword)) return '#'
-    }
-    return '+'
-  }
-
-  private derivePackageName(filePath: string): string {
-    const parts = filePath.split('/')
-    const name = parts[parts.length - 2] || 'root'
-    return name.replace(/[^a-zA-Z0-9]/g, '_')
+  private logDiscovery(report: DiscoveryReport): void {
+    console.log('\n--- 🔍 Discovery Phase ---')
+    console.log(`📄 Files found: ${report.units.length}`)
+    console.log('--------------------------')
   }
 }
