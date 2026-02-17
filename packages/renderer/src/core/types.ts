@@ -22,8 +22,11 @@ export interface DiagramConfig {
     showVisibility?: boolean
     showIcons?: boolean
     showAbstractItalic?: boolean
+    /** Si es true, se renderizarán las dependencias (usos). Por defecto es true. */
+    showDependencies?: boolean
     /** Si es true, el SVG ocupará el 100% de su contenedor y se auto-ajustará */
     responsive?: boolean
+
     /** Ancho objetivo para el renderizado (si no es responsive) */
     width?: number | string
     /** Alto objetivo para el renderizado (si no es responsive) */

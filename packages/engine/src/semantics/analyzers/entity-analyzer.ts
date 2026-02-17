@@ -90,7 +90,16 @@ export class EntityAnalyzer {
   }
 
   /**
+   * Appends members to an already registered entity.
+   */
+  public appendMembers(entity: IREntity, members: MemberNode[]): void {
+    const newMembers = this.mapMembers(members ?? [], entity.namespace || '')
+    entity.members.push(...newMembers)
+  }
+
+  /**
    * Processes members for an AssociationClass.
+
    */
   public processAssociationClassMembers(entity: IREntity, node: AssociationClassNode): void {
     entity.members = this.mapMembers(node.body ?? [], entity.namespace || '')
