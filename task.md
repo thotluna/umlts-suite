@@ -44,7 +44,8 @@
   - [ ] **VS Code**: Comando "Export to Standard UML" para consolidar ambos XML.
 
 - [ ] **Advanced Autocomplete** (Sugerencias basadas en el SymbolTable).
-- [ ] **Refactoring: Reverse Engineering** (Generación de diagramas desde código TS/Java).
+- [x] **Refactoring: Reverse Engineering** (Generación de diagramas desde código TS).
+  - [x] Crear README con comandos de generación en `@umlts/blueprint`.
 
 ## Bugs
 
