@@ -45,6 +45,13 @@
 
 - [ ] **Advanced Autocomplete** (Sugerencias basadas en el SymbolTable).
 - [x] **Refactoring: Reverse Engineering** (Generación de diagramas desde código TS).
+  - [x] Implementar Lexer Atómico (Keywords, Identifiers, Symbols, Strings, Imports).
+  - [x] Resolución de FQNs mediante mapa de imports relativos.
+  - [x] Extracción de Anatomía de Clases (Atributos, Métodos, Modificadores y Tipos).
+  - [x] Sistema de detección de dependencias cruzadas (Herencia, Implementación, Referencias).
+  - [x] Refinamiento de grupos XOR en uniones complejas y nulabilidad.
+  - [x] Soporte para FQNs en cabeceras de relación y multiplicidad en retornos del motor.
+  - [x] Soporte para guiones en identificadores (kebab-case).
   - [x] Crear README con comandos de generación en `@umlts/blueprint`.
 
 ## Bugs

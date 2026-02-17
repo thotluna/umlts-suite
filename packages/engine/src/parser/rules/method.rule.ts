@@ -69,6 +69,15 @@ export class MethodRule {
 
       const returnModifiers = context.consumeModifiers()
       returnType = this.typeRule.parse(context)
+      let returnMultiplicity: string | undefined
+
+      if (context.match(TokenType.LBRACKET)) {
+        returnMultiplicity = ''
+        while (!context.check(TokenType.RBRACKET) && !context.isAtEnd()) {
+          returnMultiplicity += context.advance().value
+        }
+        context.consume(TokenType.RBRACKET, "Expected ']'")
+      }
 
       const constraints: ConstraintNode[] = []
       if (context.check(TokenType.LBRACE)) {
@@ -82,6 +91,7 @@ export class MethodRule {
         modifiers,
         parameters,
         returnType,
+        returnMultiplicity,
         returnRelationshipKind,
         isNavigable,
         constraints: constraints.length > 0 ? constraints : undefined,

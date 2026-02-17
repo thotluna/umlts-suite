@@ -33,7 +33,10 @@ export class IdentifierMatcher implements TokenMatcher {
 
     while (
       !reader.isAtEnd() &&
-      (this.isAlphaNumeric(reader.peek()) || reader.peek() === '_' || reader.peek() === '.')
+      (this.isAlphaNumeric(reader.peek()) ||
+        reader.peek() === '_' ||
+        reader.peek() === '.' ||
+        reader.peek() === '-')
     ) {
       value += reader.advance()
     }

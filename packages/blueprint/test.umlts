@@ -1,0 +1,107 @@
+package generator {
+  class MermaidGenerator {
+    +generate(diagram: generator.ir.IRDiagram): string
+    -generateEntity(entity: generator.ir.IREntity): string[]
+    -generateRelationship(rel: generator.ir.IRRelationship): string[]
+    -getTypeLabel(entity: generator.ir.IREntity): string
+    -getRelationshipArrow(rel: generator.ir.IRRelationship): string
+    -escapeId(id: string): string
+  }
+
+  MermaidGenerator >- generator.ir.IRDiagram
+  MermaidGenerator >- generator.ir.IREntity
+  MermaidGenerator >- generator.ir.IRRelationship
+}
+
+package generator.ir {
+  interface IRTargetModifiers {
+    +isAbstract: boolean
+    +isStatic: boolean
+    +isActive: boolean
+    +isLeaf: boolean
+    +isFinal: boolean
+    +isRoot: boolean
+  }
+
+  interface IRParameter {
+    +name: string
+    +type: string
+    +relationshipKind: string
+    +isNavigable: boolean
+    +targetModifiers: IRTargetModifiers
+    +constraints: IRConstraint[]
+  }
+
+  interface IRMember {
+    +name: string
+    +type: string
+    +visibility: IRVisibility
+    +isStatic: boolean
+    +isAbstract: boolean
+    +isLeaf: boolean
+    +isFinal: boolean
+    +parameters: IRParameter[]
+    +relationshipKind: string
+    +isNavigable: boolean
+    +targetModifiers: IRTargetModifiers
+    +multiplicity: string
+    +line: number
+    +column: number
+    +docs: string
+    +constraints: IRConstraint[]
+  }
+
+  interface IREntity {
+    +id: string
+    +name: string
+    +type: generator.ir.IREntityType
+    +members: IRMember[]
+    +isImplicit: boolean
+    +isAbstract: boolean
+    +isStatic: boolean
+    +isActive: boolean
+    +isLeaf: boolean
+    +isFinal: boolean
+    +isRoot: boolean
+    +typeParameters: string[]
+    +namespace: string
+    +docs: string
+    +line: number
+    +column: number
+  }
+
+  IREntity >+ generator.ir.IREntityType : "type"
+  interface IRConstraint {
+    +kind: string
+    +targets: string[]
+    +expression: string
+  }
+
+  interface IRRelationship {
+    +from: string
+    +to: string
+    +type: generator.ir.IRRelationshipType
+    +fromMultiplicity: string
+    +toMultiplicity: string
+    +isNavigable: boolean
+    +label: string
+    +visibility: IRVisibility
+    +associationClassId: string
+    +docs: string
+    +constraints: IRConstraint[]
+    +line: number
+    +column: number
+  }
+
+  IRRelationship >+ generator.ir.IRRelationshipType : "type"
+  interface IRDiagram {
+    +entities: generator.ir.IREntity[]
+    +relationships: generator.ir.IRRelationship[]
+    +constraints: IRConstraint[]
+    +cfg: Record<string,unknown>
+  }
+
+  IRDiagram >+ generator.ir.IREntity : "entities"
+  IRDiagram >+ generator.ir.IRRelationship : "relationships"
+}
+
