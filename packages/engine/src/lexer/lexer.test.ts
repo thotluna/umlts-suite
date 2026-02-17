@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { LexerFactory } from './lexer.factory'
-import { TokenType } from './token.types'
+import { TokenType } from '../syntax/token.types'
 
 describe('Lexer', () => {
   it('should tokenize a simple class declaration', () => {

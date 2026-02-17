@@ -1,8 +1,8 @@
 import type { IREntity } from '../../generator/ir/models'
 import { IRRelationshipType, IREntityType } from '../../generator/ir/models'
-import { DiagnosticCode } from '../../parser/diagnostic.types'
-import { TokenType } from '../../lexer/token.types'
-import type { Token } from '../../lexer/token.types'
+import { DiagnosticCode } from '../../syntax/diagnostic.types'
+import { TokenType } from '../../syntax/token.types'
+import type { Token } from '../../syntax/token.types'
 import type { ParserContext } from '../../parser/parser.context'
 import type { SymbolTable } from '../symbol-table'
 

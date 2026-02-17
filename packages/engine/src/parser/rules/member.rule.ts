@@ -1,5 +1,5 @@
-import { TokenType } from '../../lexer/token.types'
-import { ASTNodeType, type MemberNode } from '../ast/nodes'
+import { TokenType } from '../../syntax/token.types'
+import { ASTNodeType, type MemberNode } from '../../syntax/nodes'
 import type { ParserContext } from '../parser.context'
 import { AttributeRule } from './attribute.rule'
 import { MethodRule } from './method.rule'
@@ -42,22 +42,13 @@ export class MemberRule {
     }
 
     const modifiers = context.consumeModifiers()
-    const { isStatic, isAbstract, isLeaf, isFinal } = modifiers
 
     const nameToken = context.consume(TokenType.IDENTIFIER, 'Se esperaba el nombre del miembro')
 
     if (context.check(TokenType.LPAREN)) {
-      return this.methodRule.parse(
-        context,
-        nameToken,
-        visibility,
-        isStatic,
-        isAbstract,
-        isLeaf,
-        isFinal,
-      )
+      return this.methodRule.parse(context, nameToken, visibility, modifiers)
     } else {
-      return this.attributeRule.parse(context, nameToken, visibility, isStatic, isLeaf, isFinal)
+      return this.attributeRule.parse(context, nameToken, visibility, modifiers)
     }
   }
 }

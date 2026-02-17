@@ -1,4 +1,4 @@
-import type { Token } from './token.types'
+import type { Token } from '../syntax/token.types'
 import type { LexerReader } from './lexer.reader'
 
 export interface TokenMatcher {

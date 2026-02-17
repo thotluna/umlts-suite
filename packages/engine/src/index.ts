@@ -4,12 +4,13 @@ import { SemanticAnalyzer } from './semantics/analyzer'
 import type { IRDiagram } from './generator/ir/models'
 import { ParserContext } from './parser/parser.context'
 import { DiagnosticReporter } from './parser/diagnostic-reporter'
-import type { Diagnostic } from './parser/diagnostic.types'
-import type { Token } from './lexer/token.types'
+import type { Diagnostic } from './syntax/diagnostic.types'
+import type { Token } from './syntax/token.types'
 
 export * from './generator/ir/models'
-export * from './parser/diagnostic.types'
-export * from './lexer/token.types'
+export * from './syntax/diagnostic.types'
+export * from './syntax/token.types'
+export * from './syntax/nodes'
 
 /**
  * Resultado de una operación de parseo del motor.

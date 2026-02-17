@@ -1,7 +1,7 @@
 import type { TokenMatcher } from '../matcher.types'
 import type { LexerReader } from '../lexer.reader'
-import type { Token } from '../token.types'
-import { TokenType } from '../token.types'
+import type { Token } from '../../syntax/token.types'
+import { TokenType } from '../../syntax/token.types'
 
 export class IdentifierMatcher implements TokenMatcher {
   private readonly KEYWORDS: Record<string, TokenType> = Object.assign(Object.create(null), {

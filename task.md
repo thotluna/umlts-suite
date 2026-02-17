@@ -57,6 +57,8 @@
 # Bugs
 
 - [ ] **FIX**: Ruteo de aristas de herencia forzado a N->S provoca bucles innecesarios en algunos layouts complejos en proyectos grandes.
+- [ ] **BUG**: Asegurar que todas las relaciones de composición/agregación sean siempre navegables (flecha obligatoria).
+- [ ] **BUG**: Corregir inconsistencias visuales y semánticas en la herencia doble/múltiple (ej. `A >> B >> C`).
 - [x] Refactorización: Análisis Arquitectónico y Refinamiento <!-- id: 5 -->
   - [x] Aplicar principios SOLID (OCP, DRY, KISS) en el Parser.
   - [x] Eliminar dependencias de TokenType en el orquestador Parser.ts.
@@ -71,3 +73,8 @@
     - [x] Elevar al `Parser` como protagonista.
     - [x] **Limpieza Arquitectónica** (Anti-Smell): Eliminar Feature Envy y centralizar sincronización en `ParserContext` mediante predicados.
   - [x] Validar principios SOLID (OCP, LSP, Alta Cohesión) en el pipeline del motor.
+  - [x] **Refinar Nodos de Sintaxis (AST Refactor)**:
+    - [x] Unificar propiedades de modificadores en una interfaz reutilizable `Modifiers`.
+    - [x] Actualizar `EntityNode`, `RelationshipHeaderNode`, `AttributeNode`, `MethodNode`, `ParameterNode` y `RelationshipNode` para usar `Modifiers`.
+    - [x] Actualizar capa semántica (`EntityAnalyzer`, `RelationshipAnalyzer`, `SymbolTable`) para soportar la nueva estructura AST.
+    - [x] Actualizar y validar diagramas de arquitectura (`parser.umlts`).

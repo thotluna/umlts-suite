@@ -1,6 +1,11 @@
-import { TokenType } from '../../lexer/token.types'
-import { ASTNodeType } from '../ast/nodes'
-import type { MemberNode, EntityType, AssociationClassNode, StatementNode } from '../ast/nodes'
+import { TokenType } from '../../syntax/token.types'
+import { ASTNodeType } from '../../syntax/nodes'
+import type {
+  MemberNode,
+  EntityType,
+  AssociationClassNode,
+  StatementNode,
+} from '../../syntax/nodes'
 import type { ParserContext } from '../parser.context'
 import type { StatementRule, Orchestrator } from '../rule.types'
 import { RelationshipHeaderRule } from './relationship-header.rule'
@@ -47,8 +52,6 @@ export class EntityRule implements StatementRule {
     modifiers.isLeaf = modifiers.isLeaf || postModifiers.isLeaf
     modifiers.isFinal = modifiers.isFinal || postModifiers.isFinal
     modifiers.isRoot = modifiers.isRoot || postModifiers.isRoot
-
-    const { isAbstract, isStatic, isActive, isLeaf, isFinal, isRoot } = modifiers
 
     const token = context.prev()
     let type: EntityType = ASTNodeType.CLASS
@@ -158,9 +161,11 @@ export class EntityRule implements StatementRule {
               type: ASTNodeType.ATTRIBUTE,
               name: literalToken.value,
               visibility: 'public',
-              isStatic: true,
-              isLeaf: false,
-              isFinal: false,
+              modifiers: {
+                isStatic: true,
+                isLeaf: false,
+                isFinal: false,
+              },
               typeAnnotation: {
                 type: ASTNodeType.TYPE,
                 kind: 'simple',
@@ -204,12 +209,7 @@ export class EntityRule implements StatementRule {
       {
         type,
         name: nameToken.value,
-        isAbstract,
-        isStatic,
-        isActive,
-        isLeaf,
-        isFinal,
-        isRoot,
+        modifiers,
         typeParameters,
         docs,
         relationships,

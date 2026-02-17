@@ -1,6 +1,6 @@
 import type { TokenMatcher } from '../matcher.types'
 import type { LexerReader } from '../lexer.reader'
-import type { Token } from '../token.types'
+import type { Token } from '../../syntax/token.types'
 
 export class WhitespaceMatcher implements TokenMatcher {
   public match(reader: LexerReader): Token | null {

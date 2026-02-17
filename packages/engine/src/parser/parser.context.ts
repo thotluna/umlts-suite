@@ -1,5 +1,5 @@
-import { TokenType, type Token } from '../lexer/token.types'
-import type { Diagnostic, DiagnosticCode } from './diagnostic.types'
+import { TokenType, type Token } from '../syntax/token.types'
+import type { Diagnostic, DiagnosticCode } from '../syntax/diagnostic.types'
 import { TokenStream } from './token-stream'
 import { DiagnosticReporter } from './diagnostic-reporter'
 import { DocRegistry } from './doc-registry'

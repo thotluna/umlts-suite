@@ -6,9 +6,10 @@ import type {
   CommentNode,
   ConfigNode,
   AssociationClassNode,
-} from '../parser/ast/nodes'
-import type { ASTVisitor } from '../parser/ast/visitor'
-import { walkAST } from '../parser/ast/visitor'
+  Modifiers,
+} from '../syntax/nodes'
+import type { ASTVisitor } from '../syntax/visitor'
+import { walkAST } from '../syntax/visitor'
 import type { IRDiagram, IRRelationship } from '../generator/ir/models'
 import { SymbolTable } from './symbol-table'
 import type { ParserContext } from '../parser/parser.context'
@@ -16,8 +17,8 @@ import { EntityAnalyzer } from './analyzers/entity-analyzer'
 import { RelationshipAnalyzer } from './analyzers/relationship-analyzer'
 import { HierarchyValidator } from './validators/hierarchy-validator'
 import { TypeValidator } from './utils/type-validator'
-import { DiagnosticCode } from '../parser/diagnostic.types'
-import { TokenType, type Token } from '../lexer/token.types'
+import { DiagnosticCode } from '../syntax/diagnostic.types'
+import { TokenType, type Token } from '../syntax/token.types'
 import { IRRelationshipType, IRVisibility } from '../generator/ir/models'
 
 /**
@@ -139,14 +140,7 @@ export class SemanticAnalyzer {
     associationClassId?: string,
     line?: number,
     column?: number,
-    targetModifiers?: {
-      isAbstract?: boolean
-      isStatic?: boolean
-      isActive?: boolean
-      isLeaf?: boolean
-      isFinal?: boolean
-      isRoot?: boolean
-    },
+    targetModifiers?: Modifiers,
   ): void {
     if (TypeValidator.isPrimitive(typeName)) return
     const baseType = TypeValidator.getBaseTypeName(typeName)

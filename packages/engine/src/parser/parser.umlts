@@ -1,0 +1,197 @@
+config {
+    direction: UP
+    spacing: 100
+}
+package parser{
+  interface Orchestrator {
+    +parse(tokens: >- syntax.Token[]): >- syntax.ProgramNode
+  }
+
+  class parser >I Orchestrator {
+    -rules: >* StatementRule[0..*]
+    +parse(tokens: >- syntax.Token[]): >- syntax.ProgramNode
+    reporter: >- syntax.DiagnosticReporter
+    context: >- ParserContext
+  }
+
+  class ParserContext{
+    - stream: >- TokenStream
+    - errors: >- DiagnosticReporter
+    - docs: >- DocRegistry
+    ParserContext(tokens: >- syntax.Token[])
+  }
+
+  class TokenStream{
+    -tokens: >+ syntax.Token[0..*]
+    -splitTokens: >+ syntax.TokenStream[0..*]
+  }
+
+  class DiagnosticReporter{
+    -diagnostics: >+ syntax.Diagnostic[0..*]
+  }
+
+  class DocRegistry{
+    -docs: >+ syntax.DocNode[0..*]
+    -token: >- syntax.Token
+    -severity: >- syntax.DiagnosticSeverity
+    -code: >- syntax.DiagnosticCode
+  }
+
+  interface StatementRule {
+    canStart(context: >- ParserContext, orchestrator: >- Orchestrator): boolean
+    parse(context: >- ParserContext): >- StatementNode
+  }
+
+  package rules {
+    class AttributeRule {
+      -typeRule: >* TypeRule
+      +parse(
+        context: >- parser.ParserContext,
+        name: >- syntax.Token,
+        visibility: string,
+        modifiers: >- syntax.Modifiers
+      ): >- syntax.AttributeNode
+    }
+
+    class CommentRule >I parser.StatementRule
+    class ConfigRule >I StatementRule
+    class DocCommentRule >I StatementRule
+    class EntityRule >I StatementRule{
+      -relationshipHeaderRule: >* RelationshipHeaderRule
+      -memberRule: >* MemberRule
+    }
+    class MemberRule{
+      -attributeRule: >* AttributeRule
+      -methodRule: >* MethodRule
+      +parse(context: >- ParserContext): >- MemberNode
+    }
+    class MethodRule {
+      -typeRule: >* TypeRule
+      -parameterRule: >* ParameterRule
+      +parse(
+        context: >- ParserContext,
+        name: >- syntax.Token,
+        visibility: string,
+        modifiers: >- syntax.Modifiers
+      ): >- syntax.MethodNode
+    }
+    class PackageRule >I StatementRule
+    class ParameterRule {
+      -typeRule: >* TypeRule
+      +parse(context: >- ParserContext): >- ParameterNode
+    }
+   class RelationshipHeaderRule {
+    +parse(context: >- ParserContext): >- syntax.RelationshipHeaderNode[]
+   }
+   class RelationshipRule >I StatementRule
+  }
+}
+package syntax{
+
+  enum DiagnosticSeverity
+  enum DiagnosticCode
+
+  interface Diagnostic{
+    code: >+ DiagnosticCode[0..1]
+    severity: >+ DiagnosticSeverity[0..1]
+  }
+
+  enum ASTNodeType
+  interface ASTNode >+ ASTNodeType
+  interface TypeNode >> ASTNode{
+    arguments: >+ TypeNode[0..*]
+  }
+
+  interface StatementNode{}
+
+
+  interface ProgramNode >> ASTNode {
+    type: ASTNodeType.PROGRAM
+    body: >+ StatementNode[0..*]
+    diagnostics: >+ Diagnostic[0..*]
+  }
+
+  interface packageNode >> StatementNode >> ASTNode{
+    type: ASTNodeType.PACKAGE
+    name: string
+    body: >+ StatementNode[0..*]
+  }
+
+  interface Modifiers {
+    isAbstract: boolean
+    isStatic: boolean
+    isActive: boolean
+    isLeaf: boolean
+    isFinal: boolean
+    isRoot: boolean
+  }
+
+  interface EntityNode >> StatementNode >> ASTNode {
+    type: >+ ASTNodeType
+    name: string
+    relationships: >+ RelationshipHeaderNode[0..*]
+    body: >+ MemberNode[0..*]
+    modifiers: >+ Modifiers
+  }
+  
+  interface RelationshipHeaderNode >> ASTNode {
+    type: ASTNodeType.RELATIONSHIP
+    kind: string
+    target: string
+    targetModifiers: >+ Modifiers[0..1]
+  }
+
+  interface MemberNode {}
+
+  interface AttributeNode >> MemberNode >> ASTNode {
+    type: ASTNodeType.ATTRIBUTE
+    name: string
+    visibility: string
+    modifiers: >+ Modifiers
+    typeAnnotation: >+ TypeNode
+    multiplicity: string[0..1]
+    relationshipKind: string[0..1]
+    targetModifiers: >+ Modifiers[0..1]
+  }
+
+  interface MethodNode >> MemberNode >> ASTNode {
+    type: ASTNodeType.METHOD
+    name: string
+    visibility: string
+    modifiers: >+ Modifiers
+    parameters: >+ ParameterNode[0..*]
+    returnType: >+ TypeNode
+    returnRelationshipKind: string[0..1]
+    returnTargetModifiers: >+ Modifiers[0..1]
+  }
+
+  interface ParameterNode >> ASTNode {
+    type: ASTNodeType.PARAMETER
+    name: string
+    typeAnnotation: >+ TypeNode
+    relationshipKind: string[0..1]
+    targetModifiers: >+ Modifiers[0..1]
+    multiplicity: string[0..1]
+  }
+
+  interface RelationshipNode >> StatementNode >> ASTNode {
+    type: ASTNodeType.RELATIONSHIP
+    from: string
+    fromModifiers: >+ Modifiers[0..1]
+    fromMultiplicity: string[0..1]
+    to: string
+    toModifiers: >+ Modifiers[0..1]
+    toMultiplicity: string[0..1]
+    kind: string
+    label: string[0..1]
+  }
+
+  enum TokenType{}
+
+  interface Token{
+    type: >+ TokenType
+    value: string
+    line: number
+    column: number
+  }
+}
