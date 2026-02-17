@@ -86,20 +86,19 @@ export class EntityAnalyzer {
    * Processes and fills the members of an already registered entity.
    */
   public processMembers(entity: IREntity, node: EntityNode): void {
-    entity.members = this.mapMembers(node.body ?? [], entity.namespace || '')
+    entity.members = this.mapMembers(node.body ?? [], entity.namespace || '', entity.typeParameters)
   }
 
   /**
    * Appends members to an already registered entity.
    */
   public appendMembers(entity: IREntity, members: MemberNode[]): void {
-    const newMembers = this.mapMembers(members ?? [], entity.namespace || '')
+    const newMembers = this.mapMembers(members ?? [], entity.namespace || '', entity.typeParameters)
     entity.members.push(...newMembers)
   }
 
   /**
    * Processes members for an AssociationClass.
-
    */
   public processAssociationClassMembers(entity: IREntity, node: AssociationClassNode): void {
     entity.members = this.mapMembers(node.body ?? [], entity.namespace || '')
@@ -116,7 +115,11 @@ export class EntityAnalyzer {
     }
   }
 
-  private mapMembers(members: MemberNode[], namespace: string): IRMember[] {
+  private mapMembers(
+    members: MemberNode[],
+    namespace: string,
+    typeParameters?: string[],
+  ): IRMember[] {
     const seenNames = new Set<string>()
 
     return members
@@ -142,7 +145,7 @@ export class EntityAnalyzer {
         const typeName =
           (m as AttributeNode).typeAnnotation?.raw || (m as MethodNode).returnType?.raw
         if (typeName) {
-          this.validateMemberType(typeName, namespace, m)
+          this.validateMemberType(typeName, namespace, m, typeParameters)
         }
 
         const irMember: IRMember = {
@@ -196,8 +199,16 @@ export class EntityAnalyzer {
       })
   }
 
-  private validateMemberType(typeName: string, namespace: string, node: MemberNode): void {
+  private validateMemberType(
+    typeName: string,
+    namespace: string,
+    node: MemberNode,
+    typeParameters?: string[],
+  ): void {
     if (TypeValidator.isPrimitive(typeName)) return
+
+    const baseType = TypeValidator.getBaseTypeName(typeName)
+    if (typeParameters?.includes(baseType)) return
 
     const modifiers =
       node.type === ASTNodeType.ATTRIBUTE
@@ -206,7 +217,6 @@ export class EntityAnalyzer {
           ? (node as MethodNode).returnTargetModifiers
           : undefined
 
-    const baseType = TypeValidator.getBaseTypeName(typeName)
     const result = this.symbolTable.resolveOrRegisterImplicit(baseType, namespace, modifiers)
 
     if (result.isAmbiguous) {

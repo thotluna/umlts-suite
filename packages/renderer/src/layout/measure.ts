@@ -6,7 +6,7 @@ import { type UMLNode, type IRParameter } from '../core/types'
  */
 const CHAR_WIDTH = 11.5 // More conservative to avoid clipping
 const LINE_HEIGHT = 26 // More compact but safe
-const HEADER_HEIGHT_NORMAL = 32
+const HEADER_HEIGHT_NORMAL = 40
 const PADDING_BOTTOM = 8
 const MIN_WIDTH = 160
 
@@ -55,10 +55,14 @@ export function measureNodeDimensions(node: UMLNode): NodeDimensions {
     stereotypeCount++
   }
 
-  // Generics like <T, K>
-  if (node.typeParameters.length > 0) {
-    const genericsStr = `<${node.typeParameters.join(', ')}>`
-    maxChars = Math.max(maxChars, genericsStr.length)
+  // Generics like <T, K> (UML Standard: Template Parameter Box)
+  let genericOverhead = 0
+  if (node.typeParameters && node.typeParameters.length > 0) {
+    const genericsStr = node.typeParameters.join(', ')
+    // The box hangs out by half its width on the right
+    const boxWidth = Math.max(30, genericsStr.length * 8 + 10)
+    genericOverhead = boxWidth / 2
+    maxChars = Math.max(maxChars, node.name.length) // Name doesn't need to fit <T> in title anymore
   }
 
   // Members
@@ -78,7 +82,7 @@ export function measureNodeDimensions(node: UMLNode): NodeDimensions {
     maxChars = Math.max(maxChars, memberChars)
   }
 
-  const width = Math.max(MIN_WIDTH, Math.ceil(maxChars * CHAR_WIDTH + 20)) // +20 for padding
+  const width = Math.max(MIN_WIDTH, Math.ceil(maxChars * CHAR_WIDTH + 20 + genericOverhead)) // +20 for padding + overhead
 
   // 2. Calculate height
   // Header + Attributes Section + Methods Section
