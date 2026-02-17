@@ -14,8 +14,10 @@ import type {
   AttributeNode,
   MethodNode,
   AssociationClassNode,
+  ConstraintNode,
 } from '../../syntax/nodes'
 import { ASTNodeType } from '../../syntax/nodes'
+import type { ConstraintAnalyzer } from './constraint-analyzer'
 
 /**
  * Handles the declaration of entities and their members.
@@ -23,6 +25,7 @@ import { ASTNodeType } from '../../syntax/nodes'
 export class EntityAnalyzer {
   constructor(
     private readonly symbolTable: SymbolTable,
+    private readonly constraintAnalyzer: ConstraintAnalyzer,
     private readonly context: ParserContext,
   ) {}
 
@@ -137,19 +140,26 @@ export class EntityAnalyzer {
           name: m.name,
           type: typeName,
           visibility: this.mapVisibility(m.visibility),
-          isStatic: m.modifiers?.isStatic || false,
+          isStatic: (m as AttributeNode | MethodNode).modifiers?.isStatic || false,
           isAbstract: isMethod ? (m as MethodNode).modifiers?.isAbstract || false : false,
-          isLeaf: m.modifiers?.isLeaf || false,
-          isFinal: m.modifiers?.isFinal || false,
+          isLeaf: (m as AttributeNode | MethodNode).modifiers?.isLeaf || false,
+          isFinal: (m as AttributeNode | MethodNode).modifiers?.isFinal || false,
           parameters: isMethod
             ? (m as MethodNode).parameters?.map((p) => ({
                 name: p.name,
                 type: p.typeAnnotation?.raw,
                 relationshipKind: p.relationshipKind,
+                isNavigable: p.isNavigable,
                 targetModifiers: p.targetModifiers,
+                constraints: p.constraints?.map((c: ConstraintNode) =>
+                  this.constraintAnalyzer.process(c),
+                ),
               }))
             : undefined,
           relationshipKind,
+          isNavigable: isAttribute
+            ? (m as AttributeNode).isNavigable
+            : (m as MethodNode).isNavigable,
           targetModifiers: isAttribute
             ? (m as AttributeNode).targetModifiers
             : isMethod
@@ -159,6 +169,9 @@ export class EntityAnalyzer {
           docs: m.docs,
           line: m.line,
           column: m.column,
+          constraints: (m as AttributeNode | MethodNode).constraints?.map((c: ConstraintNode) =>
+            this.constraintAnalyzer.process(c),
+          ),
         }
 
         if (isAttribute && (m as AttributeNode).multiplicity) {
@@ -200,12 +213,16 @@ export class EntityAnalyzer {
   }
 
   private mapVisibility(v: string): IRVisibility {
-    switch (v) {
+    switch (v?.toLowerCase()) {
       case '-':
+      case 'private':
         return IRVisibility.PRIVATE
       case '#':
+      case 'protected':
         return IRVisibility.PROTECTED
       case '~':
+      case 'internal':
+      case 'package':
         return IRVisibility.INTERNAL
       default:
         return IRVisibility.PUBLIC

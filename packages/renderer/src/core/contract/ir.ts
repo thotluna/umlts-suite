@@ -6,6 +6,7 @@ import type {
   IRMember,
   IRParameter,
   IRVisibility as EngineVisibility,
+  IRConstraint,
 } from '@umlts/engine'
 
 export type IRVisibility = EngineVisibility | '+' | '-' | '#' | '~'
@@ -31,4 +32,4 @@ export type IRRelType =
   | 'Bidirectional'
   | 'BIDIRECTIONAL'
 
-export type { IR, IREntity, IRRelationship, IRMember, IRParameter }
+export type { IR, IREntity, IRRelationship, IRMember, IRParameter, IRConstraint }

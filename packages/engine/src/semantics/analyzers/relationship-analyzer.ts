@@ -1,5 +1,10 @@
-import type { IRRelationship } from '../../generator/ir/models'
-import { IRRelationshipType, IREntityType, IRVisibility } from '../../generator/ir/models'
+import {
+  IRRelationshipType,
+  IREntityType,
+  IRVisibility,
+  type IRRelationship,
+  type IRConstraint,
+} from '../../generator/ir/models'
 import { TypeInferrer } from './type-inferrer'
 import { registerDefaultInferenceRules } from '../rules/inference-rules'
 import type { SymbolTable } from '../symbol-table'
@@ -111,6 +116,9 @@ export class RelationshipAnalyzer {
       fromMultiplicity?: string
       visibility?: IRVisibility
       associationClassId?: string
+      isNavigable?: boolean
+      constraintGroupId?: string
+      constraints?: IRConstraint[]
     },
   ): void {
     const fromEntity = this.symbolTable.get(fromFQN)
@@ -143,6 +151,12 @@ export class RelationshipAnalyzer {
       fromMultiplicity: meta.fromMultiplicity,
       visibility: meta.visibility || IRVisibility.PUBLIC,
       associationClassId: meta.associationClassId,
+      isNavigable: meta.isNavigable ?? true,
+      constraints:
+        meta.constraints ||
+        (meta.constraintGroupId
+          ? [{ kind: 'xor_member', targets: [meta.constraintGroupId] }]
+          : undefined),
     }
 
     this.relationships.push(irRel)
@@ -151,7 +165,13 @@ export class RelationshipAnalyzer {
   /**
    * Adds a relationship to the IR.
    */
-  public addRelationship(fromFQN: string, toFQN: string, kind: string, node?: ASTNode): void {
+  public addRelationship(
+    fromFQN: string,
+    toFQN: string,
+    kind: string,
+    node?: ASTNode,
+    constraintGroupId?: string,
+  ): void {
     const relType = this.mapRelationshipType(kind)
 
     // Extract target name for length calculation
@@ -187,6 +207,10 @@ export class RelationshipAnalyzer {
       line: node?.line,
       column: node?.column,
       docs: node?.docs,
+      isNavigable: (node as RelationshipNode | RelationshipHeaderNode)?.isNavigable ?? true,
+      constraints: constraintGroupId
+        ? [{ kind: 'xor_member', targets: [constraintGroupId] }]
+        : undefined,
     }
 
     if (node != null && 'fromMultiplicity' in node) {
@@ -243,14 +267,14 @@ export class RelationshipAnalyzer {
     }
 
     // Composition (>*)
-    if (['>*', 'comp', 'composition'].includes(k)) {
+    if (['>*', '>*|', 'comp', 'composition'].includes(k)) {
       return IRRelationshipType.COMPOSITION
     }
 
     // Aggregation (>+)
     // Note: The lexer token for aggregation is >+ but some legacy code might check >o.
     // We strictly follow the DSL: >+
-    if (['>+', 'agreg', 'aggregation'].includes(k)) {
+    if (['>+', '>+|', 'agreg', 'aggregation'].includes(k)) {
       return IRRelationshipType.AGGREGATION
     }
 

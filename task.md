@@ -22,11 +22,21 @@
 - [x] Actualizar el Renderer para soportar clases de asociación
   - [x] Planificar la visualización (línea punteada hacia el centro de la clase)
   - [x] Implementar actualización de `UMLEdge` y `SVGRenderer`
-- [ ] Documentar en `UML_SPEC.md` la nueva sintaxis y comportamiento.
+- [x] Documentar en `UML_SPEC.md` la nueva sintaxis y comportamiento.
+- [x] **FEAT: Soporte para Restricciones XOR**
+  - [x] Implementar parsing de bloques `xor { ... }` y restricciones in-line.
+  - [x] Análisis semántico y propagación al IR.
+  - [x] Layout basado en atracción para grupos XOR.
+  - [x] Renderizado de líneas punteadas y etiquetas `{xor}`.
+- [x] **Renderer: Nueva Estrategia de Layout por Niveles**
+  - [x] Implementar fase de pre-procesamiento para cálculo de Rango (Rank) basado en relaciones.
+  - [x] Implementar inversión de flujo semántico para Herencia/Implementación.
+  - [x] Configurar pesos de aristas en ELK según prioridad semántica.
 - [ ] **Fase: Interoperabilidad Semántica (XMI/UMLDI)**
   - [ ] **Engine**: Implementar exportador de XMI (Metamodelo UML 2.5.1).
   - [ ] **Renderer**: Implementar exportador de UMLDI (Coordenadas y Geometría).
   - [ ] **VS Code**: Comando "Export to Standard UML" para consolidar ambos XML.
+
 - [ ] **Advanced Autocomplete** (Sugerencias basadas en el SymbolTable).
 - [ ] **Refactoring: Reverse Engineering** (Generación de diagramas desde código TS/Java).
 
@@ -78,3 +88,16 @@
     - [x] Actualizar `EntityNode`, `RelationshipHeaderNode`, `AttributeNode`, `MethodNode`, `ParameterNode` y `RelationshipNode` para usar `Modifiers`.
     - [x] Actualizar capa semántica (`EntityAnalyzer`, `RelationshipAnalyzer`, `SymbolTable`) para soportar la nueva estructura AST.
     - [x] Actualizar y validar diagramas de arquitectura (`parser.umlts`).
+
+- [x] **Gestión proactiva de errores y robustez (Post-Rebase)**:
+  - [x] Unificar `mapVisibility` para soportar palabras clave (public, private...) tras identificar fallos de mapeo.
+  - [x] Refactorizar `MethodRule` y `ParameterRule` para usar `consumeModifiers()` centralizado.
+  - [x] Asegurar integridad de tipos en `EntityAnalyzer` mediante narrowing explícito.
+  - [x] Validar construcción total del monorepo (`pnpm -r build`) y tests unitarios.
+
+# Notas de Implementación
+
+- Se ha rebasado con éxito `feat/layout-xor-enhancements` sobre `origin/main` tras la refactorización SOLID.
+- Todos los imports se han migrado de `parser/ast/nodes` a `syntax/nodes` para consolidar el lenguaje.
+- Se ha corregido un bug en `EntityAnalyzer` donde visibilidades como `protected` no se mapeaban correctamente desde palabras clave.
+- Los tests de navegabilidad y restricciones XOR han sido validados y pasan con éxito.

@@ -1,8 +1,10 @@
 import { TokenType } from '../../syntax/token.types'
-import type { StatementNode, RelationshipNode } from '../../syntax/nodes'
+import type { StatementNode, RelationshipNode, ConstraintNode } from '../../syntax/nodes'
 import { ASTNodeType } from '../../syntax/nodes'
+
 import type { ParserContext } from '../parser.context'
 import type { StatementRule, Orchestrator } from '../rule.types'
+import { ConstraintRule } from './constraint.rule'
 
 export class RelationshipRule implements StatementRule {
   public canStart(context: ParserContext): boolean {
@@ -53,7 +55,12 @@ export class RelationshipRule implements StatementRule {
       const relationships: RelationshipNode[] = []
 
       while (this.isRelationshipType(context.peek().type)) {
-        const kind = context.advance().value
+        const kindToken = context.advance()
+        const kind = kindToken.value
+        const isNavigable =
+          kindToken.type !== TokenType.OP_COMP_NON_NAVIGABLE &&
+          kindToken.type !== TokenType.OP_AGREG_NON_NAVIGABLE
+
         let toMultiplicity: string | undefined
 
         if (context.check(TokenType.LBRACKET)) {
@@ -86,6 +93,17 @@ export class RelationshipRule implements StatementRule {
           label = context.consume(TokenType.STRING, 'Label string expected').value
         }
 
+        // Optional constraints
+        const constraints: ConstraintNode[] = []
+        if (context.check(TokenType.LBRACE)) {
+          // We need to avoid infinite recursion or complex dependencies
+          // Since ConstraintRule is already in the orchestrator, we can use a direct call or a helper
+          // For simplicity, we'll re-implement the inline part or use the orchestrator if possible
+          // But RelationshipRule doesn't easily call other rules' private methods.
+          // Let's use a simple inline capture here or refactor ConstraintRule helper.
+          constraints.push(ConstraintRule.parseInline(context))
+        }
+
         relationships.push({
           type: ASTNodeType.RELATIONSHIP,
           from,
@@ -95,7 +113,9 @@ export class RelationshipRule implements StatementRule {
           toModifiers,
           toMultiplicity,
           kind,
+          isNavigable,
           label,
+          constraints: constraints.length > 0 ? constraints : undefined,
           docs: context.consumePendingDocs(),
           line: fromToken.line,
           column: fromToken.column,
@@ -135,6 +155,8 @@ export class RelationshipRule implements StatementRule {
       TokenType.OP_ASSOC,
       TokenType.OP_ASSOC_BIDIR,
       TokenType.OP_USE,
+      TokenType.OP_COMP_NON_NAVIGABLE,
+      TokenType.OP_AGREG_NON_NAVIGABLE,
       TokenType.KW_EXTENDS,
       TokenType.KW_IMPLEMENTS,
       TokenType.KW_COMP,

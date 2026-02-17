@@ -6,15 +6,18 @@ import type {
   CommentNode,
   ConfigNode,
   AssociationClassNode,
+  ConstraintNode,
   Modifiers,
 } from '../syntax/nodes'
 import type { ASTVisitor } from '../syntax/visitor'
 import { walkAST } from '../syntax/visitor'
-import type { IRDiagram, IRRelationship } from '../generator/ir/models'
+import type { IRDiagram, IRRelationship, IRConstraint } from '../generator/ir/models'
+
 import { SymbolTable } from './symbol-table'
 import type { ParserContext } from '../parser/parser.context'
 import { EntityAnalyzer } from './analyzers/entity-analyzer'
 import { RelationshipAnalyzer } from './analyzers/relationship-analyzer'
+import { ConstraintAnalyzer } from './analyzers/constraint-analyzer'
 import { HierarchyValidator } from './validators/hierarchy-validator'
 import { TypeValidator } from './utils/type-validator'
 import { DiagnosticCode } from '../syntax/diagnostic.types'
@@ -29,19 +32,22 @@ export class SemanticAnalyzer {
   private readonly symbolTable = new SymbolTable()
   private readonly relationships: IRRelationship[] = []
   private currentNamespace: string[] = []
+  private constraints: IRConstraint[] = []
   private config: Record<string, unknown> = {}
   private context?: ParserContext
 
   private entityAnalyzer!: EntityAnalyzer
   private relationshipAnalyzer!: RelationshipAnalyzer
+  private constraintAnalyzer!: ConstraintAnalyzer
   private hierarchyValidator!: HierarchyValidator
 
   public analyze(program: ProgramNode, context: ParserContext): IRDiagram {
     this.context = context
 
     // Initialize sub-components
+    this.constraintAnalyzer = new ConstraintAnalyzer(this.symbolTable, context)
     this.hierarchyValidator = new HierarchyValidator(this.symbolTable, context)
-    this.entityAnalyzer = new EntityAnalyzer(this.symbolTable, context)
+    this.entityAnalyzer = new EntityAnalyzer(this.symbolTable, this.constraintAnalyzer, context)
     this.relationshipAnalyzer = new RelationshipAnalyzer(
       this.symbolTable,
       this.relationships,
@@ -66,7 +72,7 @@ export class SemanticAnalyzer {
     this.currentNamespace = []
     walkAST(
       program,
-      new DefinitionVisitor(this.symbolTable, this.currentNamespace, this.entityAnalyzer),
+      new DefinitionVisitor(this, this.symbolTable, this.currentNamespace, this.entityAnalyzer),
     )
 
     // Pass 3: Resolution (Relationships and Implicit Entities)
@@ -79,6 +85,8 @@ export class SemanticAnalyzer {
         this.relationships,
         this.currentNamespace,
         this.relationshipAnalyzer,
+        this.constraintAnalyzer,
+        this.constraints,
         context,
       ),
     )
@@ -91,7 +99,24 @@ export class SemanticAnalyzer {
     return {
       entities: this.symbolTable.getAllEntities(),
       relationships: this.relationships,
+      constraints: this.constraints,
       config: this.config,
+    }
+  }
+
+  public getConstraintAnalyzer(): ConstraintAnalyzer {
+    return this.constraintAnalyzer
+  }
+
+  public addConstraint(constraint: IRConstraint): void {
+    // Evitar duplicados de restricciones globales (especialmente para XOR por ID de grupo)
+    const exists = this.constraints.some(
+      (c) =>
+        c.kind === constraint.kind &&
+        JSON.stringify(c.targets) === JSON.stringify(constraint.targets),
+    )
+    if (!exists) {
+      this.constraints.push(constraint)
     }
   }
 
@@ -122,6 +147,10 @@ export class SemanticAnalyzer {
             member.line,
             member.column,
             member.targetModifiers,
+            member.constraints?.map((c) => ({
+              ...c,
+              kind: c.kind === 'xor' ? 'xor_member' : c.kind,
+            })),
           )
         }
       })
@@ -141,6 +170,7 @@ export class SemanticAnalyzer {
     line?: number,
     column?: number,
     targetModifiers?: Modifiers,
+    memberConstraints?: IRConstraint[],
   ): void {
     if (TypeValidator.isPrimitive(typeName)) return
     const baseType = TypeValidator.getBaseTypeName(typeName)
@@ -167,6 +197,7 @@ export class SemanticAnalyzer {
       fromMultiplicity,
       visibility,
       associationClassId,
+      constraints: memberConstraints,
     })
   }
 
@@ -246,6 +277,10 @@ class DiscoveryVisitor implements ASTVisitor {
     this.symbolTable.register(entity)
     this.hierarchyValidator.validateEntity(entity)
   }
+
+  visitConstraint(_node: ConstraintNode): void {
+    // Processed in ResolutionVisitor to handle block-level grouping correctly
+  }
 }
 
 /**
@@ -253,6 +288,7 @@ class DiscoveryVisitor implements ASTVisitor {
  */
 class DefinitionVisitor implements ASTVisitor {
   constructor(
+    private readonly analyzer: SemanticAnalyzer,
     private readonly symbolTable: SymbolTable,
     private readonly currentNamespace: string[],
     private readonly entityAnalyzer: EntityAnalyzer,
@@ -273,6 +309,15 @@ class DefinitionVisitor implements ASTVisitor {
     const entity = this.symbolTable.get(fqn)
     if (entity) {
       this.entityAnalyzer.processMembers(entity, node)
+
+      // Register any xor constraints found on members into the global constraints list
+      entity.members.forEach((member) => {
+        member.constraints?.forEach((c) => {
+          if (c.kind === 'xor') {
+            this.analyzer.addConstraint(c)
+          }
+        })
+      })
     }
   }
 
@@ -287,6 +332,8 @@ class DefinitionVisitor implements ASTVisitor {
       this.entityAnalyzer.processAssociationClassMembers(entity, node)
     }
   }
+
+  visitConstraint(_node: ConstraintNode): void {}
 }
 
 /**
@@ -299,8 +346,12 @@ class ResolutionVisitor implements ASTVisitor {
     private readonly relationships: IRRelationship[],
     private readonly currentNamespace: string[],
     private readonly relationshipAnalyzer: RelationshipAnalyzer,
+    private readonly constraintAnalyzer: ConstraintAnalyzer,
+    private readonly constraints: IRConstraint[],
     private readonly context: ParserContext,
   ) {}
+
+  private currentConstraintGroupId?: string
 
   visitProgram(node: ProgramNode): void {
     node.body.forEach((stmt) => walkAST(stmt, this))
@@ -332,7 +383,13 @@ class ResolutionVisitor implements ASTVisitor {
         rel.column,
         inferenceContext,
       )
-      this.relationshipAnalyzer.addRelationship(fromFQN, toFQN, rel.kind, rel)
+      this.relationshipAnalyzer.addRelationship(
+        fromFQN,
+        toFQN,
+        rel.kind,
+        rel,
+        this.currentConstraintGroupId,
+      )
     })
   }
 
@@ -363,7 +420,13 @@ class ResolutionVisitor implements ASTVisitor {
       node.column,
       inferenceContext,
     )
-    this.relationshipAnalyzer.addRelationship(fromFQN, toFQN, node.kind, node)
+    this.relationshipAnalyzer.addRelationship(
+      fromFQN,
+      toFQN,
+      node.kind,
+      node,
+      this.currentConstraintGroupId,
+    )
   }
 
   visitComment(_node: CommentNode): void {}
@@ -398,8 +461,13 @@ class ResolutionVisitor implements ASTVisitor {
           rel.column,
           inferenceContext,
         )
-        this.relationshipAnalyzer.addRelationship(currentFromFQN, toFQN, rel.kind, rel)
-
+        this.relationshipAnalyzer.addRelationship(
+          currentFromFQN,
+          toFQN,
+          rel.kind,
+          rel,
+          this.currentConstraintGroupId,
+        )
         // Advance in the chain: the current target becomes the source for the next link
         currentFromFQN = toFQN
       })
@@ -453,5 +521,24 @@ class ResolutionVisitor implements ASTVisitor {
         associationClassId: assocFQN,
       },
     )
+  }
+
+  visitConstraint(node: ConstraintNode): void {
+    const irConstraint = this.constraintAnalyzer.process(node)
+
+    // If it's xor and has targets (like {xor: group1}), we store it
+    if (irConstraint.targets.length > 0) {
+      this.constraints.push(irConstraint)
+    } else if (node.kind === 'xor' && node.body) {
+      // It's a block XOR. We generate a unique group ID for its children.
+      const groupId = `xor_${node.line}_${node.column}`
+      irConstraint.targets = [groupId]
+      this.constraints.push(irConstraint)
+
+      const oldGroupId = this.currentConstraintGroupId
+      this.currentConstraintGroupId = groupId
+      node.body.forEach((stmt) => walkAST(stmt, this))
+      this.currentConstraintGroupId = oldGroupId
+    }
   }
 }

@@ -12,6 +12,8 @@ export class RelationshipHeaderRule {
         TokenType.OP_IMPLEMENT,
         TokenType.OP_COMP,
         TokenType.OP_AGREG,
+        TokenType.OP_COMP_NON_NAVIGABLE,
+        TokenType.OP_AGREG_NON_NAVIGABLE,
         TokenType.OP_USE,
         TokenType.KW_EXTENDS,
         TokenType.KW_IMPLEMENTS,
@@ -21,7 +23,11 @@ export class RelationshipHeaderRule {
         TokenType.GT,
       )
     ) {
-      const kind = context.prev().value
+      const kindToken = context.prev()
+      const kind = kindToken.value
+      const isNavigable =
+        kindToken.type !== TokenType.OP_COMP_NON_NAVIGABLE &&
+        kindToken.type !== TokenType.OP_AGREG_NON_NAVIGABLE
       const modifiers = context.consumeModifiers()
 
       const targetToken = context.consume(
@@ -42,6 +48,7 @@ export class RelationshipHeaderRule {
       relationships.push({
         type: ASTNodeType.RELATIONSHIP,
         kind,
+        isNavigable,
         target,
         targetModifiers: modifiers,
         line: targetToken.line,

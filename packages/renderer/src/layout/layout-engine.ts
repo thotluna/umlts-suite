@@ -2,7 +2,6 @@ import ELK, { type ElkNode, type ElkExtendedEdge } from 'elkjs/lib/elk.bundled.j
 import {
   type DiagramModel,
   type UMLNode,
-  type UMLEdge,
   UMLPackage,
   type LayoutResult,
   type DiagramConfig,
@@ -80,13 +79,17 @@ export class LayoutEngine {
 
     const edgesByLCA = this.groupEdgesByLCA(model, layoutOptions)
 
+    // --- ESTRATEGIA DE NIVELES (NODOS) ---
+    // Calculamos el "grado" de dependencia para forzar niveles
+    const nodeStats = this.calculateNodeStats(model)
+
     // 1. Convert to ELK format recursively
     // Nodes that are not part of any package (i.e., top-level nodes)
     const topLevelNodes = model.nodes.filter((n) => !n.namespace)
 
     const elkChildren: ElkNode[] = [
-      ...topLevelNodes.map((n) => this.toElkNode(n)),
-      ...model.packages.map((p) => this.pkgToElk(p, edgesByLCA, layoutOptions)),
+      ...topLevelNodes.map((n) => this.toElkNode(n, nodeStats.get(n.id))),
+      ...model.packages.map((p) => this.pkgToElk(p, edgesByLCA, layoutOptions, nodeStats)),
     ]
 
     const elkGraph: ElkNode = {
@@ -123,13 +126,15 @@ export class LayoutEngine {
     pkg: UMLPackage,
     edgesByLCA: Map<string, ElkExtendedEdge[]>,
     layoutOptions: Record<string, string>,
+    nodeStats: Map<string, { score: number }>,
   ): ElkNode {
     const pkgId = pkg.id || pkg.name
     const children: ElkNode[] = pkg.children.map((child) => {
       if (child instanceof UMLPackage) {
-        return this.pkgToElk(child, edgesByLCA, layoutOptions)
+        return this.pkgToElk(child, edgesByLCA, layoutOptions, nodeStats)
       }
-      return this.toElkNode(child as UMLNode)
+      const node = child as UMLNode
+      return this.toElkNode(node, nodeStats.get(node.id))
     })
 
     return {
@@ -140,17 +145,65 @@ export class LayoutEngine {
     }
   }
 
-  private toElkNode(node: UMLNode): ElkNode {
+  private toElkNode(node: UMLNode, stats?: { score: number }): ElkNode {
     const { width, height } = node.getDimensions()
+
+    const options: Record<string, string> = {
+      'elk.portConstraints': 'UNDEFINED',
+    }
+
+    // Aplicar influencia semántica basada en dependencias
+    if (stats) {
+      // Usamos 'priority' para influir en el orden jerárquico de forma segura.
+      // nodos con mayor 'score' tenderán a estar en posiciones preferentes (arriba).
+      options['elk.priority'] = Math.max(1, stats.score + 50).toString()
+    }
 
     return {
       id: node.id,
       width,
       height,
-      layoutOptions: {
-        'elk.portConstraints': 'UNDEFINED',
-      },
+      layoutOptions: options,
     }
+  }
+
+  private calculateNodeStats(model: DiagramModel): Map<string, { score: number }> {
+    const stats = new Map<string, { score: number }>()
+
+    model.nodes.forEach((n) => {
+      // Puntuación base según tipo
+      let baseScore = 0
+      if (n.type === 'Interface') baseScore = 5
+      if (n.isAbstract) baseScore += 2
+      stats.set(n.id, { score: baseScore })
+    })
+
+    // Propagación Contextual: Las relaciones definen el peso
+    model.edges.forEach((edge) => {
+      const s = stats.get(edge.from)
+      const t = stats.get(edge.to)
+      if (!s || !t) return
+
+      const type = edge.type.toLowerCase()
+
+      if (type.includes('inheritance') || type.includes('implementation')) {
+        // En Herencia: El PADRE (target) gana muchísima importancia
+        t.score += 20
+        // El hijo pierde "nivel" (se hunde)
+        s.score -= 10
+      } else if (type.includes('composition') || type.includes('aggregation')) {
+        // En Composición: El CONTENEDOR (source) gana importancia por lo que "lleva"
+        s.score += 15
+        // El componente se considera un detalle (baja de nivel)
+        t.score -= 5
+      } else {
+        // Asociación simple o Dependencia
+        s.score += 2
+        t.score -= 1
+      }
+    })
+
+    return stats
   }
 
   /**
@@ -164,10 +217,33 @@ export class LayoutEngine {
     model.edges.forEach((edge, index) => {
       const lcaId = this.findLCA(edge.from, edge.to)
 
+      // --- ESTRATEGIA DE NIVELES ---
+      // 1. Inversión de flujo para Herencia/Implementación:
+      // En UML el Hijo apunta al Padre, pero para el layout queremos que el flujo
+      // semántico sea Padre -> Hijo para que el Padre quede arriba.
+      const isHierarchy =
+        edge.type.toLowerCase().includes('inheritance') ||
+        edge.type.toLowerCase().includes('implementation')
+
+      const source = isHierarchy ? edge.to : edge.from
+      const target = isHierarchy ? edge.from : edge.to
+
+      // 2. Pesos de aristas:
+      // Mayor peso = más "corta" y vertical será la arista.
+      let weight = '1'
+      const type = edge.type.toLowerCase()
+      if (type.includes('inheritance') || type.includes('implementation')) weight = '10'
+      else if (type.includes('composition')) weight = '7'
+      else if (type.includes('aggregation')) weight = '5'
+      else if (type.includes('association')) weight = '3'
+
       const elkEdge: ElkExtendedEdge = {
-        id: `e${index}`,
-        sources: [edge.from],
-        targets: [edge.to],
+        id: `e${index}`, // Usamos el índice para recuperar la arista original después
+        sources: [source],
+        targets: [target],
+        layoutOptions: {
+          'elk.edge.weight': weight,
+        },
       }
 
       if (edge.label) {
@@ -200,12 +276,53 @@ export class LayoutEngine {
             sources: [link.s],
             targets: [link.t],
             layoutOptions: {
-              'elk.edge.weight': '10', // High attraction
+              'elk.edge.weight': '15', // High attraction for AssocClasses
             },
           }
           if (!groups.has(vLcaId)) groups.set(vLcaId, [])
           groups.get(vLcaId)!.push(vElkEdge)
         })
+      }
+    })
+
+    // ── XOR Constraint Virtual Edges ─────────────────────────────────────────
+    model.constraints.forEach((constraint, cIdx) => {
+      if (constraint.kind === 'xor' && constraint.targets.length === 1) {
+        const groupId = constraint.targets[0]
+        const groupEdges = model.edges.filter((e) =>
+          e.constraints?.some((ec) => ec.kind === 'xor_member' && ec.targets.includes(groupId)),
+        )
+
+        if (groupEdges.length > 1) {
+          // Identify all distinct endpoints involved in the XOR group
+          const endpoints = new Set<string>()
+          groupEdges.forEach((e) => {
+            endpoints.add(e.from)
+            endpoints.add(e.to)
+          })
+
+          const endpointArray = Array.from(endpoints)
+
+          // Inject virtual edges between all pairs of endpoints to keep them close
+          // This creates a "cluster" effect for the XOR participants.
+          for (let i = 0; i < endpointArray.length; i++) {
+            for (let j = i + 1; j < endpointArray.length; j++) {
+              const s = endpointArray[i]
+              const t = endpointArray[j]
+              const vLcaId = this.findLCA(s, t)
+              const vElkEdge: ElkExtendedEdge = {
+                id: `v_xor_${cIdx}_${i}_${j}`,
+                sources: [s],
+                targets: [t],
+                layoutOptions: {
+                  'elk.edge.weight': '5', // Moderate attraction
+                },
+              }
+              if (!groups.has(vLcaId)) groups.set(vLcaId, [])
+              groups.get(vLcaId)!.push(vElkEdge)
+            }
+          }
+        }
       }
     })
 
@@ -301,20 +418,27 @@ export class LayoutEngine {
     offsetX: number,
     offsetY: number,
   ): void {
-    const edgesByEntities = new Map<string, UMLEdge>(
-      model.edges.map((e) => [`${e.from}->${e.to}`, e]),
-    )
-
     if (container.edges != null) {
       for (const elkEdge of container.edges) {
-        const sourceId = this.stripPort(elkEdge.sources[0])
-        const targetId = this.stripPort(elkEdge.targets[0])
-        const edgeKey = `${sourceId}->${targetId}`
-        const edge = edgesByEntities.get(edgeKey)
+        // Recuperamos la arista original usando el ID dinámico "e{index}"
+        if (!elkEdge.id.startsWith('e')) continue
+
+        const edgeIndex = parseInt(elkEdge.id.substring(1), 10)
+        const edge = model.edges[edgeIndex]
 
         if (edge != null && elkEdge.sections != null && elkEdge.sections[0]) {
           const section = elkEdge.sections[0]
           const waypoints: Array<{ x: number; y: number }> = []
+
+          // ELK nos da las coordenadas relativas al contenedor.
+          // Si hemos invertido la arista (Herencia), los waypoints vendrán en orden inverso para nosotros?
+          // No, ELK devuelve el camino desde su 'source' a su 'target'.
+          // Si invertimos la arista, el startPoint es el PADRE y el endPoint es el HIJO.
+          // Debemos revertir los waypoints para que el modelo mantenga Hijo -> Padre.
+
+          const isHierarchy =
+            edge.type.toLowerCase().includes('inheritance') ||
+            edge.type.toLowerCase().includes('implementation')
 
           // Start Point
           waypoints.push({
@@ -337,6 +461,11 @@ export class LayoutEngine {
             x: section.endPoint.x + offsetX,
             y: section.endPoint.y + offsetY,
           })
+
+          // Si es herencia, revertimos el array de puntos para que coincida con la semántica del modelo
+          if (isHierarchy) {
+            waypoints.reverse()
+          }
 
           // Label Position
           let labelPos

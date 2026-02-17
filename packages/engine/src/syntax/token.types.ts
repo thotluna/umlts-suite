@@ -21,6 +21,7 @@ export enum TokenType {
   KW_LEAF = 'KW_LEAF',
   KW_FINAL = 'KW_FINAL',
   KW_ROOT = 'KW_ROOT',
+  KW_XOR = 'KW_XOR',
   AT = 'AT', // @
 
   // Operators and Symbols
@@ -31,6 +32,8 @@ export enum TokenType {
   OP_USE = 'OP_USE', // >-
   OP_ASSOC = 'OP_ASSOC', // ><
   OP_ASSOC_BIDIR = 'OP_ASSOC_BIDIR', // <>
+  OP_COMP_NON_NAVIGABLE = 'OP_COMP_NON_NAVIGABLE', // >*|
+  OP_AGREG_NON_NAVIGABLE = 'OP_AGREG_NON_NAVIGABLE', // >+|
 
   GT = 'GT', // >
   LT = 'LT', // <

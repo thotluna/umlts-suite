@@ -20,6 +20,7 @@ export class IdentifierMatcher implements TokenMatcher {
     leaf: TokenType.KW_LEAF,
     final: TokenType.KW_FINAL,
     root: TokenType.KW_ROOT,
+    xor: TokenType.KW_XOR,
   })
 
   public match(reader: LexerReader): Token | null {

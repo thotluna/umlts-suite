@@ -375,7 +375,7 @@ function labelPos(
 }
 
 /** Returns the midpoint of a polyline (for edge labels). */
-function midpoint(wps: Point[]): Point {
+export function midpoint(wps: Point[]): Point {
   const mid = Math.floor(wps.length / 2)
   if (wps.length % 2 === 1) return wps[mid]
   const a = wps[mid - 1]

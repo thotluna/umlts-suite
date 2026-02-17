@@ -4,6 +4,7 @@ import { PackageRule } from './rules/package.rule'
 import { EntityRule } from './rules/entity.rule'
 import { RelationshipRule } from './rules/relationship.rule'
 import { ConfigRule } from './rules/config.rule'
+import { ConstraintRule } from './rules/constraint.rule'
 
 import { DocCommentRule } from './rules/doc-comment.rule'
 
@@ -14,6 +15,7 @@ export class ParserFactory {
   public static create(): Parser {
     const rules = [
       new ConfigRule(),
+      new ConstraintRule(),
       new DocCommentRule(),
       new CommentRule(),
       new PackageRule(),

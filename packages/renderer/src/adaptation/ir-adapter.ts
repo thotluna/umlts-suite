@@ -26,6 +26,7 @@ export class IRAdapter {
       nodes,
       edges,
       packages,
+      constraints: ir.constraints || [],
     }
   }
 
@@ -71,6 +72,7 @@ export class IRAdapter {
       rel.fromMultiplicity,
       rel.toMultiplicity,
       rel.associationClassId,
+      rel.constraints,
     )
   }
 

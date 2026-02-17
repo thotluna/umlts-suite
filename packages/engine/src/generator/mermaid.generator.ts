@@ -60,7 +60,7 @@ export class MermaidGenerator {
   }
 
   private generateRelationship(rel: IRRelationship): string[] {
-    const arrow = this.getRelationshipArrow(rel.type)
+    const arrow = this.getRelationshipArrow(rel)
     const from = this.escapeId(rel.from)
     const to = this.escapeId(rel.to)
 
@@ -89,8 +89,10 @@ export class MermaidGenerator {
     }
   }
 
-  private getRelationshipArrow(type: IRRelationshipType): string {
-    switch (type) {
+  private getRelationshipArrow(rel: IRRelationship): string {
+    const navigable = rel.isNavigable !== false
+
+    switch (rel.type) {
       case IRRelationshipType.INHERITANCE:
         return '--|>'
       case IRRelationshipType.IMPLEMENTATION:
@@ -102,7 +104,7 @@ export class MermaidGenerator {
       case IRRelationshipType.DEPENDENCY:
         return '..>'
       case IRRelationshipType.ASSOCIATION:
-        return '-->'
+        return navigable ? '-->' : '--'
       default:
         return '--'
     }

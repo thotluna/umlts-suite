@@ -33,7 +33,9 @@ export interface IRParameter {
   name: string
   type?: string
   relationshipKind?: string
+  isNavigable?: boolean
   targetModifiers?: IRTargetModifiers
+  constraints?: IRConstraint[]
 }
 
 /**
@@ -49,11 +51,13 @@ export interface IRMember {
   isFinal: boolean
   parameters?: IRParameter[]
   relationshipKind?: string
+  isNavigable?: boolean
   targetModifiers?: IRTargetModifiers
   multiplicity?: string
   line?: number
   column?: number
   docs?: string | undefined
+  constraints?: IRConstraint[]
 }
 
 /**
@@ -95,16 +99,27 @@ export enum IRRelationshipType {
 /**
  * Representa una conexión entre dos entidades en la IR.
  */
+export interface IRConstraint {
+  kind: string
+  targets: string[] // IDs of elements
+  expression?: string
+}
+
+/**
+ * Representa una conexión entre dos entidades en la IR.
+ */
 export interface IRRelationship {
   from: string
   to: string
   type: IRRelationshipType
   fromMultiplicity?: string | undefined
   toMultiplicity?: string | undefined
+  isNavigable?: boolean
   label?: string
   visibility?: IRVisibility
   associationClassId?: string // Link to the IREntity that represents the class aspect
   docs?: string | undefined
+  constraints?: IRConstraint[]
   line?: number
   column?: number
 }
@@ -115,5 +130,6 @@ export interface IRRelationship {
 export interface IRDiagram {
   entities: IREntity[]
   relationships: IRRelationship[]
+  constraints: IRConstraint[]
   config?: Record<string, unknown>
 }
