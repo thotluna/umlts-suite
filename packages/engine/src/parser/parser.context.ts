@@ -3,6 +3,7 @@ import type { Diagnostic, DiagnosticCode } from '../syntax/diagnostic.types'
 import { TokenStream } from './token-stream'
 import { DiagnosticReporter } from './diagnostic-reporter'
 import { DocRegistry } from './doc-registry'
+import type { LanguagePlugin } from '../plugins/language-plugin'
 
 /**
  * ParserContext: Fachada (Facade) que coordina los subsistemas del parser.
@@ -13,11 +14,13 @@ export class ParserContext {
   private readonly stream: TokenStream
   private readonly errors: DiagnosticReporter
   private readonly docs: DocRegistry
+  private readonly plugin?: LanguagePlugin
 
-  constructor(tokens: Token[], errors: DiagnosticReporter) {
+  constructor(tokens: Token[], errors: DiagnosticReporter, plugin?: LanguagePlugin) {
     this.stream = new TokenStream(tokens)
     this.errors = errors
     this.docs = new DocRegistry()
+    this.plugin = plugin
   }
 
   // --- Delegación a TokenStream ---
@@ -81,6 +84,12 @@ export class ParserContext {
       }
       return this.advance()
     }
+
+    // Si no es el token esperado, damos una oportunidad al plugin para limpiar el camino
+    if (this.handleUnexpectedToken()) {
+      return this.consume(type, message)
+    }
+
     throw new Error(`${message} at line ${this.peek().line}, column ${this.peek().column}`)
   }
 
@@ -192,5 +201,15 @@ export class ParserContext {
 
   public consumePendingDocs(): string | undefined {
     return this.docs.consumePendingDocs()
+  }
+
+  /**
+   * Delegates to the plugin if a token is not recognized or expected by the core rules.
+   */
+  public handleUnexpectedToken(): boolean {
+    if (this.plugin?.handleUnexpectedToken) {
+      return this.plugin.handleUnexpectedToken(this, this.peek())
+    }
+    return false
   }
 }

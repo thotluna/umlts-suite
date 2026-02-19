@@ -2,14 +2,17 @@ import type { Token } from '../syntax/token.types'
 import { TokenType } from '../syntax/token.types'
 import { LexerReader } from './lexer.reader'
 import type { TokenMatcher } from './matcher.types'
+import type { LanguagePlugin } from '../plugins/language-plugin'
 
 export class Lexer {
   private readonly reader: LexerReader
   private readonly matchers: TokenMatcher[]
+  private readonly plugin?: LanguagePlugin
 
-  constructor(input: string, matchers: TokenMatcher[]) {
+  constructor(input: string, matchers: TokenMatcher[], plugin?: LanguagePlugin) {
     this.reader = new LexerReader(input)
     this.matchers = matchers
+    this.plugin = plugin
   }
 
   public tokenize(): Token[] {
@@ -27,6 +30,14 @@ export class Lexer {
         if (token != null || this.reader.getPosition() > beforePos) {
           matched = true
           break
+        }
+      }
+
+      // Si no hubo match estándar, preguntamos al plugin
+      if (!matched && this.plugin?.matchToken) {
+        token = this.plugin.matchToken(this.reader)
+        if (token != null) {
+          matched = true
         }
       }
 
