@@ -46,14 +46,6 @@ export function measureNodeDimensions(node: UMLNode): NodeDimensions {
     maxChars = Math.max(maxChars, 6) // {leaf}
     stereotypeCount++
   }
-  if (node.isFinal) {
-    maxChars = Math.max(maxChars, 7) // «final»
-    stereotypeCount++
-  }
-  if (node.isRoot) {
-    maxChars = Math.max(maxChars, 6) // {root}
-    stereotypeCount++
-  }
 
   // Generics like <T, K> (UML Standard: Template Parameter Box)
   let genericOverhead = 0
@@ -65,30 +57,33 @@ export function measureNodeDimensions(node: UMLNode): NodeDimensions {
     maxChars = Math.max(maxChars, node.name.length) // Name doesn't need to fit <T> in title anymore
   }
 
-  // Members
-  const allMembers = [...node.attributes, ...node.methods]
-  for (const m of allMembers) {
-    // Basic representation: visibility + name + : + type + multiplicity
-    let memberChars = 2 + m.name.length + 3 + (m.type?.length || 0)
-    if (m.multiplicity) memberChars += m.multiplicity.length + 2
-    if (m.parameters != null) {
-      // Methods also have parameters (name: type)
-      const paramsChars = m.parameters.reduce(
-        (acc: number, p: IRParameter) => acc + p.name.length + (p.type?.length || 0) + 3,
-        0,
-      )
-      memberChars += paramsChars + 2 // +2 for ()
+  // 1. Properties
+  for (const p of node.properties) {
+    let memberChars = 2 + p.name.length + 3 + (p.type?.length || 0)
+    if (p.multiplicity) {
+      const multStr = `${p.multiplicity.lower}..${p.multiplicity.upper}`
+      memberChars += multStr.length + 2
     }
+    maxChars = Math.max(maxChars, memberChars)
+  }
+
+  // 2. Operations
+  for (const op of node.operations) {
+    const paramsChars = op.parameters.reduce(
+      (acc: number, p: IRParameter) => acc + p.name.length + (p.type?.length || 0) + 3,
+      0,
+    )
+    const memberChars = 2 + op.name.length + paramsChars + 2 + 3 + (op.returnType?.length || 0)
     maxChars = Math.max(maxChars, memberChars)
   }
 
   const width = Math.max(MIN_WIDTH, Math.ceil(maxChars * CHAR_WIDTH + 20 + genericOverhead)) // +20 for padding + overhead
 
   // 2. Calculate height
-  // Header + Attributes Section + Methods Section
-  const memberCount = allMembers.length
-  // We add some extra height if we have both attributes and methods for the divider
-  const sectionDividerHeight = node.attributes.length > 0 && node.methods.length > 0 ? 8 : 0
+  // Header + Properties Section + Operations Section
+  const memberCount = node.properties.length + node.operations.length
+  // We add some extra height if we have both properties and operations for the divider
+  const sectionDividerHeight = node.properties.length > 0 && node.operations.length > 0 ? 8 : 0
 
   const currentHeaderHeight = HEADER_HEIGHT_NORMAL + stereotypeCount * 14
   const height =

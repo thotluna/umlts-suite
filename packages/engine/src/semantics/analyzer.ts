@@ -8,7 +8,9 @@ import type {
   AssociationClassNode,
   ConstraintNode,
   Modifiers,
+  TypeNode,
 } from '../syntax/nodes'
+import { ASTNodeType } from '../syntax/nodes'
 import type { ASTVisitor } from '../syntax/visitor'
 import { walkAST } from '../syntax/visitor'
 import type { IRDiagram, IRRelationship, IRConstraint } from '../generator/ir/models'
@@ -23,6 +25,7 @@ import { TypeValidator } from './utils/type-validator'
 import { DiagnosticCode } from '../syntax/diagnostic.types'
 import { TokenType, type Token } from '../syntax/token.types'
 import { IRRelationshipType, IRVisibility } from '../generator/ir/models'
+import { PluginManager } from '../plugins/plugin-manager'
 
 /**
  * Semantic Analyzer that transforms the AST into a resolved IR.
@@ -31,6 +34,7 @@ import { IRRelationshipType, IRVisibility } from '../generator/ir/models'
 export class SemanticAnalyzer {
   private readonly symbolTable = new SymbolTable()
   private readonly relationships: IRRelationship[] = []
+  private readonly pluginManager = new PluginManager()
   private currentNamespace: string[] = []
   private constraints: IRConstraint[] = []
   private config: Record<string, unknown> = {}
@@ -41,13 +45,22 @@ export class SemanticAnalyzer {
   private constraintAnalyzer!: ConstraintAnalyzer
   private hierarchyValidator!: HierarchyValidator
 
+  public getPluginManager(): PluginManager {
+    return this.pluginManager
+  }
+
   public analyze(program: ProgramNode, context: ParserContext): IRDiagram {
     this.context = context
 
     // Initialize sub-components
     this.constraintAnalyzer = new ConstraintAnalyzer(this.symbolTable, context)
     this.hierarchyValidator = new HierarchyValidator(this.symbolTable, context)
-    this.entityAnalyzer = new EntityAnalyzer(this.symbolTable, this.constraintAnalyzer, context)
+    this.entityAnalyzer = new EntityAnalyzer(
+      this.symbolTable,
+      this.constraintAnalyzer,
+      this.context,
+      this.pluginManager,
+    )
     this.relationshipAnalyzer = new RelationshipAnalyzer(
       this.symbolTable,
       this.relationships,
@@ -122,35 +135,84 @@ export class SemanticAnalyzer {
 
   public addConfig(options: Record<string, unknown>): void {
     this.config = { ...this.config, ...options }
+
+    // If a language is specified, activate its plugin
+    if (options.language && typeof options.language === 'string') {
+      this.activateLanguage(options.language)
+    }
+  }
+
+  private activateLanguage(language: string): void {
+    if (this.pluginManager.supports(language)) {
+      this.pluginManager.activate(language)
+      const plugin = this.pluginManager.getActive()
+      if (plugin) {
+        // Initialize hiddenEntities in config if not present
+        if (!this.config.hiddenEntities) {
+          this.config.hiddenEntities = []
+        }
+        const hidden = this.config.hiddenEntities as string[]
+
+        // Load Standard Library into SymbolTable
+        plugin.getStandardLibrary().forEach((entity) => {
+          this.symbolTable.register(entity)
+          // Hide standard library entities by default from rendering
+          hidden.push(entity.id)
+
+          // Also register the namespace of the library
+          if (entity.namespace) {
+            this.symbolTable.registerNamespace(entity.namespace)
+          }
+        })
+      }
+    }
   }
 
   private inferRelationships(): void {
     const entities = this.symbolTable.getAllEntities()
     entities.forEach((entity) => {
-      entity.members.forEach((member) => {
-        if (member.type) {
-          // If no explicit operator, assume ASSOCIATION (Standard UML)
-          const relType = member.relationshipKind
-            ? this.relationshipAnalyzer.mapRelationshipType(member.relationshipKind)
-            : IRRelationshipType.ASSOCIATION
-
+      // 1. Inferencia desde Propiedades (Atributos)
+      ;(entity.properties || []).forEach((prop) => {
+        if (prop.type) {
+          let relType = IRRelationshipType.ASSOCIATION
+          if (prop.aggregation === 'shared') relType = IRRelationshipType.AGGREGATION
+          if (prop.aggregation === 'composite') relType = IRRelationshipType.COMPOSITION
           this.inferFromType(
             entity.id,
-            member.type,
+            prop.type,
             entity.namespace,
-            member.name,
+            prop.name,
             relType,
-            member.multiplicity,
-            member.visibility,
-            undefined, // fromMultiplicity is not inferred from members
-            undefined, // associationClassId is not inferred from members
-            member.line,
-            member.column,
-            member.targetModifiers,
-            member.constraints?.map((c) => ({
-              ...c,
-              kind: c.kind === 'xor' ? 'xor_member' : c.kind,
-            })),
+            undefined, // La multiplicidad ahora es un objeto, se resolverá en el Refiner
+            prop.visibility,
+            undefined,
+            undefined,
+            prop.line,
+            prop.column,
+            undefined,
+            prop.constraints,
+            prop.label,
+          )
+        }
+      })
+
+      // 2. Inferencia desde Operaciones (Retornos)
+      ;(entity.operations || []).forEach((op) => {
+        if (op.returnType) {
+          this.inferFromType(
+            entity.id,
+            op.returnType,
+            entity.namespace,
+            undefined,
+            IRRelationshipType.ASSOCIATION,
+            undefined,
+            op.visibility,
+            undefined,
+            undefined,
+            op.line,
+            op.column,
+            undefined,
+            op.constraints,
           )
         }
       })
@@ -171,18 +233,71 @@ export class SemanticAnalyzer {
     column?: number,
     targetModifiers?: Modifiers,
     memberConstraints?: IRConstraint[],
+    explicitLabel?: string,
   ): void {
-    if (TypeValidator.isPrimitive(typeName)) return
-    const decomposed = TypeValidator.decomposeGeneric(typeName)
-    const baseType = decomposed.baseName
-    const fromEntity = this.symbolTable.get(fromFQN)
+    const plugin = this.pluginManager.getActive()
+    let effectiveTypeName = typeName
 
-    const inferenceContext = fromEntity
-      ? { sourceType: fromEntity.type, relationshipKind: relType }
-      : undefined
+    // 1. Language-specific primitive mapping
+    if (plugin) {
+      const baseName = TypeValidator.getBaseTypeName(typeName)
+      const mapped = plugin.mapPrimitive(baseName)
+      if (mapped) {
+        effectiveTypeName = typeName.replace(baseName, mapped)
+      }
+    }
+
+    if (TypeValidator.isPrimitive(effectiveTypeName)) return
+
+    const fromEntity = this.symbolTable.get(fromFQN)
+    const baseType = TypeValidator.getBaseTypeName(effectiveTypeName)
 
     // Skip if target is a generic parameter of the current entity
     if (fromEntity?.typeParameters?.includes(baseType)) return
+
+    // 2. Language-specific type resolution (Utility types, arrays)
+    // 2. Plugin-based type resolution (e.g., Array<T> -> T with multiplicity *)
+    if (plugin) {
+      const typeNodeLike = this.findTypeNode(effectiveTypeName)
+      if (line) typeNodeLike.line = line
+      if (column) typeNodeLike.column = column
+
+      const mapping = plugin.resolveType(typeNodeLike)
+
+      if (mapping) {
+        if (mapping.isIgnored) return
+
+        const finalToFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
+          mapping.targetName,
+          fromNamespace || '',
+          targetModifiers || {},
+          line,
+          column,
+          fromEntity
+            ? { sourceType: fromEntity.type, relationshipKind: mapping.relationshipType || relType }
+            : undefined,
+          fromEntity?.typeParameters,
+        )
+
+        this.relationshipAnalyzer.addResolvedRelationship(
+          fromFQN,
+          finalToFQN,
+          mapping.relationshipType || relType,
+          {
+            line,
+            column,
+            label: mapping.label,
+            toName: explicitLabel || label, // Property name as role fallback
+            toMultiplicity: mapping.multiplicity || toMultiplicity,
+            fromMultiplicity,
+            visibility,
+            associationClassId,
+            constraints: memberConstraints,
+          },
+        )
+        return
+      }
+    }
 
     if (TypeValidator.isPrimitive(baseType)) return
 
@@ -192,25 +307,36 @@ export class SemanticAnalyzer {
       targetModifiers || {},
       line,
       column,
-      inferenceContext,
+      fromEntity ? { sourceType: fromEntity.type, relationshipKind: relType } : undefined,
       fromEntity?.typeParameters,
     )
 
-    const finalRelType = relType
-    const finalLabel = label
-    const finalToMultiplicity = toMultiplicity
-
-    // Use full validation flow
-    this.relationshipAnalyzer.addResolvedRelationship(fromFQN, finalToFQN, finalRelType, {
+    // Use standard flow
+    this.relationshipAnalyzer.addResolvedRelationship(fromFQN, finalToFQN, relType, {
       line,
       column,
-      label: finalLabel,
-      toMultiplicity: finalToMultiplicity,
+      label, // If it's a manual relationship, label is the connection name
+      toName: label,
+      toMultiplicity,
       fromMultiplicity,
       visibility,
       associationClassId,
       constraints: memberConstraints,
     })
+  }
+
+  public findTypeNode(typeName: string): TypeNode {
+    const { baseName, args } = TypeValidator.decomposeGeneric(typeName)
+
+    return {
+      type: ASTNodeType.TYPE,
+      name: baseName,
+      raw: typeName,
+      kind: args.length > 0 ? 'generic' : 'simple',
+      arguments: args.map((arg) => this.findTypeNode(arg)),
+      line: 0,
+      column: 0,
+    }
   }
 
   private cleanupRedundantMembers(): void {
@@ -237,7 +363,7 @@ class DiscoveryVisitor implements ASTVisitor {
   ) {}
 
   visitProgram(node: ProgramNode): void {
-    node.body.forEach((stmt) => walkAST(stmt, this))
+    ;(node.body || []).forEach((stmt) => walkAST(stmt, this))
   }
 
   visitPackage(node: PackageNode): void {
@@ -248,7 +374,7 @@ class DiscoveryVisitor implements ASTVisitor {
     this.symbolTable.registerNamespace(fqn)
 
     this.currentNamespace.push(node.name)
-    node.body.forEach((stmt) => walkAST(stmt, this))
+    ;(node.body || []).forEach((stmt) => walkAST(stmt, this))
     this.currentNamespace.pop()
   }
 
@@ -307,12 +433,12 @@ class DefinitionVisitor implements ASTVisitor {
   ) {}
 
   visitProgram(node: ProgramNode): void {
-    node.body.forEach((stmt) => walkAST(stmt, this))
+    ;(node.body || []).forEach((stmt) => walkAST(stmt, this))
   }
 
   visitPackage(node: PackageNode): void {
     this.currentNamespace.push(node.name)
-    node.body.forEach((stmt) => walkAST(stmt, this))
+    ;(node.body || []).forEach((stmt) => walkAST(stmt, this))
     this.currentNamespace.pop()
   }
 
@@ -324,8 +450,13 @@ class DefinitionVisitor implements ASTVisitor {
         this.entityAnalyzer.appendMembers(entity, node.body)
       }
 
-      // Register any xor constraints found on members into the global constraints list
-      entity.members.forEach((member) => {
+      // Scan both properties and operations for constraints
+      const allMembers: { constraints?: IRConstraint[] }[] = [
+        ...(entity.properties || []),
+        ...(entity.operations || []),
+      ]
+
+      allMembers.forEach((member) => {
         member.constraints?.forEach((c) => {
           if (c.kind === 'xor') {
             this.analyzer.addConstraint(c)
@@ -378,12 +509,12 @@ class ResolutionVisitor implements ASTVisitor {
   private currentConstraintGroupId?: string
 
   visitProgram(node: ProgramNode): void {
-    node.body.forEach((stmt) => walkAST(stmt, this))
+    ;(node.body || []).forEach((stmt) => walkAST(stmt, this))
   }
 
   visitPackage(node: PackageNode): void {
     this.currentNamespace.push(node.name)
-    node.body.forEach((stmt) => walkAST(stmt, this))
+    ;(node.body || []).forEach((stmt) => walkAST(stmt, this))
     this.currentNamespace.pop()
   }
 
@@ -391,16 +522,20 @@ class ResolutionVisitor implements ASTVisitor {
     const ns = this.currentNamespace.join('.')
     const fromFQN = this.symbolTable.resolveFQN(node.name, ns).fqn
     const fromEntity = this.symbolTable.get(fromFQN)
-
-    node.relationships.forEach((rel) => {
+    ;(node.relationships || []).forEach((rel) => {
       // Calculate inference context
       const relType = this.relationshipAnalyzer.mapRelationshipType(rel.kind)
       const inferenceContext = fromEntity
         ? { sourceType: fromEntity.type, relationshipKind: relType }
         : undefined
 
+      const typeNodeLike = this.analyzer.findTypeNode(rel.target)
+      const plugin = this.analyzer.getPluginManager().getActive()
+      const mapping = plugin?.resolveType(typeNodeLike)
+      const targetName = mapping ? mapping.targetName : rel.target
+
       const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-        rel.target,
+        targetName,
         ns,
         rel.targetModifiers,
         rel.line,
@@ -437,8 +572,13 @@ class ResolutionVisitor implements ASTVisitor {
       ? { sourceType: fromEntity.type, relationshipKind: relType }
       : undefined
 
+    const typeNodeLike = this.analyzer.findTypeNode(node.to)
+    const plugin = this.analyzer.getPluginManager().getActive()
+    const mapping = plugin?.resolveType(typeNodeLike)
+    const targetName = mapping ? mapping.targetName : node.to
+
     const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-      node.to,
+      targetName,
       ns,
       node.toModifiers,
       node.line,
@@ -463,7 +603,7 @@ class ResolutionVisitor implements ASTVisitor {
     const assocFQN = this.symbolTable.resolveFQN(node.name, ns).fqn
 
     // Procesar relaciones anidadas en los participantes
-    node.participants.forEach((p) => {
+    ;(node.participants || []).forEach((p) => {
       let currentFromFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
         p.name,
         ns,
@@ -564,7 +704,7 @@ class ResolutionVisitor implements ASTVisitor {
 
       const oldGroupId = this.currentConstraintGroupId
       this.currentConstraintGroupId = groupId
-      node.body.forEach((stmt) => walkAST(stmt, this))
+      ;(node.body || []).forEach((stmt) => walkAST(stmt, this))
       this.currentConstraintGroupId = oldGroupId
     }
   }

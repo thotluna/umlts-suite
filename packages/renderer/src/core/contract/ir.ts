@@ -3,10 +3,12 @@ import type {
   IREntity,
   IRRelationship,
   IRRelationshipType,
-  IRMember,
+  IRProperty,
+  IROperation,
   IRParameter,
   IRVisibility as EngineVisibility,
   IRConstraint,
+  IRMultiplicity,
 } from '@umlts/engine'
 
 export type IRVisibility = EngineVisibility | '+' | '-' | '#' | '~'
@@ -32,4 +34,13 @@ export type IRRelType =
   | 'Bidirectional'
   | 'BIDIRECTIONAL'
 
-export type { IR, IREntity, IRRelationship, IRMember, IRParameter, IRConstraint }
+export type {
+  IR,
+  IREntity,
+  IRRelationship,
+  IRProperty,
+  IROperation,
+  IRParameter,
+  IRConstraint,
+  IRMultiplicity,
+}

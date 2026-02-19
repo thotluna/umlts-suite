@@ -6,34 +6,29 @@ export class TypeValidator {
    * The five official UML Primitive Types from the ISO/IEC 19505-2 / OMG specification.
    */
   public static readonly PRIMITIVES = new Set([
-    'integer',
-    'boolean',
-    'string',
-    'unlimitednatural',
-    'real',
+    'Integer',
+    'Boolean',
+    'String',
+    'UnlimitedNatural',
+    'Real',
   ])
 
   /**
    * Checks if a type name is a normative UML primitive.
    */
   public static isPrimitive(typeName: string): boolean {
-    const baseType = typeName.replace(/[[\]]/g, '').toLowerCase()
-    let cleanBaseType = baseType.includes('<')
-      ? baseType.substring(0, baseType.indexOf('<'))
-      : baseType
-
-    if (cleanBaseType.includes('(')) {
-      cleanBaseType = cleanBaseType.substring(0, cleanBaseType.indexOf('('))
-    }
-
-    return this.PRIMITIVES.has(cleanBaseType)
+    const baseType = this.getBaseTypeName(typeName)
+    // Buscamos coincidencia exacta o insensible a mayúsculas para los 5 tipos UML
+    return Array.from(this.PRIMITIVES).some((p) => p.toLowerCase() === baseType.toLowerCase())
   }
 
   /**
    * Cleans a generic or array type to get the base entity name.
    */
   public static getBaseTypeName(typeName: string): string {
-    let baseType = typeName.replace(/[[\]]/g, '')
+    let baseType = typeName
+    // Nota: El motor ya no limpia [] porque eso es específico de lenguajes como TS/Java
+    // Solo manejamos el concepto UML de nombre base (remover argumentos generales si existen en el string)
     if (baseType.includes('<')) {
       baseType = baseType.substring(0, baseType.indexOf('<'))
     }

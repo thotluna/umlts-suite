@@ -1,4 +1,10 @@
-import { type IRMember, type IRRelType, type IRConstraint } from '../contract/ir'
+import {
+  type IRProperty,
+  type IROperation,
+  type IRRelType,
+  type IRConstraint,
+  type IRMultiplicity,
+} from '../contract/ir'
 import { measureNodeDimensions } from '../../layout/measure'
 
 /**
@@ -51,16 +57,14 @@ export class UMLNode extends UMLHierarchyItem {
   constructor(
     id: string,
     name: string,
-    public readonly type: 'Class' | 'Interface' | 'Enum',
-    public readonly attributes: IRMember[],
-    public readonly methods: IRMember[],
+    public readonly type: string,
+    public readonly properties: IRProperty[],
+    public readonly operations: IROperation[],
     public readonly isImplicit: boolean,
     public readonly isAbstract: boolean,
     public readonly isStatic: boolean,
     public readonly isActive: boolean,
     public readonly isLeaf: boolean,
-    public readonly isFinal: boolean,
-    public readonly isRoot: boolean,
     public readonly typeParameters: string[],
     public readonly namespace?: string,
     public readonly docs?: string,
@@ -91,8 +95,8 @@ export class UMLEdge {
     public readonly type: IRRelType,
     public readonly label?: string,
     public readonly visibility?: string,
-    public readonly fromMultiplicity?: string,
-    public readonly toMultiplicity?: string,
+    public readonly fromMultiplicity?: IRMultiplicity | string,
+    public readonly toMultiplicity?: IRMultiplicity | string,
     public readonly associationClassId?: string,
     public readonly constraints?: IRConstraint[],
   ) {}

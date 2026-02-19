@@ -9,12 +9,11 @@ export type {
   IRDiagram,
   IREntity,
   IRRelationship,
-  IRMember,
+  IRProperty,
+  IROperation,
   IRParameter,
+  IRConstraint,
 } from './generator/ir/models'
-
-// Generadores
-export { MermaidGenerator } from './generator/mermaid.generator'
 
 // Exportación de diagnósticos
 export type { Diagnostic, DiagnosticSeverity } from './syntax/diagnostic.types'

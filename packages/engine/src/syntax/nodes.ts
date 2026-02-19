@@ -93,6 +93,7 @@ export interface AttributeNode extends ASTNode {
   multiplicity: string | undefined
   relationshipKind?: string | undefined
   isNavigable?: boolean
+  label?: string | undefined
   constraints?: ConstraintNode[]
   targetModifiers?: Modifiers
 }

@@ -1,4 +1,11 @@
-import { type UMLNode, type IRMember, type IRParameter, type DiagramConfig } from '../../core/types'
+import {
+  type UMLNode,
+  type IRProperty,
+  type IROperation,
+  type IRParameter,
+  type DiagramConfig,
+  type IRMultiplicity,
+} from '../../core/types'
 import { type Theme } from '../../core/theme'
 import { SVGBuilder as svg } from '../svg-helpers'
 import { DrawingRegistry } from '../drawable'
@@ -65,14 +72,6 @@ export function renderClassNode(
     headerLines.push({ text: '{leaf}', size: theme.fontSizeSmall })
     stereotypeCount++
   }
-  if (node.isFinal) {
-    headerLines.push({ text: '«final»', size: theme.fontSizeSmall })
-    stereotypeCount++
-  }
-  if (node.isRoot) {
-    headerLines.push({ text: '{root}', size: theme.fontSizeSmall })
-    stereotypeCount++
-  }
 
   headerLines.push({
     text: node.name,
@@ -116,14 +115,14 @@ export function renderClassNode(
   let membersContent = ''
   let memberY = y + headerHeight + 20 // Start after header with padding
 
-  // Attributes
-  for (const attr of node.attributes) {
-    membersContent += renderMember(attr, x + 10, memberY, theme, options)
+  // 1. Properties
+  for (const prop of node.properties) {
+    membersContent += renderProperty(prop, x + 10, memberY, theme, options)
     memberY += LINE_HEIGHT
   }
 
   // Section divider if needed
-  if (node.attributes.length > 0 && node.methods.length > 0) {
+  if (node.properties.length > 0 && node.operations.length > 0) {
     membersContent += svg.line(x, memberY - 14, x + width, memberY - 14, {
       stroke: theme.nodeDivider,
       'stroke-width': 0.5,
@@ -131,9 +130,9 @@ export function renderClassNode(
     })
   }
 
-  // Methods
-  for (const meth of node.methods) {
-    membersContent += renderMember(meth, x + 10, memberY, theme, options)
+  // 2. Operations
+  for (const op of node.operations) {
+    membersContent += renderOperation(op, x + 10, memberY, theme, options)
     memberY += LINE_HEIGHT
   }
 
@@ -177,38 +176,32 @@ export function renderClassNode(
   )
 }
 
-function renderMember(
-  m: IRMember,
+function formatMultiplicity(m?: IRMultiplicity): string {
+  if (!m) return ''
+  if (m.lower === m.upper) return `[${m.lower}]`
+  return `[${m.lower}..${m.upper}]`
+}
+
+function renderProperty(
+  p: IRProperty,
   x: number,
   y: number,
   theme: Theme,
   options?: DiagramConfig['render'],
 ): string {
   const showVisibility = options?.showVisibility !== false
-  let label = showVisibility ? `${m.visibility} ${m.name}` : m.name
+  let label = showVisibility ? `${p.visibility} ${p.name}` : p.name
 
-  if (m.parameters !== undefined) {
-    const params = m.parameters
-      .map((p: IRParameter) => {
-        const pLabel = p.type ? `${p.name}: ${p.type}` : p.name
-        return pLabel
-      })
-      .join(', ')
-    label += `(${params})`
+  if (p.type) {
+    label += `: ${p.type}`
   }
 
-  if (m.type) {
-    label += `: ${m.type}`
+  if (p.multiplicity) {
+    label += ` ${formatMultiplicity(p.multiplicity)}`
   }
 
-  if (m.isLeaf) {
+  if (p.isLeaf) {
     label += ' {leaf}'
-  } else if (m.isFinal) {
-    label += ' {final}'
-  }
-
-  if (m.multiplicity) {
-    label += ` [${m.multiplicity}]`
   }
 
   return svg.text(
@@ -217,8 +210,49 @@ function renderMember(
       y,
       fill: theme.nodeMemberText,
       'font-size': theme.fontSizeBase,
-      'font-style': m.isAbstract ? 'italic' : 'normal',
-      'text-decoration': m.isStatic ? 'underline' : 'none',
+      'text-decoration': p.isStatic ? 'underline' : 'none',
+    },
+    svg.escape(label),
+  )
+}
+
+function renderOperation(
+  op: IROperation,
+  x: number,
+  y: number,
+  theme: Theme,
+  options?: DiagramConfig['render'],
+): string {
+  const showVisibility = options?.showVisibility !== false
+  let label = showVisibility ? `${op.visibility} ${op.name}` : op.name
+
+  const params = op.parameters
+    .map((p: IRParameter) => {
+      let pLabel = p.type ? `${p.name}: ${p.type}` : p.name
+      if (p.multiplicity) pLabel += formatMultiplicity(p.multiplicity)
+      return pLabel
+    })
+    .join(', ')
+
+  label += `(${params})`
+
+  if (op.returnType) {
+    label += `: ${op.returnType}`
+    if (op.returnMultiplicity) label += ` ${formatMultiplicity(op.returnMultiplicity)}`
+  }
+
+  if (op.isLeaf) {
+    label += ' {leaf}'
+  }
+
+  return svg.text(
+    {
+      x,
+      y,
+      fill: theme.nodeMemberText,
+      'font-size': theme.fontSizeBase,
+      'font-style': op.isAbstract ? 'italic' : 'normal',
+      'text-decoration': op.isStatic ? 'underline' : 'none',
     },
     svg.escape(label),
   )

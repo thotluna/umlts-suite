@@ -5,6 +5,7 @@ import {
   type IRRelationship,
   type IRConstraint,
   type IREntity,
+  type IRMultiplicity,
 } from '../../generator/ir/models'
 import { TypeInferrer } from './type-inferrer'
 import { registerDefaultInferenceRules } from '../rules/inference-rules'
@@ -129,7 +130,9 @@ export class RelationshipAnalyzer {
       isNavigable?: boolean
       constraintGroupId?: string
       constraints?: IRConstraint[]
-      originalTarget?: string // NEW: to detect binding
+      originalTarget?: string
+      toName?: string
+      fromName?: string
     },
   ): void {
     const fromEntity = this.symbolTable.get(fromFQN)
@@ -166,8 +169,14 @@ export class RelationshipAnalyzer {
       line: meta.line,
       column: meta.column,
       label: finalLabel,
-      toMultiplicity: meta.toMultiplicity,
-      fromMultiplicity: meta.fromMultiplicity,
+      toMultiplicity: meta.toMultiplicity
+        ? this.parseMultiplicity(meta.toMultiplicity, meta.line, meta.column)
+        : undefined,
+      fromMultiplicity: meta.fromMultiplicity
+        ? this.parseMultiplicity(meta.fromMultiplicity, meta.line, meta.column)
+        : undefined,
+      toName: meta.toName,
+      fromName: meta.fromName,
       visibility: meta.visibility || IRVisibility.PUBLIC,
       associationClassId: meta.associationClassId,
       isNavigable: meta.isNavigable ?? true,
@@ -248,7 +257,12 @@ export class RelationshipAnalyzer {
     if (node != null && 'fromMultiplicity' in node) {
       const relNode = node as RelationshipNode
       if (relNode.fromMultiplicity) {
-        irRel.fromMultiplicity = relNode.fromMultiplicity
+        irRel.fromMultiplicity = this.parseMultiplicity(
+          relNode.fromMultiplicity,
+          relNode.line,
+          relNode.column,
+        )
+
         const bounds = MultiplicityValidator.validateBounds(
           relNode.fromMultiplicity,
           relNode.line,
@@ -271,12 +285,10 @@ export class RelationshipAnalyzer {
         }
       }
       if (relNode.toMultiplicity) {
-        irRel.toMultiplicity = relNode.toMultiplicity
-        MultiplicityValidator.validateBounds(
+        irRel.toMultiplicity = this.parseMultiplicity(
           relNode.toMultiplicity,
           relNode.line,
           relNode.column,
-          this.context,
         )
       }
       if (relNode.label) {
@@ -286,6 +298,19 @@ export class RelationshipAnalyzer {
     }
 
     this.relationships.push(irRel)
+  }
+
+  private parseMultiplicity(
+    multiplicity: string,
+    line?: number,
+    column?: number,
+  ): IRMultiplicity | undefined {
+    const bounds = MultiplicityValidator.validateBounds(multiplicity, line, column, this.context)
+    if (!bounds) return undefined
+    return {
+      lower: bounds.lower,
+      upper: bounds.upper === Infinity ? '*' : bounds.upper,
+    }
   }
 
   private extractBindingLabel(targetStr: string, entity: IREntity): string | undefined {

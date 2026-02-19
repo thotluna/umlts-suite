@@ -145,14 +145,13 @@ export class SymbolTable {
         id: resolution.fqn,
         name: name.includes('.') ? name.split('.').pop()! : name,
         type: expectedType,
-        members: [],
+        properties: [],
+        operations: [],
         isImplicit: true,
         isAbstract: modifiers?.isAbstract || false,
         isStatic: modifiers?.isStatic || false,
         isActive: modifiers?.isActive || false,
         isLeaf: modifiers?.isLeaf || false,
-        isFinal: modifiers?.isFinal || false,
-        isRoot: modifiers?.isRoot || false,
         namespace: resolution.fqn.includes('.')
           ? resolution.fqn.split('.').slice(0, -1).join('.')
           : '',

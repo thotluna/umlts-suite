@@ -9,14 +9,18 @@
 
 ## Backlog
 
-## Backlog
+- [x] **ALTA PRIORIDAD: Arquitectura Extensible de Lenguajes (Plugin System)**
+  - [x] **Core UML Purification**: Extraer tipos de TypeScript del motor core para dejarlo solo con los 5 `PrimitiveTypes` de UML 2.5.1.
+  - [x] **Plugin Infrastructure**: Implementar `LanguagePlugin` interface y `PluginManager` para cargar bibliotecas de modelos dinámicamente.
+  - [x] **Injection System**: Permitir que el Lexer y Parser se extiendan mediante hooks en los plugins (`matchToken`, `handleUnexpectedToken`).
+  - [x] **Language Mapping**: Sistema de reglas para que los plugins traduzcan sintaxis compacta (ej: `T[]` o `List<T>`) a semántica UML pura.
+  - [ ] **First Plugin: TypeScript**: Migrar la lógica actual de TS a su propio módulo de plug-in (En progreso: soporte para `?`).
 
-- [ ] **ALTA PRIORIDAD: Arquitectura Extensible de Lenguajes (Plugin System)**
-  - [ ] **Core UML Purification**: Extraer tipos de TypeScript del motor core para dejarlo solo con los 5 `PrimitiveTypes` de UML 2.5.1.
-  - [ ] **Plugin Infrastructure**: Implementar `LanguagePlugin` interface y `PluginManager` para cargar bibliotecas de modelos dinámicamente.
-  - [ ] **Injection System**: Permitir que el `SymbolTable` se pre-pueble mediante plugins (`engine.load(TSPlugin)`).
-  - [ ] **Language Mapping**: Sistema de reglas para que los plugins traduzcan sintaxis compacta (ej: `T[]` o `List<T>`) a semántica UML pura.
-  - [ ] **First Plugin: TypeScript**: Migrar la lógica actual de TS a su propio módulo de plug-in.
+- [ ] **Fase: Estandarización UML 2.5.1 (Metamodelo)**.
+  - [x] **IR Redesign**: Migrar `IRMember` a `IRProperty` e `IROperation` siguiendo la Sintaxis Abstracta oficial.
+  - [x] **Refactor Analizadores**: Adaptar `EntityAnalyzer` y `RelationshipAnalyzer` al nuevo modelo estructurado.
+  - [x] **Refactor Renderer**: Actualizar el pipeline de dibujo para consumir Propiedades y Operaciones de forma agnóstico.
+  - [x] **Multiplicity Refactor**: Migrar de strings `"0..1"` a objetos estructurados `{ lower, upper }`.
 
 - [x] Implementar clases de asociación (`class C <> (A, B)`)
   - [x] Definir nodo AST en `nodes.ts`
@@ -72,6 +76,10 @@
 - [x] **FIX**: Anclaje de línea de clase de asociación (la línea atravesaba la caja).
 - [x] **FEAT**: Optimización de layout para clases de asociación (ahora se dibujan cerca de sus participantes).
 - [x] **FIX**: Errores de tipos en tests de Inline Enums (posible acceso a undefined).
+- [x] **FIX**: Error "Cannot read properties of undefined (reading 'forEach')" en el Renderer.
+- [x] **FIX**: Reposicionamiento de diagnósticos y visibilidad de miembros en Hovers de VS Code.
+- [ ] **BUG**: El Parser falla al procesar Nombres Cualificados (`package.Class`) dentro de los diamantes de genéricos `<...>`.
+- [ ] **UX**: Mejorar el mensaje de error de herencia inválida (`class >> interface`) para sugerir el uso de realización (`>I`).
 
 ## Cumplimiento UML 2.5.1 (Roadmap)
 
@@ -131,4 +139,11 @@
 - Se ha rebasado con éxito `feat/layout-xor-enhancements` sobre `origin/main` tras la refactorización SOLID.
 - Todos los imports se han migrado de `parser/ast/nodes` a `syntax/nodes` para consolidar el lenguaje.
 - Se ha corregido un bug en `EntityAnalyzer` donde visibilidades como `protected` no se mapeaban correctamente desde palabras clave.
-- Los tests de navegabilidad y restricciones XOR han sido validados y pasan con éxito.
+
+- [x] **Refinamiento de Análisis de Relaciones**:
+  - [x] Soporte para nombres de roles (Asociation Ends) mediante etiquetas explícitas o nombres de propiedad.
+  - [x] Mapeo de multiplicidades por defecto para colecciones (`List<T>`, `Array<T>`, `Set<T>`, etc. -> `0..*`).
+  - [x] Normalización de tipos primitivos (`string` -> `String`, `number` -> `Real`, `boolean` -> `Boolean`).
+  - [x] Eliminación de entidades redundantes para retornos `void` y otros tipos "vacíos".
+  - [x] Soporte para operadores de agregación (`>+`) y composición (`>*`) en miembros de clase.
+  - [x] Parsing de multiplicidades en parámetros de métodos y propiedades.
