@@ -10,7 +10,11 @@ export class TypeRule {
   public parse(context: ParserContext): TypeNode {
     const token = context.peek()
 
-    if (token.type !== TokenType.IDENTIFIER && token.type !== TokenType.KW_XOR) {
+    if (
+      token.type !== TokenType.IDENTIFIER &&
+      token.type !== TokenType.KW_XOR &&
+      token.type !== TokenType.STRING
+    ) {
       throw new Error(`Expected type at line ${token.line}, column ${token.column}`)
     }
 

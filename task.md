@@ -282,3 +282,7 @@
   - [x] `ConstraintRegistry`, `ConfigStore`, `AnalysisSession`
   - [x] `TypeResolutionPipeline`, `PluginAdapter`
   - [x] `MemberInference`, `AssociationClassResolver` (Tests completos y sin errores)
+- [x] **FIX**: Corregir bug de "Unrecognized statement" con comentarios en el Parser
+- [x] **FIX**: Activar plugins de forma condicional basada en `config { language: ... }`
+- [x] **FEAT**: Crear ejemplo exhaustivo del DSL en `docs/tests-dsl.umlts`
+- [x] **COMMIT**: Realizar commit final de la refactorización V3 y DSL refinado
