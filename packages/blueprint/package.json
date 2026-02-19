@@ -21,13 +21,14 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^25.2.2",
+    "@types/node": "^22.0.0",
     "fast-glob": "^3.3.3",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   },
   "dependencies": {
-    "commander": "^14.0.3"
+    "commander": "^14.0.3",
+    "ts-morph": "^25.0.1"
   }
 }

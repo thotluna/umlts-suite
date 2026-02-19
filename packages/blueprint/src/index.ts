@@ -14,21 +14,26 @@ program
   .argument('<path>', 'Source files path (glob pattern, e.g., "src/**/*.ts")')
   .option('-o, --output <file>', 'Output .umlts file')
   .option('--exclude <patterns...>', 'Exclude patterns')
-  .action(async (globPath, options) => {
+  .action((globPath, options) => {
     const extractor = new BlueprintExtractor()
 
-    try {
-      // En la nueva arquitectura, llamar a extract() inicia todo el proceso coordinado
-      const umlts = await extractor.extract(globPath)
+    // Resolve path relative to current working directory
+    const resolvedPath = path.isAbsolute(globPath) ? globPath : path.join(process.cwd(), globPath)
 
-      if (options.output && umlts) {
+    console.log(`🔍 Scanning: ${resolvedPath}`)
+
+    try {
+      extractor.addSourceFiles(resolvedPath)
+      const umlts = extractor.extract()
+
+      if (options.output) {
         const outputPath = path.isAbsolute(options.output)
           ? options.output
           : path.join(process.cwd(), options.output)
 
         fs.writeFileSync(outputPath, umlts)
         console.log(`✅ Success! Diagram generated at: ${outputPath}`)
-      } else if (umlts) {
+      } else {
         console.log('\n--- GENERATED UMLTS ---\n')
         console.log(umlts)
       }
