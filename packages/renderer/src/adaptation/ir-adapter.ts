@@ -18,8 +18,14 @@ export class IRAdapter {
    * Transforms raw IR from context into a DiagramModel.
    */
   public transform(ir: IR): DiagramModel {
-    const nodes = ir.entities.map((entity) => this.transformEntity(entity))
-    const edges = ir.relationships.map((rel) => this.transformRelationship(rel))
+    const hiddenIds = new Set((ir.config?.hiddenEntities as string[]) || [])
+    const entities = (ir.entities || []).filter((e) => !hiddenIds.has(e.id))
+    const relationships = ir.relationships || []
+    const nodes = entities.map((entity) => this.transformEntity(entity))
+    const nodeIds = new Set(nodes.map((n) => n.id))
+    const edges = relationships
+      .filter((rel) => nodeIds.has(rel.from) && nodeIds.has(rel.to))
+      .map((rel) => this.transformRelationship(rel))
     const packages = this.buildPackageHierarchy(nodes)
 
     return {
@@ -34,22 +40,17 @@ export class IRAdapter {
    * Transforms a single entity into a UMLNode.
    */
   private transformEntity(entity: IREntity): UMLNode {
-    const attributes = entity.members.filter((m) => m.parameters == null)
-    const methods = entity.members.filter((m) => !(m.parameters == null))
-
     return new UMLNode(
       entity.id,
       entity.name,
       entity.type,
-      attributes,
-      methods,
+      entity.properties ?? [],
+      entity.operations ?? [],
       entity.isImplicit,
       entity.isAbstract,
       entity.isStatic,
       entity.isActive,
       entity.isLeaf || false,
-      entity.isFinal || false,
-      entity.isRoot || false,
       entity.typeParameters ?? [],
       entity.namespace,
       entity.docs,

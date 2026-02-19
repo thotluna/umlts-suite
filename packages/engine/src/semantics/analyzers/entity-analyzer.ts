@@ -1,4 +1,5 @@
-import type { IRMember, IREntity } from '../../generator/ir/models'
+import type { IREntity, IRMultiplicity } from '../../generator/ir/models'
+import { PluginManager } from '../../plugins/plugin-manager'
 import { IREntityType, IRVisibility } from '../../generator/ir/models'
 import type { SymbolTable } from '../symbol-table'
 import type { ParserContext } from '../../parser/parser.context'
@@ -14,7 +15,6 @@ import type {
   AttributeNode,
   MethodNode,
   AssociationClassNode,
-  ConstraintNode,
 } from '../../syntax/nodes'
 import { ASTNodeType } from '../../syntax/nodes'
 import type { ConstraintAnalyzer } from './constraint-analyzer'
@@ -27,6 +27,7 @@ export class EntityAnalyzer {
     private readonly symbolTable: SymbolTable,
     private readonly constraintAnalyzer: ConstraintAnalyzer,
     private readonly context: ParserContext,
+    private readonly pluginManager: PluginManager,
   ) {}
 
   /**
@@ -40,15 +41,16 @@ export class EntityAnalyzer {
       id: fqn,
       name: shortName,
       type: this.mapEntityType(node.type),
-      members: [],
+      properties: [],
+      operations: [],
       isImplicit: false,
       isAbstract: node.modifiers?.isAbstract || false,
-      isStatic: node.modifiers?.isStatic || false,
       isActive: node.modifiers?.isActive || false,
       isLeaf: node.modifiers?.isLeaf || false,
       isFinal: node.modifiers?.isFinal || false,
       isRoot: node.modifiers?.isRoot || false,
-      typeParameters: node.typeParameters,
+      isStatic: node.modifiers?.isStatic || false,
+      typeParameters: node.typeParameters || [],
       docs: node.docs,
       line: node.line,
       column: node.column,
@@ -66,15 +68,16 @@ export class EntityAnalyzer {
     return {
       id: fqn,
       name: shortName,
-      type: IREntityType.CLASS,
-      members: [],
+      type: IREntityType.ASSOCIATION_CLASS,
+      properties: [],
+      operations: [],
       isImplicit: false,
       isAbstract: false,
-      isStatic: false,
       isActive: false,
       isLeaf: false,
       isFinal: false,
       isRoot: false,
+      isStatic: false,
       docs: node.docs,
       line: node.line,
       column: node.column,
@@ -86,22 +89,21 @@ export class EntityAnalyzer {
    * Processes and fills the members of an already registered entity.
    */
   public processMembers(entity: IREntity, node: EntityNode): void {
-    entity.members = this.mapMembers(node.body ?? [], entity.namespace || '', entity.typeParameters)
+    this.fillMembers(entity, node.body ?? [], entity.namespace || '', entity.typeParameters)
   }
 
   /**
    * Appends members to an already registered entity.
    */
   public appendMembers(entity: IREntity, members: MemberNode[]): void {
-    const newMembers = this.mapMembers(members ?? [], entity.namespace || '', entity.typeParameters)
-    entity.members.push(...newMembers)
+    this.fillMembers(entity, members ?? [], entity.namespace || '', entity.typeParameters)
   }
 
   /**
    * Processes members for an AssociationClass.
    */
   public processAssociationClassMembers(entity: IREntity, node: AssociationClassNode): void {
-    entity.members = this.mapMembers(node.body ?? [], entity.namespace || '')
+    this.fillMembers(entity, node.body ?? [], entity.namespace || '')
   }
 
   private mapEntityType(type: ASTNodeType): IREntityType {
@@ -109,22 +111,26 @@ export class EntityAnalyzer {
       case ASTNodeType.INTERFACE:
         return IREntityType.INTERFACE
       case ASTNodeType.ENUM:
-        return IREntityType.ENUM
+        return IREntityType.ENUMERATION
       default:
         return IREntityType.CLASS
     }
   }
 
-  private mapMembers(
+  private fillMembers(
+    entity: IREntity,
     members: MemberNode[],
     namespace: string,
     typeParameters?: string[],
-  ): IRMember[] {
+  ): void {
+    if (!entity.properties) entity.properties = []
+    if (!entity.operations) entity.operations = []
+
     const seenNames = new Set<string>()
 
-    return members
-      .filter((m) => m.type !== 'Comment')
-      .map((m) => {
+    ;(members || [])
+      .filter((m) => m.type !== ASTNodeType.COMMENT)
+      .forEach((m) => {
         if (seenNames.has(m.name)) {
           this.context.addError(
             `Duplicate member: '${m.name}' is already defined in this entity.`,
@@ -135,68 +141,67 @@ export class EntityAnalyzer {
           seenNames.add(m.name)
         }
 
-        const isMethod = m.type === ASTNodeType.METHOD
-        const isAttribute = m.type === ASTNodeType.ATTRIBUTE
+        if (m.type === ASTNodeType.ATTRIBUTE) {
+          const attr = m as AttributeNode
+          const multiplicity = attr.multiplicity
+            ? this.processMultiplicity(attr.multiplicity, attr.line, attr.column)
+            : undefined
 
-        const relationshipKind = isAttribute
-          ? (m as AttributeNode).relationshipKind
-          : (m as MethodNode).returnRelationshipKind
+          entity.properties.push({
+            name: attr.name,
+            type: this.processType(attr.typeAnnotation?.raw),
+            visibility: this.mapVisibility(attr.visibility),
+            isStatic: attr.modifiers?.isStatic || false,
+            isReadOnly: attr.modifiers?.isFinal || false,
+            isLeaf: attr.modifiers?.isLeaf || false,
+            multiplicity,
+            isOrdered: false,
+            isUnique: true,
+            aggregation: this.mapAggregation(attr.relationshipKind),
+            label: attr.label,
+            line: attr.line,
+            column: attr.column,
+            docs: attr.docs,
+            constraints: attr.constraints?.map((c) => this.constraintAnalyzer.process(c)),
+          })
+        } else if (m.type === ASTNodeType.METHOD) {
+          const meth = m as MethodNode
+          this.validateMemberType(meth.returnType?.raw, namespace, m, typeParameters)
 
-        const typeName =
-          (m as AttributeNode).typeAnnotation?.raw || (m as MethodNode).returnType?.raw
-        if (typeName) {
-          this.validateMemberType(typeName, namespace, m, typeParameters)
+          entity.operations.push({
+            name: meth.name,
+            visibility: this.mapVisibility(meth.visibility),
+            isStatic: meth.modifiers?.isStatic || false,
+            isAbstract: meth.modifiers?.isAbstract || false,
+            isLeaf: meth.modifiers?.isLeaf || meth.modifiers?.isFinal || false,
+            isQuery: false,
+            parameters: (meth.parameters || []).map((p) => ({
+              name: p.name,
+              type: this.processType(p.typeAnnotation?.raw),
+              multiplicity: p.multiplicity
+                ? this.processMultiplicity(p.multiplicity, p.line, p.column)
+                : undefined,
+              direction: 'in' as const,
+            })),
+            returnType: this.processType(meth.returnType?.raw),
+            line: meth.line,
+            column: meth.column,
+            docs: meth.docs,
+            constraints: (meth.constraints || []).map((c) => this.constraintAnalyzer.process(c)),
+          })
         }
-
-        const irMember: IRMember = {
-          name: m.name,
-          type: typeName,
-          visibility: this.mapVisibility(m.visibility),
-          isStatic: (m as AttributeNode | MethodNode).modifiers?.isStatic || false,
-          isAbstract: isMethod ? (m as MethodNode).modifiers?.isAbstract || false : false,
-          isLeaf: (m as AttributeNode | MethodNode).modifiers?.isLeaf || false,
-          isFinal: (m as AttributeNode | MethodNode).modifiers?.isFinal || false,
-          parameters: isMethod
-            ? (m as MethodNode).parameters?.map((p) => ({
-                name: p.name,
-                type: p.typeAnnotation?.raw,
-                relationshipKind: p.relationshipKind,
-                isNavigable: p.isNavigable,
-                targetModifiers: p.targetModifiers,
-                constraints: p.constraints?.map((c: ConstraintNode) =>
-                  this.constraintAnalyzer.process(c),
-                ),
-              }))
-            : undefined,
-          relationshipKind,
-          isNavigable: isAttribute
-            ? (m as AttributeNode).isNavigable
-            : (m as MethodNode).isNavigable,
-          targetModifiers: isAttribute
-            ? (m as AttributeNode).targetModifiers
-            : isMethod
-              ? (m as MethodNode).returnTargetModifiers
-              : undefined,
-          multiplicity: isAttribute ? (m as AttributeNode).multiplicity : undefined,
-          docs: m.docs,
-          line: m.line,
-          column: m.column,
-          constraints: (m as AttributeNode | MethodNode).constraints?.map((c: ConstraintNode) =>
-            this.constraintAnalyzer.process(c),
-          ),
-        }
-
-        if (isAttribute && (m as AttributeNode).multiplicity) {
-          MultiplicityValidator.validateBounds(
-            (m as AttributeNode).multiplicity!,
-            m.line,
-            m.column,
-            this.context,
-          )
-        }
-
-        return irMember
       })
+  }
+
+  private mapAggregation(kind?: string): 'none' | 'shared' | 'composite' {
+    switch (kind) {
+      case '>*':
+        return 'composite'
+      case '>+':
+        return 'shared'
+      default:
+        return 'none'
+    }
   }
 
   private validateMemberType(
@@ -206,6 +211,24 @@ export class EntityAnalyzer {
     typeParameters?: string[],
   ): void {
     if (TypeValidator.isPrimitive(typeName)) return
+
+    // Consultar al plugin antes de registrar implícitamente
+    // Si el plugin resuelve que es un tipo que se debe eliminar (ignorar), no lo registramos.
+    const plugin = this.pluginManager.getActive()
+    if (plugin) {
+      const mapping = plugin.resolveType({
+        type: ASTNodeType.TYPE,
+        name: TypeValidator.getBaseTypeName(typeName),
+        raw: typeName,
+        kind: 'simple',
+        line: 0,
+        column: 0,
+      })
+      if (mapping?.targetName === '') return // Ignorar si el plugin lo marca como vacío (ej: void)
+
+      const primitiveMapped = plugin.mapPrimitive(TypeValidator.getBaseTypeName(typeName))
+      if (primitiveMapped === '') return // Ignorar si es un primitivo que se mapea a vacío
+    }
 
     const baseType = TypeValidator.getBaseTypeName(typeName)
     if (typeParameters?.includes(baseType)) return
@@ -231,6 +254,38 @@ export class EntityAnalyzer {
     // We don't report diagnostics (neither error nor info) because inline declaration is a strength of the DSL.
   }
 
+  private processType(typeName?: string): string | undefined {
+    if (!typeName) return undefined
+
+    const plugin = this.pluginManager.getActive()
+    let result = typeName
+
+    if (plugin) {
+      // Map primitives (e.g., string -> String)
+      const base = TypeValidator.getBaseTypeName(typeName)
+      const mapped = plugin.mapPrimitive(base)
+      if (mapped === '') return undefined // El plugin solicita explícitamente eliminar el tipo (ej: void)
+      if (mapped) {
+        result = typeName.replace(base, mapped)
+      }
+    }
+
+    return result
+  }
+
+  private processMultiplicity(
+    multiplicity: string,
+    line?: number,
+    column?: number,
+  ): IRMultiplicity | undefined {
+    const bounds = MultiplicityValidator.validateBounds(multiplicity, line, column, this.context)
+    if (!bounds) return undefined
+    return {
+      lower: bounds.lower,
+      upper: bounds.upper === Infinity ? '*' : bounds.upper,
+    }
+  }
+
   private mapVisibility(v: string): IRVisibility {
     switch (v?.toLowerCase()) {
       case '-':
@@ -242,7 +297,7 @@ export class EntityAnalyzer {
       case '~':
       case 'internal':
       case 'package':
-        return IRVisibility.INTERNAL
+        return IRVisibility.PACKAGE
       default:
         return IRVisibility.PUBLIC
     }

@@ -58,6 +58,34 @@ export class AttributeRule {
       context.consume(TokenType.RBRACKET, "Expected ']'")
     }
 
+    // SOPORTE RELACIONES POST-TIPO: type >+ "label"
+    if (
+      !relationshipKind &&
+      context.match(
+        TokenType.OP_INHERIT,
+        TokenType.OP_IMPLEMENT,
+        TokenType.OP_COMP,
+        TokenType.OP_AGREG,
+        TokenType.OP_COMP_NON_NAVIGABLE,
+        TokenType.OP_AGREG_NON_NAVIGABLE,
+        TokenType.OP_USE,
+        TokenType.OP_ASSOC,
+        TokenType.OP_ASSOC_BIDIR,
+        TokenType.GT,
+      )
+    ) {
+      const kindToken = context.prev()
+      relationshipKind = kindToken.value
+      isNavigable =
+        kindToken.type !== TokenType.OP_COMP_NON_NAVIGABLE &&
+        kindToken.type !== TokenType.OP_AGREG_NON_NAVIGABLE
+    }
+
+    let label: string | undefined
+    if (context.match(TokenType.STRING)) {
+      label = context.prev().value.replace(/['"]/g, '')
+    }
+
     const constraints: ConstraintNode[] = []
     if (context.check(TokenType.LBRACE)) {
       constraints.push(ConstraintRule.parseInline(context))
@@ -72,6 +100,7 @@ export class AttributeRule {
       multiplicity,
       relationshipKind,
       isNavigable,
+      label,
       constraints: constraints.length > 0 ? constraints : undefined,
       targetModifiers,
       docs: context.consumePendingDocs(),

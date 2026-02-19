@@ -40,10 +40,10 @@ describe('Chained Relationships Support', () => {
 
     expect(ir.relationships).toHaveLength(2)
 
-    expect(ir.relationships[0].fromMultiplicity).toBe('1')
-    expect(ir.relationships[0].toMultiplicity).toBe('2')
+    expect(ir.relationships[0].fromMultiplicity).toEqual({ lower: 1, upper: 1 })
+    expect(ir.relationships[0].toMultiplicity).toEqual({ lower: 2, upper: 2 })
 
-    expect(ir.relationships[1].fromMultiplicity).toBe('3')
-    expect(ir.relationships[1].toMultiplicity).toBe('4')
+    expect(ir.relationships[1].fromMultiplicity).toEqual({ lower: 3, upper: 3 })
+    expect(ir.relationships[1].toMultiplicity).toEqual({ lower: 4, upper: 4 })
   })
 })

@@ -53,6 +53,11 @@ export class TypeRule {
       args = []
 
       do {
+        if (context.match(TokenType.PIPE)) {
+          raw += ' | '
+          continue
+        }
+
         const argType = this.parse(context) // Recursividad
         args.push(argType)
         raw += argType.raw
@@ -68,28 +73,16 @@ export class TypeRule {
 
     // Soporte para arrays: Tipo[] o Tipo<T>[]
     // Se puede encadenar: string[][]
+    // Soporte para arrays: Tipo[] o Tipo<T>[]
+    // Se mantiene el nombre original del tipo, pero se marca como array.
     while (context.check(TokenType.LBRACKET)) {
       if (context.peekNext().type === TokenType.RBRACKET) {
         context.consume(TokenType.LBRACKET, '')
         context.consume(TokenType.RBRACKET, '')
-
-        // El tipo anterior se convierte en el argumento del nuevo tipo array
-        const innerType: TypeNode = {
-          type: ASTNodeType.TYPE,
-          kind,
-          name,
-          raw,
-          arguments: args,
-          line: token.line,
-          column: token.column,
-        }
-
         kind = 'array'
-        name = 'Array'
-        args = [innerType]
         raw += '[]'
       } else {
-        break // Podría ser una multiplicidad, salimos
+        break
       }
     }
 

@@ -1,4 +1,5 @@
 import { Lexer } from './lexer'
+import type { LanguagePlugin } from '../plugins/language-plugin'
 import { WhitespaceMatcher } from './matchers/whitespace.matcher'
 import { CommentMatcher } from './matchers/comment.matcher'
 import { IdentifierMatcher } from './matchers/identifier.matcher'
@@ -10,7 +11,7 @@ export class LexerFactory {
   /**
    * Crea una instancia del Lexer con la configuración estándar de UMLTS.
    */
-  public static create(input: string): Lexer {
+  public static create(input: string, plugin?: LanguagePlugin): Lexer {
     const matchers = [
       new WhitespaceMatcher(),
       new CommentMatcher(),
@@ -20,6 +21,6 @@ export class LexerFactory {
       new SymbolMatcher(),
     ]
 
-    return new Lexer(input, matchers)
+    return new Lexer(input, matchers, plugin)
   }
 }

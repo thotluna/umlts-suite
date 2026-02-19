@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import { UMLEngine, type ParseResult } from '@umlts/engine'
+import { UMLEngine, type ParseResult, type IRProperty, type IROperation } from '@umlts/engine'
 import { UMLPreviewPanel } from './preview'
 
 export function activate(context: vscode.ExtensionContext) {
@@ -287,20 +287,28 @@ export function activate(context: vscode.ExtensionContext) {
         const entity = result.diagram.entities.find(
           (e) =>
             (e.name === word || e.id === word) &&
-            (e.line === line || e.members.some((m) => m.name === word && m.line === line)),
+            (e.line === line ||
+              e.properties.some((m) => m.name === word && m.line === line) ||
+              e.operations.some((m) => m.name === word && m.line === line)),
         )
 
         if (entity != null) {
           const markdown = new vscode.MarkdownString()
 
           // Caso: Es un miembro de la entidad
-          const member = entity.members.find((m) => m.name === word && m.line === line)
+          const prop = entity.properties.find((p) => p.name === word && p.line === line)
+          const op = entity.operations.find((o) => o.name === word && o.line === line)
+          const member = prop || op
+
           if (member != null) {
+            const isOp = 'parameters' in member
             markdown.appendMarkdown(
-              `### ${member.isStatic ? 'Static ' : ''}${member.parameters != null ? 'Method' : 'Attribute'}: **${member.name}**\n`,
+              `### ${member.isStatic ? 'Static ' : ''}${isOp ? 'Method' : 'Attribute'}: **${member.name}**\n`,
             )
             if (member.docs) markdown.appendMarkdown(`---\n${member.docs}\n`)
-            markdown.appendMarkdown(`\n**Type:** \`${member.type || 'any'}\``)
+
+            const typeInfo = isOp ? (member as IROperation).returnType : (member as IRProperty).type
+            markdown.appendMarkdown(`\n**Type:** \`${typeInfo || 'any'}\``)
             return new vscode.Hover(markdown, range)
           }
 

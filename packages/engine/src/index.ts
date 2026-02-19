@@ -4,8 +4,9 @@ import { SemanticAnalyzer } from './semantics/analyzer'
 import type { IRDiagram } from './generator/ir/models'
 import { ParserContext } from './parser/parser.context'
 import { DiagnosticReporter } from './parser/diagnostic-reporter'
-import type { Diagnostic } from './syntax/diagnostic.types'
-import type { Token } from './syntax/token.types'
+import { DiagnosticSeverity, type Diagnostic } from './syntax/diagnostic.types'
+import { Token } from './syntax/token.types'
+import { TypeScriptPlugin } from './plugins/typescript/typescript.plugin'
 
 export * from './generator/ir/models'
 export * from './syntax/diagnostic.types'
@@ -38,27 +39,29 @@ export class UMLEngine {
   public parse(source: string): ParseResult {
     const diagnostics: Diagnostic[] = []
 
+    // 0. Inicialización del Sistema de Semántica y Plugins
+    // Lo hacemos primero para tener acceso al plugin activo en todas las fases
+    const analyzer = new SemanticAnalyzer()
+    analyzer.getPluginManager().register(new TypeScriptPlugin())
+    analyzer.getPluginManager().activate('typescript')
+    const activePlugin = analyzer.getPluginManager().getActive() ?? undefined
+
     // 1. Análisis Léxico
-    const lexer = LexerFactory.create(source)
+    const lexer = LexerFactory.create(source, activePlugin)
     const tokens = lexer.tokenize()
 
     // 2. Análisis Sintáctico
     const parser = ParserFactory.create()
-    const ast = parser.parse(tokens)
+    const ast = parser.parse(tokens, activePlugin)
 
-    // Acumulamos diagnósticos iniciales (Parser ya los tiene enast.diagnostics si usamos un reporter local allí,
-    // pero para máxima integración, vamos a centralizar el reporte)
     if (ast.diagnostics != null) {
       diagnostics.push(...ast.diagnostics)
     }
 
     // 3. Análisis Semántico
-    // Necesitamos un context para el analyzer que comparta los errores si queremos,
-    // o uno nuevo que capture solo los semánticos.
-    // Dado que ParserContext ahora requiere un reporter, vamos a dárselo.
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
-    const analyzer = new SemanticAnalyzer()
+    const context = new ParserContext(tokens, reporter, activePlugin)
+
     const diagram = analyzer.analyze(ast, context)
 
     // Acumulamos diagnósticos del analizador semántico
@@ -67,7 +70,7 @@ export class UMLEngine {
     return {
       diagram,
       diagnostics,
-      isValid: diagnostics.length === 0,
+      isValid: !diagnostics.some((d) => d.severity === DiagnosticSeverity.ERROR),
     }
   }
 

@@ -71,7 +71,8 @@ export class LayoutEngine {
     const edgesByLCA = this.groupEdgesByLCA(model, layoutOptions)
     const nodeStats = this.calculateNodeStats(model)
 
-    const topLevelNodes = model.nodes.filter((n) => !n.namespace)
+    const nodes = model.nodes || []
+    const topLevelNodes = nodes.filter((n) => !n.namespace)
 
     const elkChildren: ElkNode[] = [
       ...topLevelNodes.map((n) => this.toElkNode(n, nodeStats.get(n.id))),
@@ -143,14 +144,16 @@ export class LayoutEngine {
   private calculateNodeStats(model: DiagramModel): Map<string, { score: number }> {
     const stats = new Map<string, { score: number }>()
 
-    model.nodes.forEach((n) => {
+    const nodes = model.nodes || []
+    nodes.forEach((n) => {
       let baseScore = 0
       if (n.type === 'Interface') baseScore = 5
       if (n.isAbstract) baseScore += 2
       stats.set(n.id, { score: baseScore })
     })
 
-    model.edges.forEach((edge) => {
+    const edges = model.edges || []
+    edges.forEach((edge) => {
       const s = stats.get(edge.from)
       const t = stats.get(edge.to)
       if (!s || !t) return
@@ -178,7 +181,8 @@ export class LayoutEngine {
   ): Map<string, ElkExtendedEdge[]> {
     const groups = new Map<string, ElkExtendedEdge[]>()
 
-    model.edges.forEach((edge, index) => {
+    const edges = model.edges || []
+    edges.forEach((edge, index) => {
       const lcaId = this.findLCA(edge.from, edge.to)
 
       const isHierarchy =

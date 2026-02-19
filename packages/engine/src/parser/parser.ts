@@ -4,6 +4,7 @@ import type { ProgramNode, StatementNode } from '../syntax/nodes'
 import { ParserContext } from './parser.context'
 import { DiagnosticReporter } from './diagnostic-reporter'
 import type { StatementRule, Orchestrator } from './rule.types'
+import type { LanguagePlugin } from '../plugins/language-plugin'
 
 /**
  * Parser: El protagonista y cerebro del proceso de transformación.
@@ -17,10 +18,10 @@ export class Parser implements Orchestrator {
     this.rules = rules
   }
 
-  public parse(tokens: Token[]): ProgramNode {
+  public parse(tokens: Token[], plugin?: LanguagePlugin): ProgramNode {
     // El Parser (Cerebro) inicializa los recursos de la sesión
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const context = new ParserContext(tokens, reporter, plugin)
 
     const body: StatementNode[] = []
     const firstToken = context.peek()

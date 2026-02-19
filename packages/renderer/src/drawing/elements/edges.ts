@@ -2,6 +2,7 @@ import { type UMLEdge, type DiagramConfig } from '../../core/types'
 import { type Theme } from '../../core/theme'
 import { SVGBuilder as svg } from '../svg-helpers'
 import { DrawingRegistry } from '../drawable'
+import { normalizeMultiplicity } from '../../adaptation/multiplicity'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -21,14 +22,20 @@ const LABEL_OFFSET = 12
  *   arrow    → markerWidth 10 → clearance 11
  */
 const END_CLEARANCE: Record<string, number> = {
+  Generalization: 13,
+  GENERALIZATION: 13,
   Inheritance: 13,
   INHERITANCE: 13,
+  InterfaceRealization: 13,
+  INTERFACE_REALIZATION: 13,
   Implementation: 13,
   IMPLEMENTATION: 13,
   Association: 11,
   ASSOCIATION: 11,
   Dependency: 11,
   DEPENDENCY: 11,
+  Usage: 11,
+  USAGE: 11,
   Composition: 2,
   COMPOSITION: 2,
   Aggregation: 2,
@@ -42,14 +49,20 @@ const START_CLEARANCE: Record<string, number> = {
   COMPOSITION: 20,
   Aggregation: 20,
   AGGREGATION: 20,
+  Generalization: 2,
+  GENERALIZATION: 2,
   Inheritance: 2,
   INHERITANCE: 2,
+  InterfaceRealization: 2,
+  INTERFACE_REALIZATION: 2,
   Implementation: 2,
   IMPLEMENTATION: 2,
   Association: 2,
   ASSOCIATION: 2,
   Dependency: 2,
   DEPENDENCY: 2,
+  Usage: 2,
+  USAGE: 2,
   Bidirectional: 2,
   BIDIRECTIONAL: 2,
 }
@@ -78,8 +91,22 @@ export function renderEdge(
 
   const d = trimmed.map((wp, i) => `${i === 0 ? 'M' : 'L'} ${wp.x} ${wp.y}`).join(' ')
 
-  const isDashed = type === 'Implementation' || type === 'Dependency'
-  const isDiamond = type === 'Composition' || type === 'Aggregation'
+  const isDashed =
+    type === 'Implementation' ||
+    type === 'IMPLEMENTATION' ||
+    type === 'InterfaceRealization' ||
+    type === 'INTERFACE_REALIZATION' ||
+    type === 'Dependency' ||
+    type === 'DEPENDENCY' ||
+    type === 'Usage' ||
+    type === 'USAGE'
+
+  const isDiamond =
+    type === 'Composition' ||
+    type === 'COMPOSITION' ||
+    type === 'Aggregation' ||
+    type === 'AGGREGATION'
+
   const isBidirectional = type === 'Bidirectional' || type === 'BIDIRECTIONAL'
 
   const pathEl = svg.path({
@@ -111,7 +138,7 @@ export function renderEdge(
           'font-size': theme.fontSizeSmall,
           'text-anchor': pos.anchor,
         },
-        svg.escape(edge.fromMultiplicity),
+        svg.escape(normalizeMultiplicity(edge.fromMultiplicity)),
       ),
     )
   }
@@ -128,7 +155,7 @@ export function renderEdge(
           'font-size': theme.fontSizeSmall,
           'text-anchor': pos.anchor,
         },
-        svg.escape(edge.toMultiplicity),
+        svg.escape(normalizeMultiplicity(edge.toMultiplicity)),
       ),
     )
   }
@@ -241,7 +268,7 @@ export function renderMarkers(theme: Theme): string {
     'defs',
     {},
     `
-    <!-- ── Inheritance: hollow triangle, tip at right ── -->
+    <!-- ── Inheritance (Generalization): hollow triangle, tip at right ── -->
     <marker id="marker-inheritance"
             viewBox="0 0 14 14" refX="13" refY="7"
             markerWidth="12" markerHeight="12"
@@ -249,9 +276,23 @@ export function renderMarkers(theme: Theme): string {
       <path d="M 1 1 L 13 7 L 1 13 Z"
             fill="${bg}" stroke="${stroke}" stroke-linejoin="round" stroke-width="1.5"/>
     </marker>
+    <marker id="marker-generalization"
+            viewBox="0 0 14 14" refX="13" refY="7"
+            markerWidth="12" markerHeight="12"
+            orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 1 1 L 13 7 L 1 13 Z"
+            fill="${bg}" stroke="${stroke}" stroke-linejoin="round" stroke-width="1.5"/>
+    </marker>
 
-    <!-- ── Implementation: same hollow triangle, used with dashed line ── -->
+    <!-- ── Implementation (InterfaceRealization): same hollow triangle ── -->
     <marker id="marker-implementation"
+            viewBox="0 0 14 14" refX="13" refY="7"
+            markerWidth="12" markerHeight="12"
+            orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 1 1 L 13 7 L 1 13 Z"
+            fill="${bg}" stroke="${stroke}" stroke-linejoin="round" stroke-width="1.5"/>
+    </marker>
+    <marker id="marker-interfacerealization"
             viewBox="0 0 14 14" refX="13" refY="7"
             markerWidth="12" markerHeight="12"
             orient="auto" markerUnits="userSpaceOnUse">
@@ -279,7 +320,7 @@ export function renderMarkers(theme: Theme): string {
             fill="${bg}" stroke="${stroke}" stroke-linejoin="round" stroke-width="1.5"/>
     </marker>
 
-    <!-- ── Association: open arrowhead at TARGET ── -->
+    <!-- ── Association / Usage: open arrowhead at TARGET ── -->
     <marker id="marker-association"
             viewBox="0 0 12 12" refX="10" refY="6"
             markerWidth="10" markerHeight="10"
@@ -291,6 +332,14 @@ export function renderMarkers(theme: Theme): string {
 
     <!-- ── Dependency: same open arrowhead, used with dashed line ── -->
     <marker id="marker-dependency"
+            viewBox="0 0 12 12" refX="10" refY="6"
+            markerWidth="10" markerHeight="10"
+            orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 1 1 L 10 6 L 1 11"
+            fill="none" stroke="${stroke}" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="marker-usage"
             viewBox="0 0 12 12" refX="10" refY="6"
             markerWidth="10" markerHeight="10"
             orient="auto" markerUnits="userSpaceOnUse">

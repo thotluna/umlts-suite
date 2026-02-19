@@ -1,30 +1,22 @@
+import type { IRMultiplicity } from '../core/types'
+
 /**
- * Normalizes multiplicity strings from the IR to a standard UML format.
- * Examples:
- * - "[1]"    -> "1"
- * - "[*]"    -> "*"
- * - "[1..*]" -> "1..*"
- * - "many"   -> "*"
- * - "1"      -> "1"
- * - "[]"     -> "0..*"
+ * Normalizes multiplicity from the IR to a standard UML format.
  */
-export function normalizeMultiplicity(raw: string | undefined): string {
-  if (!raw) return ''
+export function normalizeMultiplicity(m: IRMultiplicity | string | undefined): string {
+  if (!m) return ''
 
-  let normalized = raw.trim()
-
-  // Handle common text-based aliases
-  if (normalized.toLowerCase() === 'many') return '*'
-  if (normalized === '1') return '1'
-  if (normalized === '[]') return '0..*'
-
-  // Remove surrounding brackets if present
-  if (normalized.startsWith('[') && normalized.endsWith(']')) {
-    normalized = normalized.substring(1, normalized.length - 1)
+  if (typeof m === 'string') {
+    let normalized = m.trim()
+    if (normalized.toLowerCase() === 'many') return '*'
+    if (normalized === '[]') return '0..*'
+    if (normalized.startsWith('[') && normalized.endsWith(']')) {
+      normalized = normalized.substring(1, normalized.length - 1)
+    }
+    return normalized
   }
 
-  // Handle internal normalization (e.g., [0..*])
-  if (normalized === '*') return '*'
-
-  return normalized
+  const { lower, upper } = m
+  if (lower === upper) return `${lower}`
+  return `${lower}..${upper}`
 }
