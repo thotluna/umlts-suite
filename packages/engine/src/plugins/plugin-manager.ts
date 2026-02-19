@@ -28,11 +28,7 @@ export class PluginManager {
    * Returns the currently active plugin, if any.
    */
   public getActive(): LanguagePlugin | null {
-    if (this.activePlugin) return this.activePlugin
-    if (this.plugins.size > 0) {
-      return this.plugins.values().next().value || null
-    }
-    return null
+    return this.activePlugin
   }
 
   /**

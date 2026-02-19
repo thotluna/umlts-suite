@@ -40,10 +40,16 @@ export class UMLEngine {
     const diagnostics: Diagnostic[] = []
 
     // 0. Inicialización del Sistema de Semántica y Plugins
-    // Lo hacemos primero para tener acceso al plugin activo en todas las fases
     const analyzer = new SemanticAnalyzer()
-    analyzer.getPluginManager().register(new TypeScriptPlugin())
-    analyzer.getPluginManager().activate('typescript')
+
+    // Solo registramos el plugin si detectamos que se solicita en la configuración del script
+    // Esto evita consumo de memoria innecesario y efectos secundarios en el core UML
+    if (source.includes('language:') && (source.includes('ts') || source.includes('typescript'))) {
+      analyzer.getPluginManager().register(new TypeScriptPlugin())
+      // No activamos aquí. La activación ocurrirá en el ConfigStore durante el análisis semántico
+      // basándose en el valor real del nodo Config del AST.
+    }
+
     const activePlugin = analyzer.getPluginManager().getActive() ?? undefined
 
     // 1. Análisis Léxico
