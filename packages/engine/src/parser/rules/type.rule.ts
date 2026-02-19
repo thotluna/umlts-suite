@@ -53,6 +53,11 @@ export class TypeRule {
       args = []
 
       do {
+        if (context.match(TokenType.PIPE)) {
+          raw += ' | '
+          continue
+        }
+
         const argType = this.parse(context) // Recursividad
         args.push(argType)
         raw += argType.raw
