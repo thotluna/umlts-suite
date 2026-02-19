@@ -154,6 +154,8 @@ export class TypeScriptPlugin implements LanguagePlugin {
       isStatic: false,
       isActive: false,
       isLeaf: false,
+      isFinal: false,
+      isRoot: false,
       namespace,
     }
   }

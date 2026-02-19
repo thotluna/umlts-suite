@@ -35,6 +35,18 @@ describe('Multiplicity and Composite Rules', () => {
     expect(errors[0].message).toContain('Inconsistent multiplicity')
   })
 
+  it('should NOT report error in composite aggregation when whole end multiplicity is 1', () => {
+    const code = `
+      class Whole {}
+      class Part {}
+      Whole "1" >* "1" Part
+    `
+    const { diagnostics } = engine.parse(code)
+
+    const errors = diagnostics.filter((d) => d.code === DiagnosticCode.SEMANTIC_COMPOSITE_VIOLATION)
+    expect(errors.length).toBe(0)
+  })
+
   it('should report error in composite aggregation when whole end multiplicity is > 1', () => {
     const code = `
       class Whole {}
@@ -46,18 +58,6 @@ describe('Multiplicity and Composite Rules', () => {
     const errors = diagnostics.filter((d) => d.code === DiagnosticCode.SEMANTIC_COMPOSITE_VIOLATION)
     expect(errors.length).toBe(1)
     expect(errors[0].message).toContain('Composition Violation')
-  })
-
-  it('should NOT report error in composite aggregation when whole end multiplicity is 1', () => {
-    const code = `
-      class Whole {}
-      class Part {}
-      Whole "1" >* "1" Part
-    `
-    const { diagnostics } = engine.parse(code)
-
-    const errors = diagnostics.filter((d) => d.code === DiagnosticCode.SEMANTIC_COMPOSITE_VIOLATION)
-    expect(errors.length).toBe(0)
   })
 
   it('should correctly handle "*" as infinity in multiplicity', () => {
@@ -125,6 +125,7 @@ describe('Multiplicity and Composite Rules', () => {
     )
     expect(errors.length).toBe(1)
   })
+
   it('should handle [ * ] and [ 0..* ] as equivalent', () => {
     const code = `
       class A {

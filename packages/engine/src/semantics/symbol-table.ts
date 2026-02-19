@@ -152,6 +152,8 @@ export class SymbolTable {
         isStatic: modifiers?.isStatic || false,
         isActive: modifiers?.isActive || false,
         isLeaf: modifiers?.isLeaf || false,
+        isFinal: modifiers?.isFinal || false,
+        isRoot: modifiers?.isRoot || false,
         namespace: resolution.fqn.includes('.')
           ? resolution.fqn.split('.').slice(0, -1).join('.')
           : '',

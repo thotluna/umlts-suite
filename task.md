@@ -89,6 +89,10 @@
 - [x] **Structural Integrity** (Enums e Interfaces no pueden ser "Whole" en composiciones).
 - [x] **Classifier Validation** (Prohibir asociaciones/herencia con Paquetes).
 - [x] **Modifiers: leaf, final, root** (Soportar y validar modificadores de herencia).
+  - [x] Propagación de `isFinal` e `isRoot` al `IREntity` (antes solo existía `isLeaf`).
+  - [x] `final` en operaciones mapeado a `isLeaf=true` (semántica UML equivalente).
+  - [x] Corrección de tests: tipos UML puros (`Real`, `Integer`) en lugar de TS (`number`) para tests sin plugin.
+  - [x] Corrección de multiplicidades simples (`[2]` = `{lower:2, upper:2}`) vs rangos (`[0..2]`).
 - [ ] **Redefinition & Subsets** (Poder decir que una propiedad redefine a otra).
 - [ ] **Derived Properties** (Sintaxis `/propiedad` y validación).
 - [ ] **Components & Ports** (Implementación de puertos físicos en límites de caja).

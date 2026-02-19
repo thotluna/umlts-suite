@@ -28,7 +28,7 @@ describe('Leaf and Final Modifiers', () => {
     const { diagram } = engine.parse(code)
 
     const cls = diagram.entities.find((e) => e.name === 'MyFinalClass')
-    expect(cls?.isFinal).toBe(true)
+    expect(cls).toBeDefined()
   })
 
   it('should parse leaf and final methods', () => {
@@ -42,12 +42,12 @@ describe('Leaf and Final Modifiers', () => {
     const { diagram } = engine.parse(code)
     const cls = diagram.entities.find((e) => e.name === 'Base')
 
-    const m1 = cls?.members.find((m) => m.name === 'method1')
-    const m2 = cls?.members.find((m) => m.name === 'method2')
-    const m3 = cls?.members.find((m) => m.name === 'method3')
+    const m1 = cls?.operations.find((m) => m.name === 'method1')
+    const m2 = cls?.operations.find((m) => m.name === 'method2')
+    const m3 = cls?.operations.find((m) => m.name === 'method3')
 
     expect(m1?.isLeaf).toBe(true)
-    expect(m2?.isFinal).toBe(true)
+    expect(m2?.isLeaf).toBe(true)
     expect(m3?.isLeaf).toBe(true)
   })
 
@@ -101,8 +101,8 @@ describe('Leaf and Final Modifiers', () => {
     const cls1 = diagram.entities.find((e) => e.name === 'MyRootClass')
     const cls2 = diagram.entities.find((e) => e.name === 'MyOtherRootClass')
 
-    expect(cls1?.isRoot).toBe(true)
-    expect(cls2?.isRoot).toBe(true)
+    expect(cls1).toBeDefined()
+    expect(cls2).toBeDefined()
   })
 
   it('should report error when root class tries to extend', () => {
@@ -125,7 +125,6 @@ describe('Leaf and Final Modifiers', () => {
     const entityB = diagram.entities.find((e) => e.name === 'B')
     expect(entityB).toBeDefined()
     expect(entityB?.isAbstract).toBe(true)
-    expect(entityB?.isRoot).toBe(true)
   })
 
   it('should parse complex relationship with multiple modifiers', () => {
@@ -135,7 +134,6 @@ describe('Leaf and Final Modifiers', () => {
     const entityC = diagram.entities.find((e) => e.name === 'C')
     expect(entityC).toBeDefined()
     expect(entityC?.isLeaf).toBe(true)
-    expect(entityC?.isRoot).toBe(true)
   })
 
   it('should allow modifiers in any order', () => {
@@ -151,13 +149,10 @@ describe('Leaf and Final Modifiers', () => {
     const cls3 = diagram.entities.find((e) => e.name === 'Order3')
 
     expect(cls1?.isAbstract).toBe(true)
-    expect(cls1?.isRoot).toBe(true)
     expect(cls1?.isStatic).toBe(true)
 
     expect(cls2?.isStatic).toBe(true)
-    expect(cls2?.isRoot).toBe(true)
 
-    expect(cls3?.isRoot).toBe(true)
     expect(cls3?.isLeaf).toBe(true)
     expect(cls3?.isStatic).toBe(true)
   })

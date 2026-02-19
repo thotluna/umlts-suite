@@ -112,6 +112,8 @@ export interface IREntity {
   isAbstract: boolean
   isActive: boolean
   isLeaf: boolean
+  isFinal: boolean
+  isRoot: boolean
   isStatic: boolean
 
   typeParameters?: string[]

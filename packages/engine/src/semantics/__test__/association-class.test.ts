@@ -22,32 +22,32 @@ describe('Association Class Support', () => {
       class Estudiante
       class Curso
       class Matricula <> (Estudiante [1], Curso [*]) {
-        nota: number
+        nota: Real
       }
     `
     const ir = analyze(input)
 
-    // Verificar que existen las 3 entidades
+    // 3 entities: Estudiante, Curso, Matricula (nota: Real is a UML primitive)
     expect(ir.entities).toHaveLength(3)
     const matricula = ir.entities.find((e) => e.name === 'Matricula')
     expect(matricula).toBeDefined()
-    expect(matricula?.members).toHaveLength(1)
-    expect(matricula?.members[0].name).toBe('nota')
+    expect(matricula?.properties).toHaveLength(1)
+    expect(matricula?.properties[0].name).toBe('nota')
 
     // Verificar la relación bidireccional vinculada a Matricula
     expect(ir.relationships).toHaveLength(1)
     const rel = ir.relationships[0]
     expect(rel.from).toContain('Estudiante')
     expect(rel.to).toContain('Curso')
-    expect(rel.fromMultiplicity).toBe('1')
-    expect(rel.toMultiplicity).toBe('*')
+    expect(rel.fromMultiplicity).toEqual({ lower: 1, upper: 1 })
+    expect(rel.toMultiplicity).toEqual({ lower: 0, upper: '*' })
     expect(rel.associationClassId).toBe(matricula?.id)
   })
 
   it('should support implicit entities in association class definition', () => {
     const input = `
       class Empleo <> (Empresa [0..1], Persona [*]) {
-        sueldo: number
+        sueldo: Real
       }
     `
     const ir = analyze(input)
@@ -83,8 +83,8 @@ describe('Association Class Support', () => {
     expect(relAE).toBeDefined()
     expect(relBF).toBeDefined()
     expect(relC).toBeDefined()
-    expect(relC?.fromMultiplicity).toBe('*')
-    expect(relC?.toMultiplicity).toBe('0..2')
+    expect(relC?.fromMultiplicity).toEqual({ lower: 0, upper: '*' })
+    expect(relC?.toMultiplicity).toEqual({ lower: 0, upper: 2 })
   })
 
   it('should respect comma boundaries in participants: (A >> E, B)', () => {
@@ -145,8 +145,8 @@ describe('Association Class Support', () => {
       (r) => r.from.includes('Customer') && r.to.includes('Plan'),
     )
     expect(subRel).toBeDefined()
-    expect(subRel?.fromMultiplicity).toBe('1')
-    expect(subRel?.toMultiplicity).toBe('*')
+    expect(subRel?.fromMultiplicity).toEqual({ lower: 1, upper: 1 })
+    expect(subRel?.toMultiplicity).toEqual({ lower: 0, upper: '*' })
 
     // Verificar relaciones heredadas
     const inherit1 = ir.relationships.find(

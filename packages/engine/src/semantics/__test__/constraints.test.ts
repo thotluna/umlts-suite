@@ -58,9 +58,9 @@ describe('Constraint Semantics', () => {
 
     // Check entities
     const engine = ir.entities.find((e) => e.name === 'Engine')
-    expect(engine!.members[0].constraints).toHaveLength(1)
-    expect(engine!.members[0].constraints![0].kind).toBe('xor')
-    expect(engine!.members[0].constraints![0].targets).toContain('g1')
+    expect(engine!.properties[0].constraints).toHaveLength(1)
+    expect(engine!.properties[0].constraints![0].kind).toBe('xor')
+    expect(engine!.properties[0].constraints![0].targets).toContain('g1')
 
     // Check inferred relationships
     expect(ir.relationships).toHaveLength(2)

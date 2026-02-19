@@ -181,7 +181,7 @@ export class RelationshipAnalyzer {
       associationClassId: meta.associationClassId,
       isNavigable: meta.isNavigable ?? true,
       constraints:
-        meta.constraints ||
+        meta.constraints?.map((c) => (c.kind === 'xor' ? { ...c, kind: 'xor_member' } : c)) ||
         (meta.constraintGroupId
           ? [{ kind: 'xor_member', targets: [meta.constraintGroupId] }]
           : undefined),
@@ -257,12 +257,6 @@ export class RelationshipAnalyzer {
     if (node != null && 'fromMultiplicity' in node) {
       const relNode = node as RelationshipNode
       if (relNode.fromMultiplicity) {
-        irRel.fromMultiplicity = this.parseMultiplicity(
-          relNode.fromMultiplicity,
-          relNode.line,
-          relNode.column,
-        )
-
         const bounds = MultiplicityValidator.validateBounds(
           relNode.fromMultiplicity,
           relNode.line,
@@ -270,18 +264,25 @@ export class RelationshipAnalyzer {
           this.context,
         )
 
-        if (relType === IRRelationshipType.COMPOSITION && bounds && bounds.upper > 1) {
-          const errorToken: Token = {
-            line: relNode.line || 1,
-            column: relNode.column || 1,
-            type: TokenType.UNKNOWN,
-            value: relNode.fromMultiplicity, // Use the multiplicity string for highlighting
+        if (bounds) {
+          irRel.fromMultiplicity = {
+            lower: bounds.lower,
+            upper: bounds.upper === Infinity ? '*' : bounds.upper,
           }
-          this.context?.addError(
-            `Composition Violation: An object cannot be part of more than one composite at the same time (upper multiplicity > 1 on container end).`,
-            errorToken,
-            DiagnosticCode.SEMANTIC_COMPOSITE_VIOLATION,
-          )
+
+          if (relType === IRRelationshipType.COMPOSITION && bounds.upper > 1) {
+            const errorToken: Token = {
+              line: relNode.line || 1,
+              column: relNode.column || 1,
+              type: TokenType.UNKNOWN,
+              value: relNode.fromMultiplicity,
+            }
+            this.context?.addError(
+              `Composition Violation: An object cannot be part of more than one composite at the same time (upper multiplicity > 1 on container end).`,
+              errorToken,
+              DiagnosticCode.SEMANTIC_COMPOSITE_VIOLATION,
+            )
+          }
         }
       }
       if (relNode.toMultiplicity) {
