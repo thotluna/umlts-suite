@@ -21,6 +21,8 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^22.0.0",
+    "fast-glob": "^3.3.3",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
