@@ -1,711 +1,122 @@
-import type {
-  ProgramNode,
-  PackageNode,
-  EntityNode,
-  RelationshipNode,
-  CommentNode,
-  ConfigNode,
-  AssociationClassNode,
-  ConstraintNode,
-  Modifiers,
-  TypeNode,
-} from '../syntax/nodes'
-import { ASTNodeType } from '../syntax/nodes'
-import type { ASTVisitor } from '../syntax/visitor'
-import { walkAST } from '../syntax/visitor'
-import type { IRDiagram, IRRelationship, IRConstraint } from '../generator/ir/models'
-
-import { SymbolTable } from './symbol-table'
+import type { ProgramNode } from '../syntax/nodes'
+import type { IRDiagram } from '../generator/ir/models'
 import type { ParserContext } from '../parser/parser.context'
+
+// Core Components
+import { SymbolTable } from './symbol-table'
+import { PluginManager } from '../plugins/plugin-manager'
+
+// Session & State
+import { AnalysisSession } from './session/analysis-session'
+import { ConfigStore } from './session/config-store'
+import { ConstraintRegistry } from './session/constraint-registry'
+
+// Analyzers & Validators
 import { EntityAnalyzer } from './analyzers/entity-analyzer'
 import { RelationshipAnalyzer } from './analyzers/relationship-analyzer'
 import { ConstraintAnalyzer } from './analyzers/constraint-analyzer'
 import { HierarchyValidator } from './validators/hierarchy-validator'
-import { TypeValidator } from './utils/type-validator'
-import { DiagnosticCode } from '../syntax/diagnostic.types'
-import { TokenType, type Token } from '../syntax/token.types'
-import { IRRelationshipType, IRVisibility } from '../generator/ir/models'
-import { PluginManager } from '../plugins/plugin-manager'
+
+// Passes
+import { DiscoveryPass } from './passes/discovery.pass'
+import { DefinitionPass } from './passes/definition.pass'
+import { ResolutionPass } from './passes/resolution.pass'
+
+// Inference & Resolution Strategy
+import { TypeResolutionPipeline } from './inference/type-resolution.pipeline'
+import { UMLTypeResolver } from './inference/uml-type-resolver'
+import { PluginTypeResolutionAdapter } from './inference/plugin-adapter'
+import { MemberInference } from './inference/member-inference'
+import { AssociationClassResolver } from './resolvers/association-class.resolver'
 
 /**
- * Semantic Analyzer that transforms the AST into a resolved IR.
- * Orchestrates the logic through specialized analyzers.
+ * Semantic Analyzer (Refactored).
+ * Orchestrates the analysis process by coordinating specialized passes and components.
+ * It now acts as a Facade/Director, delegating all logic to the new architecture.
  */
 export class SemanticAnalyzer {
-  private readonly symbolTable = new SymbolTable()
-  private readonly relationships: IRRelationship[] = []
   private readonly pluginManager = new PluginManager()
-  private currentNamespace: string[] = []
-  private constraints: IRConstraint[] = []
-  private config: Record<string, unknown> = {}
-  private context?: ParserContext
 
-  private entityAnalyzer!: EntityAnalyzer
-  private relationshipAnalyzer!: RelationshipAnalyzer
-  private constraintAnalyzer!: ConstraintAnalyzer
-  private hierarchyValidator!: HierarchyValidator
-
+  // Facade accessors for backward compatibility or external usage
   public getPluginManager(): PluginManager {
     return this.pluginManager
   }
 
+  /**
+   * Main entry point for semantic analysis.
+   */
   public analyze(program: ProgramNode, context: ParserContext): IRDiagram {
-    this.context = context
+    // 1. Initialize State Container (Session)
+    const symbolTable = new SymbolTable()
+    const constraintRegistry = new ConstraintRegistry()
+    const configStore = new ConfigStore(this.pluginManager, symbolTable)
 
-    // Initialize sub-components
-    this.constraintAnalyzer = new ConstraintAnalyzer(this.symbolTable, context)
-    this.hierarchyValidator = new HierarchyValidator(this.symbolTable, context)
-    this.entityAnalyzer = new EntityAnalyzer(
-      this.symbolTable,
-      this.constraintAnalyzer,
-      this.context,
+    const session = new AnalysisSession(
+      symbolTable,
+      constraintRegistry,
+      configStore,
       this.pluginManager,
-    )
-    this.relationshipAnalyzer = new RelationshipAnalyzer(
-      this.symbolTable,
-      this.relationships,
-      this.hierarchyValidator,
       context,
     )
 
-    // Pass 1: Discovery (Register explicit entities)
-    walkAST(
-      program,
-      new DiscoveryVisitor(
-        this,
-        this.symbolTable,
-        this.currentNamespace,
-        this.entityAnalyzer,
-        this.hierarchyValidator,
-        context,
-      ),
+    // 2. Initialize Analyzers & Validators
+    // (These are still "heavy" services that manipulate the session state)
+    const constraintAnalyzer = new ConstraintAnalyzer(symbolTable, context)
+    const hierarchyValidator = new HierarchyValidator(symbolTable, context)
+    const entityAnalyzer = new EntityAnalyzer(
+      symbolTable,
+      constraintAnalyzer,
+      context,
+      this.pluginManager,
+    )
+    const relationshipAnalyzer = new RelationshipAnalyzer(
+      symbolTable,
+      session.relationships, // Binds directly to session state
+      hierarchyValidator,
+      context,
     )
 
-    // Pass 2: Definition (Members and Types)
-    this.currentNamespace = []
-    walkAST(
-      program,
-      new DefinitionVisitor(this, this.symbolTable, this.currentNamespace, this.entityAnalyzer),
+    // 3. Initialize Resolution Architecture
+    const typePipeline = new TypeResolutionPipeline()
+    typePipeline.add(new UMLTypeResolver())
+    // Add dynamic plugin support
+    typePipeline.add(new PluginTypeResolutionAdapter(this.pluginManager))
+
+    const memberInference = new MemberInference(session, relationshipAnalyzer, typePipeline)
+    const assocClassResolver = new AssociationClassResolver(
+      session,
+      relationshipAnalyzer,
+      [], // Initial empty namespace
     )
 
-    // Pass 3: Resolution (Relationships and Implicit Entities)
-    this.currentNamespace = []
-    walkAST(
-      program,
-      new ResolutionVisitor(
-        this,
-        this.symbolTable,
-        this.relationships,
-        this.currentNamespace,
-        this.relationshipAnalyzer,
-        this.constraintAnalyzer,
-        this.constraints,
-        context,
-      ),
+    // 4. Initialize Passes
+    const discoveryPass = new DiscoveryPass(session, entityAnalyzer, hierarchyValidator)
+    const definitionPass = new DefinitionPass(session, entityAnalyzer)
+    const resolutionPass = new ResolutionPass(
+      session,
+      relationshipAnalyzer,
+      constraintAnalyzer,
+      assocClassResolver,
     )
 
-    // Pass 4: Inference and Final Validations
-    this.inferRelationships()
-    this.hierarchyValidator.validateNoCycles(this.relationships)
-    this.cleanupRedundantMembers()
+    // 5. Execute Passes (The 3-Pass Compiler Strategy)
 
-    return {
-      entities: this.symbolTable.getAllEntities(),
-      relationships: this.relationships,
-      constraints: this.constraints,
-      config: this.config,
-    }
-  }
+    // Pass 1: Discovery (Register entities, namespaces, config)
+    discoveryPass.run(program)
 
-  public getConstraintAnalyzer(): ConstraintAnalyzer {
-    return this.constraintAnalyzer
-  }
+    // Pass 2: Definition (Add members, process internals)
+    definitionPass.run(program)
 
-  public addConstraint(constraint: IRConstraint): void {
-    // Evitar duplicados de restricciones globales (especialmente para XOR por ID de grupo)
-    const exists = this.constraints.some(
-      (c) =>
-        c.kind === constraint.kind &&
-        JSON.stringify(c.targets) === JSON.stringify(constraint.targets),
-    )
-    if (!exists) {
-      this.constraints.push(constraint)
-    }
-  }
+    // Pass 3: Resolution (Connect relationships, implicit entities)
+    resolutionPass.run(program)
 
-  public addConfig(options: Record<string, unknown>): void {
-    this.config = { ...this.config, ...options }
+    // 6. Post-Process Inference
+    memberInference.run()
 
-    // If a language is specified, activate its plugin
-    if (options.language && typeof options.language === 'string') {
-      this.activateLanguage(options.language)
-    }
-  }
+    // 7. Final Validation
+    hierarchyValidator.validateNoCycles(session.relationships)
 
-  private activateLanguage(language: string): void {
-    if (this.pluginManager.supports(language)) {
-      this.pluginManager.activate(language)
-      const plugin = this.pluginManager.getActive()
-      if (plugin) {
-        // Initialize hiddenEntities in config if not present
-        if (!this.config.hiddenEntities) {
-          this.config.hiddenEntities = []
-        }
-        const hidden = this.config.hiddenEntities as string[]
-
-        // Load Standard Library into SymbolTable
-        plugin.getStandardLibrary().forEach((entity) => {
-          this.symbolTable.register(entity)
-          // Hide standard library entities by default from rendering
-          hidden.push(entity.id)
-
-          // Also register the namespace of the library
-          if (entity.namespace) {
-            this.symbolTable.registerNamespace(entity.namespace)
-          }
-        })
-      }
-    }
-  }
-
-  private inferRelationships(): void {
-    const entities = this.symbolTable.getAllEntities()
-    entities.forEach((entity) => {
-      // 1. Inferencia desde Propiedades (Atributos)
-      ;(entity.properties || []).forEach((prop) => {
-        if (prop.type) {
-          let relType = IRRelationshipType.ASSOCIATION
-          if (prop.aggregation === 'shared') relType = IRRelationshipType.AGGREGATION
-          if (prop.aggregation === 'composite') relType = IRRelationshipType.COMPOSITION
-          this.inferFromType(
-            entity.id,
-            prop.type,
-            entity.namespace,
-            prop.name,
-            relType,
-            undefined, // La multiplicidad ahora es un objeto, se resolverá en el Refiner
-            prop.visibility,
-            undefined,
-            undefined,
-            prop.line,
-            prop.column,
-            undefined,
-            prop.constraints,
-            prop.label,
-          )
-        }
-      })
-
-      // 2. Inferencia desde Operaciones (Retornos)
-      ;(entity.operations || []).forEach((op) => {
-        if (op.returnType) {
-          this.inferFromType(
-            entity.id,
-            op.returnType,
-            entity.namespace,
-            undefined,
-            IRRelationshipType.ASSOCIATION,
-            undefined,
-            op.visibility,
-            undefined,
-            undefined,
-            op.line,
-            op.column,
-            undefined,
-            op.constraints,
-          )
-        }
-      })
-    })
-  }
-
-  private inferFromType(
-    fromFQN: string,
-    typeName: string,
-    fromNamespace?: string,
-    label?: string,
-    relType: IRRelationshipType = IRRelationshipType.ASSOCIATION,
-    toMultiplicity?: string,
-    visibility?: IRVisibility,
-    fromMultiplicity?: string,
-    associationClassId?: string,
-    line?: number,
-    column?: number,
-    targetModifiers?: Modifiers,
-    memberConstraints?: IRConstraint[],
-    explicitLabel?: string,
-  ): void {
-    const plugin = this.pluginManager.getActive()
-    let effectiveTypeName = typeName
-
-    // 1. Language-specific primitive mapping
-    if (plugin) {
-      const baseName = TypeValidator.getBaseTypeName(typeName)
-      const mapped = plugin.mapPrimitive(baseName)
-      if (mapped) {
-        effectiveTypeName = typeName.replace(baseName, mapped)
-      }
-    }
-
-    if (TypeValidator.isPrimitive(effectiveTypeName)) return
-
-    const fromEntity = this.symbolTable.get(fromFQN)
-    const baseType = TypeValidator.getBaseTypeName(effectiveTypeName)
-
-    // Skip if target is a generic parameter of the current entity
-    if (fromEntity?.typeParameters?.includes(baseType)) return
-
-    // 2. Language-specific type resolution (Utility types, arrays)
-    // 2. Plugin-based type resolution (e.g., Array<T> -> T with multiplicity *)
-    if (plugin) {
-      const typeNodeLike = this.findTypeNode(effectiveTypeName)
-      if (line) typeNodeLike.line = line
-      if (column) typeNodeLike.column = column
-
-      const mapping = plugin.resolveType(typeNodeLike)
-
-      if (mapping) {
-        if (mapping.isIgnored) return
-
-        const finalToFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-          mapping.targetName,
-          fromNamespace || '',
-          targetModifiers || {},
-          line,
-          column,
-          fromEntity
-            ? { sourceType: fromEntity.type, relationshipKind: mapping.relationshipType || relType }
-            : undefined,
-          fromEntity?.typeParameters,
-        )
-
-        this.relationshipAnalyzer.addResolvedRelationship(
-          fromFQN,
-          finalToFQN,
-          mapping.relationshipType || relType,
-          {
-            line,
-            column,
-            label: mapping.label,
-            toName: explicitLabel || label, // Property name as role fallback
-            toMultiplicity: mapping.multiplicity || toMultiplicity,
-            fromMultiplicity,
-            visibility,
-            associationClassId,
-            constraints: memberConstraints,
-          },
-        )
-        return
-      }
-    }
-
-    if (TypeValidator.isPrimitive(baseType)) return
-
-    const finalToFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-      baseType,
-      fromNamespace || '',
-      targetModifiers || {},
-      line,
-      column,
-      fromEntity ? { sourceType: fromEntity.type, relationshipKind: relType } : undefined,
-      fromEntity?.typeParameters,
-    )
-
-    // Use standard flow
-    this.relationshipAnalyzer.addResolvedRelationship(fromFQN, finalToFQN, relType, {
-      line,
-      column,
-      label, // If it's a manual relationship, label is the connection name
-      toName: label,
-      toMultiplicity,
-      fromMultiplicity,
-      visibility,
-      associationClassId,
-      constraints: memberConstraints,
-    })
-  }
-
-  public findTypeNode(typeName: string): TypeNode {
-    const { baseName, args } = TypeValidator.decomposeGeneric(typeName)
-
-    return {
-      type: ASTNodeType.TYPE,
-      name: baseName,
-      raw: typeName,
-      kind: args.length > 0 ? 'generic' : 'simple',
-      arguments: args.map((arg) => this.findTypeNode(arg)),
-      line: 0,
-      column: 0,
-    }
-  }
-
-  private cleanupRedundantMembers(): void {
-    // Logic to be implemented if required for cleaner diagrams
-  }
-}
-
-/**
- * Semantic Analyzer Visitors.
- * They implement a 3-pass strategy to resolve forward references.
- */
-
-/**
- * Pass 1: Registers entities so they are known globally.
- */
-class DiscoveryVisitor implements ASTVisitor {
-  constructor(
-    private readonly analyzer: SemanticAnalyzer,
-    private readonly symbolTable: SymbolTable,
-    private readonly currentNamespace: string[],
-    private readonly entityAnalyzer: EntityAnalyzer,
-    private readonly hierarchyValidator: HierarchyValidator,
-    private readonly context: ParserContext,
-  ) {}
-
-  visitProgram(node: ProgramNode): void {
-    ;(node.body || []).forEach((stmt) => walkAST(stmt, this))
-  }
-
-  visitPackage(node: PackageNode): void {
-    const fqn =
-      this.currentNamespace.length > 0
-        ? `${this.currentNamespace.join('.')}.${node.name}`
-        : node.name
-    this.symbolTable.registerNamespace(fqn)
-
-    this.currentNamespace.push(node.name)
-    ;(node.body || []).forEach((stmt) => walkAST(stmt, this))
-    this.currentNamespace.pop()
-  }
-
-  visitEntity(node: EntityNode): void {
-    const entity = this.entityAnalyzer.buildEntity(node, this.currentNamespace.join('.'))
-    const existing = this.symbolTable.get(entity.id)
-
-    if (existing != null && !existing.isImplicit) {
-      this.context.addError(
-        `Duplicate entity: '${entity.id}' is already defined in this scope.`,
-        { line: node.line, column: node.column, type: TokenType.UNKNOWN, value: '' } as Token,
-        DiagnosticCode.SEMANTIC_DUPLICATE_ENTITY,
-      )
-      return
-    }
-
-    if (this.symbolTable.isNamespace(entity.id)) {
-      this.context.addError(
-        `Namespace collision: '${entity.id}' is already defined as a Package. Entities cannot have the same name as a package in the same scope.`,
-        { line: node.line, column: node.column, type: TokenType.UNKNOWN, value: '' } as Token,
-        DiagnosticCode.SEMANTIC_DUPLICATE_ENTITY,
-      )
-      return
-    }
-
-    this.symbolTable.register(entity)
-    this.hierarchyValidator.validateEntity(entity)
-  }
-
-  visitRelationship(_node: RelationshipNode): void {}
-  visitComment(_node: CommentNode): void {}
-  visitConfig(node: ConfigNode): void {
-    this.analyzer.addConfig(node.options)
-  }
-
-  visitAssociationClass(node: AssociationClassNode): void {
-    const entity = this.entityAnalyzer.buildAssociationClass(node, this.currentNamespace.join('.'))
-    this.symbolTable.register(entity)
-    this.hierarchyValidator.validateEntity(entity)
-  }
-
-  visitConstraint(_node: ConstraintNode): void {
-    // Processed in ResolutionVisitor to handle block-level grouping correctly
-  }
-}
-
-/**
- * Pass 2: Processes members and their types now that all entities are known.
- */
-class DefinitionVisitor implements ASTVisitor {
-  constructor(
-    private readonly analyzer: SemanticAnalyzer,
-    private readonly symbolTable: SymbolTable,
-    private readonly currentNamespace: string[],
-    private readonly entityAnalyzer: EntityAnalyzer,
-  ) {}
-
-  visitProgram(node: ProgramNode): void {
-    ;(node.body || []).forEach((stmt) => walkAST(stmt, this))
-  }
-
-  visitPackage(node: PackageNode): void {
-    this.currentNamespace.push(node.name)
-    ;(node.body || []).forEach((stmt) => walkAST(stmt, this))
-    this.currentNamespace.pop()
-  }
-
-  visitEntity(node: EntityNode): void {
-    const fqn = this.symbolTable.resolveFQN(node.name, this.currentNamespace.join('.')).fqn
-    const entity = this.symbolTable.get(fqn)
-    if (entity) {
-      if (node.body && node.body.length > 0) {
-        this.entityAnalyzer.appendMembers(entity, node.body)
-      }
-
-      // Scan both properties and operations for constraints
-      const allMembers: { constraints?: IRConstraint[] }[] = [
-        ...(entity.properties || []),
-        ...(entity.operations || []),
-      ]
-
-      allMembers.forEach((member) => {
-        member.constraints?.forEach((c) => {
-          if (c.kind === 'xor') {
-            this.analyzer.addConstraint(c)
-          }
-        })
-      })
-    }
-  }
-
-  visitRelationship(node: RelationshipNode): void {
-    if (node.body && node.body.length > 0) {
-      const ns = this.currentNamespace.join('.')
-      const fromFQN = this.symbolTable.resolveFQN(node.from, ns).fqn
-      const fromEntity = this.symbolTable.get(fromFQN)
-      if (fromEntity) {
-        this.entityAnalyzer.appendMembers(fromEntity, node.body)
-      }
-    }
-  }
-
-  visitComment(_node: CommentNode): void {}
-  visitConfig(_node: ConfigNode): void {}
-
-  visitAssociationClass(node: AssociationClassNode): void {
-    const fqn = this.symbolTable.resolveFQN(node.name, this.currentNamespace.join('.')).fqn
-    const entity = this.symbolTable.get(fqn)
-    if (entity && node.body) {
-      this.entityAnalyzer.processAssociationClassMembers(entity, node)
-    }
-  }
-
-  visitConstraint(_node: ConstraintNode): void {}
-}
-
-/**
- * Pass 3: Resolves relationships and generates implicit entities if required.
- */
-class ResolutionVisitor implements ASTVisitor {
-  constructor(
-    private readonly analyzer: SemanticAnalyzer,
-    private readonly symbolTable: SymbolTable,
-    private readonly relationships: IRRelationship[],
-    private readonly currentNamespace: string[],
-    private readonly relationshipAnalyzer: RelationshipAnalyzer,
-    private readonly constraintAnalyzer: ConstraintAnalyzer,
-    private readonly constraints: IRConstraint[],
-    private readonly context: ParserContext,
-  ) {}
-
-  private currentConstraintGroupId?: string
-
-  visitProgram(node: ProgramNode): void {
-    ;(node.body || []).forEach((stmt) => walkAST(stmt, this))
-  }
-
-  visitPackage(node: PackageNode): void {
-    this.currentNamespace.push(node.name)
-    ;(node.body || []).forEach((stmt) => walkAST(stmt, this))
-    this.currentNamespace.pop()
-  }
-
-  visitEntity(node: EntityNode): void {
-    const ns = this.currentNamespace.join('.')
-    const fromFQN = this.symbolTable.resolveFQN(node.name, ns).fqn
-    const fromEntity = this.symbolTable.get(fromFQN)
-    ;(node.relationships || []).forEach((rel) => {
-      // Calculate inference context
-      const relType = this.relationshipAnalyzer.mapRelationshipType(rel.kind)
-      const inferenceContext = fromEntity
-        ? { sourceType: fromEntity.type, relationshipKind: relType }
-        : undefined
-
-      const typeNodeLike = this.analyzer.findTypeNode(rel.target)
-      const plugin = this.analyzer.getPluginManager().getActive()
-      const mapping = plugin?.resolveType(typeNodeLike)
-      const targetName = mapping ? mapping.targetName : rel.target
-
-      const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-        targetName,
-        ns,
-        rel.targetModifiers,
-        rel.line,
-        rel.column,
-        inferenceContext,
-        fromEntity?.typeParameters,
-      )
-      this.relationshipAnalyzer.addRelationship(
-        fromFQN,
-        toFQN,
-        rel.kind,
-        rel,
-        this.currentConstraintGroupId,
-      )
-    })
-  }
-
-  visitRelationship(node: RelationshipNode): void {
-    const ns = this.currentNamespace.join('.')
-    const relType = this.relationshipAnalyzer.mapRelationshipType(node.kind)
-
-    // Resolve 'from' entity first
-    const fromFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-      node.from,
-      ns,
-      node.fromModifiers,
-      node.line,
-      node.column,
-    )
-    const fromEntity = this.symbolTable.get(fromFQN)
-
-    // Inference for 'to' entity based on 'from' entity type
-    const inferenceContext = fromEntity
-      ? { sourceType: fromEntity.type, relationshipKind: relType }
-      : undefined
-
-    const typeNodeLike = this.analyzer.findTypeNode(node.to)
-    const plugin = this.analyzer.getPluginManager().getActive()
-    const mapping = plugin?.resolveType(typeNodeLike)
-    const targetName = mapping ? mapping.targetName : node.to
-
-    const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-      targetName,
-      ns,
-      node.toModifiers,
-      node.line,
-      node.column,
-      inferenceContext,
-      fromEntity?.typeParameters,
-    )
-    this.relationshipAnalyzer.addRelationship(
-      fromFQN,
-      toFQN,
-      node.kind,
-      node,
-      this.currentConstraintGroupId,
-    )
-  }
-
-  visitComment(_node: CommentNode): void {}
-  visitConfig(_node: ConfigNode): void {}
-
-  visitAssociationClass(node: AssociationClassNode): void {
-    const ns = this.currentNamespace.join('.')
-    const assocFQN = this.symbolTable.resolveFQN(node.name, ns).fqn
-
-    // Procesar relaciones anidadas en los participantes
-    ;(node.participants || []).forEach((p) => {
-      let currentFromFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-        p.name,
-        ns,
-        {},
-        node.line,
-        node.column,
-      )
-
-      p.relationships?.forEach((rel) => {
-        const relType = this.relationshipAnalyzer.mapRelationshipType(rel.kind)
-        const fromEntity = this.symbolTable.get(currentFromFQN)
-        const inferenceContext = fromEntity
-          ? { sourceType: fromEntity.type, relationshipKind: relType }
-          : undefined
-
-        const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-          rel.target,
-          ns,
-          rel.targetModifiers,
-          rel.line,
-          rel.column,
-          inferenceContext,
-          fromEntity?.typeParameters,
-        )
-        this.relationshipAnalyzer.addRelationship(
-          currentFromFQN,
-          toFQN,
-          rel.kind,
-          rel,
-          this.currentConstraintGroupId,
-        )
-        // Advance in the chain: the current target becomes the source for the next link
-        currentFromFQN = toFQN
-      })
-    })
-
-    if (node.participants.length !== 2) {
-      const context = this.relationshipAnalyzer.getContext()
-      if (context) {
-        context.addError(
-          `Association class '${node.name}' must have exactly 2 participants, found ${node.participants.length}.`,
-          {
-            line: node.line,
-            column: node.column,
-            type: TokenType.IDENTIFIER,
-            value: node.name,
-          } as Token,
-          DiagnosticCode.SEMANTIC_INVALID_ASSOCIATION_CLASS,
-        )
-      }
-      if (node.participants.length < 2) return
-    }
-
-    const p1 = node.participants[0]
-    const p2 = node.participants[1]
-
-    const fromFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-      p1.name,
-      ns,
-      {},
-      node.line,
-      node.column,
-    )
-    const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-      p2.name,
-      ns,
-      {},
-      node.line,
-      node.column,
-    )
-
-    // Creamos la relación y la vinculamos a la clase
-    this.relationshipAnalyzer.addResolvedRelationship(
-      fromFQN,
-      toFQN,
-      IRRelationshipType.BIDIRECTIONAL,
-      {
-        line: node.line,
-        column: node.column,
-        fromMultiplicity: p1.multiplicity,
-        toMultiplicity: p2.multiplicity,
-        associationClassId: assocFQN,
-      },
-    )
-  }
-
-  visitConstraint(node: ConstraintNode): void {
-    const irConstraint = this.constraintAnalyzer.process(node)
-
-    // If it's xor and has targets (like {xor: group1}), we store it
-    if (irConstraint.targets.length > 0) {
-      this.constraints.push(irConstraint)
-    } else if (node.kind === 'xor' && node.body) {
-      // It's a block XOR. We generate a unique group ID for its children.
-      const groupId = `xor_${node.line}_${node.column}`
-      irConstraint.targets = [groupId]
-      this.constraints.push(irConstraint)
-
-      const oldGroupId = this.currentConstraintGroupId
-      this.currentConstraintGroupId = groupId
-      ;(node.body || []).forEach((stmt) => walkAST(stmt, this))
-      this.currentConstraintGroupId = oldGroupId
-    }
+    // 8. Output Generation
+    return session.toIRDiagram()
   }
 }
