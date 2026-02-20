@@ -295,4 +295,5 @@
 - [x] **IMPROVEMENT**: Actualizar reglas de inferencia para soportar `DataType` como origen de relaciones.
 - [x] **FIX**: Asegurar que `DefinitionPass` captura las relaciones de cabecera para la heurística.
 - [x] **TEST**: Validar leyes de jerarquía externa (implementación/herencia) en `test-datatype-hierarchy.umlts`.
+- [x] **FIX**: Ley de Identidad Estricta: Cualquier modificador (abstract, final, static, etc.) bloquea la promoción a `DataType`.
 - [x] **COMMIT**: Consolidar cambios de semántica DataType y leyes de jerarquía.
