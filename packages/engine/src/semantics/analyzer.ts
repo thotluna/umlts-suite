@@ -134,21 +134,35 @@ export class SemanticAnalyzer {
     if (!isTS) return
 
     session.relationships.forEach((rel) => {
-      const target = session.symbolTable.get(rel.to)
-      if (!target || target.type !== IREntityType.DATA_TYPE) return
-
       const source = session.symbolTable.get(rel.from)
-      if (!source) return
+      const target = session.symbolTable.get(rel.to)
 
-      // Rule: If implemented, it must be an Interface
-      if (rel.type === IRRelationshipType.IMPLEMENTATION) {
-        target.type = IREntityType.INTERFACE
-      } else if (rel.type === IRRelationshipType.INHERITANCE) {
-        // Rule: If inherited, matches source (Interface >> Interface or Class >> Class)
-        if (source.type === IREntityType.INTERFACE) {
+      // Rule: If a DataType is TARGET of implementation/inheritance, it must be Interface/Class
+      if (target && target.type === IREntityType.DATA_TYPE) {
+        if (rel.type === IRRelationshipType.IMPLEMENTATION) {
           target.type = IREntityType.INTERFACE
-        } else {
-          target.type = IREntityType.CLASS
+        } else if (rel.type === IRRelationshipType.INHERITANCE) {
+          // Revert target to Class or Interface based on source
+          if (source && source.type === IREntityType.INTERFACE) {
+            target.type = IREntityType.INTERFACE
+          } else {
+            target.type = IREntityType.CLASS
+          }
+        }
+      }
+
+      // Rule: If a DataType is SOURCE of inheritance/implementation, it must be a Class or Interface
+      // This handles the "unless it extends another class" for external relationships.
+      if (source && source.type === IREntityType.DATA_TYPE) {
+        if (
+          rel.type === IRRelationshipType.INHERITANCE ||
+          rel.type === IRRelationshipType.IMPLEMENTATION
+        ) {
+          // Heuristic: If it has properties but no methods, and it's in a hierarchy,
+          // we treat it as Class by default unless it was originally an interface
+          // (but since we lose that info, we default to Class which is safer in UML for hierarchies).
+          // Actually, we can check if it was originally an interface by looking at how it's used.
+          source.type = IREntityType.CLASS
         }
       }
     })

@@ -222,11 +222,19 @@ export class EntityAnalyzer {
     // In other languages (or generic UML), we keep identity (Class/Interface) to allow sketching.
     const isTS = this.configStore.get().language === 'typescript'
 
+    const hasModifiers =
+      entity.isAbstract ||
+      entity.isActive ||
+      entity.isLeaf ||
+      entity.isFinal ||
+      entity.isRoot ||
+      entity.isStatic
+
     if (
       isTS &&
       entity.operations.length === 0 &&
       (entity.type === IREntityType.CLASS || entity.type === IREntityType.INTERFACE) &&
-      !entity.isActive && // Active classes always have identity
+      !hasModifiers &&
       !keepAsClass
     ) {
       entity.type = IREntityType.DATA_TYPE

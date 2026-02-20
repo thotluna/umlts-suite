@@ -19,7 +19,7 @@ package Test {
   }
 
   class RecordOwner {
-    createdAt: Date // Esto debería apuntar al DataType de la librería estándar
+    createdAt: Date
     metadata: URL
   }
 

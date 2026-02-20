@@ -105,12 +105,28 @@ export class HierarchyValidator {
     if (type === IRRelationshipType.INHERITANCE) {
       // General match check
       if (from.type !== to.type) {
-        this.context.addError(
-          `Invalid inheritance: ${from.type} '${from.name}' cannot extend ${to.type} '${to.name}'. Both must be of the same type.`,
-          errorToken,
-          DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
-        )
-        return
+        // Leniency for DataType: In TS mode, many entities start as DataType
+        // and are refined later based on their relationships.
+        // Also, UML allows generalization between Classifiers.
+        const isFromClassLike =
+          from.type === IREntityType.CLASS || from.type === IREntityType.DATA_TYPE
+        const isToClassLike = to.type === IREntityType.CLASS || to.type === IREntityType.DATA_TYPE
+        const isFromInterfaceLike =
+          from.type === IREntityType.INTERFACE || from.type === IREntityType.DATA_TYPE
+        const isToInterfaceLike =
+          to.type === IREntityType.INTERFACE || to.type === IREntityType.DATA_TYPE
+
+        const isValidInheritance =
+          (isFromClassLike && isToClassLike) || (isFromInterfaceLike && isToInterfaceLike)
+
+        if (!isValidInheritance) {
+          this.context.addError(
+            `Invalid inheritance: ${from.type} '${from.name}' cannot extend ${to.type} '${to.name}'. Both must be of the same type.`,
+            errorToken,
+            DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
+          )
+          return
+        }
       }
 
       // RULE: Cannot extend a leaf/final entity
@@ -171,8 +187,8 @@ export class HierarchyValidator {
         return
       }
 
-      // Source must be a Class (or theoretically a Component, which we map as Class for now)
-      if (from.type !== IREntityType.CLASS) {
+      // Source must be a Class (or a DataType that will be refined to a Class)
+      if (from.type !== IREntityType.CLASS && from.type !== IREntityType.DATA_TYPE) {
         this.context.addError(
           `Invalid implementation: An ${from.type} ('${from.name}') cannot implement an interface. Only classes can satisfy interface contracts.`,
           errorToken,
