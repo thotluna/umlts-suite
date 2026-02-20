@@ -2,9 +2,11 @@ config {
   language: "typescript"
 }
 
+// --- CASO 1: RECUPERACIÓN DE IDENTIDAD POR JERARQUÍA ---
+
 /**
  * I1 solo tiene atributos, pero es implementada por C,
- * por lo que NO debe ser DataType, sino Interface.
+ * por lo que NO debe ser DataType, sino Interface (Target).
  */
 interface I1 {
   id: string
@@ -16,21 +18,89 @@ class C >I I1 {
 
 /**
  * P solo tiene atributos, pero es heredada por B,
- * por lo que NO debe ser DataType, sino Class.
+ * por lo que NO debe ser DataType, sino Class (Target).
  */
 class P {
   version: number
 }
 
+/**
+ * B no tiene métodos y hereda de P,
+ * por lo que NO debe ser DataType, sino Class (Source).
+ */
 class B >> P {
   date: Date
 }
 
+// --- CASO 2: PROTECCIÓN DE IDENTIDAD POR MODIFICADORES ---
+
+/**
+ * Abstract sin métodos: DEBE ser Class.
+ */
+abstract class AbstractValue {
+  uuid: string
+}
+
+/**
+ * Static sin métodos: DEBE ser Class.
+ */
+static class GlobalConstants {
+  API_URL: string
+  VERSION: number
+}
+
+/**
+ * Active sin métodos: DEBE ser Class.
+ */
+active class BackgroundTask {
+  status: string
+}
+
+/**
+ * Leaf/Final sin métodos: DEBE ser Class.
+ */
+leaf class SchemaDefinition {
+  type: string
+}
+
+// --- CASO 3: PROTECCIÓN DE IDENTIDAD POR MÉTODOS ---
+
+/**
+ * Clase con un método: DEBE ser Class.
+ */
+class WithMethod {
+  id: string
+  +validate(): boolean
+}
+
+// --- CASO 4: DATATYPES AUTÉNTICOS (VALUE OBJECTS) ---
+
 /**
  * V es un auténtico DataType porque solo tiene atributos 
- * y nadie la implementa ni extiende.
+ * y nadie la implementa ni extiende, ni tiene modificadores.
  */
-class V {
+class Point {
   x: number
   y: number
+}
+
+/**
+ * Una interfaz sin métodos ni jerarquía también se promociona a DataType.
+ */
+interface Dimensions {
+  width: number
+  height: number
+}
+
+/**
+ * Los genéricos sin modificadores ni métodos también pueden ser DataType.
+ */
+class Wrapper<T> {
+  content: T
+}
+
+// --- CASO 5: TIPOS ESTÁNDAR (DATA TYPES POR PLUGIN) ---
+class SystemInfo {
+  timestamp: Date
+  origin: URL
 }
