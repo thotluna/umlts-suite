@@ -1,0 +1,16 @@
+// No config language
+package Sketch {
+  /**
+   * Sin lenguaje TS, esto debe ser una CLASS aunque no tenga métodos
+   */
+  class Draft {
+    id: string
+  }
+
+  /**
+   * Sin lenguaje TS, esto debe ser una INTERFACE aunque no tenga métodos
+   */
+  interface Contract {
+    code: string
+  }
+}

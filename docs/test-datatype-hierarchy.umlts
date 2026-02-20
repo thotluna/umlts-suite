@@ -1,0 +1,36 @@
+config {
+  language: "typescript"
+}
+
+/**
+ * I1 solo tiene atributos, pero es implementada por C,
+ * por lo que NO debe ser DataType, sino Interface.
+ */
+interface I1 {
+  id: string
+}
+
+class C >I I1 {
+  name: string
+}
+
+/**
+ * P solo tiene atributos, pero es heredada por B,
+ * por lo que NO debe ser DataType, sino Class.
+ */
+class P {
+  version: number
+}
+
+class B >> P {
+  date: Date
+}
+
+/**
+ * V es un auténtico DataType porque solo tiene atributos 
+ * y nadie la implementa ni extiende.
+ */
+class V {
+  x: number
+  y: number
+}
