@@ -72,6 +72,7 @@ describe('MemberInference', () => {
       undefined,
       expect.anything(),
       undefined,
+      undefined,
     )
     expect(mockAnalyzer.addResolvedRelationship).toHaveBeenCalled()
   })
@@ -184,6 +185,7 @@ describe('MemberInference', () => {
       undefined,
       undefined,
       expect.anything(),
+      undefined,
       undefined,
     )
   })

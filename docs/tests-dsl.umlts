@@ -1,0 +1,99 @@
+config {
+  language: "typescript"
+  direction: DOWN
+  spacing: 80
+}
+
+package core {
+  /**
+   * Representa los roles disponibles en el sistema.
+   * Los enums se declaran como listas de identificadores.
+   */
+  enum UserRole(
+    ADMIN,
+    EDITOR,
+    VIEWER
+  )
+
+  // Ejemplo de declaración en línea
+  enum Status(ACTIVE | INACTIVE | PENDING)
+
+  interface Identifiable {
+    id: string
+  }
+
+  class *Resource<T> >i Identifiable {
+    +metadata: T
+    createdAt: Date
+    updatedAt: Date
+    // Ejemplo de enum implícito e in-line como tipo de miembro
+    state: State(OPEN | CLOSED | ARCHIVED)
+  }
+}
+
+package domain {
+  /**
+   * Uso de utilidades de TypeScript y relaciones implícitas.
+   * Omit<User, "password"> genera una dependencia con estereotipo.
+   */
+  class User >> core.Resource<Object> {
+    username: string
+    email: string
+    -password: string
+    role: core.UserRole
+    
+    // In-line relation: User has one Profile (Composition)
+    profile: >* Profile
+  }
+
+  class Profile {
+    bio: string
+    avatarUrl: string
+  }
+
+  /**
+   * Ejemplo de declaración en línea y multiplicidad.
+   * Un Workspace "agrega" múltiples Users.
+   */
+  class Workspace {
+    name: string
+    // In-line Aggregation with multiplicity
+    members: >+ domain.User[1..*]
+    
+    // Método usando tipos complejos
+    +transferOwnership(newOwner: User): void
+  }
+  
+  /**
+   * Clase de Asociación: Vincula dos entidades con datos propios del vínculo.
+   * Sintaxis: class Name <> (A[mult], B[mult])
+   */
+  class MemberAssignment <> (User[0..*], Workspace[1]) {
+    assignedAt: Date
+    isActive: boolean
+    
+    +deactivate(): void
+  }
+}
+
+package services {
+  /**
+   * Interfaces y Requerimientos.
+   * Uso de XOR para modelar exclusividad lógica.
+   */
+  xor {
+    AuthService >- LocalAuthProvider
+    AuthService >- OAuthProvider
+  }
+
+  interface AuthService {
+    +login(credentials: >- LoginDTO): boolean
+  }
+
+  class LoginDTO {
+    user: Omit<domain.User, "id" | "role">
+  }
+
+  class LocalAuthProvider
+  class OAuthProvider
+}

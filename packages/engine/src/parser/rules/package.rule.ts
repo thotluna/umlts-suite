@@ -26,11 +26,12 @@ export class PackageRule implements StatementRule {
     const body: StatementNode[] = []
     if (hasLBrace) {
       while (!context.check(TokenType.RBRACE) && !context.isAtEnd()) {
+        const startPos = context.getPosition()
         const nodes = orchestrator.parseStatement(context)
         if (nodes.length > 0) {
           body.push(...nodes)
-        } else {
-          // Si no hay match y no es fin de bloque, algo va mal.
+        } else if (context.getPosition() === startPos) {
+          // Si no hay match y no se avanzó el puntero, algo va mal.
           // En modo tolerante, registramos el error y saltamos el token problemático.
           context.addError('Unrecognized statement inside package', context.peek())
           context.advance()

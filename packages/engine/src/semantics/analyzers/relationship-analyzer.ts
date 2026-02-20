@@ -60,6 +60,7 @@ export class RelationshipAnalyzer {
     column?: number,
     inferenceContext?: { sourceType: IREntityType; relationshipKind: IRRelationshipType },
     typeParameters?: string[],
+    literals?: string[],
   ): string {
     // If it's a generic parameter of the current context, we treat it as a "virtual" entity
     // that won't be registered in the symbol table to avoid orphan boxes.
@@ -89,11 +90,16 @@ export class RelationshipAnalyzer {
       }
     }
 
+    if (literals && literals.length > 0) {
+      expectedType = IREntityType.ENUMERATION
+    }
+
     const result = this.symbolTable.resolveOrRegisterImplicit(
       name,
       namespace,
       modifiers,
       expectedType,
+      literals,
     )
 
     if (result.isAmbiguous) {

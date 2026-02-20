@@ -31,7 +31,9 @@ export function registerDefaultInferenceRules(inferrer: TypeInferrer): void {
 
   standardRelationships.forEach((rel) => {
     inferrer.register(IREntityType.CLASS, rel, IREntityType.CLASS)
-    inferrer.register(IREntityType.INTERFACE, rel, IREntityType.INTERFACE) // Interfaces depend on interfaces usually
-    inferrer.register(IREntityType.ENUM, rel, IREntityType.CLASS) // Enums relate to classes
+    inferrer.register(IREntityType.INTERFACE, rel, IREntityType.INTERFACE)
+    inferrer.register(IREntityType.ENUMERATION, rel, IREntityType.CLASS)
+    inferrer.register(IREntityType.ASSOCIATION_CLASS, rel, IREntityType.CLASS)
+    inferrer.register(IREntityType.DATA_TYPE, rel, IREntityType.CLASS)
   })
 }

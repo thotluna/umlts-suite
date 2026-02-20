@@ -1,0 +1,36 @@
+config {
+  language: "typescript"
+}
+
+package Test {
+  /**
+   * Esta clase no tiene métodos, debería ser un «dataType»
+   */
+  class DataOnly {
+    id: string
+    value: number
+  }
+
+  /**
+   * Esta clase TIENE métodos, debería ser una «class» normal
+   */
+  class BehaviorObject {
+    +doSomething(): void
+  }
+
+  class RecordOwner {
+    createdAt: Date // Esto debería apuntar al DataType de la librería estándar
+    metadata: URL
+  }
+
+  active class EventHandler {
+    // No tiene métodos, pero es 'active', por lo que debe ser una Class
+    priority: number
+  }
+
+  interface DataContract {
+    // Solo propiedades en TS -> DataType
+    id: string
+    version: number
+  }
+}

@@ -26,7 +26,7 @@ export class AssociationValidator {
     // 1. RULE: Composition/Aggregation Source Type
     // Only Classes can be the 'Whole' in a strong structural relationship.
     if (type === IRRelationshipType.COMPOSITION || type === IRRelationshipType.AGGREGATION) {
-      if (from.type === IREntityType.ENUM) {
+      if (from.type === IREntityType.ENUMERATION) {
         this.context.addError(
           `Association Violation: An Enum ('${from.name}') cannot be the aggregate/whole in a ${type} relationship.`,
           errorToken,

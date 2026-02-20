@@ -1,5 +1,5 @@
 import type { ProgramNode } from '../syntax/nodes'
-import type { IRDiagram } from '../generator/ir/models'
+import { type IRDiagram, IREntityType, IRRelationshipType } from '../generator/ir/models'
 import type { ParserContext } from '../parser/parser.context'
 
 // Core Components
@@ -67,6 +67,7 @@ export class SemanticAnalyzer {
       symbolTable,
       constraintAnalyzer,
       context,
+      configStore,
       this.pluginManager,
     )
     const relationshipAnalyzer = new RelationshipAnalyzer(
@@ -116,7 +117,40 @@ export class SemanticAnalyzer {
     // 7. Final Validation
     hierarchyValidator.validateNoCycles(session.relationships)
 
+    // 7.5 Refine DataType semantics (Revert to Class/Interface if part of a hierarchy)
+    this.refineDataTypeSemantics(session)
+
     // 8. Output Generation
     return session.toIRDiagram()
+  }
+
+  /**
+   * Refines the entity type of DataType candidates.
+   * If a DataType is implemented or extended, it must regain its identity
+   * as a Class or Interface.
+   */
+  private refineDataTypeSemantics(session: AnalysisSession): void {
+    const isTS = session.configStore.get().language === 'typescript'
+    if (!isTS) return
+
+    session.relationships.forEach((rel) => {
+      const target = session.symbolTable.get(rel.to)
+      if (!target || target.type !== IREntityType.DATA_TYPE) return
+
+      const source = session.symbolTable.get(rel.from)
+      if (!source) return
+
+      // Rule: If implemented, it must be an Interface
+      if (rel.type === IRRelationshipType.IMPLEMENTATION) {
+        target.type = IREntityType.INTERFACE
+      } else if (rel.type === IRRelationshipType.INHERITANCE) {
+        // Rule: If inherited, matches source (Interface >> Interface or Class >> Class)
+        if (source.type === IREntityType.INTERFACE) {
+          target.type = IREntityType.INTERFACE
+        } else {
+          target.type = IREntityType.CLASS
+        }
+      }
+    })
   }
 }

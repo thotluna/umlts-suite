@@ -144,7 +144,7 @@ export class HierarchyValidator {
       }
 
       // Special case: Enums cannot extend/be extended
-      if (from.type === IREntityType.ENUM) {
+      if (from.type === IREntityType.ENUMERATION) {
         this.context.addError(
           `Invalid inheritance: Enums cannot participate in inheritance hierarchies ('${from.name}').`,
           errorToken,
@@ -156,7 +156,9 @@ export class HierarchyValidator {
     // 2. RULE: Implementation (>I) rules
     if (type === IRRelationshipType.IMPLEMENTATION) {
       // Target must be an Interface
-      if (to.type !== IREntityType.INTERFACE) {
+      // In TS mode, interfaces with only properties are promoted to DataType.
+      // We allow implementing them as well.
+      if (to.type !== IREntityType.INTERFACE && to.type !== IREntityType.DATA_TYPE) {
         const reco =
           to.type === IREntityType.CLASS
             ? 'Use inheritance (>>).'

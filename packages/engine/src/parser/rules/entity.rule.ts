@@ -131,6 +131,58 @@ export class EntityRule implements StatementRule {
       context.softConsume(TokenType.GT, "Expected '>' after type parameters")
     }
 
+    // Soporte para enums en línea: enum UserRole(ADMIN, EDITOR, VIEWER)
+    if (type === ASTNodeType.ENUM && context.match(TokenType.LPAREN)) {
+      const body: MemberNode[] = []
+      while (!context.check(TokenType.RPAREN) && !context.isAtEnd()) {
+        if (context.check(TokenType.IDENTIFIER)) {
+          const literalToken = context.consume(TokenType.IDENTIFIER, 'Enum literal name expected')
+          body.push({
+            type: ASTNodeType.ATTRIBUTE,
+            name: literalToken.value,
+            visibility: 'public',
+            modifiers: {
+              isStatic: true,
+              isLeaf: false,
+              isFinal: false,
+            },
+            typeAnnotation: {
+              type: ASTNodeType.TYPE,
+              kind: 'simple',
+              name: 'Object',
+              raw: 'Object',
+              line: literalToken.line,
+              column: literalToken.column,
+            },
+            multiplicity: undefined,
+            docs: undefined,
+            line: literalToken.line,
+            column: literalToken.column,
+          } as MemberNode)
+          const matched = context.match(TokenType.COMMA) || context.match(TokenType.PIPE)
+          if (!matched && !context.check(TokenType.RPAREN)) {
+            // No separator, but not at end
+          }
+        } else {
+          context.advance()
+        }
+      }
+      context.consume(TokenType.RPAREN, "Expected ')' after enum literals")
+
+      return [
+        {
+          type,
+          name: nameToken.value,
+          modifiers,
+          docs,
+          body,
+          relationships: [],
+          line: token.line,
+          column: token.column,
+        } as StatementNode,
+      ]
+    }
+
     // Parse relationship list in header
     const relationships = this.relationshipHeaderRule.parse(context)
 

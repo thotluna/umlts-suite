@@ -28,10 +28,11 @@ export class Parser implements Orchestrator {
 
     while (!context.isAtEnd()) {
       try {
+        const startPos = context.getPosition()
         const nodes = this.parseStatement(context)
         if (nodes.length > 0) {
           body.push(...nodes)
-        } else {
+        } else if (context.getPosition() === startPos) {
           // Si ninguna regla consumió nada y no estamos al final, hay fuego
           throw new Error('Unrecognized statement')
         }

@@ -45,7 +45,7 @@ export class SymbolMatcher implements TokenMatcher {
         reader.advance()
         return { type: TokenType.OP_INHERIT, value: '>>', line: startLine, column: startColumn }
       }
-      if (next === 'I') {
+      if (next.toUpperCase() === 'I') {
         reader.advance()
         return { type: TokenType.OP_IMPLEMENT, value: '>I', line: startLine, column: startColumn }
       }
