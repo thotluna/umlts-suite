@@ -94,6 +94,8 @@ export class MemberInference {
     // 1. Try to resolve via Pipeline (Plugins + Core strategies)
     const resolution = this.pipeline.resolve(typeNodeLike)
 
+    const { baseName, values } = TypeValidator.decomposeEnum(typeName)
+
     if (resolution) {
       if (resolution.isIgnored) return
 
@@ -111,6 +113,7 @@ export class MemberInference {
             }
           : undefined,
         fromEntity?.typeParameters,
+        values.length > 0 ? values : undefined,
       )
 
       this.relationshipAnalyzer.addResolvedRelationship(
@@ -137,20 +140,20 @@ export class MemberInference {
 
     // 3. Fallback: Check internal generic parameters
     const fromEntity = this.session.symbolTable.get(fromFQN)
-    const baseType = TypeValidator.getBaseTypeName(typeName)
-    if (fromEntity?.typeParameters?.includes(baseType)) return
+    if (fromEntity?.typeParameters?.includes(baseName)) return
 
-    if (this.pipeline.isPrimitive(baseType)) return
+    if (this.pipeline.isPrimitive(baseName)) return
 
     // 4. Default: It's an implicit relationship to another entity
     const finalToFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-      baseType,
+      baseName,
       fromNamespace || '',
       targetModifiers || {},
       line,
       column,
       fromEntity ? { sourceType: fromEntity.type, relationshipKind: relType } : undefined,
       fromEntity?.typeParameters,
+      values.length > 0 ? values : undefined,
     )
 
     this.relationshipAnalyzer.addResolvedRelationship(fromFQN, finalToFQN, relType, {
@@ -168,12 +171,14 @@ export class MemberInference {
 
   private createTypeNode(typeName: string, line: number, column: number): TypeNode {
     const { baseName, args } = TypeValidator.decomposeGeneric(typeName)
+    const { values } = TypeValidator.decomposeEnum(typeName)
     return {
       type: ASTNodeType.TYPE,
       name: baseName,
       raw: typeName,
-      kind: args.length > 0 ? 'generic' : 'simple',
+      kind: values.length > 0 ? 'enum' : args.length > 0 ? 'generic' : 'simple',
       arguments: args.map((arg) => this.createTypeNode(arg, line, column)),
+      values: values.length > 0 ? values : undefined,
       line,
       column,
     }

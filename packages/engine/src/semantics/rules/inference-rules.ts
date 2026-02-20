@@ -34,5 +34,6 @@ export function registerDefaultInferenceRules(inferrer: TypeInferrer): void {
     inferrer.register(IREntityType.INTERFACE, rel, IREntityType.INTERFACE)
     inferrer.register(IREntityType.ENUMERATION, rel, IREntityType.CLASS)
     inferrer.register(IREntityType.ASSOCIATION_CLASS, rel, IREntityType.CLASS)
+    inferrer.register(IREntityType.DATA_TYPE, rel, IREntityType.CLASS)
   })
 }

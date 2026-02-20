@@ -42,7 +42,6 @@ export class TypeScriptPlugin implements LanguagePlugin {
   public getStandardLibrary(): IREntity[] {
     const tsTypesName = 'TypeScript'
 
-    // We create a library of types that are common in TS/JS development
     return [
       this.createPrimitive('any', tsTypesName),
       this.createPrimitive('void', tsTypesName),
@@ -51,6 +50,12 @@ export class TypeScriptPlugin implements LanguagePlugin {
       this.createPrimitive('object', tsTypesName),
       this.createPrimitive('symbol', tsTypesName),
       this.createPrimitive('bigint', tsTypesName),
+
+      // Standard JSON/JS types as DataType (Values, not identities)
+      this.createDataType('Date', tsTypesName),
+      this.createDataType('URL', tsTypesName),
+      this.createDataType('RegExp', tsTypesName),
+      this.createDataType('Error', tsTypesName),
 
       // Templates (DataTypes in UML terminology)
       this.createTemplate('Promise', ['T'], tsTypesName),
@@ -135,6 +140,8 @@ export class TypeScriptPlugin implements LanguagePlugin {
         return 'Real' // Or Integer depending on context, but Real is safer
       case 'boolean':
         return 'Boolean'
+      case 'date':
+        return 'Date' // Mapeo directo a nuestro DataType estándar
       case 'void':
         return '' // Indica al motor que este tipo representa la "ausencia de tipo" en UML
       default:
@@ -146,7 +153,7 @@ export class TypeScriptPlugin implements LanguagePlugin {
     return {
       id: `${namespace}.${name}`,
       name,
-      type: IREntityType.CLASS, // In UML these would be PrimitiveTypes or DataType
+      type: IREntityType.PRIMITIVE_TYPE,
       properties: [],
       operations: [],
       isImplicit: false,
@@ -157,6 +164,13 @@ export class TypeScriptPlugin implements LanguagePlugin {
       isFinal: false,
       isRoot: false,
       namespace,
+    }
+  }
+
+  private createDataType(name: string, namespace: string): IREntity {
+    return {
+      ...this.createPrimitive(name, namespace),
+      type: IREntityType.DATA_TYPE,
     }
   }
 

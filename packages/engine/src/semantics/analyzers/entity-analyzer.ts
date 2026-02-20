@@ -2,6 +2,7 @@ import type { IREntity, IRMultiplicity } from '../../generator/ir/models'
 import { PluginManager } from '../../plugins/plugin-manager'
 import { IREntityType, IRVisibility } from '../../generator/ir/models'
 import type { SymbolTable } from '../symbol-table'
+import type { ConfigStore } from '../session/config-store'
 import type { ParserContext } from '../../parser/parser.context'
 import { DiagnosticCode } from '../../syntax/diagnostic.types'
 import { TypeValidator } from '../utils/type-validator'
@@ -27,6 +28,7 @@ export class EntityAnalyzer {
     private readonly symbolTable: SymbolTable,
     private readonly constraintAnalyzer: ConstraintAnalyzer,
     private readonly context: ParserContext,
+    private readonly configStore: ConfigStore,
     private readonly pluginManager: PluginManager,
   ) {}
 
@@ -89,7 +91,19 @@ export class EntityAnalyzer {
    * Processes and fills the members of an already registered entity.
    */
   public processMembers(entity: IREntity, node: EntityNode): void {
-    this.fillMembers(entity, node.body ?? [], entity.namespace || '', entity.typeParameters)
+    const keepAsClass = (node.relationships || []).some((r) => {
+      const k = r.kind.toLowerCase().trim()
+      return (
+        ['>i', 'implements', 'implement'].includes(k) || ['>>', 'extends', 'extend'].includes(k)
+      )
+    })
+    this.fillMembers(
+      entity,
+      node.body ?? [],
+      entity.namespace || '',
+      entity.typeParameters,
+      keepAsClass,
+    )
   }
 
   /**
@@ -122,6 +136,7 @@ export class EntityAnalyzer {
     members: MemberNode[],
     namespace: string,
     typeParameters?: string[],
+    keepAsClass: boolean = false,
   ): void {
     if (!entity.properties) entity.properties = []
     if (!entity.operations) entity.operations = []
@@ -143,6 +158,16 @@ export class EntityAnalyzer {
 
         if (m.type === ASTNodeType.ATTRIBUTE) {
           const attr = m as AttributeNode
+
+          if (entity.type === IREntityType.ENUMERATION) {
+            if (!entity.literals) entity.literals = []
+            entity.literals.push({
+              name: attr.name,
+              docs: attr.docs,
+            })
+            return
+          }
+
           const multiplicity = attr.multiplicity
             ? this.processMultiplicity(attr.multiplicity, attr.line, attr.column)
             : undefined
@@ -191,6 +216,26 @@ export class EntityAnalyzer {
           })
         }
       })
+
+    // UML Heuristic: Identity vs Value
+    // ONLY for TypeScript: Classes or Interfaces without operations are considered DataTypes.
+    // In other languages (or generic UML), we keep identity (Class/Interface) to allow sketching.
+    const isTS = this.configStore.get().language === 'typescript'
+
+    if (
+      isTS &&
+      entity.operations.length === 0 &&
+      (entity.type === IREntityType.CLASS || entity.type === IREntityType.INTERFACE) &&
+      !entity.isActive && // Active classes always have identity
+      !keepAsClass
+    ) {
+      entity.type = IREntityType.DATA_TYPE
+    }
+
+    // Ensure we revert to Class if keepAsClass is manually requested or inferred
+    if (keepAsClass && entity.type === IREntityType.DATA_TYPE) {
+      entity.type = IREntityType.CLASS
+    }
   }
 
   private mapAggregation(kind?: string): 'none' | 'shared' | 'composite' {

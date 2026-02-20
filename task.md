@@ -43,7 +43,7 @@
   - Causa: El SemanticAnalyzer no propaga el tipo de entidad (interface vs class) cuando crea relaciones implícitas desde atributos.
   - Solución propuesta: Extender la lógica de `resolveOrRegisterImplicit` para consultar el tipo real de la entidad referenciada y preservarlo en la entidad implícita.
 - [x] **BUG**: Múltiples relaciones al mismo tipo con roles diferentes solo renderiza una
-  - Problema: En `DiagramNode` hay dos atributos (`attributes: >* IRMember` y `methods: >* IRMember`) que apuntan al mismo tipo con roles diferentes, pero el diagrama solo muestra la relación "attributes".
+  - Problema: En `DiagramNode` hay dos atributos (`attributes: >* IRMember` y `methods: >* IRMember`) que apuntan al mismo tipo con roles differentes, pero el diagrama solo muestra la relación "attributes".
   - Causa: El motor de renderizado no maneja correctamente múltiples asociaciones desde la misma clase hacia el mismo tipo destino.
   - Impacto: Se pierde información semántica importante cuando una clase tiene múltiples relaciones con roles distintos hacia el mismo tipo.
   - Solución implementada: Modificado `shouldCreateInferredRel` para considerar el `label` al verificar duplicados, permitiendo múltiples relaciones hacia el mismo tipo cuando tienen roles diferentes.
@@ -97,9 +97,7 @@
   - [x] Reubicar Helpers (`utils/`) y Elementos (`elements/`) junto a sus consumidores
   - [x] Actualizar imports
   - [x] Verificar integridad del bundle
-
-## Evolución Arquitectónica (Renderer V2)
-
+- [x] **FEAT**: Evolución Arquitectónica (Renderer V2)
 - [x] Segregación del Core (`contract/` vs `model/`)
 - [x] Transformación a Modelo de Dominio Rico (Clases `UMLNode`, `UMLEdge`)
 - [x] Implementación de `SVGBuilder` y Patrón de Dibujo Desacoplado
@@ -217,7 +215,7 @@
   - [x] Validación de consistencia de multiplicidad (`upper >= lower`)
   - [x] Validación de agregación compuesta (multiplicidad del contenedor <= 1)
 - [x] **REFAC**: Implementar estrategia de análisis de 3 pases (Discovery, Definition, Resolution)
-- [x] **FIX**: Mejora de resolución FQN con mecanismo "Global Scout"
+- [x] **FIX**: Mejora de resolución FQN con mechanism "Global Scout"
 - [x] **FEAT**: Registro automático de entidades implícitas en tipos de miembros (Sencillez UMLTS)
 - [x] **FIX**: Soporte de multiplicidad en parámetros de métodos (ej: `name: type[1..*]`)
 - [x] **FIX**: Resolución de FQN en relaciones externas y paquetes anidados
@@ -286,3 +284,15 @@
 - [x] **FIX**: Activar plugins de forma condicional basada en `config { language: ... }`
 - [x] **FEAT**: Crear ejemplo exhaustivo del DSL en `docs/tests-dsl.umlts`
 - [x] **COMMIT**: Realizar commit final de la refactorización V3 y DSL refinado
+
+## Refinamiento de Semántica DataType (UML 2.5.1)
+
+- [x] **FEAT**: Implementar tipos estándar de TypeScript como DataType (`Date`, `URL`, `RegExp`, `Error`)
+- [x] **FEAT**: Implementar heurística de promoción a `DataType` (Value Object) para clases e interfaces sin métodos (solo en TS).
+- [x] **FIX**: Ley de Identidad: Revertir a `Interface` o `Class` si la entidad es implementada o extendida por otros (Jerarquía externa).
+- [x] **FIX**: Evitar promoción automática en modo "boceto" (sin lenguaje TS) para respetar la declaración explícita.
+- [x] **FIX**: Evitar promoción de clases con herencia (>>) o realizaciones (>i) en el encabezado.
+- [x] **IMPROVEMENT**: Actualizar reglas de inferencia para soportar `DataType` como origen de relaciones.
+- [x] **FIX**: Asegurar que `DefinitionPass` captura las relaciones de cabecera para la heurística.
+- [x] **TEST**: Validar leyes de jerarquía externa (implementación/herencia) en `test-datatype-hierarchy.umlts`.
+- [x] **COMMIT**: Consolidar cambios de semántica DataType y leyes de jerarquía.

@@ -9,24 +9,25 @@ package core {
    * Representa los roles disponibles en el sistema.
    * Los enums se declaran como listas de identificadores.
    */
-  enum UserRole {
+  enum UserRole(
     ADMIN,
     EDITOR,
     VIEWER
-  }
+  )
+
+  // Ejemplo de declaración en línea
+  enum Status(ACTIVE | INACTIVE | PENDING)
 
   interface Identifiable {
     id: string
   }
 
-  /**
-   * Entidad base con genéricos y herencia.
-   * Priority: In-line Declaration
-   */
-  abstract class Resource<T> >i Identifiable {
+  class *Resource<T> >i Identifiable {
     +metadata: T
     createdAt: Date
     updatedAt: Date
+    // Ejemplo de enum implícito e in-line como tipo de miembro
+    state: State(OPEN | CLOSED | ARCHIVED)
   }
 }
 

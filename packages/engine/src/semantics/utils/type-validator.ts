@@ -67,4 +67,26 @@ export class TypeValidator {
 
     return { baseName, args }
   }
+
+  /**
+   * Decomposes a type name into its base name and enum literals.
+   * Example: UserRole(ADMIN | EDITOR) -> { baseName: 'UserRole', values: ['ADMIN', 'EDITOR'] }
+   */
+  public static decomposeEnum(typeName: string): { baseName: string; values: string[] } {
+    const baseName = this.getBaseTypeName(typeName)
+    const values: string[] = []
+
+    const start = typeName.indexOf('(')
+    const end = typeName.lastIndexOf(')')
+
+    if (start !== -1 && end !== -1 && end > start) {
+      const valsStr = typeName.substring(start + 1, end)
+      valsStr.split(/[|,\s]+/).forEach((v) => {
+        const trimmed = v.trim()
+        if (trimmed) values.push(trimmed)
+      })
+    }
+
+    return { baseName, values }
+  }
 }

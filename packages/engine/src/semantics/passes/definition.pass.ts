@@ -46,9 +46,7 @@ export class DefinitionPass implements ASTVisitor {
     const entity = this.session.symbolTable.get(fqn)
 
     if (entity) {
-      if (node.body && node.body.length > 0) {
-        this.entityAnalyzer.appendMembers(entity, node.body)
-      }
+      this.entityAnalyzer.processMembers(entity, node)
 
       // Scan both properties and operations for constraints
       const allMembers: { constraints?: IRConstraint[] }[] = [

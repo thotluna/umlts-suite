@@ -131,6 +131,7 @@ export class SymbolTable {
     namespace: string,
     modifiers?: Modifiers,
     expectedType: IREntityType = IREntityType.CLASS,
+    literals?: string[],
   ): FQNResolution {
     const resolution = this.resolveFQN(name, namespace)
     const existing = this.get(resolution.fqn)
@@ -147,6 +148,7 @@ export class SymbolTable {
         type: expectedType,
         properties: [],
         operations: [],
+        literals: literals?.map((l) => ({ name: l })),
         isImplicit: true,
         isAbstract: modifiers?.isAbstract || false,
         isStatic: modifiers?.isStatic || false,
