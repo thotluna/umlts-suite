@@ -62,8 +62,10 @@ export class Parser implements Orchestrator {
 
     const startPos = context.getPosition()
     for (const rule of this.rules) {
-      const nodes = rule.parse(context, this)
-      if (nodes.length > 0 || context.getPosition() > startPos) return nodes
+      if (rule.canStart(context)) {
+        const nodes = rule.parse(context, this)
+        if (nodes.length > 0 || context.getPosition() > startPos) return nodes
+      }
     }
 
     return []

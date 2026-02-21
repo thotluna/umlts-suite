@@ -9,6 +9,7 @@ export class LinkRule implements StatementRule {
   }
 
   public parse(context: ParserContext, _orchestrator: Orchestrator): StatementNode[] {
+    if (!this.canStart(context)) return []
     const fromToken = context.consume(TokenType.IDENTIFIER, 'Expected origin identifier')
 
     let from = fromToken.value
@@ -34,7 +35,7 @@ export class LinkRule implements StatementRule {
         to: targets,
         line: fromToken.line,
         column: fromToken.column,
-      } as any,
+      },
     ]
   }
 }

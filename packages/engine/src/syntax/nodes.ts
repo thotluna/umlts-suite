@@ -15,6 +15,8 @@ export enum ASTNodeType {
   CONFIG = 'Config',
   ASSOCIATION_CLASS = 'AssociationClass',
   CONSTRAINT = 'Constraint',
+  NOTE = 'Note',
+  ANCHOR = 'Anchor',
 }
 
 export interface TypeNode extends ASTNode {
@@ -47,6 +49,20 @@ export type StatementNode =
   | CommentNode
   | ConfigNode
   | ConstraintNode
+  | NoteNode
+  | AnchorNode
+
+export interface NoteNode extends ASTNode {
+  type: ASTNodeType.NOTE
+  value: string
+  id?: string
+}
+
+export interface AnchorNode extends ASTNode {
+  type: ASTNodeType.ANCHOR
+  from: string
+  to: string[]
+}
 
 export interface PackageNode extends ASTNode {
   type: ASTNodeType.PACKAGE
