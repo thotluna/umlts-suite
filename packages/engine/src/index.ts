@@ -1,12 +1,8 @@
+import { LexerPhase, ParserPhase, SemanticPhase, type CompilerPhase } from './compiler/phases'
+import { CompilerContext } from './compiler/context'
+import type { ParseResult } from './generator/types'
+import type { Token } from './syntax/token.types'
 import { LexerFactory } from './lexer/lexer.factory'
-import { ParserFactory } from './parser/parser.factory'
-import { SemanticAnalyzer } from './semantics/analyzer'
-import type { IRDiagram } from './generator/ir/models'
-import { ParserContext } from './parser/parser.context'
-import { DiagnosticReporter } from './parser/diagnostic-reporter'
-import { DiagnosticSeverity, type Diagnostic } from './syntax/diagnostic.types'
-import { Token } from './syntax/token.types'
-import { TypeScriptPlugin } from './plugins/typescript/typescript.plugin'
 
 export * from './generator/ir/models'
 export * from './syntax/diagnostic.types'
@@ -14,69 +10,35 @@ export * from './syntax/token.types'
 export * from './syntax/nodes'
 
 /**
- * Resultado de una operación de parseo del motor.
- */
-export interface ParseResult {
-  /** El diagrama resultante en Representación Intermedia (IR) */
-  diagram: IRDiagram
-  /** Lista de diagnósticos (errores léxicos, sintácticos y semánticos) */
-  diagnostics: Diagnostic[]
-  /** Indica si hubo errores fatales que impidieron generar un diagrama válido */
-  isValid: boolean
-}
-
-/**
  * Fachada principal del motor ts-uml-engine.
- * Orquesta las fases del compilador en un flujo único.
+ * Orquesta las fases del compilador en un flujo único con estado.
  */
 export class UMLEngine {
+  private readonly phases: CompilerPhase[] = [
+    new LexerPhase(),
+    new ParserPhase(),
+    new SemanticPhase(),
+  ]
+
   /**
    * Procesa código fuente UMLTS y devuelve una representación intermedia resuelta.
    *
    * @param source - El código fuente en lenguaje UMLTS.
    * @returns Un objeto con el diagrama y los diagnósticos acumulados.
    */
-  public parse(source: string): ParseResult {
-    const diagnostics: Diagnostic[] = []
+  public async parse(source: string): Promise<ParseResult> {
+    const context = new CompilerContext(source)
 
-    // 0. Inicialización del Sistema de Semántica y Plugins
-    const analyzer = new SemanticAnalyzer()
-
-    // Solo registramos el plugin si detectamos que se solicita en la configuración del script
-    // Esto evita consumo de memoria innecesario y efectos secundarios en el core UML
-    if (source.includes('language:') && (source.includes('ts') || source.includes('typescript'))) {
-      analyzer.getPluginManager().register(new TypeScriptPlugin())
-      // No activamos aquí. La activación ocurrirá en el ConfigStore durante el análisis semántico
-      // basándose en el valor real del nodo Config del AST.
+    for (const phase of this.phases) {
+      await phase.run(context)
+      // Si hay errores fatales, abortamos las fases siguientes
+      if (context.hasErrors()) break
     }
-
-    const activePlugin = analyzer.getPluginManager().getActive() ?? undefined
-
-    // 1. Análisis Léxico
-    const lexer = LexerFactory.create(source, activePlugin)
-    const tokens = lexer.tokenize()
-
-    // 2. Análisis Sintáctico
-    const parser = ParserFactory.create()
-    const ast = parser.parse(tokens, activePlugin)
-
-    if (ast.diagnostics != null) {
-      diagnostics.push(...ast.diagnostics)
-    }
-
-    // 3. Análisis Semántico
-    const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter, activePlugin)
-
-    const diagram = analyzer.analyze(ast, context)
-
-    // Acumulamos diagnósticos del analizador semántico
-    diagnostics.push(...reporter.getDiagnostics())
 
     return {
-      diagram,
-      diagnostics,
-      isValid: !diagnostics.some((d) => d.severity === DiagnosticSeverity.ERROR),
+      diagram: context.diagram!,
+      diagnostics: context.diagnostics,
+      isValid: !context.hasErrors(),
     }
   }
 
