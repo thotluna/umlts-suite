@@ -144,16 +144,22 @@ export class EntityAnalyzer {
     const seenNames = new Set<string>()
 
     ;(members || [])
-      .filter((m) => m.type !== ASTNodeType.COMMENT)
+      .filter(
+        (m) =>
+          m.type !== ASTNodeType.COMMENT &&
+          m.type !== ASTNodeType.CONSTRAINT &&
+          m.type !== ASTNodeType.NOTE,
+      )
       .forEach((m) => {
-        if (seenNames.has(m.name)) {
+        const namedMember = m as AttributeNode | MethodNode
+        if (seenNames.has(namedMember.name)) {
           this.context.addError(
-            `Duplicate member: '${m.name}' is already defined in this entity.`,
+            `Duplicate member: '${namedMember.name}' is already defined in this entity.`,
             { line: m.line, column: m.column, type: TokenType.UNKNOWN, value: '' } as Token,
             DiagnosticCode.SEMANTIC_DUPLICATE_MEMBER,
           )
         } else {
-          seenNames.add(m.name)
+          seenNames.add(namedMember.name)
         }
 
         if (m.type === ASTNodeType.ATTRIBUTE) {
@@ -277,6 +283,7 @@ export class EntityAnalyzer {
     typeParameters?: string[],
   ): void {
     if (TypeValidator.isPrimitive(typeName)) return
+    if (node.type === ASTNodeType.CONSTRAINT || node.type === ASTNodeType.NOTE) return
 
     // Consultar al plugin antes de registrar implícitamente
     // Si el plugin resuelve que es un tipo que se debe eliminar (ignorar), no lo registramos.

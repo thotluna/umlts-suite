@@ -330,3 +330,9 @@
 - [x] Desacoplar `SemanticAnalyzer` del contexto y moverlo a `SemanticPhase`
 - [x] Refactorizar `PhasesFactory` para ser instanciable y poseer el `PluginManager`
 - [x] Limpiar `index.ts` eliminando exportaciones redundantes y métodos de debug (`getTokens`)
+
+## Correcciones de Estado y Tipos (Post-Refactor)
+
+- [x] Corregir tipo `MemberNode` para incluir `ConstraintNode` y `NoteNode`
+- [x] Corregir acceso a propiedad `name` en `EntityAnalyzer` para miembros anónimos (constraints/notes)
+- [x] Corregir tipo de nodo para proveedores de elección (`xor`) en `TypeNode.kind`

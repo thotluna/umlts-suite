@@ -21,7 +21,7 @@ export enum ASTNodeType {
 
 export interface TypeNode extends ASTNode {
   type: ASTNodeType.TYPE
-  kind: 'simple' | 'generic' | 'array' | 'enum'
+  kind: 'simple' | 'generic' | 'array' | 'enum' | 'xor'
   raw: string
   name: string
   arguments?: TypeNode[]
@@ -98,7 +98,7 @@ export interface RelationshipHeaderNode extends ASTNode {
   targetModifiers?: Modifiers
 }
 
-export type MemberNode = MethodNode | AttributeNode | CommentNode
+export type MemberNode = MethodNode | AttributeNode | CommentNode | ConstraintNode | NoteNode
 
 export interface AttributeNode extends ASTNode {
   type: ASTNodeType.ATTRIBUTE
