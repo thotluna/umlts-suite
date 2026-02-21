@@ -69,19 +69,55 @@ export class TokenStream {
     return false
   }
 
+  public checkAny(...types: TokenType[]): boolean {
+    return types.some((type) => this.check(type))
+  }
+
   /**
-   * Divide el token actual si es compuesto y matchea el tipo solicitado.
+   * Intenta consumir un token del tipo especificado.
+   * Si matchea, avanza el stream (manejando splitting si es necesario) y devuelve el token.
+   * Si no matchea, devuelve null.
    */
+  public tryTake(type: TokenType): Token | null {
+    if (!this.check(type)) return null
+
+    if (this.splitAndAdvance(type)) {
+      return this.advance()
+    }
+
+    return this.advance()
+  }
+
+  /**
+   * Intenta consumir el primer token que matchee con alguno de los tipos proporcionados.
+   */
+  public takeAny(...types: TokenType[]): Token | null {
+    for (const type of types) {
+      const token = this.tryTake(type)
+      if (token) return token
+    }
+    return null
+  }
+
   public splitAndAdvance(type: TokenType): boolean {
     const token = this.peek()
     if (token.type === TokenType.OP_INHERIT && type === TokenType.GT) {
       this.current++
-      this.splitTokens.push({
-        ...token,
-        type: TokenType.GT,
-        value: '>',
-        column: token.column + 1,
-      })
+      // Añadimos AMBAS mitades al buffer para que advance() tome la primera
+      // y la segunda quede disponible para el siguiente peek/advance.
+      this.splitTokens.push(
+        {
+          ...token,
+          type: TokenType.GT,
+          value: '>',
+        },
+        {
+          ...token,
+          type: TokenType.GT,
+          value: '>',
+          column: token.column + 1,
+        },
+      )
       return true
     }
     return false
@@ -106,6 +142,20 @@ export class TokenStream {
       if (isPointOfNoReturn()) return
 
       this.advance()
+    }
+  }
+
+  /**
+   * Fabrica un token "virtual" para representar la ausencia de un token esperado.
+   * Utiliza el token actual como ancla para la posición.
+   */
+  public createMissingToken(type: TokenType): Token {
+    const anchor = this.peek()
+    return {
+      type,
+      value: `<missing:${type}>`,
+      line: anchor.line,
+      column: anchor.column,
     }
   }
 }

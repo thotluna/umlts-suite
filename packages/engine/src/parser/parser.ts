@@ -1,16 +1,17 @@
 import type { Token } from '../syntax/token.types'
 import { ASTNodeType } from '../syntax/nodes'
 import type { ProgramNode, StatementNode } from '../syntax/nodes'
-import { ParserContext } from './parser.context'
+import { ParserHub } from './parser.hub'
 import { DiagnosticReporter } from './diagnostic-reporter'
-import type { StatementRule, Orchestrator } from './rule.types'
+import type { StatementRule, IOrchestrator } from './rule.types'
+import type { IParserHub } from './parser.context'
 
 /**
  * Parser: El protagonista y cerebro del proceso de transformación.
  * Orquesta las reglas, gestiona el ciclo de vida del reporte de errores
  * y aplica las estrategias de recuperación (Panic Mode).
  */
-export class Parser implements Orchestrator {
+export class Parser implements IOrchestrator {
   private readonly rules: StatementRule[]
 
   constructor(rules: StatementRule[]) {
@@ -20,7 +21,7 @@ export class Parser implements Orchestrator {
   public parse(tokens: Token[]): ProgramNode {
     // El Parser (Cerebro) inicializa los recursos de la sesión
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const context = new ParserHub(tokens, reporter)
 
     const body: StatementNode[] = []
     const firstToken = context.peek()
@@ -56,7 +57,7 @@ export class Parser implements Orchestrator {
   /**
    * Intenta parsear una sentencia delegando en las reglas registradas.
    */
-  public parseStatement(context: ParserContext): StatementNode[] {
+  public parseStatement(context: IParserHub): StatementNode[] {
     if (context.isAtEnd()) return []
 
     const startPos = context.getPosition()
