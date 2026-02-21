@@ -10,6 +10,7 @@ import type { ParserContext } from '../parser.context'
 import type { StatementRule, Orchestrator } from '../rule.types'
 import { ConstraintRule } from './constraint.rule'
 import { MemberRule } from './member.rule'
+import { ModifierRule } from './modifier.rule'
 
 export class RelationshipRule implements StatementRule {
   private readonly memberRule = new MemberRule()
@@ -37,7 +38,7 @@ export class RelationshipRule implements StatementRule {
     const pos = context.getPosition()
 
     try {
-      const fromModifiers = context.consumeModifiers()
+      const fromModifiers = ModifierRule.parse(context)
 
       const fromToken = context.peek()
       if (!context.check(TokenType.IDENTIFIER)) {
@@ -76,7 +77,7 @@ export class RelationshipRule implements StatementRule {
           toMultiplicity = context.prev().value
         }
 
-        const toModifiers = context.consumeModifiers()
+        const toModifiers = ModifierRule.parse(context)
 
         let to = context.consume(TokenType.IDENTIFIER, 'Target entity name expected').value
 

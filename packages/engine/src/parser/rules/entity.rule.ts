@@ -10,6 +10,7 @@ import type { ParserContext } from '../parser.context'
 import type { StatementRule, Orchestrator } from '../rule.types'
 import { RelationshipHeaderRule } from './relationship-header.rule'
 import { MemberRule } from './member.rule'
+import { ModifierRule } from './modifier.rule'
 
 export class EntityRule implements StatementRule {
   private readonly relationshipHeaderRule = new RelationshipHeaderRule()
@@ -36,7 +37,7 @@ export class EntityRule implements StatementRule {
 
   public parse(context: ParserContext, _orchestrator: Orchestrator): StatementNode[] {
     const pos = context.getPosition()
-    const modifiers = context.consumeModifiers()
+    const modifiers = ModifierRule.parse(context)
 
     if (!context.match(TokenType.KW_CLASS, TokenType.KW_INTERFACE, TokenType.KW_ENUM)) {
       context.rollback(pos)
@@ -45,7 +46,7 @@ export class EntityRule implements StatementRule {
 
     // Support modifiers after keyword (e.g. class * MyClass)
     // Combinamos con los previos si existen
-    const postModifiers = context.consumeModifiers()
+    const postModifiers = ModifierRule.parse(context)
     modifiers.isAbstract = modifiers.isAbstract || postModifiers.isAbstract
     modifiers.isStatic = modifiers.isStatic || postModifiers.isStatic
     modifiers.isActive = modifiers.isActive || postModifiers.isActive

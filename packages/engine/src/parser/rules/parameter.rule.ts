@@ -4,6 +4,7 @@ import { ASTNodeType, type ParameterNode, type ConstraintNode } from '../../synt
 import type { ParserContext } from '../parser.context'
 import { TypeRule } from './type.rule'
 import { ConstraintRule } from './constraint.rule'
+import { ModifierRule } from './modifier.rule'
 
 export class ParameterRule {
   private readonly typeRule = new TypeRule()
@@ -36,7 +37,7 @@ export class ParameterRule {
         kindToken.type !== TokenType.OP_AGREG_NON_NAVIGABLE
     }
 
-    const modifiers = context.consumeModifiers()
+    const modifiers = ModifierRule.parse(context)
 
     const typeAnnotation = this.typeRule.parse(context)
     let multiplicity: string | undefined

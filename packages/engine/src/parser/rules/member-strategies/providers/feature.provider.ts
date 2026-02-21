@@ -3,6 +3,7 @@ import type { MemberNode } from '../../../../syntax/nodes'
 import type { ParserContext } from '../../../parser.context'
 import { AttributeRule } from '../../attribute.rule'
 import { MethodRule } from '../../method.rule'
+import { ModifierRule } from '../../modifier.rule'
 import type { IMemberProvider } from '../member-strategy.interface'
 
 export class FeatureMemberProvider implements IMemberProvider {
@@ -51,7 +52,7 @@ export class FeatureMemberProvider implements IMemberProvider {
       visibility = context.prev().value
     }
 
-    const modifiers = context.consumeModifiers()
+    const modifiers = ModifierRule.parse(context)
     const nameToken = context.consume(TokenType.IDENTIFIER, 'Expected member name')
 
     if (context.check(TokenType.LPAREN)) {

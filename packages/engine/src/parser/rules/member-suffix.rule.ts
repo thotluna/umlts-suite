@@ -9,6 +9,7 @@ import {
 import type { ParserContext } from '../parser.context'
 import { TypeRule } from './type.rule'
 import { ConstraintRule } from './constraint.rule'
+import { ModifierRule } from './modifier.rule'
 
 export interface MemberSuffix {
   typeAnnotation: TypeNode
@@ -41,7 +42,7 @@ export class MemberSuffixRule {
       isNavigable = this.isNavigable(kindToken.type)
     }
 
-    const targetModifiers = context.consumeModifiers()
+    const targetModifiers = ModifierRule.parse(context)
     const typeAnnotation = this.typeRule.parse(context)
     let multiplicity: string | undefined
 

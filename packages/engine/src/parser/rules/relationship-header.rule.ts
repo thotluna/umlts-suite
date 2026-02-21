@@ -1,6 +1,7 @@
 import { TokenType } from '../../syntax/token.types'
 import { ASTNodeType, type RelationshipHeaderNode } from '../../syntax/nodes'
 import type { ParserContext } from '../parser.context'
+import { ModifierRule } from './modifier.rule'
 
 export class RelationshipHeaderRule {
   public parse(context: ParserContext): RelationshipHeaderNode[] {
@@ -28,7 +29,7 @@ export class RelationshipHeaderRule {
       const isNavigable =
         kindToken.type !== TokenType.OP_COMP_NON_NAVIGABLE &&
         kindToken.type !== TokenType.OP_AGREG_NON_NAVIGABLE
-      const modifiers = context.consumeModifiers()
+      const modifiers = ModifierRule.parse(context)
 
       const targetToken = context.consume(
         TokenType.IDENTIFIER,
