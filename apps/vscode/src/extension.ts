@@ -1,5 +1,13 @@
 import * as vscode from 'vscode'
-import { UMLEngine, type ParseResult, type IRProperty, type IROperation } from '@umlts/engine'
+import {
+  UMLEngine,
+  type ParseResult,
+  type IRProperty,
+  type IROperation,
+  IREntity,
+  Diagnostic,
+  IRRelationship,
+} from '@umlts/engine'
 import { UMLPreviewPanel } from './preview'
 
 export function activate(context: vscode.ExtensionContext) {
@@ -26,7 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
     lastParseResult = result
     lastDocumentUri = document.uri.toString()
 
-    const vsDiagnostics: vscode.Diagnostic[] = result.diagnostics.map((diag: any) => {
+    const vsDiagnostics: vscode.Diagnostic[] = result.diagnostics.map((diag: Diagnostic) => {
       const range = new vscode.Range(
         (diag.line || 1) - 1,
         Math.max(0, (diag.column || 1) - 1),
@@ -132,7 +140,7 @@ export function activate(context: vscode.ExtensionContext) {
       // Entidades del diagrama actual
       return getParseResult(document).then((result) => {
         if (result && result.diagram && result.diagram.entities) {
-          result.diagram.entities.forEach((entity: any) => {
+          result.diagram.entities.forEach((entity: IREntity) => {
             const item = new vscode.CompletionItem(entity.name, vscode.CompletionItemKind.Class)
             item.detail = entity.namespace ? `(in ${entity.namespace})` : ''
             item.documentation = new vscode.MarkdownString(
@@ -275,19 +283,19 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Buscar en Entidades
         const entity = result.diagram.entities.find(
-          (e: any) =>
+          (e: IREntity) =>
             (e.name === word || e.id === word) &&
             (e.line === line ||
-              e.properties.some((m: any) => m.name === word && m.line === line) ||
-              e.operations.some((m: any) => m.name === word && m.line === line)),
+              e.properties.some((m: IRProperty) => m.name === word && m.line === line) ||
+              e.operations.some((m: IROperation) => m.name === word && m.line === line)),
         )
 
         if (entity != null) {
           const markdown = new vscode.MarkdownString()
 
           // Caso: Es un miembro de la entidad
-          const prop = entity.properties.find((p: any) => p.name === word && p.line === line)
-          const op = entity.operations.find((o: any) => o.name === word && o.line === line)
+          const prop = entity.properties.find((p: IRProperty) => p.name === word && p.line === line)
+          const op = entity.operations.find((o: IROperation) => o.name === word && o.line === line)
           const member = prop || op
 
           if (member != null) {
@@ -311,7 +319,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         // Buscar en Relaciones
-        const rel = result.diagram.relationships.find((r: any) => r.line === line)
+        const rel = result.diagram.relationships.find((r: IRRelationship) => r.line === line)
         if (word === rel?.type) {
           // Simplificación: si el ratón está en la línea de la relación
           const markdown = new vscode.MarkdownString()
