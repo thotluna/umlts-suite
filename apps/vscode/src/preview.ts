@@ -138,7 +138,7 @@ export class UMLPreviewPanel {
 
     try {
       const text = editor.document.getText()
-      const result = this._engine.parse(text)
+      const result = await this._engine.parse(text)
 
       const config = vscode.workspace.getConfiguration('umlts')
       const preferredTheme = config.get<'auto' | 'light' | 'dark'>('preview.theme', 'auto')

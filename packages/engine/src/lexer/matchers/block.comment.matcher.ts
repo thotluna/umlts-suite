@@ -4,7 +4,7 @@ import type { Token } from '../../syntax/token.types'
 import { TokenType } from '../../syntax/token.types'
 
 /**
- * Matches block comments starting with /* and ending with */ (without space)
+ * Matches block comments starting with slash-star and ending with star-slash.
  */
 export class BlockCommentMatcher implements TokenMatcher {
   public match(reader: LexerReader): Token | null {

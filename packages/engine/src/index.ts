@@ -1,11 +1,12 @@
+export type { ParseResult } from './generator/types'
 import { SemanticPhase } from './compiler/phases/semantic.phases'
 import { ParserPhase } from './compiler/phases/parser.phase'
 import { LexerPhase } from './compiler/phases/lexer.phase'
 import { type CompilerPhase } from './compiler/phases/types'
 import { CompilerContext } from './compiler/phases/context'
-import type { ParseResult } from './generator/types'
 import type { Token } from './syntax/token.types'
 import { LexerFactory } from './lexer/lexer.factory'
+import { type ParseResult } from './generator/types'
 
 export * from './generator/ir/models'
 export * from './syntax/diagnostic.types'

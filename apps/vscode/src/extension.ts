@@ -10,43 +10,35 @@ export function activate(context: vscode.ExtensionContext) {
   let lastParseResult: ParseResult | null = null
   let lastDocumentUri = ''
 
-  const getParseResult = (document: vscode.TextDocument) => {
+  const getParseResult = async (document: vscode.TextDocument) => {
     if (lastDocumentUri === document.uri.toString() && lastParseResult != null) {
       return lastParseResult
     }
-    lastParseResult = engine.parse(document.getText())
+    lastParseResult = await engine.parse(document.getText())
     lastDocumentUri = document.uri.toString()
     return lastParseResult
   }
 
-  const validateDocument = (document: vscode.TextDocument) => {
+  const validateDocument = async (document: vscode.TextDocument) => {
     if (document.languageId !== 'umlts') return
 
-    const result = engine.parse(document.getText())
+    const result = await engine.parse(document.getText())
     lastParseResult = result
     lastDocumentUri = document.uri.toString()
 
-    const vsDiagnostics: vscode.Diagnostic[] = result.diagnostics.map(
-      (diag: {
-        line?: number
-        column?: number
-        length?: number
-        severity: string
-        message: string
-      }) => {
-        const range = new vscode.Range(
-          (diag.line || 1) - 1,
-          Math.max(0, (diag.column || 1) - 1),
-          (diag.line || 1) - 1,
-          Math.max(0, (diag.column || 1) - 1) + (diag.length || 1),
-        )
-        const severity =
-          diag.severity === 'Warning'
-            ? vscode.DiagnosticSeverity.Warning
-            : vscode.DiagnosticSeverity.Error
-        return new vscode.Diagnostic(range, diag.message, severity)
-      },
-    )
+    const vsDiagnostics: vscode.Diagnostic[] = result.diagnostics.map((diag: any) => {
+      const range = new vscode.Range(
+        (diag.line || 1) - 1,
+        Math.max(0, (diag.column || 1) - 1),
+        (diag.line || 1) - 1,
+        Math.max(0, (diag.column || 1) - 1) + (diag.length || 1),
+      )
+      const severity =
+        diag.severity === 'Warning'
+          ? vscode.DiagnosticSeverity.Warning
+          : vscode.DiagnosticSeverity.Error
+      return new vscode.Diagnostic(range, diag.message, severity)
+    })
 
     diagnosticCollection.set(document.uri, vsDiagnostics)
   }
@@ -138,21 +130,19 @@ export function activate(context: vscode.ExtensionContext) {
       })
 
       // Entidades del diagrama actual
-      const result = getParseResult(document)
-      if (result && result.diagram && result.diagram.entities) {
-        result.diagram.entities.forEach(
-          (entity: { name: string; namespace?: string; id: string; type: string }) => {
+      return getParseResult(document).then((result) => {
+        if (result && result.diagram && result.diagram.entities) {
+          result.diagram.entities.forEach((entity: any) => {
             const item = new vscode.CompletionItem(entity.name, vscode.CompletionItemKind.Class)
             item.detail = entity.namespace ? `(in ${entity.namespace})` : ''
             item.documentation = new vscode.MarkdownString(
               `FQN: \`${entity.id}\`\n\nType: ${entity.type}`,
             )
             completions.push(item)
-          },
-        )
-      }
-
-      return completions
+          })
+        }
+        return completions
+      })
     },
   })
 
@@ -252,7 +242,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // --- Hovers ---
   const hoverProvider = vscode.languages.registerHoverProvider('umlts', {
-    provideHover(document, position) {
+    async provideHover(document, position) {
       const range = document.getWordRangeAtPosition(
         position,
         /\[[^\]]*\]|[a-zA-Z0-9_*>-]+|[><=:. [\]+*]+/,
@@ -260,7 +250,7 @@ export function activate(context: vscode.ExtensionContext) {
       if (range == null) return null
 
       const word = document.getText(range)
-      const result = getParseResult(document)
+      const result = await getParseResult(document)
 
       // 1. Ayuda del Lenguaje (Keywords/Operadores)
       let helpKey = word
@@ -285,19 +275,19 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Buscar en Entidades
         const entity = result.diagram.entities.find(
-          (e) =>
+          (e: any) =>
             (e.name === word || e.id === word) &&
             (e.line === line ||
-              e.properties.some((m) => m.name === word && m.line === line) ||
-              e.operations.some((m) => m.name === word && m.line === line)),
+              e.properties.some((m: any) => m.name === word && m.line === line) ||
+              e.operations.some((m: any) => m.name === word && m.line === line)),
         )
 
         if (entity != null) {
           const markdown = new vscode.MarkdownString()
 
           // Caso: Es un miembro de la entidad
-          const prop = entity.properties.find((p) => p.name === word && p.line === line)
-          const op = entity.operations.find((o) => o.name === word && o.line === line)
+          const prop = entity.properties.find((p: any) => p.name === word && p.line === line)
+          const op = entity.operations.find((o: any) => o.name === word && o.line === line)
           const member = prop || op
 
           if (member != null) {
@@ -321,7 +311,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         // Buscar en Relaciones
-        const rel = result.diagram.relationships.find((r) => r.line === line)
+        const rel = result.diagram.relationships.find((r: any) => r.line === line)
         if (word === rel?.type) {
           // Simplificación: si el ratón está en la línea de la relación
           const markdown = new vscode.MarkdownString()
