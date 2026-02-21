@@ -229,7 +229,7 @@
 - [x] **FEAT**: Implementar sistema de inferencia de tipos por contexto de relación (`TypeInferrer`)
 - [x] **FIX**: Resolver ambigüedades en entidades implícitas (`class >I B` ahora registra `B` como Interfaz)
 - [x] **TEST**: Alcanzar cobertura del 96% en el paquete `semantics`
-- [x] **DOC**: Actualizar `semantics.umlts` with the nueva arquitectura (TypeInferrer, rules)
+- [x] **DOC**: Actualizar `semantics.umlts` con la nueva arquitectura (TypeInferrer, rules)
 - [x] **PR**: Crear Pull Request "Refactor Semántico V2: Declaraciones Flexible y Resolución FQN Robusta"
 
 ## Próximos Pasos (V3)
@@ -345,6 +345,6 @@
 
 - [x] **TASK**: Refactorizar importaciones del Renderer para integridad del contrato IR
   - [x] Establecer `@umlts/engine` como única fuente de verdad para el contrato IR
-  - [x] Purgar barrel exports of `core/types.ts` y separar modelos visuales
+  - [x] Purgar barrel exports de `core/types.ts` y separar modelos visuales
   - [x] Eliminar todos los usos de `any` en la lógica de transformación y dibujo (Renderer)
   - [x] Corregir dependencias circulares y asegurar build limpio en todo el monorepo
