@@ -1,13 +1,12 @@
 import { ParserFactory } from '../../parser/parser.factory'
 import type { CompilerContext } from './context'
-import { CompilerPhase } from './types'
+import type { PipelineArtifacts } from './pipeline-artifacts'
+import type { CompilerPhase } from './types'
 
 export class ParserPhase implements CompilerPhase {
-  public run(context: CompilerContext): void {
-    const parser = ParserFactory.create()
-    const result = parser.parse(context.tokens, context.activePlugin)
-
-    context.ast = result
+  public run(context: CompilerContext, artifacts: PipelineArtifacts): void {
+    const result = ParserFactory.create().parse(artifacts.tokens, context.plugin)
+    artifacts.ast = result
     if (result.diagnostics) {
       context.addDiagnostics(result.diagnostics)
     }

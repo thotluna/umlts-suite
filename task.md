@@ -321,3 +321,12 @@
 - [ ] **DESIGN**: Definir cómo los estereotipos extienden la semántica de la IR (Intermediate Representation).
 - [ ] **FEAT**: Implementar distinción visual y semántica entre `«stereotypes»` (extensión de tipo) y `{constraints}` (reglas lógicas). (Anteriormente RQ 9.3)
 - [ ] **FEAT**: Implementar soporte para Notas como Contenedores de Restricciones mediante el estereotipo `«constraint»`. (Anteriormente RQ 11.2)
+
+## Refactorización de Estado y Pipeline (Sync)
+
+- [x] Desacoplar resultados de fase del `CompilerContext` hacia `PipelineArtifacts`
+- [x] Reducir `CompilerContext` a entorno puro (diagnósticos, plugin, source)
+- [x] Hacer síncrono el pipeline de análisis semántico y la fachada `UMLEngine`
+- [x] Desacoplar `SemanticAnalyzer` del contexto y moverlo a `SemanticPhase`
+- [x] Refactorizar `PhasesFactory` para ser instanciable y poseer el `PluginManager`
+- [x] Limpiar `index.ts` eliminando exportaciones redundantes y métodos de debug (`getTokens`)

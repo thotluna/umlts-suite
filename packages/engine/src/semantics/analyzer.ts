@@ -36,12 +36,15 @@ import { AssociationClassResolver } from './resolvers/association-class.resolver
  * Orquesta el proceso de análisis coordinando pases especializados a través de una tubería.
  */
 export class SemanticAnalyzer {
-  private readonly pluginManager = new PluginManager()
+  private readonly pluginManager: PluginManager
   private readonly typePipeline: TypeResolutionPipeline
 
-  constructor() {
-    // 1. Register built-in plugins
-    BUILTIN_PLUGINS.forEach((plugin) => this.pluginManager.register(plugin))
+  constructor(pluginManager?: PluginManager) {
+    this.pluginManager = pluginManager ?? new PluginManager()
+
+    if (!pluginManager) {
+      BUILTIN_PLUGINS.forEach((plugin) => this.pluginManager.register(plugin))
+    }
 
     // 2. Initialize the type resolution pipeline with standard strategies
     this.typePipeline = new TypeResolutionPipeline()
