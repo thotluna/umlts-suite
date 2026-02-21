@@ -6,7 +6,12 @@ import {
   type IREntity,
   type IRConstraint,
 } from '../../generator/ir/models'
-import { type ASTNode, ASTNodeType, type RelationshipNode } from '../../syntax/nodes'
+import {
+  type ASTNode,
+  ASTNodeType,
+  type RelationshipNode,
+  type RelationshipHeaderNode,
+} from '../../syntax/nodes'
 import type { SymbolTable } from '../symbol-table'
 import type { IParserHub } from '../../parser/parser.context'
 import { DiagnosticCode } from '../../syntax/diagnostic.types'
@@ -14,8 +19,7 @@ import { TokenType, type Token } from '../../syntax/token.types'
 import { MultiplicityValidator } from '../utils/multiplicity-validator'
 import { TypeValidator } from '../utils/type-validator'
 import type { HierarchyValidator } from '../validators/hierarchy-validator'
-import type { AssociationValidator } from '../validators/association-validator'
-import type { RelationshipHeaderNode } from '../../syntax/nodes'
+import { AssociationValidator } from '../validators/association-validator'
 
 /**
  * Handles the declaration and resolution of relationships.
@@ -26,8 +30,11 @@ export class RelationshipAnalyzer {
     private readonly relationships: IRRelationship[],
     private readonly hierarchyValidator: HierarchyValidator,
     private readonly context: IParserHub,
-    private readonly associationValidator: AssociationValidator,
-  ) {}
+  ) {
+    this.associationValidator = new AssociationValidator(context)
+  }
+
+  private readonly associationValidator: AssociationValidator
 
   /**
    * Directly adds an already resolved and validated relationship to the IR.

@@ -1,7 +1,6 @@
 import type { Token } from '../syntax/token.types'
 import { TokenType } from '../syntax/token.types'
-import type { ProgramNode, StatementNode } from '../syntax/nodes'
-import { ASTNodeType } from '../syntax/nodes'
+import { type ProgramNode, type StatementNode, ASTNodeType } from '../syntax/nodes'
 import { DiagnosticReporter } from './diagnostic-reporter'
 import { ParserHub } from './parser.hub'
 import type { IParserHub } from './parser.context'
@@ -48,6 +47,8 @@ export class Parser implements IOrchestrator {
    * Implementación de IOrchestrator: permite que las reglas soliciten el parseo de una sentencia.
    */
   public parseStatement(context: IParserHub): StatementNode[] {
+    if (context.isAtEnd()) return []
+
     for (const rule of this.rules) {
       if (rule.canStart(context)) {
         try {

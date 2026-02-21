@@ -4,14 +4,12 @@ import {
   type EntityNode,
   type StatementNode,
   type MemberNode,
-  type ConstraintNode,
-  type RelationshipHeaderNode,
 } from '../../syntax/nodes'
 import type { IParserHub } from '../parser.context'
 import type { StatementRule, IOrchestrator } from '../rule.types'
-import { ModifierRule } from './modifier.rule'
-import { MemberRule } from './member.rule'
 import { RelationshipHeaderRule } from './relationship-header.rule'
+import { MemberRule } from './member.rule'
+import { ModifierRule } from './modifier.rule'
 
 export class EntityRule implements StatementRule {
   private readonly memberRule = new MemberRule()
@@ -86,7 +84,9 @@ export class EntityRule implements StatementRule {
     if (context.match(TokenType.LT)) {
       typeParameters = []
       while (!context.check(TokenType.GT) && !context.isAtEnd()) {
-        typeParameters.push(context.consume(TokenType.IDENTIFIER, 'Expected type parameter name').value)
+        typeParameters.push(
+          context.consume(TokenType.IDENTIFIER, 'Expected type parameter name').value,
+        )
         if (context.match(TokenType.COMMA)) continue
       }
       context.consume(TokenType.GT, "Se esperaba '>'")
@@ -113,7 +113,10 @@ export class EntityRule implements StatementRule {
         } else {
           // Si ninguna regla consumió y no estamos al final, registramos error y saltamos token
           if (context.getPosition() === startPos) {
-            context.addError(`Unexpected token '${context.peek().value}' inside ${type}`, context.peek())
+            context.addError(
+              `Unexpected token '${context.peek().value}' inside ${type}`,
+              context.peek(),
+            )
             context.advance()
           }
         }
@@ -123,7 +126,8 @@ export class EntityRule implements StatementRule {
 
     return [
       {
-        type,
+        type: ASTNodeType.ENTITY,
+        entityType: type,
         name: nameToken.value,
         modifiers,
         typeParameters,

@@ -7,16 +7,21 @@ import { TokenType } from '../syntax/token.types'
 export class TokenStream {
   private current = 0
   private readonly tokens: Token[]
+  private splitTokens: Token[] = []
 
   constructor(tokens: Token[]) {
     this.tokens = tokens
   }
 
   public peek(): Token {
+    if (this.splitTokens.length > 0) return this.splitTokens[0]
     return this.tokens[this.current] || this.tokens[this.tokens.length - 1]
   }
 
   public peekNext(): Token {
+    if (this.splitTokens.length > 1) return this.splitTokens[1]
+    if (this.splitTokens.length === 1)
+      return this.tokens[this.current] || this.tokens[this.tokens.length - 1]
     return this.tokens[this.current + 1] || this.tokens[this.tokens.length - 1]
   }
 
@@ -25,6 +30,9 @@ export class TokenStream {
   }
 
   public advance(): Token {
+    if (this.splitTokens.length > 0) {
+      return this.splitTokens.shift()!
+    }
     if (!this.isAtEnd()) this.current++
     return this.prev()
   }
@@ -35,6 +43,7 @@ export class TokenStream {
 
   public rollback(position: number): void {
     this.current = position
+    this.splitTokens = []
   }
 
   public isAtEnd(): boolean {
@@ -51,24 +60,46 @@ export class TokenStream {
   }
 
   /**
-   * Intenta consumir un token de uno de los tipos especificados.
-   * Si tiene éxito, avanza el puntero y devuelve el token.
+   * Intenta consumir un token del tipo especificado.
+   * Si matchea, avanza el stream (manejando splitting si es necesario) y devuelve el token.
+   * Si no matchea, devuelve null.
+   */
+  public tryTake(type: TokenType): Token | null {
+    if (!this.check(type)) return null
+
+    this.splitAndAdvance(type)
+    return this.advance()
+  }
+
+  /**
+   * Intenta consumir el primer token que matchee con alguno de los tipos proporcionados.
    */
   public takeAny(...types: TokenType[]): Token | null {
-    if (this.checkAny(...types)) {
-      return this.advance()
+    for (const type of types) {
+      const token = this.tryTake(type)
+      if (token) return token
     }
     return null
   }
 
-  /**
-   * Intenta consumir un token de un tipo específico.
-   */
-  public tryTake(type: TokenType): Token | null {
-    if (this.check(type)) {
-      return this.advance()
+  private splitAndAdvance(type: TokenType): void {
+    const token = this.peek()
+    if (token.type === TokenType.OP_INHERIT && type === TokenType.GT) {
+      this.current++
+      this.splitTokens.push(
+        {
+          ...token,
+          type: TokenType.GT,
+          value: '>',
+        },
+        {
+          ...token,
+          type: TokenType.GT,
+          value: '>',
+          column: token.column + 1,
+        },
+      )
     }
-    return null
   }
 
   /**
@@ -78,23 +109,18 @@ export class TokenStream {
   public sync(isPointOfNoReturn: () => boolean): void {
     if (this.isAtEnd()) return
 
-    // Avanzamos al menos uno para salir del token problemático
     this.advance()
 
     while (!this.isAtEnd()) {
-      // Puntos seguros de sincronización:
-      // 1. Después de un bloque (})
       if (this.prev().type === TokenType.RBRACE) return
-
-      // 2. El inicio de una regla reconocida por el orquestador
       if (isPointOfNoReturn()) return
-
       this.advance()
     }
   }
 
   /**
-   * Crea un token virtual para representar uno faltante.
+   * Fabrica un token "virtual" para representar la ausencia de un token esperado.
+   * Utiliza el token actual como ancla para la posición.
    */
   public createMissingToken(type: TokenType): Token {
     const anchor = this.peek()

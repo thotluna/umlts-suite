@@ -1,6 +1,5 @@
 import { DiagnosticReporter } from '../../parser/diagnostic-reporter'
 import { ParserHub } from '../../parser/parser.hub'
-import type { IParserHub } from '../../parser/parser.context'
 import type { Phase, PhaseArtifacts } from './phase.interface'
 import type { SemanticAnalyzer } from '../../semantics/analyzer'
 
