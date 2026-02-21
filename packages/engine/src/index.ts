@@ -1,57 +1,25 @@
 import { CompilerContext } from './compiler/phases/context'
-import { LexerPhase } from './compiler/phases/lexer.phase'
-import { ParserPhase } from './compiler/phases/parser.phase'
-import { SemanticPhase } from './compiler/phases/semantic.phases'
-import { CompilerPhase } from './compiler/phases/types'
-import { ParseResult } from './exports'
-import { LexerFactory } from './lexer/lexer.factory'
-import { Token } from './syntax/token.types'
+import { PipelineArtifacts } from './compiler/phases/pipeline-artifacts'
+import { PhasesFactory } from './compiler/phases/phases.factory'
+import { ParseResult } from './generator/types'
 
-export type { ParseResult } from './generator/types'
-
-export * from './generator/ir/models'
-export * from './syntax/diagnostic.types'
-export * from './syntax/token.types'
-export * from './syntax/nodes'
-
-/**
- * Fachada principal del motor ts-uml-engine.
- * Orquesta las fases del compilador en un flujo único con estado.
- */
 export class UMLEngine {
-  private readonly phases: CompilerPhase[] = [
-    new LexerPhase(),
-    new ParserPhase(),
-    new SemanticPhase(),
-  ]
+  private readonly factory = new PhasesFactory()
+  private readonly phases = this.factory.getPhases()
 
-  /**
-   * Procesa código fuente UMLTS y devuelve una representación intermedia resuelta.
-   *
-   * @param source - El código fuente en lenguaje UMLTS.
-   * @returns Un objeto con el diagrama y los diagnósticos acumulados.
-   */
   public parse(source: string): ParseResult {
-    const context = new CompilerContext(source)
+    const context = new CompilerContext(source, this.factory.getPlugin())
+    const artifacts = new PipelineArtifacts()
 
     for (const phase of this.phases) {
-      phase.run(context)
+      phase.run(context, artifacts)
       if (context.hasErrors()) break
     }
 
     return {
-      diagram: context.diagram!,
+      diagram: artifacts.diagram!,
       diagnostics: context.diagnostics,
       isValid: !context.hasErrors(),
     }
-  }
-
-  /**
-   * Devuelve los tokens generados por el lexer para un código fuente.
-   * Útil para depuración.
-   */
-  public getTokens(source: string): Token[] {
-    const lexer = LexerFactory.create(source)
-    return lexer.tokenize()
   }
 }

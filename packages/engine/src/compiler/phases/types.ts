@@ -1,5 +1,6 @@
 import type { CompilerContext } from './context'
+import type { PipelineArtifacts } from './pipeline-artifacts'
 
 export interface CompilerPhase {
-  run(context: CompilerContext): Promise<void> | void
+  run(context: CompilerContext, artifacts: PipelineArtifacts): void
 }
