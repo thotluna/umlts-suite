@@ -14,22 +14,24 @@ import { TokenType, type Token } from '../../syntax/token.types'
 import type { AnalysisSession } from '../session/analysis-session'
 import type { EntityAnalyzer } from '../analyzers/entity-analyzer'
 import type { HierarchyValidator } from '../validators/hierarchy-validator'
+import type { ISemanticPass } from './semantic-pass.interface'
 
 /**
- * Pass 1: Discovery.
- * Registers entities so they are known globally.
- * Extracted from SemanticAnalyzer.
+ * Pase 1: Descubrimiento.
+ * Registra las entidades para que sean conocidas globalmente.
  */
-export class DiscoveryPass implements ASTVisitor {
+export class DiscoveryPass implements ISemanticPass, ASTVisitor {
+  public readonly name = 'Discovery'
   private currentNamespace: string[] = []
+  private session!: AnalysisSession
 
   constructor(
-    private readonly session: AnalysisSession,
     private readonly entityAnalyzer: EntityAnalyzer,
     private readonly hierarchyValidator: HierarchyValidator,
   ) {}
 
-  public run(program: ProgramNode): void {
+  public execute(program: ProgramNode, session: AnalysisSession): void {
+    this.session = session
     this.currentNamespace = []
     walkAST(program, this)
   }
@@ -68,7 +70,7 @@ export class DiscoveryPass implements ASTVisitor {
     if (this.session.symbolTable.isNamespace(entity.id)) {
       if (this.session.context) {
         this.session.context.addError(
-          `Namespace collision: '${entity.id}' is already defined as a Package. Entities cannot have the same name as a package in the same scope.`,
+          `Namespace collision: '${entity.id}' is already defined as a Package.`,
           { line: node.line, column: node.column, type: TokenType.UNKNOWN, value: '' } as Token,
           DiagnosticCode.SEMANTIC_DUPLICATE_ENTITY,
         )
@@ -80,14 +82,8 @@ export class DiscoveryPass implements ASTVisitor {
     this.hierarchyValidator.validateEntity(entity)
   }
 
-  visitRelationship(_node: RelationshipNode): void {
-    // Relationships are processed in Pass 3 (Resolution)
-  }
-
-  visitComment(_node: CommentNode): void {
-    // Comments have no semantic impact in this pass
-  }
-
+  visitRelationship(_node: RelationshipNode): void {}
+  visitComment(_node: CommentNode): void {}
   visitConfig(node: ConfigNode): void {
     this.session.configStore.merge(node.options)
   }
@@ -98,7 +94,5 @@ export class DiscoveryPass implements ASTVisitor {
     this.hierarchyValidator.validateEntity(entity)
   }
 
-  visitConstraint(_node: ConstraintNode): void {
-    // Constraints are processed in ResolutionPass or DefinitionPass
-  }
+  visitConstraint(_node: ConstraintNode): void {}
 }

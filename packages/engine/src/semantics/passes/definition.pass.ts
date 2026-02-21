@@ -12,21 +12,21 @@ import type {
 import type { IRConstraint } from '../../generator/ir/models'
 import type { AnalysisSession } from '../session/analysis-session'
 import type { EntityAnalyzer } from '../analyzers/entity-analyzer'
+import type { ISemanticPass } from './semantic-pass.interface'
 
 /**
- * Pass 2: Definition.
- * Processes members and their types now that all entities are known.
- * Extracted from SemanticAnalyzer.
+ * Pase 2: Definición.
+ * Procesa los miembros y sus tipos una vez que todas las entidades son conocidas.
  */
-export class DefinitionPass implements ASTVisitor {
+export class DefinitionPass implements ISemanticPass, ASTVisitor {
+  public readonly name = 'Definition'
   private currentNamespace: string[] = []
+  private session!: AnalysisSession
 
-  constructor(
-    private readonly session: AnalysisSession,
-    private readonly entityAnalyzer: EntityAnalyzer,
-  ) {}
+  constructor(private readonly entityAnalyzer: EntityAnalyzer) {}
 
-  public run(program: ProgramNode): void {
+  public execute(program: ProgramNode, session: AnalysisSession): void {
+    this.session = session
     this.currentNamespace = []
     walkAST(program, this)
   }
@@ -48,7 +48,6 @@ export class DefinitionPass implements ASTVisitor {
     if (entity) {
       this.entityAnalyzer.processMembers(entity, node)
 
-      // Scan both properties and operations for constraints
       const allMembers: { constraints?: IRConstraint[] }[] = [
         ...(entity.properties || []),
         ...(entity.operations || []),
@@ -75,13 +74,8 @@ export class DefinitionPass implements ASTVisitor {
     }
   }
 
-  visitComment(_node: CommentNode): void {
-    // Comments have no semantic impact in this pass
-  }
-
-  visitConfig(_node: ConfigNode): void {
-    // Config processed in DiscoveryPass
-  }
+  visitComment(_node: CommentNode): void {}
+  visitConfig(_node: ConfigNode): void {}
 
   visitAssociationClass(node: AssociationClassNode): void {
     const fqn = this.session.symbolTable.resolveFQN(node.name, this.currentNamespace.join('.')).fqn
@@ -91,7 +85,5 @@ export class DefinitionPass implements ASTVisitor {
     }
   }
 
-  visitConstraint(_node: ConstraintNode): void {
-    // Top level constraints processed in ResolutionPass or via Registry
-  }
+  visitConstraint(_node: ConstraintNode): void {}
 }

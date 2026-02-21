@@ -16,26 +16,26 @@ import type { RelationshipAnalyzer } from '../analyzers/relationship-analyzer'
 import type { ConstraintAnalyzer } from '../analyzers/constraint-analyzer'
 import { AssociationClassResolver } from '../resolvers/association-class.resolver'
 import { TypeValidator } from '../utils/type-validator'
+import type { ISemanticPass } from './semantic-pass.interface'
 
 /**
- * Pass 3: Resolution.
- * Resolves relationships and generates implicit entities if required.
- * Extracted from SemanticAnalyzer.
+ * Pase 3: Resolución.
+ * Resuelve relaciones y genera entidades implícitas si es necesario.
  */
-export class ResolutionPass implements ASTVisitor {
+export class ResolutionPass implements ISemanticPass, ASTVisitor {
+  public readonly name = 'Resolution'
   private currentNamespace: string[] = []
   private currentConstraintGroupId?: string
+  private session!: AnalysisSession
 
   constructor(
-    private readonly session: AnalysisSession,
     private readonly relationshipAnalyzer: RelationshipAnalyzer,
     private readonly constraintAnalyzer: ConstraintAnalyzer,
-    // We keep the dependency injection but might not use this instance directly
-    // if we need to recreate it with new context.
     private readonly associationResolver: AssociationClassResolver,
   ) {}
 
-  public run(program: ProgramNode): void {
+  public execute(program: ProgramNode, session: AnalysisSession): void {
+    this.session = session
     this.currentNamespace = []
     walkAST(program, this)
   }
@@ -56,7 +56,6 @@ export class ResolutionPass implements ASTVisitor {
     const fromEntity = this.session.symbolTable.get(fromFQN)
 
     ;(node.relationships || []).forEach((rel) => {
-      // Calculate inference context
       const relType = this.relationshipAnalyzer.mapRelationshipType(rel.kind)
       const inferenceContext = fromEntity
         ? { sourceType: fromEntity.type, relationshipKind: relType }
@@ -90,7 +89,6 @@ export class ResolutionPass implements ASTVisitor {
     const ns = this.currentNamespace.join('.')
     const relType = this.relationshipAnalyzer.mapRelationshipType(node.kind)
 
-    // Resolve 'from' entity first
     const fromFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
       node.from,
       ns,
@@ -100,7 +98,6 @@ export class ResolutionPass implements ASTVisitor {
     )
     const fromEntity = this.session.symbolTable.get(fromFQN)
 
-    // Inference for 'to' entity based on 'from' entity type
     const inferenceContext = fromEntity
       ? { sourceType: fromEntity.type, relationshipKind: relType }
       : undefined
@@ -132,8 +129,6 @@ export class ResolutionPass implements ASTVisitor {
   visitConfig(_node: ConfigNode): void {}
 
   visitAssociationClass(node: AssociationClassNode): void {
-    // We instantiate a new resolver for this specific context (namespace)
-    // Dependencies are passed from the session/analyzer context
     const resolver = new AssociationClassResolver(this.session, this.relationshipAnalyzer, [
       ...this.currentNamespace,
     ])
@@ -143,11 +138,9 @@ export class ResolutionPass implements ASTVisitor {
   visitConstraint(node: ConstraintNode): void {
     const irConstraint = this.constraintAnalyzer.process(node)
 
-    // If it's xor and has targets (like {xor: group1}), we store it
     if (irConstraint.targets.length > 0) {
       this.session.constraintRegistry.add(irConstraint)
     } else if (node.kind === 'xor' && node.body) {
-      // It's a block XOR. We generate a unique group ID for its children.
       const groupId = `xor_${node.line}_${node.column}`
       irConstraint.targets = [groupId]
       this.session.constraintRegistry.add(irConstraint)
