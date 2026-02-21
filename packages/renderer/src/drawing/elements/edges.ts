@@ -258,13 +258,18 @@ export function renderMarkers(theme: Theme): string {
   )
 }
 
-interface Point { x: number; y: number }
+interface Point {
+  x: number
+  y: number
+}
 
 function trimEnd(wps: Point[], dist: number): Point[] {
   if (wps.length < 2 || dist <= 0) return wps
   const result = wps.slice(0, -1)
-  const a = wps[wps.length - 2], b = wps[wps.length - 1]
-  const dx = b.x - a.x, dy = b.y - a.y
+  const a = wps[wps.length - 2]
+  const b = wps[wps.length - 1]
+  const dx = b.x - a.x
+  const dy = b.y - a.y
   const len = Math.sqrt(dx * dx + dy * dy)
   if (len <= dist) return result
   result.push({ x: b.x - (dx / len) * dist, y: b.y - (dy / len) * dist })
@@ -273,18 +278,27 @@ function trimEnd(wps: Point[], dist: number): Point[] {
 
 function trimStart(wps: Point[], dist: number): Point[] {
   if (wps.length < 2 || dist <= 0) return wps
-  const a = wps[0], b = wps[1]
-  const dx = b.x - a.x, dy = b.y - a.y
+  const a = wps[0]
+  const b = wps[1]
+  const dx = b.x - a.x
+  const dy = b.y - a.y
   const len = Math.sqrt(dx * dx + dy * dy)
   if (len <= dist) return wps.slice(1)
   return [{ x: a.x + (dx / len) * dist, y: a.y + (dy / len) * dist }, ...wps.slice(1)]
 }
 
-function labelPos(anchor: Point, next: Point, offset: number): { x: number; y: number; anchor: string } {
-  const dx = next.x - anchor.x, dy = next.y - anchor.y
+function labelPos(
+  anchor: Point,
+  next: Point,
+  offset: number,
+): { x: number; y: number; anchor: string } {
+  const dx = next.x - anchor.x
+  const dy = next.y - anchor.y
   const len = Math.sqrt(dx * dx + dy * dy) || 1
-  const ux = dx / len, uy = dy / len
-  const px = -uy, py = ux
+  const ux = dx / len
+  const uy = dy / len
+  const px = -uy
+  const py = ux
   const x = anchor.x + ux * offset + px * (offset * 0.8)
   const y = anchor.y + uy * offset + py * (offset * 0.8)
   return { x, y, anchor: px >= 0 ? 'start' : 'end' }
@@ -293,7 +307,8 @@ function labelPos(anchor: Point, next: Point, offset: number): { x: number; y: n
 export function midpoint(wps: Point[]): Point {
   const mid = Math.floor(wps.length / 2)
   if (wps.length % 2 === 1) return wps[mid]
-  const a = wps[mid - 1], b = wps[mid]
+  const a = wps[mid - 1]
+  const b = wps[mid]
   return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
 }
 
