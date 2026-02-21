@@ -5,8 +5,9 @@ import { EntityRule } from './rules/entity.rule'
 import { RelationshipRule } from './rules/relationship.rule'
 import { ConfigRule } from './rules/config.rule'
 import { ConstraintRule } from './rules/constraint.rule'
-
 import { DocCommentRule } from './rules/doc-comment.rule'
+import { NoteRule } from './rules/note.rule'
+import { LinkRule } from './rules/link.rule'
 
 export class ParserFactory {
   /**
@@ -18,6 +19,8 @@ export class ParserFactory {
       new ConstraintRule(),
       new DocCommentRule(),
       new CommentRule(),
+      new NoteRule(),
+      new LinkRule(),
       new PackageRule(),
       new EntityRule(),
       new RelationshipRule(),

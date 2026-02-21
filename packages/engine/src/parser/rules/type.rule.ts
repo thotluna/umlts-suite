@@ -1,104 +1,41 @@
-import { TokenType } from '../../syntax/token.types'
-import { ASTNodeType, type TypeNode } from '../../syntax/nodes'
+import { TypeRegistry } from './type-strategies/type.registry'
+import type { TypeNode } from '../../syntax/nodes'
 import type { ParserContext } from '../parser.context'
 
 export class TypeRule {
   /**
    * Parsea un tipo UMLTS (puede ser simple, FQN, genérico o array).
-   * Devuelve un objeto estructurado TypeNode.
+   * Devuelve un objeto estructurado TypeNode utilizando estrategias extensibles.
    */
   public parse(context: ParserContext): TypeNode {
-    const token = context.peek()
+    let baseNode: TypeNode | undefined
 
-    if (
-      token.type !== TokenType.IDENTIFIER &&
-      token.type !== TokenType.KW_XOR &&
-      token.type !== TokenType.STRING
-    ) {
-      throw new Error(`Expected type at line ${token.line}, column ${token.column}`)
-    }
-
-    let raw = context.advance().value
-    let name = raw
-    let kind: 'simple' | 'generic' | 'array' | 'enum' = 'simple'
-    let args: TypeNode[] | undefined
-
-    // Soporte para FQN (Fully Qualified Names): core.DiagramNode
-    while (context.match(TokenType.DOT)) {
-      const nextPart = context.consume(TokenType.IDENTIFIER, 'Identifier expected after dot')
-      raw += '.' + nextPart.value
-      name = raw // En FQN, el nombre incluye el path
-    }
-
-    // Soporte para enums inline: EnumName(VAL1 | VAL2)
-    let values: string[] | undefined
-    if (context.match(TokenType.LPAREN)) {
-      kind = 'enum'
-      values = []
-      raw += '('
-
-      while (!context.check(TokenType.RPAREN) && !context.isAtEnd()) {
-        if (context.check(TokenType.IDENTIFIER)) {
-          const val = context.consume(TokenType.IDENTIFIER, '').value
-          values.push(val)
-          raw += val
-        } else if (context.match(TokenType.PIPE)) {
-          raw += ' | '
-        } else {
-          context.advance()
-        }
-      }
-
-      raw += context.consume(TokenType.RPAREN, "Expected ')' after enum values").value
-    } else if (context.match(TokenType.LT)) {
-      // Soporte para genéricos: Tipo<T, K>
-      kind = 'generic'
-      raw += '<'
-      args = []
-
-      do {
-        if (context.match(TokenType.PIPE)) {
-          raw += ' | '
-          continue
-        }
-
-        const argType = this.parse(context) // Recursividad
-        args.push(argType)
-        raw += argType.raw
-
-        if (context.check(TokenType.COMMA)) {
-          context.advance()
-          raw += ', '
-        }
-      } while (!context.check(TokenType.GT) && !context.isAtEnd())
-
-      raw += context.consume(TokenType.GT, "Expected '>'").value
-    }
-
-    // Soporte para arrays: Tipo[] o Tipo<T>[]
-    // Se puede encadenar: string[][]
-    // Soporte para arrays: Tipo[] o Tipo<T>[]
-    // Se mantiene el nombre original del tipo, pero se marca como array.
-    while (context.check(TokenType.LBRACKET)) {
-      if (context.peekNext().type === TokenType.RBRACKET) {
-        context.consume(TokenType.LBRACKET, '')
-        context.consume(TokenType.RBRACKET, '')
-        kind = 'array'
-        raw += '[]'
-      } else {
+    // 1. Encontrar proveedor primario (Identificador, xor, etc)
+    for (const provider of TypeRegistry.getPrimaries()) {
+      if (provider.canHandle(context)) {
+        baseNode = provider.parse(context, this)
         break
       }
     }
 
-    return {
-      type: ASTNodeType.TYPE,
-      kind,
-      name,
-      raw,
-      arguments: args,
-      values,
-      line: token.line,
-      column: token.column,
+    if (!baseNode) {
+      const token = context.peek()
+      throw new Error(`Expected type at line ${token.line}, column ${token.column}`)
     }
+
+    // 2. Aplicar modificadores (sufijos) de forma encadenada (<>, (), [], etc)
+    let modified = true
+    while (modified) {
+      modified = false
+      for (const modifier of TypeRegistry.getModifiers()) {
+        if (modifier.canHandle(context)) {
+          baseNode = modifier.apply(context, baseNode, this)
+          modified = true
+          break
+        }
+      }
+    }
+
+    return baseNode
   }
 }
