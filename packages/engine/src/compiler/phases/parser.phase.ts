@@ -5,7 +5,7 @@ import type { CompilerPhase } from './types'
 
 export class ParserPhase implements CompilerPhase {
   public run(context: CompilerContext, artifacts: PipelineArtifacts): void {
-    const result = ParserFactory.create().parse(artifacts.tokens, context.plugin)
+    const result = ParserFactory.create(context.plugin).parse(artifacts.tokens)
     artifacts.ast = result
     if (result.diagnostics) {
       context.addDiagnostics(result.diagnostics)

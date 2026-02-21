@@ -86,4 +86,26 @@ export class TokenStream {
     }
     return false
   }
+
+  /**
+   * Sincroniza el stream avanzando hasta encontrar un punto seguro (un delimitador o el inicio de una regla).
+   * @param isPointOfNoReturn - Predicado que define si el token actual permite iniciar un nuevo parseo seguro.
+   */
+  public sync(isPointOfNoReturn: () => boolean): void {
+    if (this.isAtEnd()) return
+
+    // Avanzamos al menos uno para salir del token problemático
+    this.advance()
+
+    while (!this.isAtEnd()) {
+      // Puntos seguros de sincronización:
+      // 1. Después de un bloque (})
+      if (this.prev().type === TokenType.RBRACE) return
+
+      // 2. El inicio de una regla reconocida por el orquestador
+      if (isPointOfNoReturn()) return
+
+      this.advance()
+    }
+  }
 }

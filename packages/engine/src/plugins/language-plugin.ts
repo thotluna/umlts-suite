@@ -1,5 +1,5 @@
 import type { Token } from '../syntax/token.types'
-import type { TypeNode } from '../syntax/nodes'
+import type { TypeNode, StatementNode, MemberNode } from '../syntax/nodes'
 import type { IREntity, IRRelationshipType } from '../generator/ir/models'
 
 /**
@@ -47,10 +47,30 @@ export interface LanguagePlugin {
   matchToken?(reader: ILexerReader): Token | null
 
   /**
-   * Hook for the Parser: allows the plugin to handle a token that is unexpected in the current context.
-   * If the plugin handles the token, it should return true and advance the context.
+   * Returns a list of language-specific statement rules.
    */
-  handleUnexpectedToken?(context: IParserContext, token: Token): boolean
+  getStatementRules?(): IPluginStatementRule[]
+
+  /**
+   * Returns a list of language-specific member providers.
+   */
+  getMemberRules?(): IPluginMemberProvider[]
+}
+
+/**
+ * Interface for a plugin-specific statement rule.
+ */
+export interface IPluginStatementRule {
+  canStart(context: IParserContext): boolean
+  parse(context: IParserContext, orchestrator: IOrchestrator): StatementNode[] | null
+}
+
+/**
+ * Interface for a plugin-specific member provider.
+ */
+export interface IPluginMemberProvider {
+  canHandle(context: IParserContext): boolean
+  parse(context: IParserContext): MemberNode | null
 }
 
 /**
@@ -75,4 +95,12 @@ export interface IParserContext {
   check(type: string): boolean
   match(...types: string[]): boolean
   consume(type: string, message: string): Token
+  softConsume(type: string, message: string): Token
+}
+
+/**
+ * Interface-based Orchestrator to avoid circular dependencies.
+ */
+export interface IOrchestrator {
+  parseStatement(context: IParserContext): StatementNode[]
 }

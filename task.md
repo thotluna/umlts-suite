@@ -119,6 +119,8 @@
   - [x] Extraer `RelationshipHeaderRule` (Lógica de herencia/relaciones en cabeceras)
   - [x] Implementar soporte para `EnumRule` especializada
   - [x] Extraer `ModifierRule` de `ParserContext` (Refactor de extensibleibilidad)
+  - [x] Convertir `ParserContext` en Fachada pura (desacoplamiento de plugins)
+  - [x] Implementar arquitectura de Plugins como Reglas/Proveedores proactivos
   - [x] Verificar integridad del AST y build
 
 ## Soporte para Configuración de Diagrama (DSL)
