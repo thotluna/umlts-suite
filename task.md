@@ -241,27 +241,28 @@
 - [x] **FEAT**: Implement Dependency detection (`>-`) via AST analysis of method bodies
 - [x] **DOC**: Document relationship heuristics (Visibility, Versatility, Momentarity)
 - [x] **IMPROVEMENT**: "Surgeon Effect" (Public Getters) and Global Versatility Map
+- [x] **IMPROVEMENT**: "Surgeon Effect" (Public Getters) and Global Versatility Map
 
 ## Ingeniería Inversa Quirúrgica (Surgeon Extractor)
 
-- [x] **TASK**: Definir workflow de extracción manual en `.agent/workflows/surgeon-extractor.md`
-- [x] **FEAT**: Implementar Pasada -1 (Configuración)
-  - [x] Lectura de `tsconfig.json` para resolución de Aliases (Heurística inicial implementada)
-  - [x] Mapeo de paquetes basado en estructura de carpetas de monorepo
-- [x] **FEAT**: Implementar Pasada 0 (Imports & Scope)
-  - [x] Escaneo de cabeceras para mapeo de FQNs vía imports
-  - [x] Identificación de dependencias externas (Shadowing)
-- [x] **FEAT**: Implementar Pasada 1 (Órganos)
-  - [x] Extracción de entidades (class/interface)
-  - [x] Mapeo de atributos estructurales para composición/agregación
-- [x] **FEAT**: Implementar Pasada 2 (Síntesis & Cirujano)
-  - [x] Escaneo de firmas de métodos para dependencias de uso
-  - [x] Aplicación del _Surgeon Effect_ (No duplicar líneas si hay relación estructural)
-- [x] **TEST**: Validar extracción del paquete `engine/semantics` sin ruido visual y compilación Exitosa (Verificado con CLI)
-- [x] **FIX**: Corregir "ruido" en extracción de miembros (evitar capturar parámetros de métodos como propiedades)
-- [x] **IMPROVEMENT**: Implementar resolución FQN basada en imports para evitar duplicidad de clases en el diagrama
-- [x] **IMPROVEMENT**: Sanitización de identificadores (keywords) y limpieza de tipos complejos (generics, Object, Function)
-- [x] **IMPROVEMENT**: Add CLI support for blueprint to generate `.umlts` files from terminal
+- [X] **TASK**: Definir workflow de extracción manual en .agent/workflows/surgeon-extractor.md
+- [X] **FEAT**: Implementar Pasada -1 (Configuración)
+  - [X] Lectura de tsconfig.json para resolución de Aliases (Heurística inicial implementada)
+  - [X] Mapeo de paquetes basado en estructura de carpetas de monorepo
+- [X] **FEAT**: Implementar Pasada 0 (Imports & Scope)
+  - [X] Escaneo de cabeceras para mapeo de FQNs vía imports
+  - [X] Identificación de dependencias externas (Shadowing)
+- [X] **FEAT**: Implementar Pasada 1 (Órganos)
+  - [X] Extracción de entidades (class/interface)
+  - [X] Mapeo de atributos estructurales para composición/agregación
+- [X] **FEAT**: Implementar Pasada 2 (Síntesis & Cirujano)
+  - [X] Escaneo de firmas de métodos para dependencias de uso
+  - [X] Aplicación del Surgeon Effect (No duplicar líneas si hay relación estructural)
+- [X] **TEST**: Validar extracción del paquete engine/semantics sin ruido visual y compilación Exitosa (Verificado con CLI)
+- [X] **FIX**: Corregir "ruido" en extracción de miembros (evitar capturar parámetros de métodos como propiedades)
+- [X] **IMPROVEMENT**: Implementar resolución FQN basada en imports para evitar duplicidad de clases en el diagrama
+- [X] **IMPROVEMENT**: Sanitización de identificadores (keywords) y limpieza de tipos complejos (generics, Object, Function)
+- [X] **IMPROVEMENT**: Add CLI support for blueprint to generate .umlts files from terminal
 
 ## Refactorización de Semántica para Soporte de Plugins (V3)
 
@@ -307,7 +308,7 @@
 ## Sistema de Restricciones y Notas (UML 2.5.1)
 
 - [x] **DOC**: Definir catálogo de restricciones estándar y sintaxis unificada (`docs/REQUERIMIENTOS_CONSTRAINTS.md`)
-- [x] **FEAT**: Actualizar Lexer con tokens para `note`, `..`, `derived` y nuevas keywords
+- [x] **FEAT**: Actualizar Lexer with tokens for `note`, `..`, `derived` and nuevas keywords
 - [x] **FEAT**: Implementar `NoteRule` y `LinkRule` en el Parser
 - [x] **FEAT**: Implementar soporte para restricciones in-line y de bloque en miembros
 - [x] **FEAT**: Implementar `XOR Type` (Unión Discriminada) en la IR y Semántica (Mapping a xor_member)
@@ -321,3 +322,12 @@
 - [ ] **DESIGN**: Definir cómo los estereotipos extienden la semántica de la IR (Intermediate Representation).
 - [ ] **FEAT**: Implementar distinción visual y semántica entre `«stereotypes»` (extensión de tipo) y `{constraints}` (reglas lógicas). (Anteriormente RQ 9.3)
 - [ ] **FEAT**: Implementar soporte para Notas como Contenedores de Restricciones mediante el estereotipo `«constraint»`. (Anteriormente RQ 11.2)
+
+## Refactorización de Estado y Pipeline (Sync)
+
+- [x] Desacoplar resultados de fase del `CompilerContext` hacia `PipelineArtifacts`
+- [x] Reducir `CompilerContext` a entorno puro (diagnósticos, plugin, source)
+- [x] Hacer síncrono el pipeline de análisis semántico y la fachada `UMLEngine`
+- [x] Desacoplar `SemanticAnalyzer` del contexto y moverlo a `SemanticPhase`
+- [x] Refactorizar `PhasesFactory` para ser instanciable y poseer el `PluginManager`
+- [x] Limpiar `index.ts` eliminando exportaciones redundantes y métodos de debug (`getTokens`)
