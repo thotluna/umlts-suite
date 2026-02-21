@@ -1,4 +1,4 @@
-import { ParserContext } from '../../parser/parser.context'
+import { IParserHub } from '../../parser/parser.context'
 import { DiagnosticCode } from '../../syntax/diagnostic.types'
 import { TokenType } from '../../syntax/token.types'
 import type { Token } from '../../syntax/token.types'
@@ -72,7 +72,7 @@ export class MultiplicityValidator {
     multiplicity: string,
     line?: number,
     column?: number,
-    context?: ParserContext,
+    context?: IParserHub,
   ): MultiplicityBounds | null {
     const bounds = this.parse(multiplicity)
 

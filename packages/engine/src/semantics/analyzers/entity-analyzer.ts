@@ -3,7 +3,7 @@ import { PluginManager } from '../../plugins/plugin-manager'
 import { IREntityType, IRVisibility } from '../../generator/ir/models'
 import type { SymbolTable } from '../symbol-table'
 import type { ConfigStore } from '../session/config-store'
-import type { ParserContext } from '../../parser/parser.context'
+import type { IParserHub } from '../../parser/parser.context'
 import { DiagnosticCode } from '../../syntax/diagnostic.types'
 import { TypeValidator } from '../utils/type-validator'
 import { FQNBuilder } from '../utils/fqn-builder'
@@ -27,7 +27,7 @@ export class EntityAnalyzer {
   constructor(
     private readonly symbolTable: SymbolTable,
     private readonly constraintAnalyzer: ConstraintAnalyzer,
-    private readonly context: ParserContext,
+    private readonly context: IParserHub,
     private readonly configStore: ConfigStore,
     private readonly pluginManager: PluginManager,
   ) {}
@@ -97,256 +97,90 @@ export class EntityAnalyzer {
         ['>i', 'implements', 'implement'].includes(k) || ['>>', 'extends', 'extend'].includes(k)
       )
     })
-    this.fillMembers(
-      entity,
-      node.body ?? [],
-      entity.namespace || '',
-      entity.typeParameters,
-      keepAsClass,
-    )
+    this.fillMembers(entity, node.members || [], keepAsClass)
   }
 
-  /**
-   * Appends members to an already registered entity.
-   */
-  public appendMembers(entity: IREntity, members: MemberNode[]): void {
-    this.fillMembers(entity, members ?? [], entity.namespace || '', entity.typeParameters)
-  }
+  private fillMembers(entity: IREntity, members: MemberNode[], keepAsClass: boolean): void {
+    const memberNames = new Set<string>()
 
-  /**
-   * Processes members for an AssociationClass.
-   */
-  public processAssociationClassMembers(entity: IREntity, node: AssociationClassNode): void {
-    this.fillMembers(entity, node.body ?? [], entity.namespace || '')
-  }
+    members.forEach((member) => {
+      // RULE: Detect duplicate members
+      const memberName =
+        member.type === ASTNodeType.ATTRIBUTE
+          ? (member as AttributeNode).name
+          : (member as MethodNode).name
 
-  private mapEntityType(type: ASTNodeType): IREntityType {
-    switch (type) {
-      case ASTNodeType.INTERFACE:
-        return IREntityType.INTERFACE
-      case ASTNodeType.ENUM:
-        return IREntityType.ENUMERATION
-      default:
-        return IREntityType.CLASS
-    }
-  }
-
-  private fillMembers(
-    entity: IREntity,
-    members: MemberNode[],
-    namespace: string,
-    typeParameters?: string[],
-    keepAsClass: boolean = false,
-  ): void {
-    if (!entity.properties) entity.properties = []
-    if (!entity.operations) entity.operations = []
-
-    const seenNames = new Set<string>()
-
-    ;(members || [])
-      .filter(
-        (m) =>
-          m.type !== ASTNodeType.COMMENT &&
-          m.type !== ASTNodeType.CONSTRAINT &&
-          m.type !== ASTNodeType.NOTE,
-      )
-      .forEach((m) => {
-        const namedMember = m as AttributeNode | MethodNode
-        if (seenNames.has(namedMember.name)) {
-          this.context.addError(
-            `Duplicate member: '${namedMember.name}' is already defined in this entity.`,
-            { line: m.line, column: m.column, type: TokenType.UNKNOWN, value: '' } as Token,
-            DiagnosticCode.SEMANTIC_DUPLICATE_MEMBER,
-          )
-        } else {
-          seenNames.add(namedMember.name)
+      if (memberNames.has(memberName)) {
+        const token: Token = {
+          line: member.line || entity.line || 1,
+          column: member.column || entity.column || 1,
+          type: TokenType.IDENTIFIER,
+          value: memberName,
         }
-
-        if (m.type === ASTNodeType.ATTRIBUTE) {
-          const attr = m as AttributeNode
-
-          if (entity.type === IREntityType.ENUMERATION) {
-            if (!entity.literals) entity.literals = []
-            entity.literals.push({
-              name: attr.name,
-              docs: attr.docs,
-            })
-            return
-          }
-
-          const multiplicity = attr.multiplicity
-            ? this.processMultiplicity(attr.multiplicity, attr.line, attr.column)
-            : undefined
-
-          entity.properties.push({
-            name: attr.name,
-            type: this.processType(attr.typeAnnotation?.raw),
-            visibility: this.mapVisibility(attr.visibility),
-            isStatic: attr.modifiers?.isStatic || false,
-            isReadOnly: attr.modifiers?.isFinal || false,
-            isLeaf: attr.modifiers?.isLeaf || false,
-            multiplicity,
-            isOrdered: false,
-            isUnique: true,
-            aggregation: this.mapAggregation(attr.relationshipKind),
-            label: attr.label,
-            line: attr.line,
-            column: attr.column,
-            docs: attr.docs,
-            constraints: attr.constraints?.map((c) => this.constraintAnalyzer.process(c)),
-          })
-        } else if (m.type === ASTNodeType.METHOD) {
-          const meth = m as MethodNode
-          this.validateMemberType(meth.returnType?.raw, namespace, m, typeParameters)
-
-          entity.operations.push({
-            name: meth.name,
-            visibility: this.mapVisibility(meth.visibility),
-            isStatic: meth.modifiers?.isStatic || false,
-            isAbstract: meth.modifiers?.isAbstract || false,
-            isLeaf: meth.modifiers?.isLeaf || meth.modifiers?.isFinal || false,
-            isQuery: false,
-            parameters: (meth.parameters || []).map((p) => ({
-              name: p.name,
-              type: this.processType(p.typeAnnotation?.raw),
-              multiplicity: p.multiplicity
-                ? this.processMultiplicity(p.multiplicity, p.line, p.column)
-                : undefined,
-              direction: 'in' as const,
-              relationshipKind: p.relationshipKind,
-              modifiers: p.targetModifiers
-                ? {
-                    isAbstract: p.targetModifiers.isAbstract || false,
-                    isStatic: p.targetModifiers.isStatic || false,
-                    isActive: p.targetModifiers.isActive || false,
-                    isLeaf: p.targetModifiers.isLeaf || false,
-                    isFinal: p.targetModifiers.isFinal || false,
-                    isRoot: p.targetModifiers.isRoot || false,
-                  }
-                : undefined,
-              line: p.line,
-              column: p.column,
-            })),
-            returnType: this.processType(meth.returnType?.raw),
-            line: meth.line,
-            column: meth.column,
-            docs: meth.docs,
-            constraints: (meth.constraints || []).map((c) => this.constraintAnalyzer.process(c)),
-          })
-        }
-      })
-
-    // UML Heuristic: Identity vs Value
-    // ONLY for TypeScript: Classes or Interfaces without operations are considered DataTypes.
-    // In other languages (or generic UML), we keep identity (Class/Interface) to allow sketching.
-    const isTS = this.configStore.get().language === 'typescript'
-
-    const hasModifiers =
-      entity.isAbstract ||
-      entity.isActive ||
-      entity.isLeaf ||
-      entity.isFinal ||
-      entity.isRoot ||
-      entity.isStatic
-
-    if (
-      isTS &&
-      entity.operations.length === 0 &&
-      (entity.type === IREntityType.CLASS || entity.type === IREntityType.INTERFACE) &&
-      !hasModifiers &&
-      !keepAsClass
-    ) {
-      entity.type = IREntityType.DATA_TYPE
-    }
-
-    // Ensure we revert to Class if keepAsClass is manually requested or inferred
-    if (keepAsClass && entity.type === IREntityType.DATA_TYPE) {
-      entity.type = IREntityType.CLASS
-    }
-  }
-
-  private mapAggregation(kind?: string): 'none' | 'shared' | 'composite' {
-    switch (kind) {
-      case '>*':
-        return 'composite'
-      case '>+':
-        return 'shared'
-      default:
-        return 'none'
-    }
-  }
-
-  private validateMemberType(
-    typeName: string,
-    namespace: string,
-    node: MemberNode,
-    typeParameters?: string[],
-  ): void {
-    if (TypeValidator.isPrimitive(typeName)) return
-    if (node.type === ASTNodeType.CONSTRAINT || node.type === ASTNodeType.NOTE) return
-
-    // Consultar al plugin antes de registrar implícitamente
-    // Si el plugin resuelve que es un tipo que se debe eliminar (ignorar), no lo registramos.
-    const plugin = this.pluginManager.getActive()
-    if (plugin) {
-      const mapping = plugin.resolveType({
-        type: ASTNodeType.TYPE,
-        name: TypeValidator.getBaseTypeName(typeName),
-        raw: typeName,
-        kind: 'simple',
-        line: 0,
-        column: 0,
-      })
-      if (mapping?.targetName === '') return // Ignorar si el plugin lo marca como vacío (ej: void)
-
-      const primitiveMapped = plugin.mapPrimitive(TypeValidator.getBaseTypeName(typeName))
-      if (primitiveMapped === '') return // Ignorar si es un primitivo que se mapea a vacío
-    }
-
-    const baseType = TypeValidator.getBaseTypeName(typeName)
-    if (typeParameters?.includes(baseType)) return
-
-    const modifiers =
-      node.type === ASTNodeType.ATTRIBUTE
-        ? (node as AttributeNode).targetModifiers
-        : node.type === ASTNodeType.METHOD
-          ? (node as MethodNode).returnTargetModifiers
-          : undefined
-
-    const result = this.symbolTable.resolveOrRegisterImplicit(baseType, namespace, modifiers)
-
-    if (result.isAmbiguous) {
-      this.context.addError(
-        `Ambiguity detected: '${baseType}' matches multiple entities.`,
-        { line: node.line, column: node.column, type: TokenType.UNKNOWN, value: '' } as Token,
-        DiagnosticCode.SEMANTIC_AMBIGUOUS_ENTITY,
-      )
-    }
-
-    // Silently register the implicit entity if it does not exist.
-    // We don't report diagnostics (neither error nor info) because inline declaration is a strength of the DSL.
-  }
-
-  private processType(typeName?: string): string | undefined {
-    if (!typeName) return undefined
-
-    const plugin = this.pluginManager.getActive()
-    let result = typeName
-
-    if (plugin) {
-      // Map primitives (e.g., string -> String)
-      const base = TypeValidator.getBaseTypeName(typeName)
-      const mapped = plugin.mapPrimitive(base)
-      if (mapped === '') return undefined // El plugin solicita explícitamente eliminar el tipo (ej: void)
-      if (mapped) {
-        result = typeName.replace(base, mapped)
+        this.context.addError(
+          `Semantic Violation: Duplicate member '${memberName}' in entity '${entity.name}'.`,
+          token,
+          DiagnosticCode.SEMANTIC_DUPLICATE_MEMBER,
+        )
+        return
       }
-    }
+      memberNames.add(memberName)
 
-    return result
+      if (member.type === ASTNodeType.ATTRIBUTE) {
+        entity.properties.push(this.processAttribute(member as AttributeNode, entity))
+      } else if (member.type === ASTNodeType.METHOD) {
+        entity.operations.push(this.processMethod(member as MethodNode, entity))
+      }
+    })
+
+    // If it has methods or relationships, it's definitely a Class/Interface, not a DataType
+    if (!keepAsClass && entity.type === IREntityType.CLASS && entity.operations.length === 0) {
+      // Potentially a DataType if it only has properties and no inheritance?
+      // For now, only the SemanticAnalyzer refines this based on global relationship info
+    }
   }
 
-  private processMultiplicity(
+  private processAttribute(node: AttributeNode, entity: IREntity) {
+    const multiplicity = node.multiplicity
+      ? this.parseMultiplicity(node.multiplicity, node.line, node.column)
+      : undefined
+
+    return {
+      name: node.name,
+      type: node.typeAnnotation,
+      visibility: node.visibility || IRVisibility.PUBLIC,
+      isStatic: node.modifiers?.isStatic || false,
+      isReadOnly: node.modifiers?.isReadOnly || false,
+      multiplicity,
+      docs: node.docs,
+      line: node.line,
+      column: node.column,
+      constraints: node.constraints?.map((c) => this.constraintAnalyzer.process(c)),
+    }
+  }
+
+  private processMethod(node: MethodNode, entity: IREntity) {
+    return {
+      name: node.name,
+      returnType: node.returnType || 'void',
+      visibility: node.visibility || IRVisibility.PUBLIC,
+      isStatic: node.modifiers?.isStatic || false,
+      isAbstract: node.modifiers?.isAbstract || false,
+      parameters: (node.parameters || []).map((p) => ({
+        name: p.name,
+        type: p.typeAnnotation,
+        multiplicity: p.multiplicity
+          ? this.parseMultiplicity(p.multiplicity, p.line, p.column)
+          : undefined,
+      })),
+      docs: node.docs,
+      line: node.line,
+      column: node.column,
+      constraints: node.constraints?.map((c) => this.constraintAnalyzer.process(c)),
+    }
+  }
+
+  private parseMultiplicity(
     multiplicity: string,
     line?: number,
     column?: number,
@@ -359,20 +193,19 @@ export class EntityAnalyzer {
     }
   }
 
-  private mapVisibility(v: string): IRVisibility {
-    switch (v?.toLowerCase()) {
-      case '-':
-      case 'private':
-        return IRVisibility.PRIVATE
-      case '#':
-      case 'protected':
-        return IRVisibility.PROTECTED
-      case '~':
-      case 'internal':
-      case 'package':
-        return IRVisibility.PACKAGE
+  public mapEntityType(type: string): IREntityType {
+    switch (type.toLowerCase()) {
+      case 'interface':
+        return IREntityType.INTERFACE
+      case 'enum':
+      case 'enumeration':
+        return IREntityType.ENUMERATION
+      case 'datatype':
+        return IREntityType.DATA_TYPE
+      case 'primitive':
+        return IREntityType.PRIMITIVE_TYPE
       default:
-        return IRVisibility.PUBLIC
+        return IREntityType.CLASS
     }
   }
 }

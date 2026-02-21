@@ -1,125 +1,36 @@
 import {
-  IRRelationshipType,
-  IREntityType,
-  IRVisibility,
   type IRRelationship,
-  type IRConstraint,
-  type IREntity,
+  IRRelationshipType,
+  IRVisibility,
   type IRMultiplicity,
+  type IREntity,
+  type IRConstraint,
 } from '../../generator/ir/models'
-import { TypeInferrer } from './type-inferrer'
-import { registerDefaultInferenceRules } from '../rules/inference-rules'
+import { type ASTNode, ASTNodeType, type RelationshipNode } from '../../syntax/nodes'
 import type { SymbolTable } from '../symbol-table'
-import type { ParserContext } from '../../parser/parser.context'
+import type { IParserHub } from '../../parser/parser.context'
 import { DiagnosticCode } from '../../syntax/diagnostic.types'
-import type { HierarchyValidator } from '../validators/hierarchy-validator'
-import { AssociationValidator } from '../validators/association-validator'
-import { ASTNodeType } from '../../syntax/nodes'
-import { TypeValidator } from '../utils/type-validator'
-import type {
-  RelationshipNode,
-  RelationshipHeaderNode,
-  ASTNode,
-  Modifiers,
-} from '../../syntax/nodes'
+import { TokenType, type Token } from '../../syntax/token.types'
 import { MultiplicityValidator } from '../utils/multiplicity-validator'
-import { TokenType } from '../../syntax/token.types'
-import type { Token } from '../../syntax/token.types'
+import { TypeValidator } from '../utils/type-validator'
+import type { HierarchyValidator } from '../validators/hierarchy-validator'
+import type { AssociationValidator } from '../validators/association-validator'
+import type { RelationshipHeaderNode } from '../../syntax/nodes'
 
 /**
- * Handles creation and validation of relationships.
+ * Handles the declaration and resolution of relationships.
  */
 export class RelationshipAnalyzer {
-  private readonly typeInferrer: TypeInferrer
-  private readonly associationValidator: AssociationValidator
-
   constructor(
     private readonly symbolTable: SymbolTable,
     private readonly relationships: IRRelationship[],
     private readonly hierarchyValidator: HierarchyValidator,
-    private readonly context?: ParserContext,
-  ) {
-    this.typeInferrer = new TypeInferrer()
-    registerDefaultInferenceRules(this.typeInferrer)
-    this.associationValidator = new AssociationValidator(context!)
-  }
-
-  public getContext(): ParserContext | undefined {
-    return this.context
-  }
+    private readonly context: IParserHub,
+    private readonly associationValidator: AssociationValidator,
+  ) {}
 
   /**
-   * Resolves a target entity and registers it as implicit if missing.
-   * Can optionally infer the target type based on the source entity and relationship.
-   */
-  public resolveOrRegisterImplicit(
-    name: string,
-    namespace: string,
-    modifiers?: Modifiers,
-    line?: number,
-    column?: number,
-    inferenceContext?: { sourceType: IREntityType; relationshipKind: IRRelationshipType },
-    typeParameters?: string[],
-    literals?: string[],
-  ): string {
-    // If it's a generic parameter of the current context, we treat it as a "virtual" entity
-    // that won't be registered in the symbol table to avoid orphan boxes.
-    const baseName = TypeValidator.getBaseTypeName(name)
-    if (typeParameters?.includes(baseName)) {
-      return baseName // Return as-is, won't be found in SymbolTable, won't be rendered as a box
-    }
-
-    let expectedType = IREntityType.CLASS
-
-    if (inferenceContext) {
-      const inferred = this.typeInferrer.infer(
-        inferenceContext.sourceType,
-        inferenceContext.relationshipKind,
-      )
-
-      if (inferred) {
-        expectedType = inferred
-      } else {
-        // Fallback to CLASS but report error strictly as requested
-        expectedType = IREntityType.CLASS
-        this.context?.addError(
-          `Cannot infer implicit entity type for relationship '${inferenceContext.relationshipKind}' from '${inferenceContext.sourceType}'. Defaulting target '${name}' to CLASS.`,
-          { line, column, type: TokenType.UNKNOWN, value: '' } as Token,
-          DiagnosticCode.SEMANTIC_INVALID_TYPE,
-        )
-      }
-    }
-
-    if (literals && literals.length > 0) {
-      expectedType = IREntityType.ENUMERATION
-    }
-
-    const result = this.symbolTable.resolveOrRegisterImplicit(
-      name,
-      namespace,
-      modifiers,
-      expectedType,
-      literals,
-    )
-
-    if (result.isAmbiguous) {
-      this.context?.addError(
-        `Ambiguity detected: '${name}' matches multiple entities: ${result.candidates?.join(
-          ', ',
-        )}. Please use the qualified name.`,
-        { line, column, type: TokenType.UNKNOWN, value: '' } as Token,
-        DiagnosticCode.SEMANTIC_AMBIGUOUS_ENTITY,
-      )
-    }
-
-    // Silent registration of implicit entities
-
-    return result.fqn
-  }
-
-  /**
-   * Adds a relationship to the IR using a pre-resolved relationship type.
-   * Useful for inferred relationships from attributes/methods.
+   * Directly adds an already resolved and validated relationship to the IR.
    */
   public addResolvedRelationship(
     fromFQN: string,

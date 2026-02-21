@@ -3,14 +3,14 @@ import { IRRelationshipType, IREntityType } from '../../generator/ir/models'
 import { DiagnosticCode } from '../../syntax/diagnostic.types'
 import { TokenType } from '../../syntax/token.types'
 import type { Token } from '../../syntax/token.types'
-import type { ParserContext } from '../../parser/parser.context'
+import type { IParserHub } from '../../parser/parser.context'
 import type { SymbolTable } from '../symbol-table'
 
 /**
  * Validator for Association-related rules (Composition, Aggregation, etc.).
  */
 export class AssociationValidator {
-  constructor(private readonly context: ParserContext) {}
+  constructor(private readonly context: IParserHub) {}
 
   /**
    * Validates structural integrity of an association.
