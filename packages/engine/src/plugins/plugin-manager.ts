@@ -5,7 +5,7 @@ import type { LanguagePlugin } from './language-plugin'
  */
 export class PluginManager {
   private readonly plugins = new Map<string, LanguagePlugin>()
-  private activePlugin: LanguagePlugin | null = null
+  private activePlugin: LanguagePlugin | undefined
 
   /**
    * Registers a new language plugin.
@@ -27,7 +27,7 @@ export class PluginManager {
   /**
    * Returns the currently active plugin, if any.
    */
-  public getActive(): LanguagePlugin | null {
+  public getActive(): LanguagePlugin | undefined {
     return this.activePlugin
   }
 
