@@ -17,7 +17,8 @@ import { RelationshipAnalyzer } from './analyzers/relationship-analyzer'
 import { ConstraintAnalyzer } from './analyzers/constraint-analyzer'
 import { HierarchyValidator } from './validators/hierarchy-validator'
 
-// Passes
+// Pipeline & Passes
+import { SemanticPipeline } from './passes/semantic-pipeline'
 import { DiscoveryPass } from './passes/discovery.pass'
 import { DefinitionPass } from './passes/definition.pass'
 import { ResolutionPass } from './passes/resolution.pass'
@@ -30,23 +31,21 @@ import { MemberInference } from './inference/member-inference'
 import { AssociationClassResolver } from './resolvers/association-class.resolver'
 
 /**
- * Semantic Analyzer (Refactored).
- * Orchestrates the analysis process by coordinating specialized passes and components.
- * It now acts as a Facade/Director, delegating all logic to the new architecture.
+ * Semantic Analyzer (Refactored to Pipeline).
+ * Orquesta el proceso de análisis coordinando pases especializados a través de una tubería.
  */
 export class SemanticAnalyzer {
   private readonly pluginManager = new PluginManager()
 
-  // Facade accessors for backward compatibility or external usage
   public getPluginManager(): PluginManager {
     return this.pluginManager
   }
 
   /**
-   * Main entry point for semantic analysis.
+   * Punto de entrada principal para el análisis semántico.
    */
-  public analyze(program: ProgramNode, context: ParserContext): IRDiagram {
-    // 1. Initialize State Container (Session)
+  public async analyze(program: ProgramNode, context: ParserContext): Promise<IRDiagram> {
+    // 1. Inicialización de Estado (Sesión)
     const symbolTable = new SymbolTable()
     const constraintRegistry = new ConstraintRegistry()
     const configStore = new ConfigStore(this.pluginManager, symbolTable)
@@ -59,8 +58,7 @@ export class SemanticAnalyzer {
       context,
     )
 
-    // 2. Initialize Analyzers & Validators
-    // (These are still "heavy" services that manipulate the session state)
+    // 2. Inicialización de Servicios
     const constraintAnalyzer = new ConstraintAnalyzer(symbolTable, context)
     const hierarchyValidator = new HierarchyValidator(symbolTable, context)
     const entityAnalyzer = new EntityAnalyzer(
@@ -72,62 +70,44 @@ export class SemanticAnalyzer {
     )
     const relationshipAnalyzer = new RelationshipAnalyzer(
       symbolTable,
-      session.relationships, // Binds directly to session state
+      session.relationships,
       hierarchyValidator,
       context,
     )
 
-    // 3. Initialize Resolution Architecture
+    // 3. Arquitectura de Resolución de Tipos
     const typePipeline = new TypeResolutionPipeline()
     typePipeline.add(new UMLTypeResolver())
-    // Add dynamic plugin support
     typePipeline.add(new PluginTypeResolutionAdapter(this.pluginManager))
 
     const memberInference = new MemberInference(session, relationshipAnalyzer, typePipeline)
     const assocClassResolver = new AssociationClassResolver(
       session,
       relationshipAnalyzer,
-      [], // Initial empty namespace
+      [],
     )
 
-    // 4. Initialize Passes
-    const discoveryPass = new DiscoveryPass(session, entityAnalyzer, hierarchyValidator)
-    const definitionPass = new DefinitionPass(session, entityAnalyzer)
-    const resolutionPass = new ResolutionPass(
-      session,
-      relationshipAnalyzer,
-      constraintAnalyzer,
-      assocClassResolver,
-    )
+    // 4. Configuración de la Tubería Semántica
+    const pipeline = new SemanticPipeline()
+    pipeline
+      .use(new DiscoveryPass(entityAnalyzer, hierarchyValidator))
+      .use(new DefinitionPass(entityAnalyzer))
+      .use(new ResolutionPass(relationshipAnalyzer, constraintAnalyzer, assocClassResolver))
 
-    // 5. Execute Passes (The 3-Pass Compiler Strategy)
+    // 5. Ejecutar Pases
+    await pipeline.execute(program, session)
 
-    // Pass 1: Discovery (Register entities, namespaces, config)
-    discoveryPass.run(program)
-
-    // Pass 2: Definition (Add members, process internals)
-    definitionPass.run(program)
-
-    // Pass 3: Resolution (Connect relationships, implicit entities)
-    resolutionPass.run(program)
-
-    // 6. Post-Process Inference
+    // 6. Post-Procesamiento (Inferencia y Refinamiento)
     memberInference.run()
-
-    // 7. Final Validation
     hierarchyValidator.validateNoCycles(session.relationships)
-
-    // 7.5 Refine DataType semantics (Revert to Class/Interface if part of a hierarchy)
     this.refineDataTypeSemantics(session)
 
-    // 8. Output Generation
+    // 7. Generación de Resultado
     return session.toIRDiagram()
   }
 
   /**
-   * Refines the entity type of DataType candidates.
-   * If a DataType is implemented or extended, it must regain its identity
-   * as a Class or Interface.
+   * Refina el tipo de las entidades DataType basándose en su uso en la jerarquía.
    */
   private refineDataTypeSemantics(session: AnalysisSession): void {
     const isTS = session.configStore.get().language === 'typescript'
@@ -137,12 +117,10 @@ export class SemanticAnalyzer {
       const source = session.symbolTable.get(rel.from)
       const target = session.symbolTable.get(rel.to)
 
-      // Rule: If a DataType is TARGET of implementation/inheritance, it must be Interface/Class
       if (target && target.type === IREntityType.DATA_TYPE) {
         if (rel.type === IRRelationshipType.IMPLEMENTATION) {
           target.type = IREntityType.INTERFACE
         } else if (rel.type === IRRelationshipType.INHERITANCE) {
-          // Revert target to Class or Interface based on source
           if (source && source.type === IREntityType.INTERFACE) {
             target.type = IREntityType.INTERFACE
           } else {
@@ -151,17 +129,11 @@ export class SemanticAnalyzer {
         }
       }
 
-      // Rule: If a DataType is SOURCE of inheritance/implementation, it must be a Class or Interface
-      // This handles the "unless it extends another class" for external relationships.
       if (source && source.type === IREntityType.DATA_TYPE) {
         if (
           rel.type === IRRelationshipType.INHERITANCE ||
           rel.type === IRRelationshipType.IMPLEMENTATION
         ) {
-          // Heuristic: If it has properties but no methods, and it's in a hierarchy,
-          // we treat it as Class by default unless it was originally an interface
-          // (but since we lose that info, we default to Class which is safer in UML for hierarchies).
-          // Actually, we can check if it was originally an interface by looking at how it's used.
           source.type = IREntityType.CLASS
         }
       }
