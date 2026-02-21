@@ -1,10 +1,12 @@
 import {
-  type LayoutResult,
+  type UMLNode,
   UMLPackage,
   type UMLHierarchyItem,
-  type DiagramConfig,
   type DiagramModel,
-} from '../core/types'
+  type UMLEdge,
+} from '../core/model/nodes'
+import { type IRConstraint } from '@umlts/engine'
+import { type LayoutResult, type DiagramConfig } from '../core/types'
 import { type Theme } from '../core/theme'
 import { SVGBuilder as svg } from './svg-helpers'
 import { DrawingRegistry } from './drawable'
@@ -28,19 +30,20 @@ export class SVGRenderer {
     const defs = renderMarkers(theme)
 
     // 2. Packages (Backgrounds)
-    // 2. Render Packages
-    const packagesStr = model.packages.map((pkg) => this.renderPackage(pkg, theme)).join('')
+    const packagesStr = model.packages
+      .map((pkg: UMLPackage) => this.renderPackage(pkg, theme))
+      .join('')
 
     // 3. Render Top-level Nodes (not in packages)
     const nodesStr = model.nodes
-      .filter((n) => !n.namespace)
-      .map((node) => DrawingRegistry.render('Node', node, theme, config))
+      .filter((n: UMLNode) => !n.namespace)
+      .map((node: UMLNode) => DrawingRegistry.render('Node', node, theme, config))
       .join('')
 
     // 4. Render Edges
-    const nodesMap = new Map((model.nodes || []).map((n) => [n.id, n]))
+    const nodesMap = new Map((model.nodes || []).map((n: UMLNode) => [n.id, n]))
     const edgesStr = model.edges
-      .map((edge, _idx) =>
+      .map((edge: UMLEdge) =>
         DrawingRegistry.render('Edge', edge, theme, { ...config, nodes: nodesMap }),
       )
       .join('')
@@ -48,7 +51,6 @@ export class SVGRenderer {
     const constraintsStr = this.renderConstraints(model, theme)
 
     // Combine everything with proper grouping
-    // Las restricciones (XOR) van al final para que queden encima de nodos y aristas
     const content =
       defs +
       svg.g({ class: 'packages' }, packagesStr) +
@@ -61,21 +63,18 @@ export class SVGRenderer {
     const viewBoxW = layoutResult.bbox?.width ?? totalWidth
     const viewBoxH = layoutResult.bbox?.height ?? totalHeight
 
-    // Responsive handling
-    const isResponsive = config?.responsive === true // Cambiamos a false por defecto
+    const isResponsive = config?.responsive === true
 
-    // Si NO es responsive, usamos el tamaño real del dibujo (bbox).
-    // Esto es vital para que visualizadores externos y el Webview puedan aplicar zoom manual sobre píxeles reales.
     const finalWidth = isResponsive ? '100%' : config?.width || viewBoxW
     const finalHeight = isResponsive ? '100%' : config?.height || viewBoxH
 
-    // Redondeamos los valores del viewBox
+    // Bounding box dimensions
     let vbx = Math.floor(viewBoxX)
     let vby = Math.floor(viewBoxY)
     let vbw = Math.ceil(viewBoxW)
     let vbh = Math.ceil(viewBoxH)
 
-    // Aplicar zoomLevel si existe (1.0 = escala natural, > 1.0 acerca, < 1.0 aleja)
+    // Applied zoomLevel
     if (config?.zoomLevel && config.zoomLevel !== 1) {
       const scaleFactor = 1 / config.zoomLevel
       const centerX = vbx + vbw / 2
@@ -94,7 +93,6 @@ export class SVGRenderer {
         height: finalHeight,
         viewBox: `${vbx} ${vby} ${vbw} ${vbh}`,
         preserveAspectRatio: 'xMidYMid meet',
-        // Eliminamos width/height del style para evitar conflictos con los atributos y forzamos block
         style: `background-color: ${theme.canvasBackground}; font-family: ${theme.fontFamily}; display: block;`,
       },
       content,
@@ -150,19 +148,20 @@ export class SVGRenderer {
    * Renders relationship constraints (like XOR).
    */
   private renderConstraints(model: DiagramModel, theme: Theme): string {
-    const xorConstraints = (model.constraints || []).filter((c) => c.kind === 'xor')
+    const xorConstraints = (model.constraints || []).filter((c: IRConstraint) => c.kind === 'xor')
     if (xorConstraints.length === 0) return ''
 
     return xorConstraints
-      .map((constraint) => {
+      .map((constraint: IRConstraint) => {
         const groupId = (constraint.targets as string[])[0]
-        const groupEdges = model.edges.filter((e) =>
-          e.constraints?.some((ec) => ec.kind === 'xor_member' && ec.targets.includes(groupId)),
+        const groupEdges = model.edges.filter((e: UMLEdge) =>
+          e.constraints?.some(
+            (ec: IRConstraint) => ec.kind === 'xor_member' && ec.targets.includes(groupId),
+          ),
         )
 
         if (groupEdges.length < 2) return ''
 
-        // Identificar el nodo común para dibujar el arco XOR cerca de la unión
         const edge1 = groupEdges[0]
         const edge2 = groupEdges[1]
 
@@ -173,13 +172,11 @@ export class SVGRenderer {
         else if (edge1.to === edge2.from) commonNodeId = edge1.to
 
         if (!commonNodeId) {
-          // Si no hay nodo común (raro en XOR), usamos los puntos medios como fallback
           const p1 = midpoint(edge1.waypoints!)
           const p2 = midpoint(edge2.waypoints!)
           return this.drawXorElements([p1, p2], theme)
         }
 
-        // Obtener puntos a una distancia un poco mayor (70px) para no pisar las multiplicidades
         const p1 = this.getPointNearNode(edge1, commonNodeId, 70)
         const p2 = this.getPointNearNode(edge2, commonNodeId, 70)
 
@@ -234,7 +231,6 @@ export class SVGRenderer {
     const labelX = (points[0].x + points[1].x) / 2
     const labelY = (points[0].y + points[1].y) / 2
 
-    // Fondo para la etiqueta para asegurar visibilidad absoluta
     const bg = svg.rect({
       x: labelX - 22,
       y: labelY - 10,

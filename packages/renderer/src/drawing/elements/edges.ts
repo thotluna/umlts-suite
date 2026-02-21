@@ -1,4 +1,5 @@
-import { type UMLEdge, type DiagramConfig } from '../../core/types'
+import { type UMLEdge } from '../../core/model/nodes'
+import { type DiagramConfig } from '../../core/types'
 import { type Theme } from '../../core/theme'
 import { SVGBuilder as svg } from '../svg-helpers'
 import { DrawingRegistry } from '../drawable'
