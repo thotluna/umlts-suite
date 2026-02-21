@@ -1,4 +1,9 @@
-import { IRRelationshipType, IRVisibility, type IRConstraint } from '../../generator/ir/models'
+import {
+  IRRelationshipType,
+  IRVisibility,
+  type IRConstraint,
+  type IRModifiers,
+} from '../../generator/ir/models'
 import { ASTNodeType, type Modifiers, type TypeNode } from '../../syntax/nodes'
 import type { AnalysisSession } from '../session/analysis-session'
 import type { RelationshipAnalyzer } from '../analyzers/relationship-analyzer'
@@ -49,8 +54,9 @@ export class MemberInference {
         }
       })
 
-      // 2. Inference from Operations (Return types)
+      // 2. Inference from Operations (Return types and Parameters)
       ;(entity.operations || []).forEach((op) => {
+        // Return types
         if (op.returnType) {
           this.inferFromType(
             entity.id,
@@ -68,6 +74,27 @@ export class MemberInference {
             op.constraints,
           )
         }
+
+        // Parameters: only infer relationships when explicitly declared with a relationship kind
+        ;(op.parameters || []).forEach((p) => {
+          if (p.type && p.relationshipKind) {
+            this.inferFromType(
+              entity.id,
+              p.type,
+              entity.namespace,
+              p.name,
+              this.relationshipAnalyzer.mapRelationshipType(p.relationshipKind),
+              undefined,
+              op.visibility,
+              undefined,
+              undefined,
+              p.line || op.line,
+              p.column || op.column,
+              p.modifiers,
+              undefined,
+            )
+          }
+        })
       })
     })
   }
@@ -84,7 +111,7 @@ export class MemberInference {
     associationClassId?: string,
     line?: number,
     column?: number,
-    targetModifiers?: Modifiers,
+    targetModifiers?: Modifiers | IRModifiers,
     memberConstraints?: IRConstraint[],
     explicitLabel?: string,
   ): void {
@@ -136,7 +163,10 @@ export class MemberInference {
     }
 
     // 2. Fallback: Check if it is a primitive (UML or Language specific handled by pipeline)
-    if (this.pipeline.isPrimitive(typeName)) return
+    const isPrim = this.pipeline.isPrimitive(typeName)
+    if (isPrim) {
+      return
+    }
 
     // 3. Fallback: Check internal generic parameters
     const fromEntity = this.session.symbolTable.get(fromFQN)
@@ -170,8 +200,22 @@ export class MemberInference {
   }
 
   private createTypeNode(typeName: string, line: number, column: number): TypeNode {
-    const { baseName, args } = TypeValidator.decomposeGeneric(typeName)
+    const { baseName, args, multiplicity } = TypeValidator.decomposeGeneric(typeName)
     const { values } = TypeValidator.decomposeEnum(typeName)
+
+    if (multiplicity !== undefined) {
+      return {
+        type: ASTNodeType.TYPE,
+        name: baseName,
+        raw: typeName,
+        kind: 'array',
+        arguments: args.map((arg) => this.createTypeNode(arg, line, column)),
+        values: values.length > 0 ? values : undefined,
+        line,
+        column,
+      }
+    }
+
     return {
       type: ASTNodeType.TYPE,
       name: baseName,

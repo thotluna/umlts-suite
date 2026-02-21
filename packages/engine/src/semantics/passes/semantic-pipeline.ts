@@ -27,12 +27,9 @@ export class SemanticPipeline {
   /**
    * Ejecuta todos los pases registrados en orden secuencial.
    */
-  public async execute(program: ProgramNode, session: AnalysisSession): Promise<void> {
+  public execute(program: ProgramNode, session: AnalysisSession): void {
     for (const pass of this.passes) {
-      const result = pass.execute(program, session)
-      if (result instanceof Promise) {
-        await result
-      }
+      pass.execute(program, session)
     }
   }
 }

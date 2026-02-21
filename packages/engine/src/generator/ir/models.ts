@@ -2,6 +2,17 @@
  * Interoperabilidad y Estándar UML 2.5.1
  * Representación Intermedia (IR) para el motor UMLTS.
  */
+/**
+ * Categoría: Detalles - Modificadores
+ */
+export interface IRModifiers {
+  isAbstract: boolean
+  isStatic: boolean
+  isActive: boolean
+  isLeaf: boolean
+  isFinal: boolean
+  isRoot: boolean
+}
 
 /**
  * Categoría: Clasificadores (Cláusulas 10 y 11)
@@ -41,6 +52,10 @@ export interface IRParameter {
   type?: string
   multiplicity?: IRMultiplicity
   direction?: 'in' | 'out' | 'inout' | 'return'
+  relationshipKind?: string
+  modifiers?: IRModifiers
+  line?: number
+  column?: number
 }
 
 /**

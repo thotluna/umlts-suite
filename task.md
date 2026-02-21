@@ -121,6 +121,7 @@
   - [x] Verificar integridad del AST y build
 
 ## Soporte para Configuración de Diagrama (DSL)
+
 - [x] **TASK**: Definir sintaxis del bloque de configuración (ej: `config { ... }`)
 - [x] **TASK**: Actualizar Lexer con nuevos tokens (`config`, llaves, etc.)
 - [x] **TASK**: Implementar `ConfigRule` en el Parser

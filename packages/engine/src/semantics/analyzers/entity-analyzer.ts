@@ -207,6 +207,19 @@ export class EntityAnalyzer {
                 ? this.processMultiplicity(p.multiplicity, p.line, p.column)
                 : undefined,
               direction: 'in' as const,
+              relationshipKind: p.relationshipKind,
+              modifiers: p.targetModifiers
+                ? {
+                    isAbstract: p.targetModifiers.isAbstract || false,
+                    isStatic: p.targetModifiers.isStatic || false,
+                    isActive: p.targetModifiers.isActive || false,
+                    isLeaf: p.targetModifiers.isLeaf || false,
+                    isFinal: p.targetModifiers.isFinal || false,
+                    isRoot: p.targetModifiers.isRoot || false,
+                  }
+                : undefined,
+              line: p.line,
+              column: p.column,
             })),
             returnType: this.processType(meth.returnType?.raw),
             line: meth.line,
