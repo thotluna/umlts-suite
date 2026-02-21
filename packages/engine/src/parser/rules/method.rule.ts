@@ -1,7 +1,7 @@
-import type { Token } from '../../syntax/token.types'
+ import type { Token } from '../../syntax/token.types'
 import { TokenType } from '../../syntax/token.types'
 import { ASTNodeType, type MethodNode, type TypeNode, type Modifiers } from '../../syntax/nodes'
-import type { ParserContext } from '../parser.context'
+import type { IParserHub } from '../parser.context'
 import { ParameterRule } from './parameter.rule'
 import { MemberSuffixRule, type MemberSuffix } from './member-suffix.rule'
 
@@ -9,7 +9,7 @@ export class MethodRule {
   private readonly parameterRule = new ParameterRule()
 
   public parse(
-    context: ParserContext,
+    context: IParserHub,
     name: Token,
     visibility: string,
     modifiers: Modifiers,

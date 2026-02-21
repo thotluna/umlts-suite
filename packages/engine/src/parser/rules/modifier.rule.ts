@@ -1,12 +1,12 @@
 import { TokenType } from '../../syntax/token.types'
 import type { Modifiers } from '../../syntax/nodes'
-import type { ParserContext } from '../parser.context'
+import type { IParserHub } from '../parser.context'
 
 export class ModifierRule {
   /**
    * Parses modifiers from the current position in the token stream.
    */
-  public static parse(context: ParserContext): Modifiers {
+  public static parse(context: IParserHub): Modifiers {
     const modifiers: Modifiers = {
       isAbstract: false,
       isStatic: false,

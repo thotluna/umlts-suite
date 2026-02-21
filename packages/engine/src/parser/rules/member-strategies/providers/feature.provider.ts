@@ -1,6 +1,6 @@
 import { TokenType } from '../../../../syntax/token.types'
 import type { MemberNode } from '../../../../syntax/nodes'
-import type { ParserContext } from '../../../parser.context'
+import type { IParserHub } from '../../parser.context'
 import { AttributeRule } from '../../attribute.rule'
 import { MethodRule } from '../../method.rule'
 import { ModifierRule } from '../../modifier.rule'
@@ -10,7 +10,7 @@ export class FeatureMemberProvider implements IMemberProvider {
   private readonly attributeRule = new AttributeRule()
   private readonly methodRule = new MethodRule()
 
-  canHandle(context: ParserContext): boolean {
+  canHandle(context: IParserHub): boolean {
     return context.checkAny(
       TokenType.VIS_PUB,
       TokenType.VIS_PRIV,
@@ -35,7 +35,7 @@ export class FeatureMemberProvider implements IMemberProvider {
     )
   }
 
-  parse(context: ParserContext): MemberNode | null {
+  parse(context: IParserHub): MemberNode | null {
     let visibility = 'public'
     if (
       context.match(TokenType.VIS_PUB, TokenType.VIS_PRIV, TokenType.VIS_PROT, TokenType.VIS_PACK)

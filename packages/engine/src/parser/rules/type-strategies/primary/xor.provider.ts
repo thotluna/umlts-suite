@@ -1,15 +1,15 @@
 import { TokenType } from '../../../../syntax/token.types'
 import { ASTNodeType, type TypeNode } from '../../../../syntax/nodes'
-import type { ParserContext } from '../../../parser.context'
+import type { IParserHub } from '../../parser.context'
 import type { TypeRule } from '../../type.rule'
 import type { IPrimaryTypeProvider } from '../type-strategy.interface'
 
 export class XorTypeProvider implements IPrimaryTypeProvider {
-  canHandle(context: ParserContext): boolean {
+  canHandle(context: IParserHub): boolean {
     return context.check(TokenType.KW_XOR)
   }
 
-  parse(context: ParserContext, typeRule: TypeRule): TypeNode {
+  parse(context: IParserHub, typeRule: TypeRule): TypeNode {
     const startToken = context.consume(TokenType.KW_XOR, '')
     let raw = 'xor'
 

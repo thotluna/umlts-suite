@@ -1,15 +1,15 @@
 import { TokenType } from '../../syntax/token.types'
 import type { StatementNode } from '../../syntax/nodes'
 import { ASTNodeType } from '../../syntax/nodes'
-import type { ParserContext } from '../parser.context'
-import type { StatementRule, Orchestrator } from '../rule.types'
+import type { IParserHub } from '../parser.context'
+import type { StatementRule, IOrchestrator } from '../rule.types'
 
 export class PackageRule implements StatementRule {
-  public canStart(context: ParserContext): boolean {
+  public canStart(context: IParserHub): boolean {
     return context.check(TokenType.KW_PACKAGE)
   }
 
-  public parse(context: ParserContext, orchestrator: Orchestrator): StatementNode[] {
+  public parse(context: IParserHub, orchestrator: IOrchestrator): StatementNode[] {
     if (!context.check(TokenType.KW_PACKAGE)) return []
 
     const startToken = context.consume(TokenType.KW_PACKAGE, "Expected 'package'")

@@ -6,8 +6,8 @@ import type {
   MemberNode,
 } from '../../syntax/nodes'
 import { ASTNodeType } from '../../syntax/nodes'
-import type { ParserContext } from '../parser.context'
-import type { StatementRule, Orchestrator } from '../rule.types'
+import type { IParserHub } from '../parser.context'
+import type { StatementRule, IOrchestrator } from '../rule.types'
 import { ConstraintRule } from './constraint.rule'
 import { MemberRule } from './member.rule'
 import { ModifierRule } from './modifier.rule'
@@ -15,7 +15,7 @@ import { ModifierRule } from './modifier.rule'
 export class RelationshipRule implements StatementRule {
   private readonly memberRule = new MemberRule()
 
-  public canStart(context: ParserContext): boolean {
+  public canStart(context: IParserHub): boolean {
     return (
       context.check(TokenType.IDENTIFIER) ||
       context.checkAny(
@@ -34,7 +34,7 @@ export class RelationshipRule implements StatementRule {
     )
   }
 
-  public parse(context: ParserContext, _orchestrator: Orchestrator): StatementNode[] {
+  public parse(context: IParserHub, _orchestrator: IOrchestrator): StatementNode[] {
     const pos = context.getPosition()
 
     try {
@@ -216,7 +216,7 @@ export class RelationshipRule implements StatementRule {
     ].includes(type)
   }
 
-  private parseMultiplicity(context: ParserContext): string {
+  private parseMultiplicity(context: IParserHub): string {
     context.consume(TokenType.LBRACKET, '')
     let value = ''
     while (!context.check(TokenType.RBRACKET) && !context.isAtEnd()) {

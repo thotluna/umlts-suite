@@ -1,11 +1,12 @@
+import { TokenType } from '../../syntax/token.types'
 import type { Token } from '../../syntax/token.types'
 import { ASTNodeType, type AttributeNode, type Modifiers } from '../../syntax/nodes'
-import type { ParserContext } from '../parser.context'
+import type { IParserHub } from '../parser.context'
 import { MemberSuffixRule } from './member-suffix.rule'
 
 export class AttributeRule {
   public parse(
-    context: ParserContext,
+    context: IParserHub,
     name: Token,
     visibility: string,
     modifiers: Modifiers,

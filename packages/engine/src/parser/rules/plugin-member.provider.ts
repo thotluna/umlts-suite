@@ -1,6 +1,6 @@
 import type { MemberNode } from '../../syntax/nodes'
 import type { LanguagePlugin, IPluginMemberProvider } from '../../plugins/language-plugin'
-import type { ParserContext } from '../parser.context'
+import type { IParserHub } from '../parser.context'
 import type { IMemberProvider } from './member-strategies/member-strategy.interface'
 
 /**
@@ -14,11 +14,11 @@ export class PluginMemberProvider implements IMemberProvider {
     this.providers = plugin.getMemberRules?.() ?? []
   }
 
-  public canHandle(context: ParserContext): boolean {
+  public canHandle(context: IParserHub): boolean {
     return this.providers.some((provider) => provider.canHandle(context))
   }
 
-  public parse(context: ParserContext): MemberNode | null {
+  public parse(context: IParserHub): MemberNode | null {
     for (const provider of this.providers) {
       if (provider.canHandle(context)) {
         const result = provider.parse(context)
