@@ -31,12 +31,11 @@ export class UMLEngine {
    * @param source - El código fuente en lenguaje UMLTS.
    * @returns Un objeto con el diagrama y los diagnósticos acumulados.
    */
-  public async parse(source: string): Promise<ParseResult> {
+  public parse(source: string): ParseResult {
     const context = new CompilerContext(source)
 
     for (const phase of this.phases) {
-      await phase.run(context)
-      // Si hay errores fatales, abortamos las fases siguientes
+      phase.run(context)
       if (context.hasErrors()) break
     }
 

@@ -14,5 +14,5 @@ export interface ISemanticPass {
   /**
    * Ejecuta la lógica de análisis sobre el AST y la sesión proporcionada.
    */
-  execute(program: ProgramNode, session: AnalysisSession): void | Promise<void>
+  execute(program: ProgramNode, session: AnalysisSession): void
 }

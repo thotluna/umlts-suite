@@ -56,7 +56,7 @@ export class SemanticAnalyzer {
   /**
    * Punto de entrada principal para el análisis semántico.
    */
-  public async analyze(program: ProgramNode, context: ParserContext): Promise<IRDiagram> {
+  public analyze(program: ProgramNode, context: ParserContext): IRDiagram {
     // 1. Inicialización de Estado (Sesión)
     const symbolTable = new SymbolTable()
     const constraintRegistry = new ConstraintRegistry()
@@ -98,7 +98,7 @@ export class SemanticAnalyzer {
       .use(new ResolutionPass(relationshipAnalyzer, constraintAnalyzer, assocClassResolver))
 
     // 5. Ejecutar Pases
-    await pipeline.execute(program, session)
+    pipeline.execute(program, session)
 
     // 6. Post-Procesamiento (Inferencia y Refinamiento)
     memberInference.run()

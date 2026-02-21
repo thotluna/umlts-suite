@@ -10,7 +10,7 @@ export class SemanticPhase implements CompilerPhase {
     const reporter = new DiagnosticReporter()
     const parserContext = new ParserContext(context.tokens, reporter, context.activePlugin)
 
-    context.diagram = await context.analyzer.analyze(context.ast, parserContext)
+    context.diagram = context.analyzer.analyze(context.ast, parserContext)
     context.addDiagnostics(reporter.getDiagnostics())
   }
 }
