@@ -1,14 +1,5 @@
 import { TokenType } from '../../syntax/token.types'
-import {
-  ASTNodeType,
-  type ProgramNode,
-  type StatementNode,
-  type Modifiers,
-  type RelationshipHeaderNode,
-  type EntityNode,
-  type AssociationClassNode,
-  type MemberNode,
-} from '../../syntax/nodes'
+import { ASTNodeType, type StatementNode, type NoteNode } from '../../syntax/nodes'
 import type { ParserContext } from '../parser.context'
 import type { StatementRule, Orchestrator } from '../rule.types'
 
@@ -38,7 +29,7 @@ export class NoteRule implements StatementRule {
           id,
           line: startToken.line,
           column: startToken.column,
-        } as any,
+        } as NoteNode,
       ]
     }
 
@@ -49,7 +40,7 @@ export class NoteRule implements StatementRule {
           value: context.prev().value,
           line: startToken.line,
           column: startToken.column,
-        } as any,
+        } as NoteNode,
       ]
     }
 
