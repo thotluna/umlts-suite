@@ -284,6 +284,12 @@
 - [x] **FIX**: Activar plugins de forma condicional basada en `config { language: ... }`
 - [x] **FEAT**: Crear ejemplo exhaustivo del DSL en `docs/tests-dsl.umlts`
 - [x] **COMMIT**: Realizar commit final de la refactorización V3 y DSL refinado
+- [x] Optimizar el registro de plugins en la fachada `UMLEngine` para escalabilidad (uso de `BUILTIN_PLUGINS`)
+- [x] Desacoplar `ParseResult` de `index.ts` a `generator/types.ts`
+- [x] **LEXER**: Refactorizar Lexer a patrón Composite completo (unificación de matchers)
+  - [x] Implementar `AbstractCompositeMatcher` y `MasterMatcher`
+  - [x] Descomponer `CommentMatcher`, `SymbolMatcher`, `IdentifierMatcher`, `NumberMatcher`, `StringMatcher` y `WhitespaceMatcher` en matchers atómicos.
+  - [x] Unificar la entrada del Lexer a un único `rootMatcher`.
 
 ## Refinamiento de Semántica DataType (UML 2.5.1)
 
@@ -297,3 +303,21 @@
 - [x] **TEST**: Validar leyes de jerarquía externa (implementación/herencia) en `test-datatype-hierarchy.umlts`.
 - [x] **FIX**: Ley de Identidad Estricta: Cualquier modificador (abstract, final, static, etc.) bloquea la promoción a `DataType`.
 - [x] **COMMIT**: Consolidar cambios de semántica DataType y leyes de jerarquía.
+
+## Sistema de Restricciones y Notas (UML 2.5.1)
+
+- [x] **DOC**: Definir catálogo de restricciones estándar y sintaxis unificada (`docs/REQUERIMIENTOS_CONSTRAINTS.md`)
+- [x] **FEAT**: Actualizar Lexer con tokens para `note`, `..`, `derived` y nuevas keywords
+- [x] **FEAT**: Implementar `NoteRule` y `LinkRule` en el Parser
+- [x] **FEAT**: Implementar soporte para restricciones in-line y de bloque en miembros
+- [x] **FEAT**: Implementar `XOR Type` (Unión Discriminada) en la IR y Semántica (Mapping a xor_member)
+- [x] **FEAT**: Soporte de propiedades derivadas (`/` via `{derived}`) y notas de miembros help
+- [x] **FEAT**: Reparación de SemanticAnalyzer (Pases 1-3, Bloques XOR, Modificadores de métodos)
+- [ ] **FEAT**: Actualizar Renderer para dibujar Notas y líneas de anclaje (dashed)
+
+## Sistema de Estereotipos y Perfiles (ALTA PRIORIDAD)
+
+- [ ] **RESEARCH**: Análisis del estándar UML 2.5.1 sobre Profiles y Stereotypes.
+- [ ] **DESIGN**: Definir cómo los estereotipos extienden la semántica de la IR (Intermediate Representation).
+- [ ] **FEAT**: Implementar distinción visual y semántica entre `«stereotypes»` (extensión de tipo) y `{constraints}` (reglas lógicas). (Anteriormente RQ 9.3)
+- [ ] **FEAT**: Implementar soporte para Notas como Contenedores de Restricciones mediante el estereotipo `«constraint»`. (Anteriormente RQ 11.2)
