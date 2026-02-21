@@ -1,5 +1,5 @@
 import type { IRDiagram, IRRelationship } from '../../generator/ir/models'
-import type { ParserContext } from '../../parser/parser.context'
+import type { IParserHub } from '../../parser/parser.context'
 import type { PluginManager } from '../../plugins/plugin-manager'
 import type { SymbolTable } from '../symbol-table'
 import type { ConstraintRegistry } from './constraint-registry'
@@ -19,7 +19,7 @@ export class AnalysisSession {
     public readonly constraintRegistry: ConstraintRegistry,
     public readonly configStore: ConfigStore,
     public readonly pluginManager: PluginManager,
-    public readonly context: ParserContext,
+    public readonly context: IParserHub,
   ) {}
 
   /**

@@ -1,6 +1,8 @@
 import type { Token } from '../syntax/token.types'
 import type { TypeNode, StatementNode, MemberNode } from '../syntax/nodes'
 import type { IREntity, IRRelationshipType } from '../generator/ir/models'
+import type { IParserHub } from '../parser/parser.context'
+import type { IOrchestrator } from '../parser/rule.types'
 
 /**
  * Result of a type transformation by a plugin.
@@ -61,16 +63,16 @@ export interface LanguagePlugin {
  * Interface for a plugin-specific statement rule.
  */
 export interface IPluginStatementRule {
-  canStart(context: IParserContext): boolean
-  parse(context: IParserContext, orchestrator: IOrchestrator): StatementNode[] | null
+  canStart(context: IParserHub): boolean
+  parse(context: IParserHub, orchestrator: IOrchestrator): StatementNode[] | null
 }
 
 /**
  * Interface for a plugin-specific member provider.
  */
 export interface IPluginMemberProvider {
-  canHandle(context: IParserContext): boolean
-  parse(context: IParserContext): MemberNode | null
+  canHandle(context: IParserHub): boolean
+  parse(context: IParserHub): MemberNode | null
 }
 
 /**
@@ -84,23 +86,4 @@ export interface ILexerReader {
   getLine(): number
   getColumn(): number
   getPosition(): number
-}
-
-/**
- * Interface-based ParserContext to avoid circular dependencies.
- */
-export interface IParserContext {
-  peek(): Token
-  advance(): Token
-  check(type: string): boolean
-  match(...types: string[]): boolean
-  consume(type: string, message: string): Token
-  softConsume(type: string, message: string): Token
-}
-
-/**
- * Interface-based Orchestrator to avoid circular dependencies.
- */
-export interface IOrchestrator {
-  parseStatement(context: IParserContext): StatementNode[]
 }
