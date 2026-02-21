@@ -50,6 +50,9 @@ export class TypeScriptPlugin implements LanguagePlugin {
       this.createPrimitive('object', tsTypesName),
       this.createPrimitive('symbol', tsTypesName),
       this.createPrimitive('bigint', tsTypesName),
+      this.createPrimitive('string', tsTypesName),
+      this.createPrimitive('number', tsTypesName),
+      this.createPrimitive('boolean', tsTypesName),
 
       // Standard JSON/JS types as DataType (Values, not identities)
       this.createDataType('Date', tsTypesName),
@@ -78,57 +81,98 @@ export class TypeScriptPlugin implements LanguagePlugin {
   }
 
   public resolveType(type: TypeNode): TypeMapping | null {
-    const baseName = type.name.toLowerCase()
+    let result: TypeMapping | null = null
 
-    // 1. Handle Arrays (T[])
-    if (type.kind === 'array') {
-      return {
-        targetName: type.raw.replace(/\[\]/g, '').trim(),
-        multiplicity: '0..*',
-        label: '{ordered}',
+    // Helper method to "peel" wrapper types recursively
+    const resolveInternal = (node: TypeNode): TypeMapping | null => {
+      const base = node.name.toLowerCase()
+
+      // 1. Handle Arrays (T[]) — including explicit multiplicities like T[1..*]
+      if (node.kind === 'array') {
+        // Strip any trailing [...] suffix and extract the explicit multiplicity if present
+        const multiplicityMatch = /\[([^\]]*)\]\s*$/.exec(node.raw)
+        const explicitMultiplicity = multiplicityMatch?.[1]
+        const baseRaw = node.raw.replace(/\[[^\]]*\]\s*$/, '').trim()
+
+        const nested = this.resolveType({
+          ...node,
+          kind: 'simple',
+          raw: baseRaw,
+          name: node.name,
+        })
+
+        const resolvedMultiplicity = explicitMultiplicity
+          ? explicitMultiplicity.includes('..')
+            ? explicitMultiplicity
+            : `0..${explicitMultiplicity}`
+          : '0..*'
+
+        return {
+          targetName: nested?.targetName || baseRaw,
+          multiplicity: resolvedMultiplicity,
+          label: nested?.label ? `${nested.label}\n{ordered}` : '{ordered}',
+          relationshipType: nested?.relationshipType,
+        }
       }
+
+      // 2. Handle known collections as multiplicity (Array<T>, List<T>, Set<T>)
+      const collections = new Set(['array', 'list', 'set', 'collection'])
+      if (collections.has(base) && node.arguments && node.arguments.length > 0) {
+        const nested = this.resolveType(node.arguments[0])
+        return {
+          targetName: nested?.targetName || node.arguments[0].raw,
+          multiplicity: '0..*',
+          label: nested?.label
+            ? `${nested.label}\n${base === 'set' ? '{unique}' : '{ordered}'}`
+            : base === 'set'
+              ? '{unique}'
+              : '{ordered}',
+          relationshipType: nested?.relationshipType,
+        }
+      }
+
+      // 3. Handle Map<K, V>
+      if (base === 'map' && node.arguments && node.arguments.length >= 2) {
+        const nested = this.resolveType(node.arguments[1])
+        return {
+          targetName: nested?.targetName || node.arguments[1].raw,
+          multiplicity: '*',
+          label: nested?.label
+            ? `[${node.arguments[0].raw}]\n${nested.label}`
+            : `[${node.arguments[0].raw}]`,
+          relationshipType: nested?.relationshipType,
+        }
+      }
+
+      // 4. Handle Utility Types (Partial, Pick, Omit, etc.)
+      const utilities = new Set(['partial', 'pick', 'omit', 'readonly', 'required', 'nonnullable'])
+      if (utilities.has(base) && node.arguments && node.arguments.length > 0) {
+        const nested = this.resolveType(node.arguments[0])
+        return {
+          targetName: nested?.targetName || node.arguments[0].raw,
+          relationshipType: nested?.relationshipType || IRRelationshipType.DEPENDENCY,
+          label: nested?.label ? `«${node.name}»\n${nested.label}` : `«${node.name}»`,
+          multiplicity: nested?.multiplicity,
+        }
+      }
+
+      // 5. Handle Wrapper Types (Promise, Observable)
+      const wrappers = new Set(['promise', 'observable'])
+      if (wrappers.has(base) && node.arguments && node.arguments.length > 0) {
+        const nested = this.resolveType(node.arguments[0])
+        return {
+          targetName: nested?.targetName || node.arguments[0].raw,
+          relationshipType: nested?.relationshipType || IRRelationshipType.DEPENDENCY,
+          label: nested?.label ? `«${node.name}»\n${nested.label}` : `«${node.name}»`,
+          multiplicity: nested?.multiplicity,
+        }
+      }
+
+      return null
     }
 
-    // 2. Handle known collections as multiplicity (Array<T>, List<T>, Set<T>)
-    const collectionsAsMultiplicity = new Set(['array', 'list', 'set', 'collection'])
-    if (collectionsAsMultiplicity.has(baseName) && type.arguments && type.arguments.length > 0) {
-      return {
-        targetName: type.arguments[0].raw,
-        multiplicity: '0..*',
-        label: baseName === 'set' ? '{unique}' : '{ordered}',
-      }
-    }
-
-    // 3. Handle Map<K, V> - usually we draw to V with K as qualifier/note or just ignore K
-    if (baseName === 'map' && type.arguments && type.arguments.length >= 2) {
-      return {
-        targetName: type.arguments[1].raw,
-        multiplicity: '*',
-        label: `[${type.arguments[0].raw}]`,
-      }
-    }
-
-    // 4. Handle Utility Types (Partial, Pick, Omit, etc.)
-    const utilities = new Set(['partial', 'pick', 'omit', 'readonly', 'required', 'nonnullable'])
-    if (utilities.has(baseName) && type.arguments && type.arguments.length > 0) {
-      return {
-        targetName: type.arguments[0].raw,
-        relationshipType: IRRelationshipType.DEPENDENCY,
-        label: `«${type.name}»`,
-      }
-    }
-
-    // 5. Handle Wrapper Types (Promise, Observable)
-    const wrappers = new Set(['promise', 'observable'])
-    if (wrappers.has(baseName) && type.arguments && type.arguments.length > 0) {
-      return {
-        targetName: type.arguments[0].raw,
-        relationshipType: IRRelationshipType.DEPENDENCY,
-        label: `«${type.name}»`,
-      }
-    }
-
-    return null
+    result = resolveInternal(type)
+    return result
   }
 
   public mapPrimitive(name: string): string | null {

@@ -1,5 +1,6 @@
 import type { ProgramNode } from '../syntax/nodes'
 import { type IRDiagram, IREntityType, IRRelationshipType } from '../generator/ir/models'
+import { BUILTIN_PLUGINS } from '../plugins'
 import type { ParserContext } from '../parser/parser.context'
 
 // Core Components
@@ -36,6 +37,17 @@ import { AssociationClassResolver } from './resolvers/association-class.resolver
  */
 export class SemanticAnalyzer {
   private readonly pluginManager = new PluginManager()
+  private readonly typePipeline: TypeResolutionPipeline
+
+  constructor() {
+    // 1. Register built-in plugins
+    BUILTIN_PLUGINS.forEach((plugin) => this.pluginManager.register(plugin))
+
+    // 2. Initialize the type resolution pipeline with standard strategies
+    this.typePipeline = new TypeResolutionPipeline()
+    this.typePipeline.add(new UMLTypeResolver())
+    this.typePipeline.add(new PluginTypeResolutionAdapter(this.pluginManager))
+  }
 
   public getPluginManager(): PluginManager {
     return this.pluginManager
@@ -75,17 +87,8 @@ export class SemanticAnalyzer {
       context,
     )
 
-    // 3. Arquitectura de Resolución de Tipos
-    const typePipeline = new TypeResolutionPipeline()
-    typePipeline.add(new UMLTypeResolver())
-    typePipeline.add(new PluginTypeResolutionAdapter(this.pluginManager))
-
-    const memberInference = new MemberInference(session, relationshipAnalyzer, typePipeline)
-    const assocClassResolver = new AssociationClassResolver(
-      session,
-      relationshipAnalyzer,
-      [],
-    )
+    const memberInference = new MemberInference(session, relationshipAnalyzer, this.typePipeline)
+    const assocClassResolver = new AssociationClassResolver(session, relationshipAnalyzer, [])
 
     // 4. Configuración de la Tubería Semántica
     const pipeline = new SemanticPipeline()

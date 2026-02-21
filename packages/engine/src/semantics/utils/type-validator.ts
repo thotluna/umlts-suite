@@ -27,8 +27,8 @@ export class TypeValidator {
    */
   public static getBaseTypeName(typeName: string): string {
     let baseType = typeName
-    // Nota: El motor ya no limpia [] porque eso es específico de lenguajes como TS/Java
-    // Solo manejamos el concepto UML de nombre base (remover argumentos generales si existen en el string)
+    // Strip array multiplicity suffix [m..n] or []
+    baseType = baseType.replace(/\[.*?\]\s*$/g, '').trim()
     if (baseType.includes('<')) {
       baseType = baseType.substring(0, baseType.indexOf('<'))
     }
@@ -41,15 +41,26 @@ export class TypeValidator {
   /**
    * Decomposes a type name into its base name and generic arguments.
    */
-  public static decomposeGeneric(typeName: string): { baseName: string; args: string[] } {
-    const baseName = this.getBaseTypeName(typeName)
+  public static decomposeGeneric(typeName: string): {
+    baseName: string
+    args: string[]
+    multiplicity?: string
+  } {
+    // Extract trailing array multiplicity (e.g. [1..*], [], [0..1])
+    const multiplicityMatch = /\[([^\]]*?)\]\s*$/.exec(typeName)
+    const multiplicity = multiplicityMatch ? multiplicityMatch[0] : undefined
+    const typeWithoutMultiplicity = multiplicity
+      ? typeName.slice(0, typeName.lastIndexOf(multiplicity)).trim()
+      : typeName
+
+    const baseName = this.getBaseTypeName(typeWithoutMultiplicity)
     const args: string[] = []
 
-    const start = typeName.indexOf('<')
-    const end = typeName.lastIndexOf('>')
+    const start = typeWithoutMultiplicity.indexOf('<')
+    const end = typeWithoutMultiplicity.lastIndexOf('>')
 
     if (start !== -1 && end !== -1 && end > start) {
-      const argsStr = typeName.substring(start + 1, end)
+      const argsStr = typeWithoutMultiplicity.substring(start + 1, end)
       let depth = 0
       let current = ''
       for (const char of argsStr) {
@@ -65,7 +76,7 @@ export class TypeValidator {
       if (current.trim()) args.push(current.trim())
     }
 
-    return { baseName, args }
+    return { baseName, args, multiplicity: multiplicityMatch ? multiplicityMatch[1] : undefined }
   }
 
   /**
