@@ -103,7 +103,7 @@
 - [x] Implementación de `SVGBuilder` y Patrón de Dibujo Desacoplado
 - [x] Formalización del Orquestador de Pipeline (`UMLRenderer`)
 - [x] Abstracción de Jerarquía (`UMLHierarchyItem`) para soporte agnóstico de contenedores
-- [x] Corrección de Bug de Layout Jerárquico (Offsets de aristas y proporciones)
+- [x] Corrección de Bug de Layout Hierárquico (Offsets de aristas y proporciones)
 
 ## Publicación y Despliegue
 
@@ -229,7 +229,7 @@
 - [x] **FEAT**: Implementar sistema de inferencia de tipos por contexto de relación (`TypeInferrer`)
 - [x] **FIX**: Resolver ambigüedades en entidades implícitas (`class >I B` ahora registra `B` como Interfaz)
 - [x] **TEST**: Alcanzar cobertura del 96% en el paquete `semantics`
-- [x] **DOC**: Actualizar `semantics.umlts` con la nueva arquitectura (TypeInferrer, rules)
+- [x] **DOC**: Actualizar `semantics.umlts` with the nueva arquitectura (TypeInferrer, rules)
 - [x] **PR**: Crear Pull Request "Refactor Semántico V2: Declaraciones Flexible y Resolución FQN Robusta"
 
 ## Próximos Pasos (V3)
@@ -244,12 +244,13 @@
 - [x] **FEAT**: Implement Dependency detection (`>-`) via AST analysis of method bodies
 - [x] **DOC**: Document relationship heuristics (Visibility, Versatility, Momentarity)
 - [x] **IMPROVEMENT**: "Surgeon Effect" (Public Getters) and Global Versatility Map
+- [x] **IMPROVEMENT**: "Surgeon Effect" (Public Getters) and Global Versatility Map
 
 ## Ingeniería Inversa Quirúrgica (Surgeon Extractor)
 
-- [x] **TASK**: Definir workflow de extracción manual en `.agent/workflows/surgeon-extractor.md`
+- [x] **TASK**: Definir workflow de extracción manual en .agent/workflows/surgeon-extractor.md
 - [x] **FEAT**: Implementar Pasada -1 (Configuración)
-  - [x] Lectura de `tsconfig.json` para resolución de Aliases (Heurística inicial implementada)
+  - [x] Lectura de tsconfig.json para resolución de Aliases (Heurística inicial implementada)
   - [x] Mapeo de paquetes basado en estructura de carpetas de monorepo
 - [x] **FEAT**: Implementar Pasada 0 (Imports & Scope)
   - [x] Escaneo de cabeceras para mapeo de FQNs vía imports
@@ -259,12 +260,12 @@
   - [x] Mapeo de atributos estructurales para composición/agregación
 - [x] **FEAT**: Implementar Pasada 2 (Síntesis & Cirujano)
   - [x] Escaneo de firmas de métodos para dependencias de uso
-  - [x] Aplicación del _Surgeon Effect_ (No duplicar líneas si hay relación estructural)
-- [x] **TEST**: Validar extracción del paquete `engine/semantics` sin ruido visual y compilación Exitosa (Verificado con CLI)
+  - [x] Aplicación del Surgeon Effect (No duplicar líneas si hay relación estructural)
+- [x] **TEST**: Validar extracción del paquete engine/semantics sin ruido visual y compilación Exitosa (Verificado con CLI)
 - [x] **FIX**: Corregir "ruido" en extracción de miembros (evitar capturar parámetros de métodos como propiedades)
 - [x] **IMPROVEMENT**: Implementar resolución FQN basada en imports para evitar duplicidad de clases en el diagrama
 - [x] **IMPROVEMENT**: Sanitización de identificadores (keywords) y limpieza de tipos complejos (generics, Object, Function)
-- [x] **IMPROVEMENT**: Add CLI support for blueprint to generate `.umlts` files from terminal
+- [x] **IMPROVEMENT**: Add CLI support for blueprint to generate .umlts files from terminal
 
 ## Refactorización de Semántica para Soporte de Plugins (V3)
 
@@ -310,7 +311,7 @@
 ## Sistema de Restricciones y Notas (UML 2.5.1)
 
 - [x] **DOC**: Definir catálogo de restricciones estándar y sintaxis unificada (`docs/REQUERIMIENTOS_CONSTRAINTS.md`)
-- [x] **FEAT**: Actualizar Lexer con tokens para `note`, `..`, `derived` y nuevas keywords
+- [x] **FEAT**: Actualizar Lexer with tokens for `note`, `..`, `derived` and nuevas keywords
 - [x] **FEAT**: Implementar `NoteRule` y `LinkRule` en el Parser
 - [x] **FEAT**: Implementar soporte para restricciones in-line y de bloque en miembros
 - [x] **FEAT**: Implementar `XOR Type` (Unión Discriminada) en la IR y Semántica (Mapping a xor_member)
@@ -344,6 +345,6 @@
 
 - [x] **TASK**: Refactorizar importaciones del Renderer para integridad del contrato IR
   - [x] Establecer `@umlts/engine` como única fuente de verdad para el contrato IR
-  - [x] Purgar barrel exports de `core/types.ts` y separar modelos visuales
+  - [x] Purgar barrel exports of `core/types.ts` y separar modelos visuales
   - [x] Eliminar todos los usos de `any` en la lógica de transformación y dibujo (Renderer)
   - [x] Corregir dependencias circulares y asegurar build limpio en todo el monorepo
