@@ -1,44 +1,30 @@
-import { TokenType, type Token } from '../syntax/token.types'
+import type { Token } from '../syntax/token.types'
+import { TokenType } from '../syntax/token.types'
 
 /**
- * TokenStream: Gestiona la navegación y el estado de los tokens.
- * Encapsula el cursor, el historial y la lógica de "splitting" de tokens.
+ * TokenStream: Maneja la navegación y estado del flujo de tokens.
  */
 export class TokenStream {
   private current = 0
-  private splitTokens: Token[] = []
+  private readonly tokens: Token[]
 
-  constructor(private readonly tokens: Token[]) {}
+  constructor(tokens: Token[]) {
+    this.tokens = tokens
+  }
 
   public peek(): Token {
-    if (this.splitTokens.length > 0) {
-      return this.splitTokens[0]
-    }
-    if (this.current >= this.tokens.length) {
-      return this.tokens[this.tokens.length - 1]
-    }
-    return this.tokens[this.current]
+    return this.tokens[this.current] || this.tokens[this.tokens.length - 1]
   }
 
   public peekNext(): Token {
-    if (this.splitTokens.length > 1) {
-      return this.splitTokens[1]
-    }
-    const offset = this.splitTokens.length === 1 ? 0 : 1
-    if (this.current + offset >= this.tokens.length) {
-      return this.tokens[this.tokens.length - 1]
-    }
-    return this.tokens[this.current + offset]
+    return this.tokens[this.current + 1] || this.tokens[this.tokens.length - 1]
   }
 
   public prev(): Token {
-    return this.tokens[this.current - 1]
+    return this.tokens[this.current - 1] || this.tokens[0]
   }
 
   public advance(): Token {
-    if (this.splitTokens.length > 0) {
-      return this.splitTokens.shift()!
-    }
     if (!this.isAtEnd()) this.current++
     return this.prev()
   }
@@ -49,24 +35,15 @@ export class TokenStream {
 
   public rollback(position: number): void {
     this.current = position
-    this.splitTokens = [] // Reset split tokens on rollback to ensure consistency
   }
 
   public isAtEnd(): boolean {
-    return this.splitTokens.length === 0 && this.peek().type === TokenType.EOF
+    return this.peek().type === TokenType.EOF
   }
 
   public check(type: TokenType): boolean {
     if (this.isAtEnd()) return false
-    const token = this.peek()
-    if (token.type === type) return true
-
-    // Lógica especial para splitting (herencia de herencia >>)
-    if (token.type === TokenType.OP_INHERIT && type === TokenType.GT) {
-      return true
-    }
-
-    return false
+    return this.peek().type === type
   }
 
   public checkAny(...types: TokenType[]): boolean {
@@ -74,58 +51,29 @@ export class TokenStream {
   }
 
   /**
-   * Intenta consumir un token del tipo especificado.
-   * Si matchea, avanza el stream (manejando splitting si es necesario) y devuelve el token.
-   * Si no matchea, devuelve null.
-   */
-  public tryTake(type: TokenType): Token | null {
-    if (!this.check(type)) return null
-
-    if (this.splitAndAdvance(type)) {
-      return this.advance()
-    }
-
-    return this.advance()
-  }
-
-  /**
-   * Intenta consumir el primer token que matchee con alguno de los tipos proporcionados.
+   * Intenta consumir un token de uno de los tipos especificados.
+   * Si tiene éxito, avanza el puntero y devuelve el token.
    */
   public takeAny(...types: TokenType[]): Token | null {
-    for (const type of types) {
-      const token = this.tryTake(type)
-      if (token) return token
+    if (this.checkAny(...types)) {
+      return this.advance()
     }
     return null
   }
 
-  public splitAndAdvance(type: TokenType): boolean {
-    const token = this.peek()
-    if (token.type === TokenType.OP_INHERIT && type === TokenType.GT) {
-      this.current++
-      // Añadimos AMBAS mitades al buffer para que advance() tome la primera
-      // y la segunda quede disponible para el siguiente peek/advance.
-      this.splitTokens.push(
-        {
-          ...token,
-          type: TokenType.GT,
-          value: '>',
-        },
-        {
-          ...token,
-          type: TokenType.GT,
-          value: '>',
-          column: token.column + 1,
-        },
-      )
-      return true
+  /**
+   * Intenta consumir un token de un tipo específico.
+   */
+  public tryTake(type: TokenType): Token | null {
+    if (this.check(type)) {
+      return this.advance()
     }
-    return false
+    return null
   }
 
   /**
-   * Sincroniza el stream avanzando hasta encontrar un punto seguro (un delimitador o el inicio de una regla).
-   * @param isPointOfNoReturn - Predicado que define si el token actual permite iniciar un nuevo parseo seguro.
+   * Recuperación de errores (Panic Mode).
+   * Avanza el flujo hasta encontrar un punto de sincronización seguro.
    */
   public sync(isPointOfNoReturn: () => boolean): void {
     if (this.isAtEnd()) return
@@ -146,8 +94,7 @@ export class TokenStream {
   }
 
   /**
-   * Fabrica un token "virtual" para representar la ausencia de un token esperado.
-   * Utiliza el token actual como ancla para la posición.
+   * Crea un token virtual para representar uno faltante.
    */
   public createMissingToken(type: TokenType): Token {
     const anchor = this.peek()
