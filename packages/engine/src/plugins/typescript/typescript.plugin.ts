@@ -1,4 +1,10 @@
-import type { LanguagePlugin, TypeMapping, ILexerReader, IParserContext } from '../language-plugin'
+import type {
+  LanguagePlugin,
+  TypeMapping,
+  ILexerReader,
+  IParserContext,
+  IPluginMemberProvider,
+} from '../language-plugin'
 import type { Token } from '../../syntax/token.types'
 import { TokenType } from '../../syntax/token.types'
 import type { TypeNode } from '../../syntax/nodes'
@@ -10,7 +16,6 @@ import { IREntityType, IRRelationshipType } from '../../generator/ir/models'
  */
 export class TypeScriptPlugin implements LanguagePlugin {
   public readonly name = 'typescript'
-  private isOptionalPending = false
 
   public matchToken(reader: ILexerReader): Token | null {
     const char = reader.peek()
@@ -28,15 +33,13 @@ export class TypeScriptPlugin implements LanguagePlugin {
     return null
   }
 
-  public handleUnexpectedToken(context: IParserContext, token: Token): boolean {
-    if (token.type === TokenType.PLUGIN_TOKEN && token.value === '?') {
-      // En TS, un '?' después de un nombre de atributo indica opcionalidad.
-      // Store this state to be used by the SemanticAnalyzer or future hooks.
-      this.isOptionalPending = true
-      context.advance()
-      return true
-    }
-    return false
+  public getMemberRules(): IPluginMemberProvider[] {
+    return [
+      {
+        canHandle: (_context: IParserContext) => false,
+        parse: (_context: IParserContext) => null,
+      },
+    ]
   }
 
   public getStandardLibrary(): IREntity[] {
