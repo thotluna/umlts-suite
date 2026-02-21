@@ -91,7 +91,7 @@ package services {
   }
 
   class LoginDTO {
-    user: Omit<domain.User, "id" | "role">
+    user: Omit<domain.User, id | role>
   }
 
   class LocalAuthProvider
