@@ -2,51 +2,30 @@ import type { Token } from '../syntax/token.types'
 import { TokenType } from '../syntax/token.types'
 import { LexerReader } from './lexer.reader'
 import type { TokenMatcher } from './matcher.types'
-import type { LanguagePlugin } from '../plugins/language-plugin'
 
 export class Lexer {
   private readonly reader: LexerReader
-  private readonly matchers: TokenMatcher[]
-  private readonly plugin?: LanguagePlugin
+  private readonly rootMatcher: TokenMatcher
 
-  constructor(input: string, matchers: TokenMatcher[], plugin?: LanguagePlugin) {
+  constructor(input: string, rootMatcher: TokenMatcher) {
     this.reader = new LexerReader(input)
-    this.matchers = matchers
-    this.plugin = plugin
+    this.rootMatcher = rootMatcher
   }
 
   public tokenize(): Token[] {
     const tokens: Token[] = []
 
     while (!this.reader.isAtEnd()) {
-      let matched = false
+      const startLine = this.reader.getLine()
+      const startColumn = this.reader.getColumn()
       const beforePos = this.reader.getPosition()
-      let token: Token | null = null
 
-      for (const matcher of this.matchers) {
-        token = matcher.match(this.reader)
-
-        // Un match ocurre si devolvió un token O si avanzó el puntero (ej. espacios)
-        if (token != null || this.reader.getPosition() > beforePos) {
-          matched = true
-          break
-        }
-      }
-
-      // Si no hubo match estándar, preguntamos al plugin
-      if (!matched && this.plugin?.matchToken) {
-        token = this.plugin.matchToken(this.reader)
-        if (token != null) {
-          matched = true
-        }
-      }
+      const token = this.rootMatcher.match(this.reader)
 
       if (token != null) {
         tokens.push(token)
-      } else if (!matched) {
-        // Carácter desconocido: solo avanzamos si nadie reclamó el carácter
-        const startLine = this.reader.getLine()
-        const startColumn = this.reader.getColumn()
+      } else if (this.reader.getPosition() === beforePos) {
+        // No matcher handled this character: record it as UNKNOWN and advance
         tokens.push({
           type: TokenType.UNKNOWN,
           value: this.reader.advance(),
