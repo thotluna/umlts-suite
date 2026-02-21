@@ -4,9 +4,9 @@ import {
   type ParseResult,
   type IRProperty,
   type IROperation,
-  IREntity,
-  Diagnostic,
-  IRRelationship,
+  type IREntity,
+  type Diagnostic,
+  type IRRelationship,
 } from '@umlts/engine'
 import { UMLPreviewPanel } from './preview'
 

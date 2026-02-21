@@ -1,4 +1,5 @@
-import { type IR, type DiagramConfig } from './core/types'
+import { type IRDiagram } from '@umlts/engine'
+import { type DiagramConfig } from './core/types'
 import { type Theme, lightTheme, darkTheme } from './core/theme'
 import { IRAdapter } from './adaptation/ir-adapter'
 import { LayoutEngine } from './layout/layout-engine'
@@ -20,7 +21,7 @@ export class UMLRenderer {
   /**
    * Renders the given IR into an SVG string.
    */
-  public async render(ir: IR, options: RenderOptions = {}): Promise<string> {
+  public async render(ir: IRDiagram, options: RenderOptions = {}): Promise<string> {
     const dslConfig = this.normalizeDSLConfig(ir.config)
 
     // Merge configuration: Defaults < Options (IDE/JSON) < IR (DSL)

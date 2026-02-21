@@ -1,13 +1,11 @@
+import { type IRDiagram, type IREntity, type IRRelationship } from '@umlts/engine'
 import {
-  type IR,
-  type IREntity,
-  type IRRelationship,
   UMLNode,
   UMLEdge,
   UMLPackage,
   type DiagramModel,
   type IRRelType,
-} from '../core/types'
+} from '../core/model/nodes'
 
 /**
  * IRAdapter: Transforms the raw IR from ts-uml-engine into a DiagramModel
@@ -15,59 +13,48 @@ import {
  */
 export class IRAdapter {
   /**
-   * Transforms raw IR from context into a DiagramModel.
+   * Transforms the entire diagram IR into a hierarchical model.
    */
-  public transform(ir: IR): DiagramModel {
-    const hiddenIds = new Set((ir.config?.hiddenEntities as string[]) || [])
-    const entities = (ir.entities || []).filter((e) => !hiddenIds.has(e.id))
-    const relationships = ir.relationships || []
-    const nodes = entities.map((entity) => this.transformEntity(entity))
-    const nodeIds = new Set(nodes.map((n) => n.id))
-    const edges = relationships
-      .filter((rel) => nodeIds.has(rel.from) && nodeIds.has(rel.to))
-      .map((rel) => this.transformRelationship(rel))
-    const packages = this.buildPackageHierarchy(nodes)
+  public transform(ir: IRDiagram): DiagramModel {
+    const nodes: UMLNode[] = ir.entities.map((entity: IREntity) => this.transformEntity(entity))
+    const edges: UMLEdge[] = ir.relationships.map((rel: IRRelationship) =>
+      this.transformRelationship(rel),
+    )
+
+    // Build the package/namespace hierarchy
+    const packages = this.buildHierarchy(nodes)
 
     return {
-      nodes,
+      nodes: nodes.filter((n: UMLNode) => !n.namespace), // Only top-level nodes
       edges,
       packages,
       constraints: ir.constraints || [],
     }
   }
 
-  /**
-   * Transforms a single entity into a UMLNode.
-   */
   private transformEntity(entity: IREntity): UMLNode {
     return new UMLNode(
       entity.id,
       entity.name,
       entity.type,
-      entity.properties ?? [],
-      entity.operations ?? [],
+      entity.properties,
+      entity.operations,
       entity.isImplicit,
       entity.isAbstract,
       entity.isStatic,
       entity.isActive,
-      entity.isLeaf || false,
-      entity.typeParameters ?? [],
+      entity.isLeaf,
+      entity.typeParameters || [],
       entity.namespace,
       entity.docs,
     )
   }
 
-  /**
-   * Transforms a relationship into a UMLEdge.
-   */
   private transformRelationship(rel: IRRelationship): UMLEdge {
-    // Normalize relationship type to PascalCase
-    const type = (rel.type.charAt(0).toUpperCase() + rel.type.slice(1).toLowerCase()) as IRRelType
-
     return new UMLEdge(
       rel.from,
       rel.to,
-      type,
+      rel.type as IRRelType,
       rel.label,
       rel.visibility,
       rel.fromMultiplicity,
@@ -78,61 +65,40 @@ export class IRAdapter {
   }
 
   /**
-   * Builds the tree structure of packages from nodes namespaces.
+   * Groups nodes into their respective packages based on the 'namespace' field (FQN).
    */
-  private buildPackageHierarchy(nodes: UMLNode[]): UMLPackage[] {
-    const rootPackages = new Map<string, UMLPackage>()
-    const allPackages = new Map<string, UMLPackage>()
+  private buildHierarchy(nodes: UMLNode[]): UMLPackage[] {
+    const pkgMap = new Map<string, UMLPackage>()
+    const rootPackages: UMLPackage[] = []
 
+    // 1. Create all packages mentioned in namespaces
     for (const node of nodes) {
       if (!node.namespace) continue
 
-      const parts = this.splitNamespace(node.namespace)
+      const parts = node.namespace.split('.')
       let currentPath = ''
-      let parentPkg: UMLPackage | null = null
 
-      for (const part of parts) {
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i]
+        const parentPath = currentPath
         currentPath = currentPath ? `${currentPath}.${part}` : part
-        let pkg = allPackages.get(currentPath)
 
-        if (pkg == null) {
-          pkg = new UMLPackage(part, [], currentPath)
-          allPackages.set(currentPath, pkg)
+        if (!pkgMap.has(currentPath)) {
+          const pkg = new UMLPackage(part, [], currentPath)
+          pkgMap.set(currentPath, pkg)
 
-          if (parentPkg != null) {
-            parentPkg.children.push(pkg)
-          } else {
-            rootPackages.set(part, pkg)
+          if (parentPath && pkgMap.has(parentPath)) {
+            pkgMap.get(parentPath)!.children.push(pkg)
+          } else if (i === 0) {
+            rootPackages.push(pkg)
           }
         }
-        parentPkg = pkg
       }
 
-      if (parentPkg != null) {
-        parentPkg.children.push(node)
-      }
+      // Add node to its final package
+      pkgMap.get(node.namespace)!.children.push(node)
     }
 
-    return Array.from(rootPackages.values())
-  }
-
-  private splitNamespace(ns: string): string[] {
-    const parts: string[] = []
-    let current = ''
-    let depth = 0
-
-    for (let i = 0; i < ns.length; i++) {
-      if (ns[i] === '<') depth++
-      else if (ns[i] === '>') depth--
-
-      if (ns[i] === '.' && depth === 0) {
-        if (current) parts.push(current)
-        current = ''
-      } else {
-        current += ns[i]
-      }
-    }
-    if (current) parts.push(current)
-    return parts
+    return rootPackages
   }
 }

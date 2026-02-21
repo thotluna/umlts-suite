@@ -1,11 +1,11 @@
 import {
-  type UMLNode,
   type IRProperty,
   type IROperation,
   type IRParameter,
-  type DiagramConfig,
   type IRMultiplicity,
-} from '../../core/types'
+} from '@umlts/engine'
+import { type UMLNode } from '../../core/model/nodes'
+import { type DiagramConfig } from '../../core/types'
 import { type Theme } from '../../core/theme'
 import { SVGBuilder as svg } from '../svg-helpers'
 import { DrawingRegistry } from '../drawable'
