@@ -3,7 +3,6 @@ import type { Diagnostic, DiagnosticCode } from '../syntax/diagnostic.types'
 import { TokenStream } from './token-stream'
 import { DiagnosticReporter } from './diagnostic-reporter'
 import { DocRegistry } from './doc-registry'
-import type { LanguagePlugin } from '../plugins/language-plugin'
 
 /**
  * ParserContext: Fachada (Facade) que coordina los subsistemas del parser.
@@ -14,13 +13,11 @@ export class ParserContext {
   private readonly stream: TokenStream
   private readonly errors: DiagnosticReporter
   private readonly docs: DocRegistry
-  private readonly plugin?: LanguagePlugin
 
-  constructor(tokens: Token[], errors: DiagnosticReporter, plugin?: LanguagePlugin) {
+  constructor(tokens: Token[], errors: DiagnosticReporter) {
     this.stream = new TokenStream(tokens)
     this.errors = errors
     this.docs = new DocRegistry()
-    this.plugin = plugin
   }
 
   // --- Delegación a TokenStream ---
@@ -85,17 +82,15 @@ export class ParserContext {
       return this.advance()
     }
 
-    // Si no es el token esperado, damos una oportunidad al plugin para limpiar el camino
-    if (this.handleUnexpectedToken()) {
-      return this.consume(type, message)
-    }
-
     throw new Error(`${message} at line ${this.peek().line}, column ${this.peek().column}`)
   }
 
   public softConsume(type: TokenType, message: string): Token {
     if (this.check(type)) {
-      return this.consume(type, message)
+      if (this.stream.splitAndAdvance(type)) {
+        return { ...this.stream.prev(), type, value: '>' } // Casos especiales de splitting
+      }
+      return this.advance()
     }
 
     const token = this.peek()
@@ -109,25 +104,11 @@ export class ParserContext {
   }
 
   /**
-   * Sincroniza el stream avanzando hasta encontrar un punto seguro (un delimitador o el inicio de una regla).
+   * Sincroniza el stream delegando en TokenStream.
    * @param isPointOfNoReturn - Predicado que define si el token actual permite iniciar un nuevo parseo seguro.
    */
   public sync(isPointOfNoReturn: () => boolean): void {
-    if (this.isAtEnd()) return
-
-    // Avanzamos al menos uno para salir del token problemático
-    this.advance()
-
-    while (!this.isAtEnd()) {
-      // Puntos seguros de sincronización:
-      // 1. Después de un bloque (})
-      if (this.prev().type === TokenType.RBRACE) return
-
-      // 2. El inicio de una sentencia reconocida por el orquestador
-      if (isPointOfNoReturn()) return
-
-      this.advance()
-    }
+    this.stream.sync(isPointOfNoReturn)
   }
 
   // --- Delegación a DiagnosticReporter ---
@@ -160,15 +141,5 @@ export class ParserContext {
 
   public consumePendingDocs(): string | undefined {
     return this.docs.consumePendingDocs()
-  }
-
-  /**
-   * Delegates to the plugin if a token is not recognized or expected by the core rules.
-   */
-  public handleUnexpectedToken(): boolean {
-    if (this.plugin?.handleUnexpectedToken) {
-      return this.plugin.handleUnexpectedToken(this, this.peek())
-    }
-    return false
   }
 }
