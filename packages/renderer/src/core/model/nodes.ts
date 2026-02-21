@@ -1,11 +1,13 @@
 import {
   type IRProperty,
   type IROperation,
-  type IRRelType,
   type IRConstraint,
   type IRMultiplicity,
-} from '../contract/ir'
+  type IRRelationshipType,
+} from '@umlts/engine'
 import { measureNodeDimensions } from '../../layout/measure'
+
+export type IRRelType = IRRelationshipType | string
 
 /**
  * Port side definition for ELK.

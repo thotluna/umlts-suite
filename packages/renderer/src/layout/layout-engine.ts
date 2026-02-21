@@ -1,11 +1,12 @@
 import ELK, { type ElkNode, type ElkExtendedEdge } from 'elkjs/lib/elk.bundled.js'
 import {
-  type DiagramModel,
   type UMLNode,
   UMLPackage,
-  type LayoutResult,
-  type DiagramConfig,
-} from '../core/types'
+  type UMLHierarchyItem,
+  type DiagramModel,
+  type UMLEdge,
+} from '../core/model/nodes'
+import { type LayoutResult, type DiagramConfig } from '../core/types'
 import { measureText } from './measure'
 
 const elk = new ELK()
@@ -72,11 +73,13 @@ export class LayoutEngine {
     const nodeStats = this.calculateNodeStats(model)
 
     const nodes = model.nodes || []
-    const topLevelNodes = nodes.filter((n) => !n.namespace)
+    const topLevelNodes = nodes.filter((n: UMLNode) => !n.namespace)
 
     const elkChildren: ElkNode[] = [
-      ...topLevelNodes.map((n) => this.toElkNode(n, nodeStats.get(n.id))),
-      ...model.packages.map((p) => this.pkgToElk(p, edgesByLCA, layoutOptions, nodeStats)),
+      ...topLevelNodes.map((n: UMLNode) => this.toElkNode(n, nodeStats.get(n.id))),
+      ...model.packages.map((p: UMLPackage) =>
+        this.pkgToElk(p, edgesByLCA, layoutOptions, nodeStats),
+      ),
     ]
 
     const elkGraph: ElkNode = {
@@ -145,7 +148,7 @@ export class LayoutEngine {
     const stats = new Map<string, { score: number }>()
 
     const nodes = model.nodes || []
-    nodes.forEach((n) => {
+    nodes.forEach((n: UMLNode) => {
       let baseScore = 0
       if (n.type === 'Interface') baseScore = 5
       if (n.isAbstract) baseScore += 2
@@ -153,7 +156,7 @@ export class LayoutEngine {
     })
 
     const edges = model.edges || []
-    edges.forEach((edge) => {
+    edges.forEach((edge: UMLEdge) => {
       const s = stats.get(edge.from)
       const t = stats.get(edge.to)
       if (!s || !t) return
@@ -182,7 +185,7 @@ export class LayoutEngine {
     const groups = new Map<string, ElkExtendedEdge[]>()
 
     const edges = model.edges || []
-    edges.forEach((edge, index) => {
+    edges.forEach((edge: UMLEdge, index: number) => {
       const lcaId = this.findLCA(edge.from, edge.to)
 
       const isHierarchy =
@@ -208,9 +211,7 @@ export class LayoutEngine {
         },
       }
 
-      // ── SOLUCIÓN QUIRÚRGICA PARA LONG EDGES ──
-      // Si el LCA es 'root', significa que salta entre paquetes raíz.
-      // Forzamos ruteo POLYLINE solo para esta arista para que ELK calcule los puntos de salida/entrada.
+      // Si el LCA es 'root', forzamos ruteo POLYLINE
       if (lcaId === 'root') {
         elkEdge.layoutOptions!['elk.edgeRouting'] = 'POLYLINE'
       }
@@ -229,16 +230,11 @@ export class LayoutEngine {
 
       if (!groups.has(lcaId)) groups.set(lcaId, [])
       groups.get(lcaId)!.push(elkEdge)
-
-      // (Association Class logic omitted for brevity as it's below line 300)
-      // Pero se mantiene en el archivo real
     })
 
-    // ... (El resto de la lógica de XOR y AssociationClass se mantiene igual)
     return groups
   }
 
-  // ... (Resto de métodos privados findLCA, applyLayout, etc. se mantienen)
   private findLCA(id1: string, id2: string): string {
     const p1 = id1.split('.')
     const p2 = id2.split('.')
@@ -263,7 +259,7 @@ export class LayoutEngine {
     offsetY: number,
   ): void {
     for (const elkNode of elkNodes) {
-      const node = model.nodes.find((n) => n.id === elkNode.id)
+      const node = model.nodes.find((n: UMLNode) => n.id === elkNode.id)
       if (node) {
         node.x = (elkNode.x || 0) + offsetX
         node.y = (elkNode.y || 0) + offsetY
@@ -334,7 +330,9 @@ export class LayoutEngine {
   private findPackage(packages: UMLPackage[], id: string): UMLPackage | undefined {
     for (const pkg of packages) {
       if (pkg.id === id) return pkg
-      const nested = pkg.children.filter((c): c is UMLPackage => c instanceof UMLPackage)
+      const nested = pkg.children.filter(
+        (c: UMLHierarchyItem): c is UMLPackage => c instanceof UMLPackage,
+      )
       const found = this.findPackage(nested, id)
       if (found) return found
     }

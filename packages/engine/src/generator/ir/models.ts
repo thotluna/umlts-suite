@@ -1,7 +1,9 @@
 /**
  * Interoperabilidad y Estándar UML 2.5.1
  * Representación Intermedia (IR) para el motor UMLTS.
+ * Este archivo es la ÚNICA fuente de verdad para el contrato entre el motor y los renderers.
  */
+
 /**
  * Categoría: Detalles - Modificadores
  */

@@ -1,4 +1,5 @@
-import type { IRDiagram, Diagnostic } from '../exports'
+import type { IRDiagram } from './ir/models'
+import type { Diagnostic } from '../syntax/diagnostic.types'
 
 /**
  * Resultado de una operación de parseo del motor.

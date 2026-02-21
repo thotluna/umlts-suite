@@ -1,8 +1,9 @@
 import { type DiagramModel, type UMLNode } from './model/nodes'
 
-export type * from './contract/ir'
-export * from './model/nodes'
-
+/**
+ * Resultado del proceso de layout.
+ * Contiene el modelo transformado y sus dimensiones calculadas.
+ */
 export interface LayoutResult {
   model: DiagramModel
   totalWidth: number
@@ -10,6 +11,9 @@ export interface LayoutResult {
   bbox?: { x: number; y: number; width: number; height: number }
 }
 
+/**
+ * Configuración global del renderizado.
+ */
 export interface DiagramConfig {
   theme?: string
   layout?: {
@@ -22,18 +26,12 @@ export interface DiagramConfig {
     showVisibility?: boolean
     showIcons?: boolean
     showAbstractItalic?: boolean
-    /** Si es true, se renderizarán las dependencias (usos). Por defecto es true. */
     showDependencies?: boolean
-    /** Si es true, el SVG ocupará el 100% de su contenedor y se auto-ajustará */
     responsive?: boolean
-
-    /** Ancho objetivo para el renderizado (si no es responsive) */
     width?: number | string
-    /** Alto objetivo para el renderizado (si no es responsive) */
     height?: number | string
-    /** Nivel de zoom relativo (1.0 = 100%). Menor a 1.0 aleja, mayor acerca. */
     zoomLevel?: number
-    /** @internal Mapa de nodos para consultas rápiads durante el renderizado de edges */
+    /** @internal Mapa de nodos para consultas rápidas durante el renderizado de edges */
     nodes?: Map<string, UMLNode>
   }
 }

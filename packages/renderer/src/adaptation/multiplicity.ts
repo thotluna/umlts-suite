@@ -1,4 +1,4 @@
-import type { IRMultiplicity } from '../core/types'
+import type { IRMultiplicity } from '@umlts/engine'
 
 /**
  * Normalizes multiplicity from the IR to a standard UML format.

@@ -24,6 +24,7 @@
     "lint": "eslint src --ext .ts"
   },
   "packageManager": "pnpm@10.28.1",
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^25.2.2",
     "@vitest/coverage-v8": "^4.0.18",

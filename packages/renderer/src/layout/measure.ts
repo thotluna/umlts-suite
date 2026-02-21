@@ -1,4 +1,5 @@
-import { type UMLNode, type IRParameter } from '../core/types'
+import { type IRParameter } from '@umlts/engine'
+import { type UMLNode } from '../core/model/nodes'
 
 /**
  * Approximate constants for text measurement without a real DOM.
