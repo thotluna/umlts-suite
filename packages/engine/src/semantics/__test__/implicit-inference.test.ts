@@ -3,7 +3,7 @@ import { LexerFactory } from '../../lexer/lexer.factory'
 import { ParserFactory } from '../../parser/parser.factory'
 import { SemanticAnalyzer } from '../analyzer'
 import { DiagnosticCode, DiagnosticSeverity } from '../../syntax/diagnostic.types'
-import { ParserContext } from '../../parser/parser.context'
+import { ParserHub } from '../../parser/parser.hub'
 import { DiagnosticReporter } from '../../parser/diagnostic-reporter'
 import { IREntityType } from '../../generator/ir/models'
 
@@ -15,7 +15,7 @@ describe('Implicit Entity Type Inference', () => {
     const program = parser.parse(tokens)
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const context = new ParserHub(tokens, reporter)
 
     const ir = analyzer.analyze(program, context)
     return { parser, analyzer, program, context, ir }

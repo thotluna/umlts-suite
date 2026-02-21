@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { LexerFactory } from '../../lexer/lexer.factory'
 import { ParserFactory } from '../../parser/parser.factory'
 import { SemanticAnalyzer } from '../analyzer'
-import { ParserContext } from '../../parser/parser.context'
+import { ParserHub } from '../../parser/parser.hub'
 import { DiagnosticReporter } from '../../parser/diagnostic-reporter'
 
 describe('Constraint Semantics', () => {
@@ -22,7 +22,7 @@ describe('Constraint Semantics', () => {
 
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const context = new ParserHub(tokens, reporter)
     const ir = analyzer.analyze(ast, context)
 
     // Should have 1 global XOR constraint
@@ -53,7 +53,7 @@ describe('Constraint Semantics', () => {
 
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const context = new ParserHub(tokens, reporter)
     const ir = analyzer.analyze(ast, context)
 
     // Check entities

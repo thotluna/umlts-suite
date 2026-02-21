@@ -3,7 +3,7 @@ import { LexerFactory } from '../../lexer/lexer.factory'
 import { ParserFactory } from '../../parser/parser.factory'
 import { SemanticAnalyzer } from '../analyzer'
 import { DiagnosticCode, DiagnosticSeverity, type Diagnostic } from '../../syntax/diagnostic.types'
-import { ParserContext } from '../../parser/parser.context'
+import { ParserHub } from '../../parser/parser.hub'
 import { DiagnosticReporter } from '../../parser/diagnostic-reporter'
 
 describe('Semantic Rules', () => {
@@ -16,7 +16,7 @@ describe('Semantic Rules', () => {
 
     // Creamos un contexto limpio para el análisis semántico
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const context = new ParserHub(tokens, reporter)
 
     return { parser, analyzer, program, context }
   }

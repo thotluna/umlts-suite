@@ -4,7 +4,7 @@ import type { SymbolTable } from '../../symbol-table'
 import type { ConstraintRegistry } from '../constraint-registry'
 import type { ConfigStore } from '../config-store'
 import type { PluginManager } from '../../../plugins/plugin-manager'
-import type { ParserContext } from '../../../parser/parser.context'
+import type { IParserHub } from '../../parser/parser.context'
 
 describe('AnalysisSession', () => {
   let session: AnalysisSession
@@ -12,7 +12,7 @@ describe('AnalysisSession', () => {
   let constraintRegistry: ConstraintRegistry
   let configStore: ConfigStore
   let pluginManager: PluginManager
-  let context: ParserContext
+  let context: IParserHub
 
   beforeEach(() => {
     symbolTable = {
@@ -34,7 +34,7 @@ describe('AnalysisSession', () => {
     } as unknown as PluginManager
     context = {
       scope: [],
-    } as unknown as ParserContext
+    } as unknown as IParserHub
 
     session = new AnalysisSession(
       symbolTable,

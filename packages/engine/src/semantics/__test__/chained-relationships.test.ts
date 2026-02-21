@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { LexerFactory } from '../../lexer/lexer.factory'
 import { ParserFactory } from '../../parser/parser.factory'
-import { ParserContext } from '../../parser/parser.context'
+import { ParserHub } from '../../parser/parser.hub'
 import { DiagnosticReporter } from '../../parser/diagnostic-reporter'
 import { SemanticAnalyzer } from '../analyzer'
 
@@ -13,7 +13,7 @@ describe('Chained Relationships Support', () => {
     const program = parser.parse(tokens)
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const context = new ParserHub(tokens, reporter)
     return analyzer.analyze(program, context)
   }
 
