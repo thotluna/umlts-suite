@@ -1,25 +1,21 @@
-import { CompilerContext } from './compiler/phases/context'
-import { PipelineArtifacts } from './compiler/phases/pipeline-artifacts'
-import { PhasesFactory } from './compiler/phases/phases.factory'
-import { ParseResult } from './generator/types'
+// Exportación de la API principal
+export type { ParseResult } from './generator/types'
 
-export class UMLEngine {
-  private readonly factory = new PhasesFactory()
-  private readonly phases = this.factory.getPhases()
+// Exportación de modelos de la IR (Representación Intermedia)
+export { IREntityType, IRRelationshipType, IRVisibility } from './generator/ir/models'
 
-  public parse(source: string): ParseResult {
-    const context = new CompilerContext(source, this.factory.getPlugin())
-    const artifacts = new PipelineArtifacts()
+export type {
+  IRDiagram,
+  IREntity,
+  IRRelationship,
+  IRProperty,
+  IROperation,
+  IRParameter,
+  IRConstraint,
+  IRMultiplicity,
+} from './generator/ir/models'
 
-    for (const phase of this.phases) {
-      phase.run(context, artifacts)
-      if (context.hasErrors()) break
-    }
+// Exportación de diagnósticos
+export type { Diagnostic, DiagnosticSeverity } from './syntax/diagnostic.types'
 
-    return {
-      diagram: artifacts.diagram!,
-      diagnostics: context.diagnostics,
-      isValid: !context.hasErrors(),
-    }
-  }
-}
+export * from './UMLEngine'
