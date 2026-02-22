@@ -79,6 +79,8 @@ export interface Modifiers {
   isLeaf?: boolean
   isFinal?: boolean
   isRoot?: boolean
+  isReadOnly?: boolean
+  isQuery?: boolean
 }
 
 export interface EntityNode extends ASTNode {

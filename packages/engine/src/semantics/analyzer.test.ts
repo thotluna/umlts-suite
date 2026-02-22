@@ -3,7 +3,7 @@ import { LexerFactory } from '../lexer/lexer.factory'
 import { ParserFactory } from '../parser/parser.factory'
 import { SemanticAnalyzer } from './analyzer'
 import { IRRelationshipType } from '../generator/ir/models'
-import { ParserContext } from '../parser/parser.context'
+import { ParserHub } from '../parser/parser.hub'
 import { DiagnosticReporter } from '../parser/diagnostic-reporter'
 
 describe('SemanticAnalyzer', () => {
@@ -15,7 +15,7 @@ describe('SemanticAnalyzer', () => {
 
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const context = new ParserHub(tokens, reporter)
     const ir = analyzer.analyze(ast, context)
 
     // Should have 2 entities: Hero (explicit) and Person (implicit)
@@ -52,7 +52,7 @@ describe('SemanticAnalyzer', () => {
 
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const context = new ParserHub(tokens, reporter)
     const ir = analyzer.analyze(ast, context)
 
     const user = ir.entities.find((e) => e.id === 'core.User')
@@ -73,7 +73,7 @@ describe('SemanticAnalyzer', () => {
 
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const context = new ParserHub(tokens, reporter)
     const ir = analyzer.analyze(ast, context)
 
     expect(ir.entities).toHaveLength(2)
@@ -95,7 +95,7 @@ describe('SemanticAnalyzer', () => {
 
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const context = new ParserHub(tokens, reporter)
     const ir = analyzer.analyze(ast, context)
 
     // Should have 2 relationships from DiagramNode to IRMember

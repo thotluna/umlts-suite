@@ -3,6 +3,7 @@ import { ParserPhase } from './parser.phase'
 import { SemanticPhase } from './semantic.phases'
 import type { CompilerPhase } from './types'
 import { PluginManager } from '../../plugins/plugin-manager'
+import { SemanticAnalyzer } from '../../semantics/analyzer'
 import { BUILTIN_PLUGINS } from '../../plugins'
 import type { LanguagePlugin } from '../../plugins/language-plugin'
 
@@ -19,6 +20,7 @@ export class PhasesFactory {
   }
 
   public getPhases(): CompilerPhase[] {
-    return [new LexerPhase(), new ParserPhase(), new SemanticPhase(this.pluginManager)]
+    const analyzer = new SemanticAnalyzer(this.pluginManager)
+    return [new LexerPhase(), new ParserPhase(), new SemanticPhase(analyzer)]
   }
 }

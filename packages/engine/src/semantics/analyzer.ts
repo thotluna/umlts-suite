@@ -1,7 +1,6 @@
 import type { ProgramNode } from '../syntax/nodes'
 import { type IRDiagram, IREntityType, IRRelationshipType } from '../generator/ir/models'
 import { BUILTIN_PLUGINS } from '../plugins'
-import type { ParserContext } from '../parser/parser.context'
 
 // Core Components
 import { SymbolTable } from './symbol-table'
@@ -30,6 +29,7 @@ import { UMLTypeResolver } from './inference/uml-type-resolver'
 import { PluginTypeResolutionAdapter } from './inference/plugin-adapter'
 import { MemberInference } from './inference/member-inference'
 import { AssociationClassResolver } from './resolvers/association-class.resolver'
+import { IParserHub } from '../parser/parser.context'
 
 /**
  * Semantic Analyzer (Refactored to Pipeline).
@@ -59,7 +59,7 @@ export class SemanticAnalyzer {
   /**
    * Punto de entrada principal para el análisis semántico.
    */
-  public analyze(program: ProgramNode, context: ParserContext): IRDiagram {
+  public analyze(program: ProgramNode, context: IParserHub): IRDiagram {
     // 1. Inicialización de Estado (Sesión)
     const symbolTable = new SymbolTable()
     const constraintRegistry = new ConstraintRegistry()
@@ -89,6 +89,8 @@ export class SemanticAnalyzer {
       hierarchyValidator,
       context,
     )
+
+    entityAnalyzer.setRelationshipAnalyzer(relationshipAnalyzer)
 
     const memberInference = new MemberInference(session, relationshipAnalyzer, this.typePipeline)
     const assocClassResolver = new AssociationClassResolver(session, relationshipAnalyzer, [])

@@ -3,24 +3,25 @@ import { IRRelationshipType, IREntityType } from '../../generator/ir/models'
 import { DiagnosticCode } from '../../syntax/diagnostic.types'
 import { TokenType } from '../../syntax/token.types'
 import type { Token } from '../../syntax/token.types'
-import type { ParserContext } from '../../parser/parser.context'
+import type { IParserHub } from '../../parser/parser.context'
 import type { SymbolTable } from '../symbol-table'
+import type { ASTNode } from '../../syntax/nodes'
 
 /**
  * Validator for Association-related rules (Composition, Aggregation, etc.).
  */
 export class AssociationValidator {
-  constructor(private readonly context: ParserContext) {}
+  constructor(private readonly context: IParserHub) {}
 
   /**
    * Validates structural integrity of an association.
    */
-  public validate(from: IREntity, to: IREntity, type: IRRelationshipType): void {
+  public validate(from: IREntity, to: IREntity, type: IRRelationshipType, node?: ASTNode): void {
     const errorToken: Token = {
       line: from.line || 1,
       column: from.column || 1,
-      type: TokenType.UNKNOWN,
-      value: '',
+      type: TokenType.IDENTIFIER,
+      value: from.name,
     }
 
     // 1. RULE: Composition/Aggregation Source Type
