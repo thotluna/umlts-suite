@@ -1,17 +1,15 @@
 import { TokenType } from '../../syntax/token.types'
 import { ASTNodeType } from '../../syntax/nodes'
-import type {
-  MemberNode,
-  EntityType,
-  AssociationClassNode,
-  StatementNode,
-} from '../../syntax/nodes'
+import type { MemberNode, StatementNode } from '../../syntax/nodes'
 import type { IParserHub } from '../core/parser.hub'
 import type { StatementRule, Orchestrator } from '../rule.types'
 import { RelationshipHeaderRule } from './relationship-header.rule'
 import { MemberRule } from './member.rule'
 import { ModifierRule } from './modifier.rule'
 
+/**
+ * EntityRule: Regla para parsear Clases e Interfaces.
+ */
 export class EntityRule implements StatementRule {
   private readonly relationshipHeaderRule = new RelationshipHeaderRule()
   private readonly memberRule = new MemberRule()
@@ -20,7 +18,6 @@ export class EntityRule implements StatementRule {
     return context.checkAny(
       TokenType.KW_CLASS,
       TokenType.KW_INTERFACE,
-      TokenType.KW_ENUM,
       TokenType.MOD_ABSTRACT,
       TokenType.KW_ABSTRACT,
       TokenType.MOD_STATIC,
@@ -39,14 +36,13 @@ export class EntityRule implements StatementRule {
     const pos = context.getPosition()
     const modifiers = ModifierRule.parse(context)
 
-    if (!context.match(TokenType.KW_CLASS, TokenType.KW_INTERFACE, TokenType.KW_ENUM)) {
+    if (!context.match(TokenType.KW_CLASS, TokenType.KW_INTERFACE)) {
       context.rollback(pos)
       return []
     }
     const keywordToken = context.prev()
 
-    // Support modifiers after keyword (e.g. class * MyClass)
-    // Combinamos con los previos si existen
+    // Soporte para modificadores después de la palabra clave (ej: class * MyClass)
     const postModifiers = ModifierRule.parse(context)
     modifiers.isAbstract = modifiers.isAbstract || postModifiers.isAbstract
     modifiers.isStatic = modifiers.isStatic || postModifiers.isStatic
@@ -55,69 +51,9 @@ export class EntityRule implements StatementRule {
     modifiers.isFinal = modifiers.isFinal || postModifiers.isFinal
     modifiers.isRoot = modifiers.isRoot || postModifiers.isRoot
 
-    let type: EntityType = ASTNodeType.CLASS
-    if (keywordToken.type === TokenType.KW_INTERFACE) type = ASTNodeType.INTERFACE
-    if (keywordToken.type === TokenType.KW_ENUM) type = ASTNodeType.ENUM
-
     const nameToken = context.softConsume(TokenType.IDENTIFIER, 'Entity name expected')
-
-    // CHECK FOR ASSOCIATION CLASS: class C <> (A[m], B[n])
-    if (type === ASTNodeType.CLASS && context.match(TokenType.OP_ASSOC_BIDIR)) {
-      context.softConsume(TokenType.LPAREN, "Expected '(' after '<>' in association class")
-      const participants: AssociationClassNode['participants'] = []
-      do {
-        const pNameToken = context.softConsume(TokenType.IDENTIFIER, 'Expected participant name')
-
-        // 1. Multiplicidad: [1] o [0..*]
-        let pMultiplicity: string | undefined
-        if (context.match(TokenType.LBRACKET)) {
-          pMultiplicity = ''
-          while (!context.check(TokenType.RBRACKET) && !context.isAtEnd()) {
-            pMultiplicity += context.advance().value
-          }
-          context.softConsume(TokenType.RBRACKET, "Expected ']'")
-        }
-
-        // 2. Relaciones anidadas: >> E
-        const pRelationships = this.relationshipHeaderRule.parse(context)
-
-        participants.push({
-          name: pNameToken.value,
-          multiplicity: pMultiplicity,
-          relationships: pRelationships,
-        })
-      } while (context.match(TokenType.COMMA))
-
-      context.softConsume(TokenType.RPAREN, "Expected ')' after participants")
-
-      // Parse body if present
-      let body: MemberNode[] | undefined
-      if (context.match(TokenType.LBRACE)) {
-        body = []
-        while (!context.check(TokenType.RBRACE) && !context.isAtEnd()) {
-          const member = this.memberRule.parse(context)
-          if (member != null) {
-            body.push(member)
-          } else {
-            context.addError('Unrecognized member in association class', context.peek())
-            context.advance()
-          }
-        }
-        context.softConsume(TokenType.RBRACE, "Expected '}'")
-      }
-
-      return [
-        {
-          type: ASTNodeType.ASSOCIATION_CLASS,
-          name: nameToken.value,
-          participants,
-          body,
-          line: keywordToken.line,
-          column: keywordToken.column,
-          docs: context.consumePendingDocs(),
-        } as AssociationClassNode,
-      ]
-    }
+    const type =
+      keywordToken.type === TokenType.KW_CLASS ? ASTNodeType.CLASS : ASTNodeType.INTERFACE
 
     const docs = context.consumePendingDocs()
 
@@ -132,59 +68,6 @@ export class EntityRule implements StatementRule {
       context.softConsume(TokenType.GT, "Expected '>' after type parameters")
     }
 
-    // Soporte para enums en línea: enum UserRole(ADMIN, EDITOR, VIEWER)
-    if (type === ASTNodeType.ENUM && context.match(TokenType.LPAREN)) {
-      const body: MemberNode[] = []
-      while (!context.check(TokenType.RPAREN) && !context.isAtEnd()) {
-        const next = context.peek()
-        if (next.type === TokenType.IDENTIFIER || next.type.startsWith('KW_')) {
-          const literalToken = context.advance()
-          body.push({
-            type: ASTNodeType.ATTRIBUTE,
-            name: literalToken.value,
-            visibility: 'public',
-            modifiers: {
-              isStatic: true,
-              isLeaf: false,
-              isFinal: false,
-            },
-            typeAnnotation: {
-              type: ASTNodeType.TYPE,
-              kind: 'simple',
-              name: 'Object',
-              raw: 'Object',
-              line: literalToken.line,
-              column: literalToken.column,
-            },
-            multiplicity: undefined,
-            docs: undefined,
-            line: literalToken.line,
-            column: literalToken.column,
-          } as MemberNode)
-          const matched = context.match(TokenType.COMMA) || context.match(TokenType.PIPE)
-          if (!matched && !context.check(TokenType.RPAREN)) {
-            // No separator, but not at end
-          }
-        } else {
-          context.advance()
-        }
-      }
-      context.consume(TokenType.RPAREN, "Expected ')' after enum literals")
-
-      return [
-        {
-          type,
-          name: nameToken.value,
-          modifiers,
-          docs,
-          body,
-          relationships: [],
-          line: keywordToken.line,
-          column: keywordToken.column,
-        } as StatementNode,
-      ]
-    }
-
     // Parse relationship list in header
     const relationships = this.relationshipHeaderRule.parse(context)
 
@@ -193,69 +76,18 @@ export class EntityRule implements StatementRule {
     if (context.match(TokenType.LBRACE)) {
       body = []
       while (!context.check(TokenType.RBRACE) && !context.isAtEnd()) {
-        if (type === ASTNodeType.ENUM) {
-          // Para enums, los miembros son simples identificadores
-          if (context.match(TokenType.DOC_COMMENT)) {
-            context.setPendingDocs(context.prev().value)
-            continue
-          }
-          if (context.check(TokenType.COMMENT)) {
-            const commentToken = context.advance()
-            body.push({
-              type: ASTNodeType.COMMENT,
-              value: commentToken.value,
-              line: commentToken.line,
-              column: commentToken.column,
-            })
-            continue
-          }
-
-          const next = context.peek()
-          if (next.type === TokenType.IDENTIFIER || next.type.startsWith('KW_')) {
-            const literalToken = context.advance()
-            body.push({
-              type: ASTNodeType.ATTRIBUTE,
-              name: literalToken.value,
-              visibility: 'public',
-              modifiers: {
-                isStatic: true,
-                isLeaf: false,
-                isFinal: false,
-              },
-              typeAnnotation: {
-                type: ASTNodeType.TYPE,
-                kind: 'simple',
-                name: 'Object',
-                raw: 'Object',
-                line: literalToken.line,
-                column: literalToken.column,
-              },
-              multiplicity: undefined,
-              docs: context.consumePendingDocs(),
-              line: literalToken.line,
-              column: literalToken.column,
-            })
-            context.match(TokenType.COMMA)
+        try {
+          const member = this.memberRule.parse(context)
+          if (member != null) {
+            body.push(member)
           } else {
-            context.addError('Unrecognized literal in enum', context.peek())
+            context.addError('Unrecognized member in entity body', context.peek())
             context.advance()
           }
-        } else {
-          try {
-            const member = this.memberRule.parse(context)
-            if (member != null) {
-              body.push(member)
-            } else {
-              context.addError('Unrecognized member in entity body', context.peek())
-              context.advance()
-            }
-          } catch (e: unknown) {
-            // Si el parseo de un miembro falla catastróficamente, lo reportamos y seguimos
-            const msg = e instanceof Error ? e.message : 'Error parsing member'
-            context.addError(msg)
-            // Aquí podríamos intentar avanzar hasta un punto seguro de miembro (ej. el próximo ';' o modificador)
-            context.advance()
-          }
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : 'Error parsing member'
+          context.addError(msg)
+          context.advance()
         }
       }
       context.softConsume(TokenType.RBRACE, "Expected '}'")

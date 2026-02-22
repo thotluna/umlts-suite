@@ -4,6 +4,10 @@ import { TokenStream } from './token-stream'
 import { DiagnosticReporter } from './diagnostic-reporter'
 import { ParserSession } from './core/parser.session'
 import { IParserHub } from './core/parser.hub'
+import type { MemberRegistry } from './rules/member-strategies/member.registry'
+import type { TypeRegistry } from './rules/type-strategies/type.registry'
+import type { IMemberProvider } from './core/member-provider.interface'
+import type { IPrimaryTypeProvider, ITypeModifierProvider } from './core/type-provider.interface'
 
 /**
  * ParserContext: Fachada (Facade) que coordina los subsistemas del parser.
@@ -14,11 +18,20 @@ export class ParserContext implements IParserHub {
   private readonly stream: TokenStream
   private readonly errors: DiagnosticReporter
   private readonly session: ParserSession
+  private readonly members: MemberRegistry
+  private readonly types: TypeRegistry
 
-  constructor(tokens: Token[], errors: DiagnosticReporter) {
+  constructor(
+    tokens: Token[],
+    errors: DiagnosticReporter,
+    members: MemberRegistry,
+    types: TypeRegistry,
+  ) {
     this.stream = new TokenStream(tokens)
     this.errors = errors
     this.session = new ParserSession()
+    this.members = members
+    this.types = types
   }
 
   // --- Delegación a TokenStream ---
@@ -148,5 +161,19 @@ export class ParserContext implements IParserHub {
 
   public consumePendingDocs(): string | undefined {
     return this.session.consumePendingDocs()
+  }
+
+  // --- Registry Services ---
+
+  public getMemberProviders(): IMemberProvider[] {
+    return this.members.getProviders()
+  }
+
+  public getTypePrimaries(): IPrimaryTypeProvider[] {
+    return this.types.getPrimaries()
+  }
+
+  public getTypeModifiers(): ITypeModifierProvider[] {
+    return this.types.getModifiers()
   }
 }

@@ -1,6 +1,9 @@
 import type { TokenType, Token } from '../../syntax/token.types'
 import type { Diagnostic, DiagnosticCode } from '../../syntax/diagnostic.types'
 
+import type { IMemberProvider } from './member-provider.interface'
+import type { IPrimaryTypeProvider, ITypeModifierProvider } from './type-provider.interface'
+
 /**
  * IParserHub: Interfaz de fachada que expone los servicios del parser a las reglas.
  * Define el contrato para la navegación de tokens, reporte de errores y gestión de documentación.
@@ -39,4 +42,20 @@ export interface IParserHub {
   // Documentation
   setPendingDocs(docs: string): void
   consumePendingDocs(): string | undefined
+
+  // Registry Services
+  /**
+   * Obtiene la lista de proveedores de miembros registrados.
+   */
+  getMemberProviders(): IMemberProvider[]
+
+  /**
+   * Obtiene la lista de proveedores primarios de tipos.
+   */
+  getTypePrimaries(): IPrimaryTypeProvider[]
+
+  /**
+   * Obtiene la lista de modificadores de tipos registrados.
+   */
+  getTypeModifiers(): ITypeModifierProvider[]
 }

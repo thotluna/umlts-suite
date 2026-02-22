@@ -5,6 +5,8 @@ import { ParserContext } from './parser.context'
 import { DiagnosticReporter } from './diagnostic-reporter'
 import type { IParserHub } from './core/parser.hub'
 import type { StatementRule, Orchestrator } from './rule.types'
+import type { MemberRegistry } from './rules/member-strategies/member.registry'
+import type { TypeRegistry } from './rules/type-strategies/type.registry'
 
 /**
  * Parser: El protagonista y cerebro del proceso de transformación.
@@ -13,15 +15,19 @@ import type { StatementRule, Orchestrator } from './rule.types'
  */
 export class Parser implements Orchestrator {
   private readonly rules: StatementRule[]
+  private readonly members: MemberRegistry
+  private readonly types: TypeRegistry
 
-  constructor(rules: StatementRule[]) {
+  constructor(rules: StatementRule[], members: MemberRegistry, types: TypeRegistry) {
     this.rules = rules
+    this.members = members
+    this.types = types
   }
 
   public parse(tokens: Token[]): ProgramNode {
     // El Parser (Cerebro) inicializa los recursos de la sesión
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const context = new ParserContext(tokens, reporter, this.members, this.types)
 
     const body: StatementNode[] = []
     const firstToken = context.peek()
