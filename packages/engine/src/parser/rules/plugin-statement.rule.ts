@@ -1,6 +1,6 @@
 import type { StatementNode } from '../../syntax/nodes'
 import type { LanguagePlugin, IPluginStatementRule } from '../../plugins/language-plugin'
-import type { IParserHub } from '../parser.hub'
+import type { IParserHub } from '../core/parser.hub'
 import type { StatementRule, Orchestrator } from '../rule.types'
 
 /**

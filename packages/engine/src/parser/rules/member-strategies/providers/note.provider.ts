@@ -1,6 +1,6 @@
 import { NoteRule } from '../../note.rule'
 import type { MemberNode } from '../../../../syntax/nodes'
-import type { IParserHub } from '../../../parser.hub'
+import type { IParserHub } from '../../../core/parser.hub'
 import type { IMemberProvider } from '../member-strategy.interface'
 import type { Orchestrator } from '../../../../parser/rule.types'
 

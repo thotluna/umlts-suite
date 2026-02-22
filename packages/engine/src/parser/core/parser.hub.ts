@@ -1,5 +1,5 @@
-import type { TokenType, Token } from '../syntax/token.types'
-import type { Diagnostic, DiagnosticCode } from '../syntax/diagnostic.types'
+import type { TokenType, Token } from '../../syntax/token.types'
+import type { Diagnostic, DiagnosticCode } from '../../syntax/diagnostic.types'
 
 /**
  * IParserHub: Interfaz de fachada que expone los servicios del parser a las reglas.
@@ -22,6 +22,12 @@ export interface IParserHub {
   consume(type: TokenType, message: string): Token
   softConsume(type: TokenType, message: string): Token
   sync(isPointOfNoReturn: () => boolean): void
+
+  // Session Management
+  /**
+   * Limpia el estado volátil de la sesión actual (ej. docs pendientes).
+   */
+  clearSession(): void
 
   // Diagnostics
   addError(message: string, token?: Token, code?: DiagnosticCode): void

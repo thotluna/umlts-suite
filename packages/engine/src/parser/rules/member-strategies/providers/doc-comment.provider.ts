@@ -1,5 +1,5 @@
 import { TokenType } from '../../../../syntax/token.types'
-import type { IParserHub } from '../../../parser.hub'
+import type { IParserHub } from '../../../core/parser.hub'
 import type { IMemberProvider } from '../member-strategy.interface'
 import type { MemberNode } from '../../../../syntax/nodes'
 

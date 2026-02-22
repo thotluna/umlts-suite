@@ -1,6 +1,6 @@
 import type { Token } from '../../syntax/token.types'
 import { ASTNodeType, type AttributeNode, type Modifiers } from '../../syntax/nodes'
-import type { IParserHub } from '../parser.hub'
+import type { IParserHub } from '../core/parser.hub'
 import { MemberSuffixRule } from './member-suffix.rule'
 
 export class AttributeRule {

@@ -4,7 +4,7 @@ import type {
   ILexerReader,
   IPluginMemberProvider,
 } from '../language-plugin'
-import type { IParserHub } from '../../parser/parser.hub'
+import type { IParserHub } from '../../parser/core/parser.hub'
 import type { Token } from '../../syntax/token.types'
 import { TokenType } from '../../syntax/token.types'
 import type { TypeNode } from '../../syntax/nodes'

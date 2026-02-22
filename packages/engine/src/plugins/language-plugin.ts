@@ -1,7 +1,7 @@
 import type { Token } from '../syntax/token.types'
 import type { TypeNode, StatementNode, MemberNode } from '../syntax/nodes'
 import type { IREntity, IRRelationshipType } from '../generator/ir/models'
-import type { IParserHub } from '../parser/parser.hub'
+import type { IParserHub } from '../parser/core/parser.hub'
 import type { Orchestrator } from '../parser/rule.types'
 
 /**

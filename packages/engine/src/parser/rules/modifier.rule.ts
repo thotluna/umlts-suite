@@ -1,6 +1,6 @@
 import { TokenType } from '../../syntax/token.types'
 import type { Modifiers } from '../../syntax/nodes'
-import type { IParserHub } from '../parser.hub'
+import type { IParserHub } from '../core/parser.hub'
 
 export class ModifierRule {
   /**

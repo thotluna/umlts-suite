@@ -6,7 +6,7 @@ import type {
   AssociationClassNode,
   StatementNode,
 } from '../../syntax/nodes'
-import type { IParserHub } from '../parser.hub'
+import type { IParserHub } from '../core/parser.hub'
 import type { StatementRule, Orchestrator } from '../rule.types'
 import { RelationshipHeaderRule } from './relationship-header.rule'
 import { MemberRule } from './member.rule'

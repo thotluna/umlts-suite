@@ -372,7 +372,7 @@
 - [x] **TASK**: Implementar `ASTFactory` para centralizar creación de nodos
 - [x] **CONTRACT**: Crear interfaz `IParserHub` y hacer que `ParserContext` la implemente
 - [x] **TASK**: Refactorizar reglas para usar `IParserHub` en lugar de `ParserContext` (Eliminar dependencia circular)
-- [ ] **TASK**: Refactorizar `ParserContext` para eliminar dependencias estáticas y separar el `StateStore`
+- [x] **TASK**: Refactorizar `ParserContext` para eliminar dependencias estáticas y separar el `StateStore` (ParserSession)
 - [ ] **TASK**: Desacoplar `MemberRegistry` (instancia vs static) y mover a inyección de dependencias
 - [ ] **ARCH**: Separar `EnumRule` y `AssociationClassRule` de `EntityRule`
 - [x] **TASK**: Implementar sistema de sincronización basado en heurísticas `canStart` de reglas registradas
