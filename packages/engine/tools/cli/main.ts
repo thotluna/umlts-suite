@@ -1,5 +1,4 @@
 import { UMLEngine } from '../../src/index'
-import { MermaidGenerator } from '../../src/generator/mermaid.generator'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -21,13 +20,12 @@ function main() {
 
   const source = fs.readFileSync(filePath, 'utf-8')
   const engine = new UMLEngine()
-  const generator = new MermaidGenerator()
 
   const result = engine.parse(source)
 
   if (result.isValid) {
-    const mermaidCode = generator.generate(result.diagram)
-    console.log(mermaidCode)
+    console.log('El archivo es válido.')
+    // console.log(JSON.stringify(result.diagram, null, 2))
   } else {
     console.error('El código fuente contiene errores:')
     result.diagnostics.forEach((d) => {

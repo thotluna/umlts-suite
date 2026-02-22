@@ -43,6 +43,7 @@ export class EntityRule implements StatementRule {
       context.rollback(pos)
       return []
     }
+    const keywordToken = context.prev()
 
     // Support modifiers after keyword (e.g. class * MyClass)
     // Combinamos con los previos si existen
@@ -54,10 +55,9 @@ export class EntityRule implements StatementRule {
     modifiers.isFinal = modifiers.isFinal || postModifiers.isFinal
     modifiers.isRoot = modifiers.isRoot || postModifiers.isRoot
 
-    const token = context.prev()
     let type: EntityType = ASTNodeType.CLASS
-    if (token.type === TokenType.KW_INTERFACE) type = ASTNodeType.INTERFACE
-    if (token.type === TokenType.KW_ENUM) type = ASTNodeType.ENUM
+    if (keywordToken.type === TokenType.KW_INTERFACE) type = ASTNodeType.INTERFACE
+    if (keywordToken.type === TokenType.KW_ENUM) type = ASTNodeType.ENUM
 
     const nameToken = context.softConsume(TokenType.IDENTIFIER, 'Entity name expected')
 
@@ -112,8 +112,8 @@ export class EntityRule implements StatementRule {
           name: nameToken.value,
           participants,
           body,
-          line: token.line,
-          column: token.column,
+          line: keywordToken.line,
+          column: keywordToken.column,
           docs: context.consumePendingDocs(),
         } as AssociationClassNode,
       ]
@@ -136,8 +136,9 @@ export class EntityRule implements StatementRule {
     if (type === ASTNodeType.ENUM && context.match(TokenType.LPAREN)) {
       const body: MemberNode[] = []
       while (!context.check(TokenType.RPAREN) && !context.isAtEnd()) {
-        if (context.check(TokenType.IDENTIFIER)) {
-          const literalToken = context.consume(TokenType.IDENTIFIER, 'Enum literal name expected')
+        const next = context.peek()
+        if (next.type === TokenType.IDENTIFIER || next.type.startsWith('KW_')) {
+          const literalToken = context.advance()
           body.push({
             type: ASTNodeType.ATTRIBUTE,
             name: literalToken.value,
@@ -178,8 +179,8 @@ export class EntityRule implements StatementRule {
           docs,
           body,
           relationships: [],
-          line: token.line,
-          column: token.column,
+          line: keywordToken.line,
+          column: keywordToken.column,
         } as StatementNode,
       ]
     }
@@ -208,8 +209,10 @@ export class EntityRule implements StatementRule {
             })
             continue
           }
-          if (context.check(TokenType.IDENTIFIER)) {
-            const literalToken = context.consume(TokenType.IDENTIFIER, 'Enum literal name expected')
+
+          const next = context.peek()
+          if (next.type === TokenType.IDENTIFIER || next.type.startsWith('KW_')) {
+            const literalToken = context.advance()
             body.push({
               type: ASTNodeType.ATTRIBUTE,
               name: literalToken.value,
@@ -267,8 +270,8 @@ export class EntityRule implements StatementRule {
         docs,
         relationships,
         body,
-        line: token.line,
-        column: token.column,
+        line: keywordToken.line,
+        column: keywordToken.column,
       },
     ]
   }

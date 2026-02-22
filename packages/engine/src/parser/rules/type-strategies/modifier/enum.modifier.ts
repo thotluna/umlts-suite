@@ -16,10 +16,11 @@ export class EnumTypeModifier implements ITypeModifierProvider {
     baseNode.raw += '('
 
     while (!context.check(TokenType.RPAREN) && !context.isAtEnd()) {
-      if (context.check(TokenType.IDENTIFIER)) {
-        const val = context.consume(TokenType.IDENTIFIER, '').value
-        baseNode.values?.push(val)
-        baseNode.raw += val
+      const next = context.peek()
+      if (next.type === TokenType.IDENTIFIER || next.type.startsWith('KW_')) {
+        const valToken = context.advance()
+        baseNode.values?.push(valToken.value)
+        baseNode.raw += valToken.value
       } else if (context.match(TokenType.PIPE)) {
         baseNode.raw += ' | '
       } else {

@@ -359,4 +359,8 @@
   - [x] Modificar `IRAdapter` para incluir todos los nodos en `model.nodes` independientemente de su profundidad. Esto permite al motor ELK calcular dimensiones correctas para elementos anidados.
 - [x] **FIX**: "Ruido" visual de la librería estándar de TypeScript en diagramas
   - [x] Implementar filtrado de `hiddenEntities` en `IRAdapter` para no renderizar primitivos y utilidades de TS inyectadas por el plugin.
-  - [x] Evitar la creación automática de flechas de asociación hacia `PrimitiveType` o `DataType` en `MemberInference` para mantener el diagrama limpio.
+  - [x] **FIX**: Palabras reservadas (enum, xor) invisibles en literales de enum
+  - [x] Modificar `EntityRule.ts` para permitir palabras clave como literales de enum en bloques y en línea.
+  - [x] Modificar `EnumTypeModifier.ts` para permitir palabras clave como valores en tipos de enum en línea.
+- [x] **FIX**: Multiplicidad duplicada en el renderizado de atributos (ej: `code: Type[0..1] [0..1]`)
+  - [x] Eliminar la concatenación redundante de la multiplicidad en la propiedad `raw` del `TypeNode` dentro de `MemberSuffixRule.ts`.

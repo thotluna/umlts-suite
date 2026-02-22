@@ -49,6 +49,7 @@ describe('TypeRule', () => {
 
     const entity = program.body[0] as EntityNode
     const attr = entity.body![0] as AttributeNode
-    expect(attr.typeAnnotation.raw).toBe('string[]')
+    expect(attr.typeAnnotation.raw).toBe('string')
+    expect(attr.multiplicity).toBe('[]')
   })
 })
