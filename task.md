@@ -294,6 +294,8 @@
   - [x] Implementar `AbstractCompositeMatcher` y `MasterMatcher`
   - [x] Descomponer `CommentMatcher`, `SymbolMatcher`, `IdentifierMatcher`, `NumberMatcher`, `StringMatcher` y `WhitespaceMatcher` en matchers atómicos.
   - [x] Unificar la entrada del Lexer a un único `rootMatcher`.
+  - [x] Fortalecer suite de pruebas del Lexer (Ambiguity, Greedy matching, Error recovery)
+- [x] **DOC**: Consolidar guía oficial del DSL (`dsl-guide.md`) y purgar documentación obsoleta
 
 ## Refinamiento de Semántica DataType (UML 2.5.1)
 
