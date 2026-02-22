@@ -1,7 +1,7 @@
 import { TokenType } from '../../../../syntax/token.types'
 import { ASTNodeType, type MemberNode } from '../../../../syntax/nodes'
 import type { IParserHub } from '../../../core/parser.hub'
-import type { IMemberProvider } from '../member-strategy.interface'
+import type { IMemberProvider } from '../../../core/member-provider.interface'
 
 export class CommentProvider implements IMemberProvider {
   canHandle(context: IParserHub): boolean {

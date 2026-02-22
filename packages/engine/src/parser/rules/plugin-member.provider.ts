@@ -1,7 +1,7 @@
 import type { MemberNode } from '../../syntax/nodes'
 import type { LanguagePlugin, IPluginMemberProvider } from '../../plugins/language-plugin'
 import type { IParserHub } from '../core/parser.hub'
-import type { IMemberProvider } from './member-strategies/member-strategy.interface'
+import type { IMemberProvider } from '../core/member-provider.interface'
 
 /**
  * Master Provider for plugin members.

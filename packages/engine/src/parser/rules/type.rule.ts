@@ -1,17 +1,17 @@
-import { TypeRegistry } from './type-strategies/type.registry'
+import { ASTNodeType } from '../../syntax/nodes'
 import type { TypeNode } from '../../syntax/nodes'
 import type { IParserHub } from '../core/parser.hub'
 
+/**
+ * TypeRule: Regla central para el parseo de tipos.
+ * Delegar en estrategias primarias (Base, XOR) y modificadores (Generic, Enum).
+ */
 export class TypeRule {
-  /**
-   * Parsea un tipo UMLTS (puede ser simple, FQN, genérico o array).
-   * Devuelve un objeto estructurado TypeNode utilizando estrategias extensibles.
-   */
   public parse(context: IParserHub): TypeNode {
     let baseNode: TypeNode | undefined
 
     // 1. Encontrar proveedor primario (Identificador, xor, etc)
-    for (const provider of TypeRegistry.getPrimaries()) {
+    for (const provider of context.getTypePrimaries()) {
       if (provider.canHandle(context)) {
         baseNode = provider.parse(context, this)
         break
@@ -19,18 +19,26 @@ export class TypeRule {
     }
 
     if (!baseNode) {
+      // Fallback: Si no hay nada, devolvemos un tipo Unknown para no romper el proceso
       const token = context.peek()
-      throw new Error(`Expected type at line ${token.line}, column ${token.column}`)
+      baseNode = {
+        type: ASTNodeType.TYPE,
+        kind: 'simple',
+        name: 'Unknown',
+        raw: 'Unknown',
+        line: token.line,
+        column: token.column,
+      }
     }
 
-    // 2. Aplicar modificadores (sufijos) de forma encadenada (<>, (), [], etc)
-    let modified = true
-    while (modified) {
-      modified = false
-      for (const modifier of TypeRegistry.getModifiers()) {
+    // 2. Aplicar modificadores (Ej: List<T>, Enum(...)) mientras existan
+    let foundModifier = true
+    while (foundModifier) {
+      foundModifier = false
+      for (const modifier of context.getTypeModifiers()) {
         if (modifier.canHandle(context)) {
           baseNode = modifier.apply(context, baseNode, this)
-          modified = true
+          foundModifier = true
           break
         }
       }

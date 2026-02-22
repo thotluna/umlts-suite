@@ -2,7 +2,10 @@ import { TokenType } from '../../../../syntax/token.types'
 import { ASTNodeType, type TypeNode } from '../../../../syntax/nodes'
 import type { IParserHub } from '../../../core/parser.hub'
 import type { TypeRule } from '../../type.rule'
-import type { IPrimaryTypeProvider } from '../type-strategy.interface'
+import type {
+  IPrimaryTypeProvider,
+  ITypeModifierProvider,
+} from '../../../core/type-provider.interface'
 
 export class XorTypeProvider implements IPrimaryTypeProvider {
   canHandle(context: IParserHub): boolean {
