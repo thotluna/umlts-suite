@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import { UMLEngine } from '@umlts/engine'
-import { render } from '@umlts/renderer'
+import { render, darkTheme, lightTheme } from '@umlts/renderer'
 
 export class UMLPreviewPanel {
   public static currentPanel: UMLPreviewPanel | undefined
@@ -159,9 +159,7 @@ export class UMLPreviewPanel {
 
       const svg = await render(result.diagram, {
         theme: {
-          ...(themeName === 'dark'
-            ? (await import('@umlts/renderer')).darkTheme
-            : (await import('@umlts/renderer')).lightTheme),
+          ...(themeName === 'dark' ? darkTheme : lightTheme),
           fontFamily,
           fontSizeBase: fontSize,
           ...customColors,

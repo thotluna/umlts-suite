@@ -9,11 +9,7 @@ package core {
    * Representa los roles disponibles en el sistema.
    * Los enums se declaran como listas de identificadores.
    */
-  enum UserRole(
-    ADMIN,
-    EDITOR,
-    VIEWER
-  )
+  enum UserRole(ADMIN | EDITOR | VIEWER)
 
   // Ejemplo de declaración en línea
   enum Status(ACTIVE | INACTIVE | PENDING)
