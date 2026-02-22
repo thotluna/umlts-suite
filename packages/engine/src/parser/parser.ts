@@ -3,7 +3,7 @@ import { ASTNodeType } from '../syntax/nodes'
 import type { ProgramNode, StatementNode } from '../syntax/nodes'
 import { ParserContext } from './parser.context'
 import { DiagnosticReporter } from './diagnostic-reporter'
-import type { IParserHub } from './parser.hub'
+import type { IParserHub } from './core/parser.hub'
 import type { StatementRule, Orchestrator } from './rule.types'
 
 /**
@@ -42,6 +42,10 @@ export class Parser implements Orchestrator {
 
         // El Parser toma el mando estratégico: "Busca un punto seguro"
         context.sync(() => this.rules.some((rule) => rule.canStart(context)))
+      } finally {
+        // La sesión se limpia en cada ciclo para evitar que el estado (ej. docs)
+        // se arrastre entre sentencias fallidas o exitosas.
+        context.clearSession()
       }
     }
 

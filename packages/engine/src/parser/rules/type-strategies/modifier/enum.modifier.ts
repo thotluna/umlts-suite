@@ -1,6 +1,6 @@
 import { TokenType } from '../../../../syntax/token.types'
 import type { TypeNode } from '../../../../syntax/nodes'
-import type { IParserHub } from '../../../parser.hub'
+import type { IParserHub } from '../../../core/parser.hub'
 import type { TypeRule } from '../../type.rule'
 import type { ITypeModifierProvider } from '../type-strategy.interface'
 

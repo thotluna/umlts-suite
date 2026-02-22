@@ -6,7 +6,7 @@ import {
   type ConstraintNode,
   type MemberNode,
 } from '../../syntax/nodes'
-import type { IParserHub } from '../parser.hub'
+import type { IParserHub } from '../core/parser.hub'
 import type { StatementRule } from '../rule.types'
 import { ModifierRule } from './modifier.rule'
 import { MemberRule } from './member.rule'

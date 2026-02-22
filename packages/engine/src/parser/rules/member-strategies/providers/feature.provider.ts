@@ -1,6 +1,6 @@
 import { TokenType } from '../../../../syntax/token.types'
 import type { MemberNode } from '../../../../syntax/nodes'
-import type { IParserHub } from '../../../parser.hub'
+import type { IParserHub } from '../../../core/parser.hub'
 import { AttributeRule } from '../../attribute.rule'
 import { MethodRule } from '../../method.rule'
 import { ModifierRule } from '../../modifier.rule'

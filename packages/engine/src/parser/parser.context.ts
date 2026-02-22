@@ -2,23 +2,23 @@ import { TokenType, type Token } from '../syntax/token.types'
 import type { Diagnostic, DiagnosticCode } from '../syntax/diagnostic.types'
 import { TokenStream } from './token-stream'
 import { DiagnosticReporter } from './diagnostic-reporter'
-import { DocRegistry } from './doc-registry'
-import { IParserHub } from './parser.hub'
+import { ParserSession } from './core/parser.session'
+import { IParserHub } from './core/parser.hub'
 
 /**
  * ParserContext: Fachada (Facade) que coordina los subsistemas del parser.
  * Delega la navegación a TokenStream, los errores a DiagnosticReporter y
- * la documentación a DocRegistry.
+ * el estado volátil a ParserSession.
  */
 export class ParserContext implements IParserHub {
   private readonly stream: TokenStream
   private readonly errors: DiagnosticReporter
-  private readonly docs: DocRegistry
+  private readonly session: ParserSession
 
   constructor(tokens: Token[], errors: DiagnosticReporter) {
     this.stream = new TokenStream(tokens)
     this.errors = errors
-    this.docs = new DocRegistry()
+    this.session = new ParserSession()
   }
 
   // --- Delegación a TokenStream ---
@@ -112,6 +112,12 @@ export class ParserContext implements IParserHub {
     this.stream.sync(isPointOfNoReturn)
   }
 
+  // --- Session Management ---
+
+  public clearSession(): void {
+    this.session.clear()
+  }
+
   // --- Delegación a DiagnosticReporter ---
 
   public addError(message: string, token?: Token, code?: DiagnosticCode): void {
@@ -134,13 +140,13 @@ export class ParserContext implements IParserHub {
     return this.errors.hasErrors()
   }
 
-  // --- Delegación a DocRegistry ---
+  // --- Delegación a ParserSession (Documentation) ---
 
   public setPendingDocs(docs: string): void {
-    this.docs.setPendingDocs(docs)
+    this.session.setPendingDocs(docs)
   }
 
   public consumePendingDocs(): string | undefined {
-    return this.docs.consumePendingDocs()
+    return this.session.consumePendingDocs()
   }
 }

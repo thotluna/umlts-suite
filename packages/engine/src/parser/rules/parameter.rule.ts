@@ -1,6 +1,6 @@
 import { TokenType } from '../../syntax/token.types'
 import { ASTNodeType, type ParameterNode, type ConstraintNode } from '../../syntax/nodes'
-import type { IParserHub } from '../parser.hub'
+import type { IParserHub } from '../core/parser.hub'
 import { TypeRule } from './type.rule'
 import { ConstraintRule } from './constraint.rule'
 import { ModifierRule } from './modifier.rule'

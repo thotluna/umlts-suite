@@ -1,6 +1,6 @@
 import { TypeRegistry } from './type-strategies/type.registry'
 import type { TypeNode } from '../../syntax/nodes'
-import type { IParserHub } from '../parser.hub'
+import type { IParserHub } from '../core/parser.hub'
 
 export class TypeRule {
   /**

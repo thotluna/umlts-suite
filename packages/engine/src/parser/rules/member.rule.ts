@@ -1,6 +1,6 @@
 import { MemberRegistry } from './member-strategies/member.registry'
 import type { MemberNode } from '../../syntax/nodes'
-import type { IParserHub } from '../parser.hub'
+import type { IParserHub } from '../core/parser.hub'
 
 export class MemberRule {
   /**
