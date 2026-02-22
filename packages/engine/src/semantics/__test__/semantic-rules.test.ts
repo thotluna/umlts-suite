@@ -202,11 +202,11 @@ describe('Semantic Rules', () => {
     expect(error).toBeDefined()
   })
 
-  it('should detect invalid composition on Interfaces', () => {
+  it('should allow valid composition on Interfaces', () => {
     const source = `
       interface IView
       class Element
-      IView >* Element // Error: Interface cannot own parts via composition
+      IView >* Element
     `
     const { analyzer, program, context } = parseAndAnalyze(source)
     analyzer.analyze(program, context)
@@ -215,6 +215,6 @@ describe('Semantic Rules', () => {
     const error = diagnostics.find(
       (d) => /interface/i.test(d.message) && /composition/i.test(d.message),
     )
-    expect(error).toBeDefined()
+    expect(error).toBeUndefined()
   })
 })
