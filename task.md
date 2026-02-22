@@ -364,3 +364,17 @@
   - [x] Modificar `EnumTypeModifier.ts` para permitir palabras clave como valores en tipos de enum en línea.
 - [x] **FIX**: Multiplicidad duplicada en el renderizado de atributos (ej: `code: Type[0..1] [0..1]`)
   - [x] Eliminar la concatenación redundante de la multiplicidad en la propiedad `raw` del `TypeNode` dentro de `MemberSuffixRule.ts`.
+
+## Refactorización de Arquitectura Parser (V3)
+
+- [x] **DESIGN**: Crear documento de arquitectura V3 (`docs/PARSER_V3_ARCHITECTURE.md`)
+- [x] **PLAN**: Crear plan de implementación paso a paso (`docs/PARSER_V3_IMPLEMENTATION_PLAN.md`)
+- [x] **TASK**: Implementar `ASTFactory` para centralizar creación de nodos
+- [x] **CONTRACT**: Crear interfaz `IParserHub` y hacer que `ParserContext` la implemente
+- [x] **TASK**: Refactorizar reglas para usar `IParserHub` en lugar de `ParserContext` (Eliminar dependencia circular)
+- [ ] **TASK**: Refactorizar `ParserContext` para eliminar dependencias estáticas y separar el `StateStore`
+- [ ] **TASK**: Desacoplar `MemberRegistry` (instancia vs static) y mover a inyección de dependencias
+- [ ] **ARCH**: Separar `EnumRule` y `AssociationClassRule` de `EntityRule`
+- [x] **TASK**: Implementar sistema de sincronización basado en heurísticas `canStart` de reglas registradas
+- [x] **TASK**: Migrar reglas existentes al nuevo sistema de base (`StatementRule` / `MemberProvider`)
+- [x] **VERIFY**: Asegurar paridad de funcionalidades y 100% de éxito en tests de integración

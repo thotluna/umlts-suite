@@ -1,14 +1,14 @@
 import { TokenType } from '../../syntax/token.types'
 import { ASTNodeType, type StatementNode } from '../../syntax/nodes'
-import type { ParserContext } from '../parser.context'
+import type { IParserHub } from '../parser.hub'
 import type { StatementRule, Orchestrator } from '../rule.types'
 
 export class LinkRule implements StatementRule {
-  public canStart(context: ParserContext): boolean {
+  public canStart(context: IParserHub): boolean {
     return context.check(TokenType.IDENTIFIER) && context.peekNext().type === TokenType.RANGE
   }
 
-  public parse(context: ParserContext, _orchestrator: Orchestrator): StatementNode[] {
+  public parse(context: IParserHub, _orchestrator: Orchestrator): StatementNode[] {
     if (!this.canStart(context)) return []
     const fromToken = context.consume(TokenType.IDENTIFIER, 'Expected origin identifier')
 

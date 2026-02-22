@@ -2,9 +2,9 @@ import type {
   LanguagePlugin,
   TypeMapping,
   ILexerReader,
-  IParserContext,
   IPluginMemberProvider,
 } from '../language-plugin'
+import type { IParserHub } from '../../parser/parser.hub'
 import type { Token } from '../../syntax/token.types'
 import { TokenType } from '../../syntax/token.types'
 import type { TypeNode } from '../../syntax/nodes'
@@ -36,8 +36,8 @@ export class TypeScriptPlugin implements LanguagePlugin {
   public getMemberRules(): IPluginMemberProvider[] {
     return [
       {
-        canHandle: (_context: IParserContext) => false,
-        parse: (_context: IParserContext) => null,
+        canHandle: (_context: IParserHub) => false,
+        parse: (_context: IParserHub) => null,
       },
     ]
   }

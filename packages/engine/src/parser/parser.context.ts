@@ -3,13 +3,14 @@ import type { Diagnostic, DiagnosticCode } from '../syntax/diagnostic.types'
 import { TokenStream } from './token-stream'
 import { DiagnosticReporter } from './diagnostic-reporter'
 import { DocRegistry } from './doc-registry'
+import { IParserHub } from './parser.hub'
 
 /**
  * ParserContext: Fachada (Facade) que coordina los subsistemas del parser.
  * Delega la navegación a TokenStream, los errores a DiagnosticReporter y
  * la documentación a DocRegistry.
  */
-export class ParserContext {
+export class ParserContext implements IParserHub {
   private readonly stream: TokenStream
   private readonly errors: DiagnosticReporter
   private readonly docs: DocRegistry

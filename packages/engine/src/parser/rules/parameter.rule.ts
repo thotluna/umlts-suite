@@ -1,7 +1,6 @@
 import { TokenType } from '../../syntax/token.types'
 import { ASTNodeType, type ParameterNode, type ConstraintNode } from '../../syntax/nodes'
-
-import type { ParserContext } from '../parser.context'
+import type { IParserHub } from '../parser.hub'
 import { TypeRule } from './type.rule'
 import { ConstraintRule } from './constraint.rule'
 import { ModifierRule } from './modifier.rule'
@@ -9,7 +8,7 @@ import { ModifierRule } from './modifier.rule'
 export class ParameterRule {
   private readonly typeRule = new TypeRule()
 
-  public parse(context: ParserContext): ParameterNode {
+  public parse(context: IParserHub): ParameterNode {
     const paramName = context.consume(TokenType.IDENTIFIER, 'Parameter name expected')
     context.consume(TokenType.COLON, "Expected ':'")
 

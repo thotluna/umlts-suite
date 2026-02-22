@@ -6,7 +6,7 @@ import type {
   AssociationClassNode,
   StatementNode,
 } from '../../syntax/nodes'
-import type { ParserContext } from '../parser.context'
+import type { IParserHub } from '../parser.hub'
 import type { StatementRule, Orchestrator } from '../rule.types'
 import { RelationshipHeaderRule } from './relationship-header.rule'
 import { MemberRule } from './member.rule'
@@ -16,7 +16,7 @@ export class EntityRule implements StatementRule {
   private readonly relationshipHeaderRule = new RelationshipHeaderRule()
   private readonly memberRule = new MemberRule()
 
-  public canStart(context: ParserContext): boolean {
+  public canStart(context: IParserHub): boolean {
     return context.checkAny(
       TokenType.KW_CLASS,
       TokenType.KW_INTERFACE,
@@ -35,7 +35,7 @@ export class EntityRule implements StatementRule {
     )
   }
 
-  public parse(context: ParserContext, _orchestrator: Orchestrator): StatementNode[] {
+  public parse(context: IParserHub, _orchestrator: Orchestrator): StatementNode[] {
     const pos = context.getPosition()
     const modifiers = ModifierRule.parse(context)
 

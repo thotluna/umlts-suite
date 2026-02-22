@@ -3,6 +3,7 @@ import { ASTNodeType } from '../syntax/nodes'
 import type { ProgramNode, StatementNode } from '../syntax/nodes'
 import { ParserContext } from './parser.context'
 import { DiagnosticReporter } from './diagnostic-reporter'
+import type { IParserHub } from './parser.hub'
 import type { StatementRule, Orchestrator } from './rule.types'
 
 /**
@@ -56,7 +57,7 @@ export class Parser implements Orchestrator {
   /**
    * Intenta parsear una sentencia delegando en las reglas registradas.
    */
-  public parseStatement(context: ParserContext): StatementNode[] {
+  public parseStatement(context: IParserHub): StatementNode[] {
     if (context.isAtEnd()) return []
 
     const startPos = context.getPosition()
