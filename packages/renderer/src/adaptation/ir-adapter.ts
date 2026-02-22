@@ -16,7 +16,21 @@ export class IRAdapter {
    * Transforms the entire diagram IR into a hierarchical model.
    */
   public transform(ir: IRDiagram): DiagramModel {
-    const nodes: UMLNode[] = ir.entities.map((entity: IREntity) => this.transformEntity(entity))
+    const hidden = new Set((ir.config?.hiddenEntities as string[]) || [])
+    const nodesWithEdges = new Set<string>()
+
+    // Find all nodes that participate in relationships
+    ir.relationships.forEach((rel: IRRelationship) => {
+      nodesWithEdges.add(rel.from)
+      nodesWithEdges.add(rel.to)
+    })
+
+    // Filter entities: keep if not hidden OR if they have relationships
+    const visibleEntities = ir.entities.filter(
+      (e: IREntity) => !hidden.has(e.id) || nodesWithEdges.has(e.id),
+    )
+
+    const nodes: UMLNode[] = visibleEntities.map((entity: IREntity) => this.transformEntity(entity))
     const edges: UMLEdge[] = ir.relationships.map((rel: IRRelationship) =>
       this.transformRelationship(rel),
     )
@@ -25,7 +39,7 @@ export class IRAdapter {
     const packages = this.buildHierarchy(nodes)
 
     return {
-      nodes: nodes.filter((n: UMLNode) => !n.namespace), // Only top-level nodes
+      nodes,
       edges,
       packages,
       constraints: ir.constraints || [],

@@ -248,24 +248,24 @@
 
 ## Ingeniería Inversa Quirúrgica (Surgeon Extractor)
 
-- [X] **TASK**: Definir workflow de extracción manual en .agent/workflows/surgeon-extractor.md
-- [X] **FEAT**: Implementar Pasada -1 (Configuración)
-  - [X] Lectura de tsconfig.json para resolución de Aliases (Heurística inicial implementada)
-  - [X] Mapeo de paquetes basado en estructura de carpetas de monorepo
-- [X] **FEAT**: Implementar Pasada 0 (Imports & Scope)
-  - [X] Escaneo de cabeceras para mapeo de FQNs vía imports
-  - [X] Identificación de dependencias externas (Shadowing)
-- [X] **FEAT**: Implementar Pasada 1 (Órganos)
-  - [X] Extracción de entidades (class/interface)
-  - [X] Mapeo de atributos estructurales para composición/agregación
-- [X] **FEAT**: Implementar Pasada 2 (Síntesis & Cirujano)
-  - [X] Escaneo de firmas de métodos para dependencias de uso
-  - [X] Aplicación del Surgeon Effect (No duplicar líneas si hay relación estructural)
-- [X] **TEST**: Validar extracción del paquete engine/semantics sin ruido visual y compilación Exitosa (Verificado con CLI)
-- [X] **FIX**: Corregir "ruido" en extracción de miembros (evitar capturar parámetros de métodos como propiedades)
-- [X] **IMPROVEMENT**: Implementar resolución FQN basada en imports para evitar duplicidad de clases en el diagrama
-- [X] **IMPROVEMENT**: Sanitización de identificadores (keywords) y limpieza de tipos complejos (generics, Object, Function)
-- [X] **IMPROVEMENT**: Add CLI support for blueprint to generate .umlts files from terminal
+- [x] **TASK**: Definir workflow de extracción manual en .agent/workflows/surgeon-extractor.md
+- [x] **FEAT**: Implementar Pasada -1 (Configuración)
+  - [x] Lectura de tsconfig.json para resolución de Aliases (Heurística inicial implementada)
+  - [x] Mapeo de paquetes basado en estructura de carpetas de monorepo
+- [x] **FEAT**: Implementar Pasada 0 (Imports & Scope)
+  - [x] Escaneo de cabeceras para mapeo de FQNs vía imports
+  - [x] Identificación de dependencias externas (Shadowing)
+- [x] **FEAT**: Implementar Pasada 1 (Órganos)
+  - [x] Extracción de entidades (class/interface)
+  - [x] Mapeo de atributos estructurales para composición/agregación
+- [x] **FEAT**: Implementar Pasada 2 (Síntesis & Cirujano)
+  - [x] Escaneo de firmas de métodos para dependencias de uso
+  - [x] Aplicación del Surgeon Effect (No duplicar líneas si hay relación estructural)
+- [x] **TEST**: Validar extracción del paquete engine/semantics sin ruido visual y compilación Exitosa (Verificado con CLI)
+- [x] **FIX**: Corregir "ruido" en extracción de miembros (evitar capturar parámetros de métodos como propiedades)
+- [x] **IMPROVEMENT**: Implementar resolución FQN basada en imports para evitar duplicidad de clases en el diagrama
+- [x] **IMPROVEMENT**: Sanitización de identificadores (keywords) y limpieza de tipos complejos (generics, Object, Function)
+- [x] **IMPROVEMENT**: Add CLI support for blueprint to generate .umlts files from terminal
 
 ## Refactorización de Semántica para Soporte de Plugins (V3)
 
@@ -348,3 +348,13 @@
   - [x] Purgar barrel exports de `core/types.ts` y separar modelos visuales
   - [x] Eliminar todos los usos de `any` en la lógica de transformación y dibujo (Renderer)
   - [x] Corregir dependencias circulares y asegurar build limpio en todo el monorepo
+
+## Correcciones de Renderizado y Calidad (VS Code Preview)
+
+- [x] **FIX**: Diagramas no renderizan en VS Code por fallos en importación dinámica de temas
+  - [x] Sustituir `import()` dinámico por importaciones estáticas de `lightTheme` y `darkTheme` en `preview.ts`.
+- [x] **FIX**: Nodos dentro de paquetes (namespaces) invisibles o sin dimensiones (0x0)
+  - [x] Modificar `IRAdapter` para incluir todos los nodos en `model.nodes` independientemente de su profundidad. Esto permite al motor ELK calcular dimensiones correctas para elementos anidados.
+- [x] **FIX**: "Ruido" visual de la librería estándar de TypeScript en diagramas
+  - [x] Implementar filtrado de `hiddenEntities` en `IRAdapter` para no renderizar primitivos y utilidades de TS inyectadas por el plugin.
+  - [x] Evitar la creación automática de flechas de asociación hacia `PrimitiveType` o `DataType` en `MemberInference` para mantener el diagrama limpio.

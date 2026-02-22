@@ -174,6 +174,13 @@ export class MemberInference {
 
     if (this.pipeline.isPrimitive(baseName)) return
 
+    // Check if the resolved target is a Primitive or DataType in the SymbolTable
+    const targetResolution = this.session.symbolTable.resolveFQN(baseName, fromNamespace)
+    const knownTarget = this.session.symbolTable.get(targetResolution.fqn)
+    if (knownTarget && (knownTarget.type === 'PrimitiveType' || knownTarget.type === 'DataType')) {
+      return
+    }
+
     // 4. Default: It's an implicit relationship to another entity
     const finalToFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
       baseName,
