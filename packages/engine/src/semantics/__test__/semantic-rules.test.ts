@@ -5,6 +5,8 @@ import { SemanticAnalyzer } from '../analyzer'
 import { DiagnosticCode, DiagnosticSeverity, type Diagnostic } from '../../syntax/diagnostic.types'
 import { ParserContext } from '../../parser/parser.context'
 import { DiagnosticReporter } from '../../parser/diagnostic-reporter'
+import { MemberRegistry } from '../../parser/rules/member-strategies/member.registry'
+import { TypeRegistry } from '../../parser/rules/type-strategies/type.registry'
 
 describe('Semantic Rules', () => {
   const parseAndAnalyze = (source: string) => {
@@ -16,7 +18,9 @@ describe('Semantic Rules', () => {
 
     // Creamos un contexto limpio para el análisis semántico
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const members = new MemberRegistry()
+    const types = new TypeRegistry()
+    const context = new ParserContext(tokens, reporter, members, types)
 
     return { parser, analyzer, program, context }
   }
