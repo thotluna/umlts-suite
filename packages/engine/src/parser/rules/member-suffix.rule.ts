@@ -6,7 +6,7 @@ import {
   type ConstraintNode,
   type NoteNode,
 } from '../../syntax/nodes'
-import type { ParserContext } from '../parser.context'
+import type { IParserHub } from '../parser.context'
 import { TypeRule } from './type.rule'
 import { ConstraintRule } from './constraint.rule'
 import { ModifierRule } from './modifier.rule'
@@ -29,7 +29,7 @@ export interface MemberSuffix {
 export class MemberSuffixRule {
   private static readonly typeRule = new TypeRule()
 
-  public static parse(context: ParserContext): MemberSuffix {
+  public static parse(context: IParserHub): MemberSuffix {
     context.consume(TokenType.COLON, "Expected ':'")
 
     let relationshipKind: string | undefined
@@ -104,7 +104,7 @@ export class MemberSuffixRule {
     }
   }
 
-  private static isRelationshipOperator(context: ParserContext): boolean {
+  private static isRelationshipOperator(context: IParserHub): boolean {
     return context.checkAny(
       TokenType.OP_INHERIT,
       TokenType.OP_IMPLEMENT,

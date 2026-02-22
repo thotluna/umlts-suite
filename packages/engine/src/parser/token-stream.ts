@@ -1,21 +1,34 @@
 import { TokenType, type Token } from '../syntax/token.types'
 
 /**
- * Wrapper for the token array that adds extra navigation logic.
+ * TokenStream: Gestiona la navegación y el estado de los tokens.
+ * Encapsula el cursor, el historial y la lógica de "splitting" de tokens.
  */
 export class TokenStream {
   private current = 0
+  private splitTokens: Token[] = []
 
   constructor(private readonly tokens: Token[]) {}
 
-  public isAtEnd(): boolean {
-    return this.peek().type === TokenType.EOF
+  public peek(): Token {
+    if (this.splitTokens.length > 0) {
+      return this.splitTokens[0]
+    }
+    if (this.current >= this.tokens.length) {
+      return this.tokens[this.tokens.length - 1]
+    }
+    return this.tokens[this.current]
   }
 
-  public peek(offset = 0): Token {
-    const index = this.current + offset
-    if (index >= this.tokens.length) return this.tokens[this.tokens.length - 1]
-    return this.tokens[index]
+  public peekNext(): Token {
+    if (this.splitTokens.length > 1) {
+      return this.splitTokens[1]
+    }
+    const offset = this.splitTokens.length === 1 ? 0 : 1
+    if (this.current + offset >= this.tokens.length) {
+      return this.tokens[this.tokens.length - 1]
+    }
+    return this.tokens[this.current + offset]
   }
 
   public prev(): Token {
@@ -23,62 +36,76 @@ export class TokenStream {
   }
 
   public advance(): Token {
+    if (this.splitTokens.length > 0) {
+      return this.splitTokens.shift()!
+    }
     if (!this.isAtEnd()) this.current++
     return this.prev()
-  }
-
-  public check(...types: TokenType[]): boolean {
-    if (this.isAtEnd()) return false
-    const currentToken = this.peek()
-
-    // Soporte para Split Virtual de '>>'
-    if (currentToken.type === TokenType.REL_INHERIT && types.includes(TokenType.GT)) {
-      return true
-    }
-
-    return types.includes(currentToken.type)
-  }
-
-  public match(...types: TokenType[]): boolean {
-    const currentToken = this.peek()
-
-    // 1. Caso especial: Split de '>>' (Relación de Herencia) en '>' '>' (Cierre de genéricos)
-    if (currentToken.type === TokenType.REL_INHERIT && types.includes(TokenType.GT)) {
-      // Reemplazamos virtualmente el token '>>' por dos tokens '>'
-      // Modificamos el stream in-place para que el siguiente peek/match vea el segundo '>'
-      const firstGT: Token = { ...currentToken, type: TokenType.GT, value: '>' }
-      const secondGT: Token = {
-        ...currentToken,
-        type: TokenType.GT,
-        value: '>',
-        column: currentToken.column + 1,
-      }
-
-      this.tokens.splice(this.current, 1, firstGT, secondGT)
-      this.current++ // Consumimos el primer '>'
-      return true
-    }
-
-    // 2. Comportamiento Estándar
-    for (const type of types) {
-      if (this.check(type)) {
-        this.advance()
-        return true
-      }
-    }
-    return false
-  }
-
-  public consume(type: TokenType, message: string): Token {
-    if (this.check(type)) return this.advance()
-    throw new Error(message)
   }
 
   public getPosition(): number {
     return this.current
   }
 
-  public seek(position: number): void {
+  public rollback(position: number): void {
     this.current = position
+    this.splitTokens = [] // Reset split tokens on rollback to ensure consistency
+  }
+
+  public isAtEnd(): boolean {
+    return this.splitTokens.length === 0 && this.peek().type === TokenType.EOF
+  }
+
+  public check(type: TokenType): boolean {
+    if (this.isAtEnd()) return false
+    const token = this.peek()
+    if (token.type === type) return true
+
+    // Lógica especial para splitting (herencia de herencia >>)
+    if (token.type === TokenType.OP_INHERIT && type === TokenType.GT) {
+      return true
+    }
+
+    return false
+  }
+
+  /**
+   * Divide el token actual si es compuesto y matchea el tipo solicitado.
+   */
+  public splitAndAdvance(type: TokenType): boolean {
+    const token = this.peek()
+    if (token.type === TokenType.OP_INHERIT && type === TokenType.GT) {
+      this.current++
+      this.splitTokens.push({
+        ...token,
+        type: TokenType.GT,
+        value: '>',
+        column: token.column + 1,
+      })
+      return true
+    }
+    return false
+  }
+
+  /**
+   * Sincroniza el stream avanzando hasta encontrar un punto seguro (un delimitador o el inicio de una regla).
+   * @param isPointOfNoReturn - Predicado que define si el token actual permite iniciar un nuevo parseo seguro.
+   */
+  public sync(isPointOfNoReturn: () => boolean): void {
+    if (this.isAtEnd()) return
+
+    // Avanzamos al menos uno para salir del token problemático
+    this.advance()
+
+    while (!this.isAtEnd()) {
+      // Puntos seguros de sincronización:
+      // 1. Después de un bloque (})
+      if (this.prev().type === TokenType.RBRACE) return
+
+      // 2. El inicio de una regla reconocida por el orquestador
+      if (isPointOfNoReturn()) return
+
+      this.advance()
+    }
   }
 }

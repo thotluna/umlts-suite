@@ -1,7 +1,7 @@
 import { TokenType } from '../../syntax/token.types'
 import { ASTNodeType, type ConstraintNode, type StatementNode } from '../../syntax/nodes'
 
-import type { ParserContext } from '../parser.context'
+import type { IParserHub } from '../parser.context'
 import type { StatementRule, Orchestrator } from '../rule.types'
 
 /**
@@ -10,11 +10,11 @@ import type { StatementRule, Orchestrator } from '../rule.types'
  * Soporta individual: {ordered}
  */
 export class ConstraintRule implements StatementRule {
-  public canStart(context: ParserContext): boolean {
+  public canStart(context: IParserHub): boolean {
     return context.check(TokenType.KW_XOR) || context.check(TokenType.LBRACE)
   }
 
-  public parse(context: ParserContext, orchestrator: Orchestrator): StatementNode[] {
+  public parse(context: IParserHub, orchestrator: Orchestrator): StatementNode[] {
     if (context.match(TokenType.KW_XOR)) {
       const startToken = context.prev()
 
@@ -56,7 +56,7 @@ export class ConstraintRule implements StatementRule {
   /**
    * Parseador de restricciones in-line {...}
    */
-  public static parseInline(context: ParserContext): ConstraintNode {
+  public static parseInline(context: IParserHub): ConstraintNode {
     context.consume(TokenType.LBRACE, "Expected '{'")
     const startToken = context.prev()
 

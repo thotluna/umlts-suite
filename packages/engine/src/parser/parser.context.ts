@@ -5,11 +5,37 @@ import { DiagnosticReporter } from './diagnostic-reporter'
 import { DocRegistry } from './doc-registry'
 
 /**
+ * IParserHub: Interface for the parser context facade.
+ */
+export interface IParserHub {
+  peek(): Token
+  peekNext(): Token
+  prev(): Token
+  advance(): Token
+  getPosition(): number
+  rollback(position: number): void
+  isAtEnd(): boolean
+  check(type: TokenType): boolean
+  checkAny(...types: TokenType[]): boolean
+  match(...types: TokenType[]): boolean
+  consume(type: TokenType, message: string): Token
+  softConsume(type: TokenType, message: string): Token
+  sync(isPointOfNoReturn: () => boolean): void
+  addError(message: string, token?: Token, code?: DiagnosticCode): void
+  addWarning(message: string, token?: Token, code?: DiagnosticCode): void
+  addInfo(message: string, token?: Token, code?: DiagnosticCode): void
+  getDiagnostics(): Diagnostic[]
+  hasErrors(): boolean
+  setPendingDocs(docs: string): void
+  consumePendingDocs(): string | undefined
+}
+
+/**
  * ParserContext: Fachada (Facade) que coordina los subsistemas del parser.
  * Delega la navegación a TokenStream, los errores a DiagnosticReporter y
  * la documentación a DocRegistry.
  */
-export class ParserContext {
+export class ParserHub implements IParserHub {
   private readonly stream: TokenStream
   private readonly errors: DiagnosticReporter
   private readonly docs: DocRegistry

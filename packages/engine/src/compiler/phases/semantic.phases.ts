@@ -1,4 +1,4 @@
-import { ParserContext } from '../../parser/parser.context'
+import { ParserHub } from '../../parser/parser.context'
 import { DiagnosticReporter } from '../../parser/diagnostic-reporter'
 import type { CompilerContext } from './context'
 import type { PipelineArtifacts } from './pipeline-artifacts'
@@ -16,7 +16,7 @@ export class SemanticPhase implements CompilerPhase {
   public run(context: CompilerContext, artifacts: PipelineArtifacts): void {
     if (!artifacts.ast) return
     const reporter = new DiagnosticReporter()
-    const parserContext = new ParserContext(artifacts.tokens, reporter, context.plugin)
+    const parserContext = new ParserHub(artifacts.tokens, reporter, context.plugin)
     artifacts.diagram = this.analyzer.analyze(artifacts.ast, parserContext)
     context.addDiagnostics(reporter.getDiagnostics())
   }

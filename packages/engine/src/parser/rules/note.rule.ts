@@ -1,14 +1,14 @@
 import { TokenType } from '../../syntax/token.types'
 import { ASTNodeType, type StatementNode, type NoteNode } from '../../syntax/nodes'
-import type { ParserContext } from '../parser.context'
+import type { IParserHub } from '../parser.context'
 import type { StatementRule, Orchestrator } from '../rule.types'
 
 export class NoteRule implements StatementRule {
-  public canStart(context: ParserContext): boolean {
+  public canStart(context: IParserHub): boolean {
     return context.check(TokenType.KW_NOTE) || context.check(TokenType.STRING)
   }
 
-  public parse(context: ParserContext, _orchestrator: Orchestrator): StatementNode[] {
+  public parse(context: IParserHub, _orchestrator: Orchestrator): StatementNode[] {
     const startToken = context.peek()
 
     if (context.match(TokenType.KW_NOTE)) {

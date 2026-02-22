@@ -1,15 +1,15 @@
 import type { Token } from '../syntax/token.types'
-import { type ProgramNode, type StatementNode, ASTNodeType } from '../nodes'
+import { type ProgramNode, type StatementNode, ASTNodeType } from '../syntax/nodes'
 import { DiagnosticReporter } from './diagnostic-reporter'
-import { ParserHub } from './parser.hub'
-import type { IParserHub } from './parser.context'
-import type { StatementRule, IOrchestrator } from './rule.types'
+
+import { ParserHub, type IParserHub } from './parser.context'
+import type { StatementRule, Orchestrator } from './rule.types'
 
 /**
  * Parser Engine (Refactored to Orchestrator).
  * Actúa como el orquestador que coordina las reglas de parseo.
  */
-export class Parser implements IOrchestrator {
+export class Parser implements Orchestrator {
   private readonly rules: StatementRule[]
 
   constructor(rules: StatementRule[]) {

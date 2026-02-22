@@ -121,6 +121,7 @@
   - [x] Extraer `ModifierRule` de `ParserContext` (Refactor de extensibleibilidad)
   - [x] Convertir `ParserContext` en Fachada pura (desacoplamiento de plugins)
   - [x] Implementar arquitectura de Plugins como Reglas/Proveedores proactivos
+  - [x] **FIX**: Desacoplar paquete de `rules` de la implementación `ParserHub` usando la interfaz `IParserHub`
   - [x] Verificar integridad del AST y build
 
 ## Soporte para Configuración de Diagrama (DSL)
@@ -248,24 +249,24 @@
 
 ## Ingeniería Inversa Quirúrgica (Surgeon Extractor)
 
-- [X] **TASK**: Definir workflow de extracción manual en .agent/workflows/surgeon-extractor.md
-- [X] **FEAT**: Implementar Pasada -1 (Configuración)
-  - [X] Lectura de tsconfig.json para resolución de Aliases (Heurística inicial implementada)
-  - [X] Mapeo de paquetes basado en estructura de carpetas de monorepo
-- [X] **FEAT**: Implementar Pasada 0 (Imports & Scope)
-  - [X] Escaneo de cabeceras para mapeo de FQNs vía imports
-  - [X] Identificación de dependencias externas (Shadowing)
-- [X] **FEAT**: Implementar Pasada 1 (Órganos)
-  - [X] Extracción de entidades (class/interface)
-  - [X] Mapeo de atributos estructurales para composición/agregación
-- [X] **FEAT**: Implementar Pasada 2 (Síntesis & Cirujano)
-  - [X] Escaneo de firmas de métodos para dependencias de uso
-  - [X] Aplicación del Surgeon Effect (No duplicar líneas si hay relación estructural)
-- [X] **TEST**: Validar extracción del paquete engine/semantics sin ruido visual y compilación Exitosa (Verificado con CLI)
-- [X] **FIX**: Corregir "ruido" en extracción de miembros (evitar capturar parámetros de métodos como propiedades)
-- [X] **IMPROVEMENT**: Implementar resolución FQN basada en imports para evitar duplicidad de clases en el diagrama
-- [X] **IMPROVEMENT**: Sanitización de identificadores (keywords) y limpieza de tipos complejos (generics, Object, Function)
-- [X] **IMPROVEMENT**: Add CLI support for blueprint to generate .umlts files from terminal
+- [x] **TASK**: Definir workflow de extracción manual en .agent/workflows/surgeon-extractor.md
+- [x] **FEAT**: Implementar Pasada -1 (Configuración)
+  - [x] Lectura de tsconfig.json para resolución de Aliases (Heurística inicial implementada)
+  - [x] Mapeo de paquetes basado en estructura de carpetas de monorepo
+- [x] **FEAT**: Implementar Pasada 0 (Imports & Scope)
+  - [x] Escaneo de cabeceras para mapeo de FQNs vía imports
+  - [x] Identificación de dependencias externas (Shadowing)
+- [x] **FEAT**: Implementar Pasada 1 (Órganos)
+  - [x] Extracción de entidades (class/interface)
+  - [x] Mapeo de atributos estructurales para composición/agregación
+- [x] **FEAT**: Implementar Pasada 2 (Síntesis & Cirujano)
+  - [x] Escaneo de firmas de métodos para dependencias de uso
+  - [x] Aplicación del Surgeon Effect (No duplicar líneas si hay relación estructural)
+- [x] **TEST**: Validar extracción del paquete engine/semantics sin ruido visual y compilación Exitosa (Verificado con CLI)
+- [x] **FIX**: Corregir "ruido" en extracción de miembros (evitar capturar parámetros de métodos como propiedades)
+- [x] **IMPROVEMENT**: Implementar resolución FQN basada en imports para evitar duplicidad de clases en el diagrama
+- [x] **IMPROVEMENT**: Sanitización de identificadores (keywords) y limpieza de tipos complejos (generics, Object, Function)
+- [x] **IMPROVEMENT**: Add CLI support for blueprint to generate .umlts files from terminal
 
 ## Refactorización de Semántica para Soporte de Plugins (V3)
 

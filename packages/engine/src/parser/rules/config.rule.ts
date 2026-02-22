@@ -1,7 +1,7 @@
 import { TokenType } from '../../syntax/token.types'
 import type { StatementNode, ConfigNode } from '../../syntax/nodes'
 import { ASTNodeType } from '../../syntax/nodes'
-import type { ParserContext } from '../parser.context'
+import type { IParserHub } from '../parser.context'
 import type { StatementRule, Orchestrator } from '../rule.types'
 
 /**
@@ -15,11 +15,11 @@ import type { StatementRule, Orchestrator } from '../rule.types'
  * }
  */
 export class ConfigRule implements StatementRule {
-  public canStart(context: ParserContext): boolean {
+  public canStart(context: IParserHub): boolean {
     return context.check(TokenType.KW_CONFIG) || context.check(TokenType.AT)
   }
 
-  public parse(context: ParserContext, _orchestrator: Orchestrator): StatementNode[] {
+  public parse(context: IParserHub, _orchestrator: Orchestrator): StatementNode[] {
     // 1. Sintaxis de bloque: config { ... }
     if (context.match(TokenType.KW_CONFIG)) {
       const configToken = context.prev()
@@ -57,7 +57,7 @@ export class ConfigRule implements StatementRule {
     return []
   }
 
-  private parseBlockOptions(context: ParserContext): Record<string, unknown> {
+  private parseBlockOptions(context: IParserHub): Record<string, unknown> {
     const options: Record<string, unknown> = {}
     while (!context.isAtEnd() && !context.check(TokenType.RBRACE)) {
       if (context.match(TokenType.COMMA)) continue
@@ -69,7 +69,7 @@ export class ConfigRule implements StatementRule {
     return options
   }
 
-  private parseValue(context: ParserContext): unknown {
+  private parseValue(context: IParserHub): unknown {
     if (context.check(TokenType.STRING)) {
       return context.consume(TokenType.STRING, '').value
     } else if (context.check(TokenType.NUMBER)) {

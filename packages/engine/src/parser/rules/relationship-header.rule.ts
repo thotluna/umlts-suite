@@ -1,10 +1,10 @@
 import { TokenType } from '../../syntax/token.types'
 import { ASTNodeType, type RelationshipHeaderNode } from '../../syntax/nodes'
-import type { ParserContext } from '../parser.context'
+import type { IParserHub } from '../parser.context'
 import { ModifierRule } from './modifier.rule'
 
 export class RelationshipHeaderRule {
-  public parse(context: ParserContext): RelationshipHeaderNode[] {
+  public parse(context: IParserHub): RelationshipHeaderNode[] {
     const relationships: RelationshipHeaderNode[] = []
 
     while (

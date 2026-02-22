@@ -1,6 +1,6 @@
 import type { StatementNode } from '../../syntax/nodes'
 import type { LanguagePlugin, IPluginStatementRule } from '../../plugins/language-plugin'
-import type { ParserContext } from '../parser.context'
+import type { IParserHub } from '../parser.context'
 import type { StatementRule, Orchestrator } from '../rule.types'
 
 /**
@@ -14,11 +14,11 @@ export class PluginStatementRule implements StatementRule {
     this.rules = plugin.getStatementRules?.() ?? []
   }
 
-  public canStart(context: ParserContext): boolean {
+  public canStart(context: IParserHub): boolean {
     return this.rules.some((rule) => rule.canStart(context))
   }
 
-  public parse(context: ParserContext, orchestrator: Orchestrator): StatementNode[] {
+  public parse(context: IParserHub, orchestrator: Orchestrator): StatementNode[] {
     for (const rule of this.rules) {
       if (rule.canStart(context)) {
         const result = rule.parse(context, orchestrator)
