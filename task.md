@@ -103,7 +103,7 @@
 - [x] Implementación de `SVGBuilder` y Patrón de Dibujo Desacoplado
 - [x] Formalización del Orquestador de Pipeline (`UMLRenderer`)
 - [x] Abstracción de Jerarquía (`UMLHierarchyItem`) para soporte agnóstico de contenedores
-- [x] Corrección de Bug de Layout Jerárquico (Offsets de aristas y proporciones)
+- [x] Corrección de Bug de Layout Hierárquico (Offsets de aristas y proporciones)
 
 ## Publicación y Despliegue
 
@@ -156,7 +156,6 @@
   - [x] Optimizar cruce de paquetes mediante enrutamiento jerárquico nativo
 
 ## Depuración y Calidad (VS Code Extension)
-
 - [x] **BUG**: Corregir errores de resolución de módulos (`ts-uml-engine` -> `@umlts/engine`)
 - [x] **FEAT**: Sincronizar autocompletado y ayuda contextual en `extension.ts`
 - [x] **IMPROVEMENT**: Soporte para propiedades de `config` contextuales
@@ -174,7 +173,7 @@
 - [x] **FEATURE**: Implementar sistema de auto-escalado (responsive) y zoom manual
 - [x] **IMPROVEMENT**: Mejorar legibilidad and encuadre dinámico (Auto-Fit corregido)
 - [x] **FIX**: Viewport del SVG ignora los límites de los paquetes (Clipping)
-- [/] **FIX**: Ruteo de aristas de herencia forzado a N->S provoca bucles innecesarios
+- [ ] **FIX**: Ruteo de aristas de herencia forzado a N->S provoca bucles innecesarios
 - [x] **FIX**: Robustecer autocompletado de `config` en LSP (Heurística de detección de contexto)
 
 ### Motor (@umlts/engine) - Preparación Alpha
@@ -211,7 +210,7 @@
 - [x] **FIX**: Depuración y resolución de fallos en CI (Build @umlts/renderer)
   - [x] Corregir lógica de nulos en `LayoutEngine` (`elkNode.children ?? []`)
   - [x] Estandarizar IR entre motor y renderer para evitar conflictos de tipos
-  - [x] Resolver advertencias de `any` implícito en el renderer
+  - [x] Resolver advertencias de `any` implícito en the renderer
   - [x] Verificar build y tests locales en todo el workspace
   - [x] Purgar y verificar CI en GitHub
 - [x] **FEAT**: Implementar reglas de UML 2.5.1 sobre Propiedades/Atributos
@@ -248,24 +247,24 @@
 
 ## Ingeniería Inversa Quirúrgica (Surgeon Extractor)
 
-- [X] **TASK**: Definir workflow de extracción manual en .agent/workflows/surgeon-extractor.md
-- [X] **FEAT**: Implementar Pasada -1 (Configuración)
-  - [X] Lectura de tsconfig.json para resolución de Aliases (Heurística inicial implementada)
-  - [X] Mapeo de paquetes basado en estructura de carpetas de monorepo
-- [X] **FEAT**: Implementar Pasada 0 (Imports & Scope)
-  - [X] Escaneo de cabeceras para mapeo de FQNs vía imports
-  - [X] Identificación de dependencias externas (Shadowing)
-- [X] **FEAT**: Implementar Pasada 1 (Órganos)
-  - [X] Extracción de entidades (class/interface)
-  - [X] Mapeo de atributos estructurales para composición/agregación
-- [X] **FEAT**: Implementar Pasada 2 (Síntesis & Cirujano)
-  - [X] Escaneo de firmas de métodos para dependencias de uso
-  - [X] Aplicación del Surgeon Effect (No duplicar líneas si hay relación estructural)
-- [X] **TEST**: Validar extracción del paquete engine/semantics sin ruido visual y compilación Exitosa (Verificado con CLI)
-- [X] **FIX**: Corregir "ruido" en extracción de miembros (evitar capturar parámetros de métodos como propiedades)
-- [X] **IMPROVEMENT**: Implementar resolución FQN basada en imports para evitar duplicidad de clases en el diagrama
-- [X] **IMPROVEMENT**: Sanitización de identificadores (keywords) y limpieza de tipos complejos (generics, Object, Function)
-- [X] **IMPROVEMENT**: Add CLI support for blueprint to generate .umlts files from terminal
+- [x] **TASK**: Definir workflow de extracción manual en .agent/workflows/surgeon-extractor.md
+- [x] **FEAT**: Implementar Pasada -1 (Configuración)
+  - [x] Lectura de tsconfig.json para resolución de Aliases (Heurística inicial implementada)
+  - [x] Mapeo de paquetes basado en estructura de carpetas de monorepo
+- [x] **FEAT**: Implementar Pasada 0 (Imports & Scope)
+  - [x] Escaneo de cabeceras para mapeo de FQNs vía imports
+  - [x] Identificación de dependencias externas (Shadowing)
+- [x] **FEAT**: Implementar Pasada 1 (Órganos)
+  - [x] Extracción de entidades (class/interface)
+  - [x] Mapeo de atributos estructurales para composición/agregación
+- [x] **FEAT**: Implementar Pasada 2 (Síntesis & Cirujano)
+  - [x] Escaneo de firmas de métodos para dependencias de uso
+  - [x] Aplicación del Surgeon Effect (No duplicar líneas si hay relación estructural)
+- [x] **TEST**: Validar extracción del paquete engine/semantics sin ruido visual y compilación Exitosa (Verificado con CLI)
+- [x] **FIX**: Corregir "ruido" en extracción de miembros (evitar capturar parámetros de métodos como propiedades)
+- [x] **IMPROVEMENT**: Implementar resolución FQN basada en imports para evitar duplicidad de clases en el diagrama
+- [x] **IMPROVEMENT**: Sanitización de identificadores (keywords) y limpieza de tipos complejos (generics, Object, Function)
+- [x] **IMPROVEMENT**: Add CLI support for blueprint to generate .umlts files from terminal
 
 ## Refactorización de Semántica para Soporte de Plugins (V3)
 
@@ -348,3 +347,12 @@
   - [x] Purgar barrel exports de `core/types.ts` y separar modelos visuales
   - [x] Eliminar todos los usos de `any` en la lógica de transformación y dibujo (Renderer)
   - [x] Corregir dependencias circulares y asegurar build limpio en todo el monorepo
+## Correctitud Semántica y Mejoras de Parser (V3 Final)
+
+- [x] **FIX**: Corregir parsing de literales de Enum (evitar consumo por `MemberRule`)
+- [x] **FIX**: Soporte para tipos genéricos anidados (split virtual de `>>`) en `TokenStream`
+- [x] **FIX**: Mapeo completo de modificadores UML (`final` -> `isLeaf` + `isFinal`)
+- [x] **FIX**: Restaurar mensajes de error descriptivos ("Unrecognized statement") para compatibilidad de tests
+- [x] **FIX**: Resolver errores de importación en `FeatureMemberProvider`
+- [x] **FIX**: Reparar lógica de extracción de targets en `RelationshipAnalyzer`
+- [x] **TEST**: Verificar 42 tests unitarios (Lexer, Parser, Semantics, Multiplicity, Modifiers) -> PASSED
