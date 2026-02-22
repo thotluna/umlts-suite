@@ -1,16 +1,15 @@
 import type { Token } from '../syntax/token.types'
-import { ASTNodeType } from '../syntax/nodes'
-import type { ProgramNode, StatementNode } from '../syntax/nodes'
-import { ParserContext } from './parser.context'
+import { type ProgramNode, type StatementNode, ASTNodeType } from '../nodes'
 import { DiagnosticReporter } from './diagnostic-reporter'
-import type { StatementRule, Orchestrator } from './rule.types'
+import { ParserHub } from './parser.hub'
+import type { IParserHub } from './parser.context'
+import type { StatementRule, IOrchestrator } from './rule.types'
 
 /**
- * Parser: El protagonista y cerebro del proceso de transformación.
- * Orquesta las reglas, gestiona el ciclo de vida del reporte de errores
- * y aplica las estrategias de recuperación (Panic Mode).
+ * Parser Engine (Refactored to Orchestrator).
+ * Actúa como el orquestador que coordina las reglas de parseo.
  */
-export class Parser implements Orchestrator {
+export class Parser implements IOrchestrator {
   private readonly rules: StatementRule[]
 
   constructor(rules: StatementRule[]) {
@@ -18,52 +17,41 @@ export class Parser implements Orchestrator {
   }
 
   public parse(tokens: Token[]): ProgramNode {
-    // El Parser (Cerebro) inicializa los recursos de la sesión
-    const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
-
-    const body: StatementNode[] = []
-    const firstToken = context.peek()
+    const context = new ParserHub(tokens, new DiagnosticReporter())
+    const statements: StatementNode[] = []
 
     while (!context.isAtEnd()) {
-      try {
-        const startPos = context.getPosition()
-        const nodes = this.parseStatement(context)
-        if (nodes.length > 0) {
-          body.push(...nodes)
-        } else if (context.getPosition() === startPos) {
-          // Si ninguna regla consumió nada y no estamos al final, hay fuego
-          throw new Error('Unrecognized statement')
-        }
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Unknown syntax error'
-        reporter.addError(message, context.peek())
-
-        // El Parser toma el mando estratégico: "Busca un punto seguro"
-        context.sync(() => this.rules.some((rule) => rule.canStart(context)))
+      const nodes = this.parseStatement(context)
+      if (nodes.length > 0) {
+        statements.push(...nodes)
+      } else {
+        // Modo Pánico: Si ninguna regla puede empezar, sincronizamos hasta la siguiente regla válida
+        const token = context.peek()
+        context.addError(`Unrecognized statement: ${token.value}`, token)
+        context.advance()
       }
     }
 
     return {
       type: ASTNodeType.PROGRAM,
-      body,
-      line: firstToken?.line ?? 1,
-      column: firstToken?.column ?? 1,
-      diagnostics: reporter.getDiagnostics(),
+      body: statements,
+      diagnostics: context.getDiagnostics(),
+      line: 1,
+      column: 1,
     }
   }
 
-  /**
-   * Intenta parsear una sentencia delegando en las reglas registradas.
-   */
-  public parseStatement(context: ParserContext): StatementNode[] {
+  public parseStatement(context: IParserHub): StatementNode[] {
     if (context.isAtEnd()) return []
 
-    const startPos = context.getPosition()
     for (const rule of this.rules) {
       if (rule.canStart(context)) {
-        const nodes = rule.parse(context, this)
-        if (nodes.length > 0 || context.getPosition() > startPos) return nodes
+        try {
+          return rule.parse(context, this)
+        } catch (_e) {
+          // Si una regla falla catastróficamente, intentamos con la siguiente
+          continue
+        }
       }
     }
 

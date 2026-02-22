@@ -1,203 +1,24 @@
-import {
-  IRRelationshipType,
-  IREntityType,
-  IRVisibility,
-  type IRRelationship,
-  type IRConstraint,
-  type IREntity,
-  type IRMultiplicity,
-} from '../../generator/ir/models'
-import { TypeInferrer } from './type-inferrer'
-import { registerDefaultInferenceRules } from '../rules/inference-rules'
+import { ASTNodeType, type ASTNode } from '../../syntax/nodes'
+import type { AttributeNode, MethodNode, RelationshipNode, RelationshipHeaderNode } from '../../syntax/nodes'
 import type { SymbolTable } from '../symbol-table'
-import type { ParserContext } from '../../parser/parser.context'
-import { DiagnosticCode } from '../../syntax/diagnostic.types'
-import type { HierarchyValidator } from '../validators/hierarchy-validator'
+import { IRRelationshipType, type IRRelationship } from '../../generator/ir/models'
 import { AssociationValidator } from '../validators/association-validator'
-import { ASTNodeType } from '../../syntax/nodes'
-import { TypeValidator } from '../utils/type-validator'
-import type {
-  RelationshipNode,
-  RelationshipHeaderNode,
-  ASTNode,
-  Modifiers,
-} from '../../syntax/nodes'
-import { MultiplicityValidator } from '../utils/multiplicity-validator'
-import { TokenType } from '../../syntax/token.types'
-import type { Token } from '../../syntax/token.types'
+import type { IParserHub } from '../../parser/parser.context'
 
 /**
- * Handles creation and validation of relationships.
+ * Analyzes and registers relationships between entities.
  */
 export class RelationshipAnalyzer {
-  private readonly typeInferrer: TypeInferrer
-  private readonly associationValidator: AssociationValidator
+  private readonly relationships: IRRelationship[] = []
 
   constructor(
     private readonly symbolTable: SymbolTable,
-    private readonly relationships: IRRelationship[],
-    private readonly hierarchyValidator: HierarchyValidator,
-    private readonly context?: ParserContext,
-  ) {
-    this.typeInferrer = new TypeInferrer()
-    registerDefaultInferenceRules(this.typeInferrer)
-    this.associationValidator = new AssociationValidator(context!)
-  }
-
-  public getContext(): ParserContext | undefined {
-    return this.context
-  }
+    private readonly associationValidator: AssociationValidator,
+    private readonly context: IParserHub,
+  ) {}
 
   /**
-   * Resolves a target entity and registers it as implicit if missing.
-   * Can optionally infer the target type based on the source entity and relationship.
-   */
-  public resolveOrRegisterImplicit(
-    name: string,
-    namespace: string,
-    modifiers?: Modifiers,
-    line?: number,
-    column?: number,
-    inferenceContext?: { sourceType: IREntityType; relationshipKind: IRRelationshipType },
-    typeParameters?: string[],
-    literals?: string[],
-  ): string {
-    // If it's a generic parameter of the current context, we treat it as a "virtual" entity
-    // that won't be registered in the symbol table to avoid orphan boxes.
-    const baseName = TypeValidator.getBaseTypeName(name)
-    if (typeParameters?.includes(baseName)) {
-      return baseName // Return as-is, won't be found in SymbolTable, won't be rendered as a box
-    }
-
-    let expectedType = IREntityType.CLASS
-
-    if (inferenceContext) {
-      const inferred = this.typeInferrer.infer(
-        inferenceContext.sourceType,
-        inferenceContext.relationshipKind,
-      )
-
-      if (inferred) {
-        expectedType = inferred
-      } else {
-        // Fallback to CLASS but report error strictly as requested
-        expectedType = IREntityType.CLASS
-        this.context?.addError(
-          `Cannot infer implicit entity type for relationship '${inferenceContext.relationshipKind}' from '${inferenceContext.sourceType}'. Defaulting target '${name}' to CLASS.`,
-          { line, column, type: TokenType.UNKNOWN, value: '' } as Token,
-          DiagnosticCode.SEMANTIC_INVALID_TYPE,
-        )
-      }
-    }
-
-    if (literals && literals.length > 0) {
-      expectedType = IREntityType.ENUMERATION
-    }
-
-    const result = this.symbolTable.resolveOrRegisterImplicit(
-      name,
-      namespace,
-      modifiers,
-      expectedType,
-      literals,
-    )
-
-    if (result.isAmbiguous) {
-      this.context?.addError(
-        `Ambiguity detected: '${name}' matches multiple entities: ${result.candidates?.join(
-          ', ',
-        )}. Please use the qualified name.`,
-        { line, column, type: TokenType.UNKNOWN, value: '' } as Token,
-        DiagnosticCode.SEMANTIC_AMBIGUOUS_ENTITY,
-      )
-    }
-
-    // Silent registration of implicit entities
-
-    return result.fqn
-  }
-
-  /**
-   * Adds a relationship to the IR using a pre-resolved relationship type.
-   * Useful for inferred relationships from attributes/methods.
-   */
-  public addResolvedRelationship(
-    fromFQN: string,
-    toFQN: string,
-    type: IRRelationshipType,
-    meta: {
-      line?: number
-      column?: number
-      label?: string
-      toMultiplicity?: string
-      fromMultiplicity?: string
-      visibility?: IRVisibility
-      associationClassId?: string
-      isNavigable?: boolean
-      constraintGroupId?: string
-      constraints?: IRConstraint[]
-      originalTarget?: string
-      toName?: string
-      fromName?: string
-    },
-  ): void {
-    const fromEntity = this.symbolTable.get(fromFQN)
-    const toEntity = this.symbolTable.get(toFQN)
-
-    if (fromEntity != null && toEntity != null) {
-      this.hierarchyValidator.validateRelationship(fromEntity, toEntity, type)
-      this.associationValidator.validate(fromEntity, toEntity, type)
-    }
-
-    const isValidTarget = this.associationValidator.validateTarget(
-      toFQN,
-      type,
-      this.symbolTable,
-      meta.line,
-      meta.column,
-      toFQN.split('.').pop(), // Target name from FQN
-    )
-
-    if (!isValidTarget) return
-
-    let finalLabel = meta.label
-    if (meta.originalTarget && toEntity) {
-      const bindingLabel = this.extractBindingLabel(meta.originalTarget, toEntity)
-      if (bindingLabel) {
-        finalLabel = finalLabel ? `${finalLabel}\n${bindingLabel}` : bindingLabel
-      }
-    }
-
-    const irRel: IRRelationship = {
-      from: fromFQN,
-      to: toFQN,
-      type,
-      line: meta.line,
-      column: meta.column,
-      label: finalLabel,
-      toMultiplicity: meta.toMultiplicity
-        ? this.parseMultiplicity(meta.toMultiplicity, meta.line, meta.column)
-        : undefined,
-      fromMultiplicity: meta.fromMultiplicity
-        ? this.parseMultiplicity(meta.fromMultiplicity, meta.line, meta.column)
-        : undefined,
-      toName: meta.toName,
-      fromName: meta.fromName,
-      visibility: meta.visibility || IRVisibility.PUBLIC,
-      associationClassId: meta.associationClassId,
-      isNavigable: meta.isNavigable ?? true,
-      constraints:
-        meta.constraints?.map((c) => (c.kind === 'xor' ? { ...c, kind: 'xor_member' } : c)) ||
-        (meta.constraintGroupId
-          ? [{ kind: 'xor_member', targets: [meta.constraintGroupId] }]
-          : undefined),
-    }
-
-    this.relationships.push(irRel)
-  }
-
-  /**
-   * Adds a relationship to the IR.
+   * Registers a relationship.
    */
   public addRelationship(
     fromFQN: string,
@@ -211,14 +32,21 @@ export class RelationshipAnalyzer {
     // Extract target name for length calculation
     let targetName = toFQN.split('.').pop()
     let originalTarget = ''
-    if (node != null && node.type === ASTNodeType.RELATIONSHIP) {
-      if ('to' in node) {
-        targetName = (node as RelationshipNode).to
-        originalTarget = (node as RelationshipNode).to
-      }
-      if ('target' in node) {
-        targetName = (node as RelationshipHeaderNode).target
-        originalTarget = (node as RelationshipHeaderNode).target
+    let labelFromNode: string | undefined
+
+    if (node != null) {
+      if (node.type === ASTNodeType.RELATIONSHIP) {
+        if ('to' in node) {
+          targetName = (node as RelationshipNode).to
+          originalTarget = (node as RelationshipNode).to
+        } else if ('target' in node) {
+          targetName = (node as RelationshipHeaderNode).target
+          originalTarget = (node as RelationshipHeaderNode).target
+        }
+      } else if (node.type === ASTNodeType.ATTRIBUTE) {
+        labelFromNode = (node as AttributeNode).name
+      } else if (node.type === ASTNodeType.METHOD) {
+        labelFromNode = (node as MethodNode).name
       }
     }
 
@@ -231,159 +59,82 @@ export class RelationshipAnalyzer {
       targetName,
     )
 
-    if (!isValidTarget) return // Abort
-
-    const fromEntity = this.symbolTable.get(fromFQN)
-    const toEntity = this.symbolTable.get(toFQN)
-
-    if (fromEntity != null && toEntity != null) {
-      this.hierarchyValidator.validateRelationship(fromEntity, toEntity, relType)
-      this.associationValidator.validate(fromEntity, toEntity, relType)
+    if (!isValidTarget && originalTarget) {
+      // If validation failed but we have a target name, try a global scout
+      const globalScout = Array.from(this.symbolTable.getAll().keys()).find(
+        (id) => id.endsWith(`.${originalTarget}`) || id === originalTarget,
+      )
+      if (globalScout) {
+        toFQN = globalScout
+      }
     }
 
-    let finalLabel: string | undefined
-    if (originalTarget && toEntity) {
-      finalLabel = this.extractBindingLabel(originalTarget, toEntity)
-    }
-
-    const irRel: IRRelationship = {
+    const rel: IRRelationship = {
       from: fromFQN,
       to: toFQN,
       type: relType,
       line: node?.line,
       column: node?.column,
       docs: node?.docs,
-      label: finalLabel,
-      isNavigable: (node as RelationshipNode | RelationshipHeaderNode)?.isNavigable ?? true,
-      constraints: constraintGroupId
-        ? [{ kind: 'xor_member', targets: [constraintGroupId] }]
-        : undefined,
+      label: labelFromNode || (node as any)?.label,
+      isNavigable: (node as any)?.isNavigable ?? true,
+      constraints: (node as any)?.constraints,
     }
 
-    if (node != null && 'fromMultiplicity' in node) {
-      const relNode = node as RelationshipNode
-      if (relNode.fromMultiplicity) {
-        const bounds = MultiplicityValidator.validateBounds(
-          relNode.fromMultiplicity,
-          relNode.line,
-          relNode.column,
-          this.context,
-        )
-
-        if (bounds) {
-          irRel.fromMultiplicity = {
-            lower: bounds.lower,
-            upper: bounds.upper === Infinity ? '*' : bounds.upper,
-          }
-
-          if (relType === IRRelationshipType.COMPOSITION && bounds.upper > 1) {
-            const errorToken: Token = {
-              line: relNode.line || 1,
-              column: relNode.column || 1,
-              type: TokenType.UNKNOWN,
-              value: relNode.fromMultiplicity,
-            }
-            this.context?.addError(
-              `Composition Violation: An object cannot be part of more than one composite at the same time (upper multiplicity > 1 on container end).`,
-              errorToken,
-              DiagnosticCode.SEMANTIC_COMPOSITE_VIOLATION,
-            )
-          }
-        }
-      }
-      if (relNode.toMultiplicity) {
-        irRel.toMultiplicity = this.parseMultiplicity(
-          relNode.toMultiplicity,
-          relNode.line,
-          relNode.column,
-        )
-      }
-      if (relNode.label) {
-        // If binding label exists, combine them
-        irRel.label = irRel.label ? `${relNode.label}\n${irRel.label}` : relNode.label
-      }
+    if (node?.type === ASTNodeType.RELATIONSHIP) {
+      const rNode = node as RelationshipNode
+      rel.fromMultiplicity = this.parseMultiplicity(rNode.fromMultiplicity)
+      rel.toMultiplicity = this.parseMultiplicity(rNode.toMultiplicity)
+    } else if (node?.type === ASTNodeType.ATTRIBUTE) {
+      const aNode = node as AttributeNode
+      rel.toMultiplicity = this.parseMultiplicity(aNode.multiplicity)
     }
 
-    this.relationships.push(irRel)
+    this.relationships.push(rel)
   }
 
-  private parseMultiplicity(
-    multiplicity: string,
-    line?: number,
-    column?: number,
-  ): IRMultiplicity | undefined {
-    const bounds = MultiplicityValidator.validateBounds(multiplicity, line, column, this.context)
-    if (!bounds) return undefined
+  /**
+   * Returns all registered relationships.
+   */
+  public getRelationships(): IRRelationship[] {
+    return this.relationships
+  }
+
+  private parseMultiplicity(m?: string) {
+    if (!m) return undefined
+    const parts = m.split('..')
     return {
-      lower: bounds.lower,
-      upper: bounds.upper === Infinity ? '*' : bounds.upper,
-    }
+      lower: parseInt(parts[0]) || 0,
+      upper: (parts[1] === '*' ? '*' : parseInt(parts[1])) || (parts[0] === '*' ? '*' : parseInt(parts[0])) || 1,
+    } as any
   }
 
-  private extractBindingLabel(targetStr: string, entity: IREntity): string | undefined {
-    const decomposed = TypeValidator.decomposeGeneric(targetStr)
-    if (decomposed.args.length === 0) return undefined
-
-    const params = entity.typeParameters || []
-    const mapping = decomposed.args
-      .map((arg: string, i: number) => {
-        const paramName = params[i] || `P${i + 1}`
-        if (arg === paramName) return null
-        return `${paramName} -> ${arg}`
-      })
-      .filter((m): m is string => m !== null)
-
-    if (mapping.length === 0) return undefined
-
-    return `«bind» <${mapping.join(', ')}>`
-  }
-
-  public mapRelationshipType(kind: string): IRRelationshipType {
+  private mapRelationshipType(kind: string): IRRelationshipType {
     const k = kind.toLowerCase().trim()
-
-    // Inheritance (>>)
-    if (['>>', 'extends', 'extend'].includes(k)) {
-      return IRRelationshipType.INHERITANCE
+    switch (k) {
+      case '>>':
+      case 'extends':
+      case 'extend':
+        return IRRelationshipType.INHERITANCE
+      case '>i':
+      case 'implements':
+      case 'implement':
+        return IRRelationshipType.IMPLEMENTATION
+      case '>>*':
+      case 'composite':
+        return IRRelationshipType.COMPOSITION
+      case '>>o':
+      case 'shared':
+      case 'aggregation':
+        return IRRelationshipType.AGGREGATION
+      case '>-':
+      case 'dependency':
+        return IRRelationshipType.DEPENDENCY
+      case '>u':
+      case 'usage':
+        return IRRelationshipType.USAGE
+      default:
+        return IRRelationshipType.ASSOCIATION
     }
-
-    // Implementation (>I)
-    if (['>i', 'implements', 'implement'].includes(k)) {
-      return IRRelationshipType.IMPLEMENTATION
-    }
-
-    // Composition (>*)
-    if (['>*', '>*|', 'comp', 'composition'].includes(k)) {
-      return IRRelationshipType.COMPOSITION
-    }
-
-    // Aggregation (>+)
-    // Note: The lexer token for aggregation is >+ but some legacy code might check >o.
-    // We strictly follow the DSL: >+
-    if (['>+', '>+|', 'agreg', 'aggregation'].includes(k)) {
-      return IRRelationshipType.AGGREGATION
-    }
-
-    // Association (><)
-    if (['><', 'assoc', 'association'].includes(k)) {
-      return IRRelationshipType.ASSOCIATION
-    }
-
-    // Usage/Dependency (>-, >use)
-    if (['>-', '>use', 'use', 'dependency'].includes(k)) {
-      return IRRelationshipType.DEPENDENCY
-    }
-
-    // Realization (Internal concept, typically mapped from Implements but kept for safety)
-    if (['realize', 'realizes'].includes(k)) {
-      return IRRelationshipType.REALIZATION
-    }
-
-    // Bidirectional/Undirected Association (>)
-    if (['>', '<>', 'bidir', 'bidirectional'].includes(k)) {
-      return IRRelationshipType.BIDIRECTIONAL
-    }
-
-    // Default fallback
-    return IRRelationshipType.ASSOCIATION
   }
 }
