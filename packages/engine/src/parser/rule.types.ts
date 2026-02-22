@@ -1,4 +1,4 @@
-import type { IParserHub } from './parser.hub'
+import type { IParserHub } from './core/parser.hub'
 import type { StatementNode } from '../syntax/nodes'
 
 export interface StatementRule {

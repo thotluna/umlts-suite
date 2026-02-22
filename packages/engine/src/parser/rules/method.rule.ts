@@ -1,7 +1,7 @@
 import type { Token } from '../../syntax/token.types'
 import { TokenType } from '../../syntax/token.types'
 import { ASTNodeType, type MethodNode, type TypeNode, type Modifiers } from '../../syntax/nodes'
-import type { IParserHub } from '../parser.hub'
+import type { IParserHub } from '../core/parser.hub'
 import { ParameterRule } from './parameter.rule'
 import { MemberSuffixRule, type MemberSuffix } from './member-suffix.rule'
 

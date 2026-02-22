@@ -1,6 +1,6 @@
 import { TokenType } from '../../syntax/token.types'
 import { ASTNodeType, type StatementNode } from '../../syntax/nodes'
-import type { IParserHub } from '../parser.hub'
+import type { IParserHub } from '../core/parser.hub'
 import type { StatementRule, Orchestrator } from '../rule.types'
 
 export class CommentRule implements StatementRule {

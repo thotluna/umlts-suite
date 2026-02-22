@@ -9,7 +9,7 @@ import {
 import { TypeRule } from './type.rule'
 import { ConstraintRule } from './constraint.rule'
 import { ModifierRule } from './modifier.rule'
-import type { IParserHub } from '../parser.hub'
+import type { IParserHub } from '../core/parser.hub'
 
 export interface MemberSuffix {
   typeAnnotation: TypeNode

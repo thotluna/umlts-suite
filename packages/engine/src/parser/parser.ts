@@ -3,7 +3,7 @@ import { ASTNodeType } from '../syntax/nodes'
 import type { ProgramNode, StatementNode } from '../syntax/nodes'
 import { ParserContext } from './parser.context'
 import { DiagnosticReporter } from './diagnostic-reporter'
-import type { IParserHub } from './parser.hub'
+import type { IParserHub } from './core/parser.hub'
 import type { StatementRule, Orchestrator } from './rule.types'
 
 /**

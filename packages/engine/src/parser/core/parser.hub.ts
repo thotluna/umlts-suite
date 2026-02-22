@@ -1,5 +1,5 @@
-import type { TokenType, Token } from '../syntax/token.types'
-import type { Diagnostic, DiagnosticCode } from '../syntax/diagnostic.types'
+import type { TokenType, Token } from '../../syntax/token.types'
+import type { Diagnostic, DiagnosticCode } from '../../syntax/diagnostic.types'
 
 /**
  * IParserHub: Interfaz de fachada que expone los servicios del parser a las reglas.

@@ -3,7 +3,7 @@ import type { Diagnostic, DiagnosticCode } from '../syntax/diagnostic.types'
 import { TokenStream } from './token-stream'
 import { DiagnosticReporter } from './diagnostic-reporter'
 import { DocRegistry } from './doc-registry'
-import { IParserHub } from './parser.hub'
+import { IParserHub } from './core/parser.hub'
 
 /**
  * ParserContext: Fachada (Facade) que coordina los subsistemas del parser.
