@@ -1,24 +1,32 @@
-import type { IMemberProvider } from './member-strategy.interface'
+import type { IMemberProvider } from '../../core/member-provider.interface'
 import { DocCommentProvider } from './providers/doc-comment.provider'
 import { CommentProvider } from './providers/comment.provider'
 import { ConstraintMemberProvider } from './providers/constraint.provider'
 import { NoteMemberProvider } from './providers/note.provider'
 import { FeatureMemberProvider } from './providers/feature.provider'
 
+/**
+ * MemberRegistry: Gestiona el registro de proveedores de estrategias para miembros.
+ * Ya no es estático para permitir diferentes configuraciones por instancia de Parser.
+ */
 export class MemberRegistry {
-  private static readonly providers: IMemberProvider[] = [
-    new DocCommentProvider(),
-    new CommentProvider(),
-    new ConstraintMemberProvider(),
-    new NoteMemberProvider(),
-    new FeatureMemberProvider(),
-  ]
+  private readonly providers: IMemberProvider[]
 
-  public static getProviders(): IMemberProvider[] {
+  constructor(initialProviders?: IMemberProvider[]) {
+    this.providers = initialProviders ?? [
+      new DocCommentProvider(),
+      new CommentProvider(),
+      new ConstraintMemberProvider(),
+      new NoteMemberProvider(),
+      new FeatureMemberProvider(),
+    ]
+  }
+
+  public getProviders(): IMemberProvider[] {
     return [...this.providers]
   }
 
-  public static registerProvider(provider: IMemberProvider): void {
+  public registerProvider(provider: IMemberProvider): void {
     this.providers.unshift(provider)
   }
 }

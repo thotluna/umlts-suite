@@ -2,7 +2,7 @@ import { TokenType } from '../../../../syntax/token.types'
 import type { MemberNode } from '../../../../syntax/nodes'
 import type { IParserHub } from '../../../core/parser.hub'
 import { ConstraintRule } from '../../constraint.rule'
-import type { IMemberProvider } from '../member-strategy.interface'
+import type { IMemberProvider } from '../../../core/member-provider.interface'
 
 export class ConstraintMemberProvider implements IMemberProvider {
   canHandle(context: IParserHub): boolean {

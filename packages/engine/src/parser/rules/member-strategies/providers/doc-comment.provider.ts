@@ -1,6 +1,6 @@
 import { TokenType } from '../../../../syntax/token.types'
 import type { IParserHub } from '../../../core/parser.hub'
-import type { IMemberProvider } from '../member-strategy.interface'
+import type { IMemberProvider } from '../../../core/member-provider.interface'
 import type { MemberNode } from '../../../../syntax/nodes'
 
 export class DocCommentProvider implements IMemberProvider {

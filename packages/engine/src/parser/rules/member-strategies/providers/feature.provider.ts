@@ -4,7 +4,7 @@ import type { IParserHub } from '../../../core/parser.hub'
 import { AttributeRule } from '../../attribute.rule'
 import { MethodRule } from '../../method.rule'
 import { ModifierRule } from '../../modifier.rule'
-import type { IMemberProvider } from '../member-strategy.interface'
+import type { IMemberProvider } from '../../../core/member-provider.interface'
 
 export class FeatureMemberProvider implements IMemberProvider {
   private readonly attributeRule = new AttributeRule()
