@@ -191,4 +191,4 @@ xor {
 
 ---
 
-_Esta guía resume la nomenclatura de UMLTS v0.8. Para detalles técnicos del compilador, consulta `especificación_tecnica.md`._
+_Esta guía resume la nomenclatura de UMLTS v0.8. Para detalles sobre la arquitectura del motor y el pipeline, consulta `arquitectura.md`._
