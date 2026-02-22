@@ -54,7 +54,6 @@ export class MemberSuffixRule {
       }
       context.consume(TokenType.RBRACKET, "Expected ']'")
       multiplicity = rawMultiplicity || '[]' // Normalizado para el validador
-      typeAnnotation.raw += '[' + rawMultiplicity + ']'
     }
 
     // 3. Relación Post-Tipo (opcional): Type >+ "label"

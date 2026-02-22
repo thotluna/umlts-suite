@@ -24,19 +24,11 @@ export class AssociationValidator {
     }
 
     // 1. RULE: Composition/Aggregation Source Type
-    // Only Classes can be the 'Whole' in a strong structural relationship.
+    // Only Classes and Interfaces can be the 'Whole' in a strong structural relationship.
     if (type === IRRelationshipType.COMPOSITION || type === IRRelationshipType.AGGREGATION) {
       if (from.type === IREntityType.ENUMERATION) {
         this.context.addError(
           `Association Violation: An Enum ('${from.name}') cannot be the aggregate/whole in a ${type} relationship.`,
-          errorToken,
-          DiagnosticCode.SEMANTIC_INVALID_TYPE,
-        )
-      }
-
-      if (type === IRRelationshipType.COMPOSITION && from.type === IREntityType.INTERFACE) {
-        this.context.addError(
-          `Association Violation: An Interface ('${from.name}') cannot physically own parts (Composition). Change to Association or use a Class.`,
           errorToken,
           DiagnosticCode.SEMANTIC_INVALID_TYPE,
         )
