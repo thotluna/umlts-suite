@@ -16,7 +16,7 @@ export class SemanticPhase implements CompilerPhase {
   public run(context: CompilerContext, artifacts: PipelineArtifacts): void {
     if (!artifacts.ast) return
     const reporter = new DiagnosticReporter()
-    const parserContext = new ParserContext(artifacts.tokens, reporter, context.plugin)
+    const parserContext = new ParserContext(artifacts.tokens, reporter)
     artifacts.diagram = this.analyzer.analyze(artifacts.ast, parserContext)
     context.addDiagnostics(reporter.getDiagnostics())
   }

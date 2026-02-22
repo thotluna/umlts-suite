@@ -1,40 +1,39 @@
 import { TokenType } from '../../syntax/token.types'
-import type {
-  StatementNode,
-  RelationshipNode,
-  ConstraintNode,
-  MemberNode,
+import {
+  ASTNodeType,
+  type RelationshipNode,
+  type StatementNode,
+  type ConstraintNode,
+  type MemberNode,
 } from '../../syntax/nodes'
-import { ASTNodeType } from '../../syntax/nodes'
-import type { ParserContext } from '../parser.context'
-import type { StatementRule, Orchestrator } from '../rule.types'
-import { ConstraintRule } from './constraint.rule'
-import { MemberRule } from './member.rule'
+import type { IParserHub } from '../parser.hub'
+import type { StatementRule } from '../rule.types'
 import { ModifierRule } from './modifier.rule'
+import { MemberRule } from './member.rule'
+import { ConstraintRule } from './constraint.rule'
 
 export class RelationshipRule implements StatementRule {
   private readonly memberRule = new MemberRule()
 
-  public canStart(context: ParserContext): boolean {
-    return (
-      context.check(TokenType.IDENTIFIER) ||
-      context.checkAny(
-        TokenType.MOD_ABSTRACT,
-        TokenType.KW_ABSTRACT,
-        TokenType.MOD_STATIC,
-        TokenType.KW_STATIC,
-        TokenType.MOD_ACTIVE,
-        TokenType.KW_ACTIVE,
-        TokenType.MOD_LEAF,
-        TokenType.KW_LEAF,
-        TokenType.KW_FINAL,
-        TokenType.MOD_ROOT,
-        TokenType.KW_ROOT,
-      )
+  public canStart(context: IParserHub): boolean {
+    return context.checkAny(
+      TokenType.IDENTIFIER,
+      TokenType.LBRACKET,
+      TokenType.MOD_ABSTRACT,
+      TokenType.KW_ABSTRACT,
+      TokenType.MOD_STATIC,
+      TokenType.KW_STATIC,
+      TokenType.MOD_ACTIVE,
+      TokenType.KW_ACTIVE,
+      TokenType.MOD_LEAF,
+      TokenType.KW_LEAF,
+      TokenType.KW_FINAL,
+      TokenType.MOD_ROOT,
+      TokenType.KW_ROOT,
     )
   }
 
-  public parse(context: ParserContext, _orchestrator: Orchestrator): StatementNode[] {
+  public parse(context: IParserHub): StatementNode[] {
     const pos = context.getPosition()
 
     try {
@@ -216,7 +215,7 @@ export class RelationshipRule implements StatementRule {
     ].includes(type)
   }
 
-  private parseMultiplicity(context: ParserContext): string {
+  private parseMultiplicity(context: IParserHub): string {
     context.consume(TokenType.LBRACKET, '')
     let value = ''
     while (!context.check(TokenType.RBRACKET) && !context.isAtEnd()) {

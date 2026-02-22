@@ -1,13 +1,13 @@
 import { TypeRegistry } from './type-strategies/type.registry'
 import type { TypeNode } from '../../syntax/nodes'
-import type { ParserContext } from '../parser.context'
+import type { IParserHub } from '../parser.hub'
 
 export class TypeRule {
   /**
    * Parsea un tipo UMLTS (puede ser simple, FQN, genérico o array).
    * Devuelve un objeto estructurado TypeNode utilizando estrategias extensibles.
    */
-  public parse(context: ParserContext): TypeNode {
+  public parse(context: IParserHub): TypeNode {
     let baseNode: TypeNode | undefined
 
     // 1. Encontrar proveedor primario (Identificador, xor, etc)

@@ -1,15 +1,15 @@
-import type { ParserContext } from '../../parser.context'
+import type { IParserHub } from '../../parser.hub'
 import type { TypeNode } from '../../../syntax/nodes'
 import type { TypeRule } from '../type.rule'
 
 export interface ITypeStrategy {
-  canHandle(context: ParserContext): boolean
+  canHandle(context: IParserHub): boolean
 }
 
 export interface IPrimaryTypeProvider extends ITypeStrategy {
-  parse(context: ParserContext, typeRule: TypeRule): TypeNode
+  parse(context: IParserHub, typeRule: TypeRule): TypeNode
 }
 
 export interface ITypeModifierProvider extends ITypeStrategy {
-  apply(context: ParserContext, baseNode: TypeNode, typeRule: TypeRule): TypeNode
+  apply(context: IParserHub, baseNode: TypeNode, typeRule: TypeRule): TypeNode
 }
