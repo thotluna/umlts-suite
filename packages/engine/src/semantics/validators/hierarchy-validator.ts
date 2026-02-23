@@ -4,7 +4,7 @@ import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
 import type { SymbolTable } from '@engine/semantics/symbol-table'
 import { TokenType } from '@engine/syntax/token.types'
 import type { Token } from '@engine/syntax/token.types'
-import type { ParserContext } from '@engine/parser/parser.context'
+import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
 
 /**
  * Validator for hierarchy-related rules (cycles, inheritance consistency).
@@ -12,7 +12,7 @@ import type { ParserContext } from '@engine/parser/parser.context'
 export class HierarchyValidator {
   constructor(
     private readonly symbolTable: SymbolTable,
-    private readonly context: ParserContext,
+    private readonly context: ISemanticContext,
   ) {}
 
   /**

@@ -387,9 +387,9 @@
 ## Refactorización de Semántica (V3 - SaaS Ready)
 
 - [x] **Phase 0**: Migrar infraestructura compartida (`DiagnosticReporter`) a `src/core` <!-- id: 400 -->
-- [ ] **Phase 0.5**: Cimentación de Infraestructura Semántica <!-- id: 401 -->
-  - [ ] Implementar `ISemanticContext` e `IRFactory`
-  - [ ] Implementar `ValidationEngine` base y Registro de Reglas
+- [x] **Phase 0.5**: Cimentación de Infraestructura Semántica <!-- id: 401 -->
+  - [x] Implementar `ISemanticContext` e `IRFactory`
+  - [x] Implementar `ValidationEngine` base y Registro de Reglas
 - [ ] **Phase 1**: Desacoplamiento Total del Parser <!-- id: 402 -->
   - [ ] Migrar `SemanticAnalyzer` para usar `ISemanticContext`
   - [ ] Eliminar toda dependencia de `@engine/parser` en el paquete de semántica
