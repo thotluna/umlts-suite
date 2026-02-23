@@ -41,7 +41,7 @@ package syntax {
       CONSTRAINT | NOTE | ANCHOR
     )
 
-    interface *ASTNode {
+    interface ASTNode {
       type: >- ASTNodeType
       line: number
       column: number
@@ -62,7 +62,7 @@ package syntax {
     }
 
     /* Base for all nodes that can be in a package or program */
-    interface *StatementNode >> ASTNode
+    interface StatementNode >> ASTNode
 
     interface NoteNode >> StatementNode {
       value: string
@@ -104,7 +104,7 @@ package syntax {
     }
 
     /* Base for all members of an entity */
-    interface *MemberNode >> ASTNode
+    interface MemberNode >> ASTNode
 
     interface AttributeNode >> MemberNode {
       name: string
