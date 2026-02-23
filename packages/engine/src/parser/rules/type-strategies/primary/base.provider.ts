@@ -1,11 +1,9 @@
 import { TokenType } from '../../../../syntax/token.types'
-import { ASTNodeType, type TypeNode } from '../../../../syntax/nodes'
+import { type TypeNode } from '../../../../syntax/nodes'
 import type { IParserHub } from '../../../core/parser.hub'
 import type { TypeRule } from '../../type.rule'
-import type {
-  IPrimaryTypeProvider,
-  ITypeModifierProvider,
-} from '../../../core/type-provider.interface'
+import type { IPrimaryTypeProvider } from '../../../core/type-provider.interface'
+import { ASTFactory } from '../../../factory/ast.factory'
 
 export class BaseTypeProvider implements IPrimaryTypeProvider {
   canHandle(context: IParserHub): boolean {
@@ -23,13 +21,6 @@ export class BaseTypeProvider implements IPrimaryTypeProvider {
       name = raw
     }
 
-    return {
-      type: ASTNodeType.TYPE,
-      kind: 'simple',
-      name,
-      raw,
-      line: token.line,
-      column: token.column,
-    }
+    return ASTFactory.createType(name, 'simple', raw, token.line, token.column)
   }
 }

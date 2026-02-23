@@ -5,6 +5,8 @@ import type { IParserHub } from '../core/parser.hub'
 import type { StatementRule, Orchestrator } from '../rule.types'
 import { ModifierRule } from './modifier.rule'
 
+import { ASTFactory } from '../factory/ast.factory'
+
 /**
  * EnumRule: Regla especializada para el parseo de enumeraciones.
  * Soporta tanto la sintaxis en línea como de bloque.
@@ -50,16 +52,16 @@ export class EnumRule implements StatementRule {
     if (context.match(TokenType.LPAREN)) {
       const body = this.parseInlineBody(context)
       return [
-        {
-          type: ASTNodeType.ENUM,
-          name: nameToken.value,
+        ASTFactory.createEntity(
+          ASTNodeType.ENUM,
+          nameToken.value,
           modifiers,
-          docs,
+          [],
           body,
-          relationships: [],
-          line: keywordToken.line,
-          column: keywordToken.column,
-        },
+          keywordToken.line,
+          keywordToken.column,
+          docs,
+        ),
       ]
     }
 
@@ -80,16 +82,16 @@ export class EnumRule implements StatementRule {
     }
 
     return [
-      {
-        type: ASTNodeType.ENUM,
-        name: nameToken.value,
+      ASTFactory.createEntity(
+        ASTNodeType.ENUM,
+        nameToken.value,
         modifiers,
-        docs,
+        [],
         body,
-        relationships: [],
-        line: keywordToken.line,
-        column: keywordToken.column,
-      },
+        keywordToken.line,
+        keywordToken.column,
+        docs,
+      ),
     ]
   }
 
@@ -117,12 +119,7 @@ export class EnumRule implements StatementRule {
 
     if (context.check(TokenType.COMMENT)) {
       const token = context.advance()
-      return {
-        type: ASTNodeType.COMMENT,
-        value: token.value,
-        line: token.line,
-        column: token.column,
-      }
+      return ASTFactory.createComment(token.value, token.line, token.column)
     }
 
     const next = context.peek()
@@ -138,25 +135,17 @@ export class EnumRule implements StatementRule {
   }
 
   private createEnumLiteral(token: { value: string; line: number; column: number }): MemberNode {
-    return {
-      type: ASTNodeType.ATTRIBUTE,
-      name: token.value,
-      visibility: 'public',
-      modifiers: {
+    return ASTFactory.createAttribute(
+      token.value,
+      'public',
+      ASTFactory.createType('Object', 'simple', 'Object', token.line, token.column),
+      {
         isStatic: true,
         isLeaf: false,
         isFinal: false,
       },
-      typeAnnotation: {
-        type: ASTNodeType.TYPE,
-        kind: 'simple',
-        name: 'Object',
-        raw: 'Object',
-        line: token.line,
-        column: token.column,
-      },
-      line: token.line,
-      column: token.column,
-    } as MemberNode
+      token.line,
+      token.column,
+    )
   }
 }

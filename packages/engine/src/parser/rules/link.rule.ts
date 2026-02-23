@@ -1,7 +1,8 @@
 import { TokenType } from '../../syntax/token.types'
-import { ASTNodeType, type StatementNode } from '../../syntax/nodes'
+import { type StatementNode } from '../../syntax/nodes'
 import type { IParserHub } from '../core/parser.hub'
 import type { StatementRule, Orchestrator } from '../rule.types'
+import { ASTFactory } from '../factory/ast.factory'
 
 export class LinkRule implements StatementRule {
   public canStart(context: IParserHub): boolean {
@@ -28,14 +29,6 @@ export class LinkRule implements StatementRule {
       targets.push(target)
     } while (context.match(TokenType.COMMA))
 
-    return [
-      {
-        type: ASTNodeType.ANCHOR,
-        from,
-        to: targets,
-        line: fromToken.line,
-        column: fromToken.column,
-      },
-    ]
+    return [ASTFactory.createAnchor(from, targets, fromToken.line, fromToken.column)]
   }
 }

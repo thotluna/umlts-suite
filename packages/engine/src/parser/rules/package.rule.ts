@@ -1,7 +1,9 @@
 import { TokenType } from '../../syntax/token.types'
-import { ASTNodeType, type StatementNode } from '../../syntax/nodes'
+import { type StatementNode } from '../../syntax/nodes'
 import type { IParserHub } from '../core/parser.hub'
 import type { StatementRule, Orchestrator } from '../rule.types'
+
+import { ASTFactory } from '../factory/ast.factory'
 
 export class PackageRule implements StatementRule {
   public canStart(context: IParserHub): boolean {
@@ -14,6 +16,8 @@ export class PackageRule implements StatementRule {
     const startToken = context.consume(TokenType.KW_PACKAGE, "Expected 'package'")
     // Si falta el nombre, registramos el error pero seguimos adelante con un placeholder
     const nameToken = context.softConsume(TokenType.IDENTIFIER, 'Package name expected')
+
+    const docs = context.consumePendingDocs()
 
     // Si falta la llave, registramos el error. Si no está, el bucle de abajo probablemente no se ejecute
     // o se recupere en el siguiente token válido.
@@ -40,13 +44,7 @@ export class PackageRule implements StatementRule {
     }
 
     return [
-      {
-        type: ASTNodeType.PACKAGE,
-        name: nameToken.value,
-        body,
-        line: startToken.line,
-        column: startToken.column,
-      },
+      ASTFactory.createPackage(nameToken.value, body, startToken.line, startToken.column, docs),
     ]
   }
 }

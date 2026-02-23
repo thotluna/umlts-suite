@@ -1,11 +1,9 @@
 import { TokenType } from '../../../../syntax/token.types'
-import { ASTNodeType, type TypeNode } from '../../../../syntax/nodes'
+import { type TypeNode } from '../../../../syntax/nodes'
 import type { IParserHub } from '../../../core/parser.hub'
 import type { TypeRule } from '../../type.rule'
-import type {
-  IPrimaryTypeProvider,
-  ITypeModifierProvider,
-} from '../../../core/type-provider.interface'
+import type { IPrimaryTypeProvider } from '../../../core/type-provider.interface'
+import { ASTFactory } from '../../../factory/ast.factory'
 
 export class XorTypeProvider implements IPrimaryTypeProvider {
   canHandle(context: IParserHub): boolean {
@@ -29,14 +27,8 @@ export class XorTypeProvider implements IPrimaryTypeProvider {
 
     raw += context.consume(TokenType.RBRACE, "Expected '}' after xor types").value
 
-    return {
-      type: ASTNodeType.TYPE,
-      kind: 'xor',
-      name: 'xor',
-      raw,
+    return ASTFactory.createType('xor', 'xor', raw, startToken.line, startToken.column, {
       arguments: args,
-      line: startToken.line,
-      column: startToken.column,
-    }
+    })
   }
 }

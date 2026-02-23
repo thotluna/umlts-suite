@@ -1,6 +1,5 @@
 import { TokenType } from '../../syntax/token.types'
 import {
-  ASTNodeType,
   type RelationshipNode,
   type StatementNode,
   type ConstraintNode,
@@ -11,6 +10,7 @@ import type { StatementRule } from '../rule.types'
 import { ModifierRule } from './modifier.rule'
 import { MemberRule } from './member.rule'
 import { ConstraintRule } from './constraint.rule'
+import { ASTFactory } from '../factory/ast.factory'
 
 export class RelationshipRule implements StatementRule {
   private readonly memberRule = new MemberRule()
@@ -113,12 +113,8 @@ export class RelationshipRule implements StatementRule {
 
             // Comentarios
             if (context.match(TokenType.COMMENT)) {
-              body.push({
-                type: ASTNodeType.COMMENT,
-                value: context.prev().value,
-                line: context.prev().line,
-                column: context.prev().column,
-              })
+              const token = context.prev()
+              body.push(ASTFactory.createComment(token.value, token.line, token.column))
               continue
             }
 
@@ -152,22 +148,26 @@ export class RelationshipRule implements StatementRule {
           context.consume(TokenType.RBRACE, "Expected '}' at end of relationship block")
         }
 
-        relationships.push({
-          type: ASTNodeType.RELATIONSHIP,
-          from,
-          fromModifiers,
-          fromMultiplicity,
-          to,
-          toModifiers,
-          toMultiplicity,
-          kind,
-          isNavigable,
-          label,
-          constraints: constraints.length > 0 ? constraints : undefined,
-          docs: context.consumePendingDocs(),
-          line: fromToken.line,
-          column: fromToken.column,
-        })
+        relationships.push(
+          ASTFactory.createRelationship(
+            kind,
+            from,
+            to,
+            isNavigable,
+            fromToken.line,
+            fromToken.column,
+            {
+              fromModifiers,
+              fromMultiplicity,
+              toModifiers,
+              toMultiplicity,
+              label,
+              constraints: constraints.length > 0 ? constraints : undefined,
+              body: body.length > 0 ? body : undefined,
+              docs: context.consumePendingDocs(),
+            },
+          ),
+        )
 
         // Para el encadenamiento, el destino actual es el origen del siguiente
         from = to

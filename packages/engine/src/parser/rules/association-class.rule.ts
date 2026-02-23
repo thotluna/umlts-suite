@@ -1,11 +1,12 @@
 import { TokenType } from '../../syntax/token.types'
-import { ASTNodeType } from '../../syntax/nodes'
-import type { AssociationClassNode, MemberNode, StatementNode } from '../../syntax/nodes'
+import { type AssociationClassNode, type MemberNode, type StatementNode } from '../../syntax/nodes'
 import type { IParserHub } from '../core/parser.hub'
 import type { StatementRule, Orchestrator } from '../rule.types'
 import { ModifierRule } from './modifier.rule'
 import { RelationshipHeaderRule } from './relationship-header.rule'
 import { MemberRule } from './member.rule'
+
+import { ASTFactory } from '../factory/ast.factory'
 
 /**
  * AssociationClassRule: Regla para parsear Clases de Asociación.
@@ -46,6 +47,8 @@ export class AssociationClassRule implements StatementRule {
       context.rollback(pos)
       return []
     }
+
+    const docs = context.consumePendingDocs()
 
     context.softConsume(TokenType.LPAREN, "Expected '(' after '<>' in association class")
     const participants: AssociationClassNode['participants'] = []
@@ -89,15 +92,14 @@ export class AssociationClassRule implements StatementRule {
     }
 
     return [
-      {
-        type: ASTNodeType.ASSOCIATION_CLASS,
-        name: nameToken.value,
+      ASTFactory.createAssociationClass(
+        nameToken.value,
         participants,
+        keywordToken.line,
+        keywordToken.column,
         body,
-        line: keywordToken.line,
-        column: keywordToken.column,
-        docs: context.consumePendingDocs(),
-      } as AssociationClassNode,
+        docs,
+      ),
     ]
   }
 }
