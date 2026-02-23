@@ -49,7 +49,7 @@ describe('TypeInferrer', () => {
 
     // Let's manually clearing rules to test undefined behavior
     const emptyInferrer = new TypeInferrer()
-    const result = emptyInferrer.infer(IREntityType.CLASS, IRRelationshipType.Dependency)
+    const result = emptyInferrer.infer(IREntityType.CLASS, IRRelationshipType.DEPENDENCY)
     expect(result).toBeUndefined()
   })
 })

@@ -3,7 +3,10 @@ import { LexerFactory } from '@engine/lexer/lexer.factory'
 import { ParserFactory } from '@engine/parser/parser.factory'
 import { SemanticAnalyzer } from '@engine/semantics/analyzer'
 import { ParserContext } from '@engine/parser/parser.context'
-import { DiagnosticReporter } from '@engine/parser/diagnostic-reporter'
+import { DiagnosticReporter } from '@engine/core/diagnostics/diagnostic-reporter'
+import type { IREntity, IRRelationship } from '@engine/generator/ir/models'
+import { MemberRegistry } from '@engine/parser/rules/member-strategies/member.registry'
+import { TypeRegistry } from '@engine/parser/rules/type-strategies/type.registry'
 
 describe('Constraint Semantics', () => {
   it('should process standalone XOR blocks', () => {
@@ -22,7 +25,9 @@ describe('Constraint Semantics', () => {
 
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const members = new MemberRegistry()
+    const types = new TypeRegistry()
+    const context = new ParserContext(tokens, reporter, members, types)
     const ir = analyzer.analyze(ast, context)
 
     // Should have 1 global XOR constraint
@@ -32,7 +37,7 @@ describe('Constraint Semantics', () => {
     // Relationships should have internal XOR markers
     const groupName = ir.constraints[0].targets[0]
     expect(ir.relationships).toHaveLength(2)
-    ir.relationships.forEach((rel) => {
+    ir.relationships.forEach((rel: IRRelationship) => {
       expect(rel.constraints).toBeDefined()
       expect(rel.constraints![0].kind).toBe('xor_member')
       expect(rel.constraints![0].targets).toContain(groupName)
@@ -53,18 +58,21 @@ describe('Constraint Semantics', () => {
 
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const members = new MemberRegistry()
+    const types = new TypeRegistry()
+    const context = new ParserContext(tokens, reporter, members, types)
     const ir = analyzer.analyze(ast, context)
 
     // Check entities
-    const engine = ir.entities.find((e) => e.name === 'Engine')
+    const engine: IREntity | undefined = ir.entities.find((e: IREntity) => e.name === 'Engine')
+    expect(engine).toBeDefined()
     expect(engine!.properties[0].constraints).toHaveLength(1)
     expect(engine!.properties[0].constraints![0].kind).toBe('xor')
     expect(engine!.properties[0].constraints![0].targets).toContain('g1')
 
     // Check inferred relationships
     expect(ir.relationships).toHaveLength(2)
-    ir.relationships.forEach((rel) => {
+    ir.relationships.forEach((rel: IRRelationship) => {
       expect(rel.constraints).toHaveLength(1)
       expect(rel.constraints![0].kind).toBe('xor_member')
       expect(rel.constraints![0].targets).toContain('g1')

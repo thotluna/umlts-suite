@@ -1,7 +1,7 @@
 import { TokenType, type Token } from '@engine/syntax/token.types'
 import type { Diagnostic, DiagnosticCode } from '@engine/syntax/diagnostic.types'
 import { TokenStream } from '@engine/parser/token-stream'
-import { DiagnosticReporter } from '@engine/parser/diagnostic-reporter'
+import { DiagnosticReporter } from '@engine/core/diagnostics/diagnostic-reporter'
 import { ParserSession } from '@engine/parser/core/parser.session'
 import { IParserHub } from '@engine/parser/core/parser.hub'
 import type { MemberRegistry } from '@engine/parser/rules/member-strategies/member.registry'

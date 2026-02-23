@@ -6,7 +6,7 @@ import {
   type AttributeNode,
   type MethodNode,
   type RelationshipNode,
-} from '@engine/parser/ast/nodes'
+} from '@engine/syntax/nodes'
 
 describe('Relationship Navigability', () => {
   it('should parse composition operators with default and explicit navigability', () => {

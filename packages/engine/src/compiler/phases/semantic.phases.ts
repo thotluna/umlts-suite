@@ -1,5 +1,5 @@
 import { ParserContext } from '@engine/parser/parser.context'
-import { DiagnosticReporter } from '@engine/parser/diagnostic-reporter'
+import { DiagnosticReporter } from '@engine/core/diagnostics/diagnostic-reporter'
 import type { CompilerContext } from '@engine/compiler/phases/context'
 import type { PipelineArtifacts } from '@engine/compiler/phases/pipeline-artifacts'
 import type { CompilerPhase } from '@engine/compiler/phases/types'

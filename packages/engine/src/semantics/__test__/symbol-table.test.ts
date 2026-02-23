@@ -5,7 +5,7 @@ import { IREntityType, type IREntity } from '@engine/generator/ir/models'
 describe('SymbolTable', () => {
   it('should register and retrieve entities', () => {
     const table = new SymbolTable()
-    const entity: IREntity = {
+    const entity = {
       id: 'pkg.A',
       name: 'A',
       type: IREntityType.CLASS,
@@ -14,9 +14,12 @@ describe('SymbolTable', () => {
       isStatic: false,
       isActive: false,
       line: 1,
-      column: 1,
-      members: [],
-    }
+      properties: [],
+      operations: [],
+      isLeaf: false,
+      isFinal: false,
+      isRoot: false,
+    } as unknown as IREntity
 
     table.register(entity)
     expect(table.get('pkg.A')).toBe(entity)
@@ -34,7 +37,7 @@ describe('SymbolTable', () => {
       isActive: false,
       line: 1,
       column: 1,
-      members: [],
+      properties: [],
     }
 
     const implicit: IREntity = { ...base, id: 'A', isImplicit: true } as IREntity
@@ -53,7 +56,7 @@ describe('SymbolTable', () => {
   describe('resolveFQN', () => {
     it('should resolve absolute FQN', () => {
       const table = new SymbolTable()
-      const entity: IREntity = {
+      const entity = {
         id: 'pkg.A',
         name: 'A',
         type: IREntityType.CLASS,
@@ -63,8 +66,8 @@ describe('SymbolTable', () => {
         isActive: false,
         line: 1,
         column: 1,
-        members: [],
-      }
+        properties: [],
+      } as unknown as IREntity
       table.register(entity)
 
       expect(table.resolveFQN('pkg.A').fqn).toBe('pkg.A')
@@ -72,7 +75,7 @@ describe('SymbolTable', () => {
 
     it('should resolve hierarchical names', () => {
       const table = new SymbolTable()
-      const entity: IREntity = {
+      const entity = {
         id: 'com.app.User',
         name: 'User',
         type: IREntityType.CLASS,
@@ -82,8 +85,8 @@ describe('SymbolTable', () => {
         isActive: false,
         line: 1,
         column: 1,
-        members: [],
-      }
+        properties: [],
+      } as unknown as IREntity
       table.register(entity)
 
       expect(table.resolveFQN('User', 'com.app').fqn).toBe('com.app.User')
@@ -94,7 +97,7 @@ describe('SymbolTable', () => {
 
     it('should resolve deep global matches (Global Scout)', () => {
       const table = new SymbolTable()
-      const entity: IREntity = {
+      const entity = {
         id: 'semantics.analyzers.EntityAnalyzer',
         name: 'EntityAnalyzer',
         type: IREntityType.CLASS,
@@ -104,8 +107,8 @@ describe('SymbolTable', () => {
         isActive: false,
         line: 1,
         column: 1,
-        members: [],
-      }
+        properties: [],
+      } as unknown as IREntity
       table.register(entity)
 
       // Should find it even if we are at a different namespace level

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { UMLEngine } from '@engine/index'
-import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
+import { DiagnosticCode, type Diagnostic } from '@engine/syntax/diagnostic.types'
 
 describe('Multiplicity and Composite Rules', () => {
   const engine = new UMLEngine()
@@ -14,7 +14,7 @@ describe('Multiplicity and Composite Rules', () => {
     const { diagnostics } = engine.parse(code)
 
     const errors = diagnostics.filter(
-      (d) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY,
+      (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY,
     )
     expect(errors.length).toBe(1)
     expect(errors[0].message).toContain('Inconsistent multiplicity')
@@ -29,7 +29,7 @@ describe('Multiplicity and Composite Rules', () => {
     const { diagnostics } = engine.parse(code)
 
     const errors = diagnostics.filter(
-      (d) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY,
+      (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY,
     )
     expect(errors.length).toBe(1)
     expect(errors[0].message).toContain('Inconsistent multiplicity')
@@ -69,7 +69,7 @@ describe('Multiplicity and Composite Rules', () => {
     const { diagnostics } = engine.parse(code)
 
     const errors = diagnostics.filter(
-      (d) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY,
+      (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY,
     )
     expect(errors.length).toBe(0)
   })
@@ -83,7 +83,7 @@ describe('Multiplicity and Composite Rules', () => {
     const { diagnostics } = engine.parse(code)
 
     const errors = diagnostics.filter(
-      (d) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY,
+      (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY,
     )
     expect(errors.length).toBe(1)
     expect(errors[0].message).toContain('Invalid multiplicity format')
@@ -98,7 +98,7 @@ describe('Multiplicity and Composite Rules', () => {
     `
     const { diagnostics } = engine.parse(code)
     const errors = diagnostics.filter(
-      (d) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY,
+      (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY,
     )
     expect(errors.length).toBe(0)
   })
@@ -109,7 +109,8 @@ describe('Multiplicity and Composite Rules', () => {
     `
     const { diagnostics } = engine.parse(code)
     expect(
-      diagnostics.filter((d) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY).length,
+      diagnostics.filter((d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY)
+        .length,
     ).toBe(0)
   })
 
@@ -121,7 +122,7 @@ describe('Multiplicity and Composite Rules', () => {
     `
     const { diagnostics } = engine.parse(code)
     const errors = diagnostics.filter(
-      (d) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY,
+      (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY,
     )
     expect(errors.length).toBe(1)
   })
@@ -135,7 +136,8 @@ describe('Multiplicity and Composite Rules', () => {
     `
     const { diagnostics } = engine.parse(code)
     expect(
-      diagnostics.filter((d) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY).length,
+      diagnostics.filter((d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY)
+        .length,
     ).toBe(0)
   })
 
@@ -147,7 +149,8 @@ describe('Multiplicity and Composite Rules', () => {
     `
     const { diagnostics } = engine.parse(code)
     expect(
-      diagnostics.filter((d) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY).length,
+      diagnostics.filter((d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY)
+        .length,
     ).toBe(0)
   })
 
@@ -157,7 +160,8 @@ describe('Multiplicity and Composite Rules', () => {
     `
     const { diagnostics } = engine.parse(code)
     expect(
-      diagnostics.filter((d) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY).length,
+      diagnostics.filter((d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_INVALID_MULTIPLICITY)
+        .length,
     ).toBe(0)
   })
 })
