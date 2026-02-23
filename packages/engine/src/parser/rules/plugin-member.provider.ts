@@ -2,6 +2,7 @@ import type { MemberNode } from '../../syntax/nodes'
 import type { LanguagePlugin, IPluginMemberProvider } from '../../plugins/language-plugin'
 import type { IParserHub } from '../core/parser.hub'
 import type { IMemberProvider } from '../core/member-provider.interface'
+import { Orchestrator } from '../rule.types'
 
 /**
  * Master Provider for plugin members.
@@ -18,10 +19,10 @@ export class PluginMemberProvider implements IMemberProvider {
     return this.providers.some((provider) => provider.canHandle(context))
   }
 
-  public parse(context: IParserHub): MemberNode | null {
+  public parse(context: IParserHub, orchestrator: Orchestrator): MemberNode | null {
     for (const provider of this.providers) {
       if (provider.canHandle(context)) {
-        const result = provider.parse(context)
+        const result = provider.parse(context, orchestrator)
         if (result) {
           return result
         }

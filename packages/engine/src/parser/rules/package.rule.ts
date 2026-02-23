@@ -6,7 +6,7 @@ import type { StatementRule, Orchestrator } from '../rule.types'
 import { ASTFactory } from '../factory/ast.factory'
 
 export class PackageRule implements StatementRule {
-  public canStart(context: IParserHub): boolean {
+  public canHandle(context: IParserHub): boolean {
     return context.check(TokenType.KW_PACKAGE)
   }
 

@@ -3,13 +3,14 @@ import type { MemberNode } from '../../../../syntax/nodes'
 import type { IParserHub } from '../../../core/parser.hub'
 import { ConstraintRule } from '../../constraint.rule'
 import type { IMemberProvider } from '../../../core/member-provider.interface'
+import { Orchestrator } from '../../../rule.types'
 
 export class ConstraintMemberProvider implements IMemberProvider {
   canHandle(context: IParserHub): boolean {
     return context.check(TokenType.LBRACE)
   }
 
-  parse(context: IParserHub): MemberNode | null {
+  parse(context: IParserHub, _orchestrator: Orchestrator): MemberNode | null {
     return ConstraintRule.parseInline(context)
   }
 }

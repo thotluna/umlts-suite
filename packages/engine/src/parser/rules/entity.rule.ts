@@ -16,7 +16,7 @@ export class EntityRule implements StatementRule {
   private readonly relationshipHeaderRule = new RelationshipHeaderRule()
   private readonly memberRule = new MemberRule()
 
-  public canStart(context: IParserHub): boolean {
+  public canHandle(context: IParserHub): boolean {
     return context.checkAny(
       TokenType.KW_CLASS,
       TokenType.KW_INTERFACE,
@@ -34,7 +34,7 @@ export class EntityRule implements StatementRule {
     )
   }
 
-  public parse(context: IParserHub, _orchestrator: Orchestrator): StatementNode[] {
+  public parse(context: IParserHub, orchestrator: Orchestrator): StatementNode[] {
     const pos = context.getPosition()
     const modifiers = ModifierRule.parse(context)
 
@@ -81,7 +81,7 @@ export class EntityRule implements StatementRule {
       body = []
       while (!context.check(TokenType.RBRACE) && !context.isAtEnd()) {
         try {
-          const member = this.memberRule.parse(context)
+          const member = this.memberRule.parse(context, orchestrator)
           if (member != null) {
             body.push(member)
           } else {

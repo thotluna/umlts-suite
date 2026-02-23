@@ -5,12 +5,12 @@ import type { StatementRule, Orchestrator } from '../rule.types'
 import { ASTFactory } from '../factory/ast.factory'
 
 export class LinkRule implements StatementRule {
-  public canStart(context: IParserHub): boolean {
+  public canHandle(context: IParserHub): boolean {
     return context.check(TokenType.IDENTIFIER) && context.peekNext().type === TokenType.RANGE
   }
 
   public parse(context: IParserHub, _orchestrator: Orchestrator): StatementNode[] {
-    if (!this.canStart(context)) return []
+    if (!this.canHandle(context)) return []
     const fromToken = context.consume(TokenType.IDENTIFIER, 'Expected origin identifier')
 
     let from = fromToken.value
