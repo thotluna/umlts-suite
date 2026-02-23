@@ -2,11 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { LexerFactory } from '@engine/lexer/lexer.factory'
 import { ParserFactory } from '@engine/parser/parser.factory'
 import { SemanticAnalyzer } from '@engine/semantics/analyzer'
-import { ParserContext } from '@engine/parser/parser.context'
 import { DiagnosticReporter } from '@engine/core/diagnostics/diagnostic-reporter'
 import type { IREntity, IRRelationship } from '@engine/generator/ir/models'
-import { MemberRegistry } from '@engine/parser/rules/member-strategies/member.registry'
-import { TypeRegistry } from '@engine/parser/rules/type-strategies/type.registry'
 
 describe('Constraint Semantics', () => {
   it('should process standalone XOR blocks', () => {
@@ -25,10 +22,8 @@ describe('Constraint Semantics', () => {
 
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const members = new MemberRegistry()
-    const types = new TypeRegistry()
-    const context = new ParserContext(tokens, reporter, members, types)
-    const ir = analyzer.analyze(ast, context)
+
+    const ir = analyzer.analyze(ast, reporter)
 
     // Should have 1 global XOR constraint
     expect(ir.constraints).toHaveLength(1)
@@ -58,10 +53,8 @@ describe('Constraint Semantics', () => {
 
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const members = new MemberRegistry()
-    const types = new TypeRegistry()
-    const context = new ParserContext(tokens, reporter, members, types)
-    const ir = analyzer.analyze(ast, context)
+
+    const ir = analyzer.analyze(ast, reporter)
 
     // Check entities
     const engine: IREntity | undefined = ir.entities.find((e: IREntity) => e.name === 'Engine')

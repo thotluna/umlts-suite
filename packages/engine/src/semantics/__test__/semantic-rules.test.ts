@@ -7,10 +7,7 @@ import {
   DiagnosticSeverity,
   type Diagnostic,
 } from '@engine/syntax/diagnostic.types'
-import { ParserContext } from '@engine/parser/parser.context'
 import { DiagnosticReporter } from '@engine/core/diagnostics/diagnostic-reporter'
-import { MemberRegistry } from '@engine/parser/rules/member-strategies/member.registry'
-import { TypeRegistry } from '@engine/parser/rules/type-strategies/type.registry'
 
 describe('Semantic Rules', () => {
   const parseAndAnalyze = (source: string) => {
@@ -22,11 +19,8 @@ describe('Semantic Rules', () => {
 
     // Creamos un contexto limpio para el análisis semántico
     const reporter = new DiagnosticReporter()
-    const members = new MemberRegistry()
-    const types = new TypeRegistry()
-    const context = new ParserContext(tokens, reporter, members, types)
 
-    return { parser, analyzer, program, context }
+    return { parser, analyzer, program, reporter }
   }
 
   it('should detect inheritance mismatch (Interface extending Class)', () => {
@@ -34,10 +28,10 @@ describe('Semantic Rules', () => {
       class Animal {}
       interface Runnable >> Animal {} // Error: Interface extending Class
     `
-    const { analyzer, program, context } = parseAndAnalyze(source)
-    analyzer.analyze(program, context)
+    const { analyzer, program, reporter } = parseAndAnalyze(source)
+    analyzer.analyze(program, reporter)
 
-    const diagnostics = context.getDiagnostics()
+    const diagnostics = reporter.getDiagnostics()
     const error = diagnostics.find(
       (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
     )
@@ -50,10 +44,10 @@ describe('Semantic Rules', () => {
       class A {}
       class B >I A {} // Error: Class implementing Class
     `
-    const { analyzer, program, context } = parseAndAnalyze(source)
-    analyzer.analyze(program, context)
+    const { analyzer, program, reporter } = parseAndAnalyze(source)
+    analyzer.analyze(program, reporter)
 
-    const diagnostics = context.getDiagnostics()
+    const diagnostics = reporter.getDiagnostics()
     const error = diagnostics.find(
       (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_REALIZATION_INVALID,
     )
@@ -65,10 +59,10 @@ describe('Semantic Rules', () => {
     const source = `
       class A >> A {} // Direct cycle
     `
-    const { analyzer, program, context } = parseAndAnalyze(source)
-    analyzer.analyze(program, context)
+    const { analyzer, program, reporter } = parseAndAnalyze(source)
+    analyzer.analyze(program, reporter)
 
-    const diagnostics = context.getDiagnostics()
+    const diagnostics = reporter.getDiagnostics()
     const error = diagnostics.find(
       (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_CYCLE_DETECTED,
     )
@@ -82,10 +76,10 @@ describe('Semantic Rules', () => {
       class B >> C {}
       class C >> A {} // Indirect cycle
     `
-    const { analyzer, program, context } = parseAndAnalyze(source)
-    analyzer.analyze(program, context)
+    const { analyzer, program, reporter } = parseAndAnalyze(source)
+    analyzer.analyze(program, reporter)
 
-    const diagnostics = context.getDiagnostics()
+    const diagnostics = reporter.getDiagnostics()
     const error = diagnostics.find(
       (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_CYCLE_DETECTED,
     )
@@ -98,10 +92,10 @@ describe('Semantic Rules', () => {
       class Animal {}
       class Dog >> Animal {}
     `
-    const { analyzer, program, context } = parseAndAnalyze(source)
+    const { analyzer, program, reporter } = parseAndAnalyze(source)
     // No errors expected
-    analyzer.analyze(program, context)
-    const errors = context
+    analyzer.analyze(program, reporter)
+    const errors = reporter
       .getDiagnostics()
       .filter((d: Diagnostic) => d.severity === DiagnosticSeverity.ERROR)
     expect(errors).toHaveLength(0)
@@ -114,10 +108,10 @@ describe('Semantic Rules', () => {
         name: string // Error: Duplicate member
       }
     `
-    const { analyzer, program, context } = parseAndAnalyze(source)
-    analyzer.analyze(program, context)
+    const { analyzer, program, reporter } = parseAndAnalyze(source)
+    analyzer.analyze(program, reporter)
 
-    const diagnostics = context.getDiagnostics()
+    const diagnostics = reporter.getDiagnostics()
     const error = diagnostics.find(
       (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_DUPLICATE_MEMBER,
     )
@@ -130,10 +124,10 @@ describe('Semantic Rules', () => {
       class User {}
       class User {} // Error: Duplicate entity
     `
-    const { analyzer, program, context } = parseAndAnalyze(source)
-    analyzer.analyze(program, context)
+    const { analyzer, program, reporter } = parseAndAnalyze(source)
+    analyzer.analyze(program, reporter)
 
-    const diagnostics = context.getDiagnostics()
+    const diagnostics = reporter.getDiagnostics()
     const error = diagnostics.find((d: Diagnostic) => d.message.includes('is already defined'))
     expect(error).toBeDefined()
   })
@@ -146,10 +140,10 @@ describe('Semantic Rules', () => {
         x: number
       }
     `
-    const { analyzer, program, context } = parseAndAnalyze(source)
-    analyzer.analyze(program, context)
+    const { analyzer, program, reporter } = parseAndAnalyze(source)
+    analyzer.analyze(program, reporter)
 
-    const diagnostics = context.getDiagnostics()
+    const diagnostics = reporter.getDiagnostics()
     expect(diagnostics.length).toBeGreaterThanOrEqual(2)
     expect(
       diagnostics.some((d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_CYCLE_DETECTED),
@@ -171,9 +165,9 @@ describe('Semantic Rules', () => {
         }
       }
     `
-    const { analyzer, program, context } = parseAndAnalyze(source)
-    analyzer.analyze(program, context)
-    const diagnostics = context.getDiagnostics()
+    const { analyzer, program, reporter } = parseAndAnalyze(source)
+    analyzer.analyze(program, reporter)
+    const diagnostics = reporter.getDiagnostics()
 
     // No debería haber errores de "Entidad implícita" porque B se registra en la pasada 1
     const implicitErrors = diagnostics.filter(
@@ -191,10 +185,10 @@ describe('Semantic Rules', () => {
           - t: Target
       }
     `
-    const { analyzer, program, context } = parseAndAnalyze(source)
-    analyzer.analyze(program, context)
+    const { analyzer, program, reporter } = parseAndAnalyze(source)
+    analyzer.analyze(program, reporter)
 
-    const diagnostics = context.getDiagnostics()
+    const diagnostics = reporter.getDiagnostics()
     const error = diagnostics.find(
       (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_AMBIGUOUS_ENTITY,
     )
@@ -208,10 +202,10 @@ describe('Semantic Rules', () => {
       class Car
       Color >+ Car // Error: Enum cannot be the whole of an aggregation
     `
-    const { analyzer, program, context } = parseAndAnalyze(source)
-    analyzer.analyze(program, context)
+    const { analyzer, program, reporter } = parseAndAnalyze(source)
+    analyzer.analyze(program, reporter)
 
-    const diagnostics = context.getDiagnostics()
+    const diagnostics = reporter.getDiagnostics()
     const error = diagnostics.find(
       (d: Diagnostic) => /enum/i.test(d.message) && /aggregation/i.test(d.message),
     )
@@ -224,10 +218,10 @@ describe('Semantic Rules', () => {
       class Element
       IView >* Element
     `
-    const { analyzer, program, context } = parseAndAnalyze(source)
-    analyzer.analyze(program, context)
+    const { analyzer, program, reporter } = parseAndAnalyze(source)
+    analyzer.analyze(program, reporter)
 
-    const diagnostics = context.getDiagnostics()
+    const diagnostics = reporter.getDiagnostics()
     const error = diagnostics.find(
       (d: Diagnostic) => /interface/i.test(d.message) && /composition/i.test(d.message),
     )

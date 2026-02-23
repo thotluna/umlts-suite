@@ -1,11 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { LexerFactory } from '@engine/lexer/lexer.factory'
 import { ParserFactory } from '@engine/parser/parser.factory'
-import { ParserContext } from '@engine/parser/parser.context'
 import { DiagnosticReporter } from '@engine/core/diagnostics/diagnostic-reporter'
 import { SemanticAnalyzer } from '@engine/semantics/analyzer'
-import { MemberRegistry } from '@engine/parser/rules/member-strategies/member.registry'
-import { TypeRegistry } from '@engine/parser/rules/type-strategies/type.registry'
 
 describe('Chained Relationships Support', () => {
   const analyze = (input: string) => {
@@ -15,10 +12,8 @@ describe('Chained Relationships Support', () => {
     const program = parser.parse(tokens)
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const members = new MemberRegistry()
-    const types = new TypeRegistry()
-    const context = new ParserContext(tokens, reporter, members, types)
-    return analyzer.analyze(program, context)
+
+    return analyzer.analyze(program, reporter)
   }
 
   it('should support chained relationships: A >> B >> C >> D', () => {

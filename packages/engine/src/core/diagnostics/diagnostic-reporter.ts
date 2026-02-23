@@ -8,30 +8,30 @@ import type { Token } from '@engine/syntax/token.types'
 export class DiagnosticReporter {
   private readonly diagnostics: Diagnostic[] = []
 
-  public addError(message: string, token: Token, code?: DiagnosticCode): void {
+  public addError(message: string, token?: Token, code?: DiagnosticCode): void {
     this.addDiagnostic(message, DiagnosticSeverity.ERROR, token, code)
   }
 
-  public addWarning(message: string, token: Token, code?: DiagnosticCode): void {
+  public addWarning(message: string, token?: Token, code?: DiagnosticCode): void {
     this.addDiagnostic(message, DiagnosticSeverity.WARNING, token, code)
   }
 
-  public addInfo(message: string, token: Token, code?: DiagnosticCode): void {
+  public addInfo(message: string, token?: Token, code?: DiagnosticCode): void {
     this.addDiagnostic(message, DiagnosticSeverity.INFO, token, code)
   }
 
   private addDiagnostic(
     message: string,
     severity: DiagnosticSeverity,
-    token: Token,
+    token?: Token,
     code?: DiagnosticCode,
   ): void {
     this.diagnostics.push({
       message,
       code,
-      line: token.line,
-      column: token.column,
-      length: token.value.length || 1,
+      line: token?.line || 1,
+      column: token?.column || 1,
+      length: token?.value?.length || 1,
       severity,
     })
   }

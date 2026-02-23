@@ -7,11 +7,8 @@ import {
   DiagnosticSeverity,
   type Diagnostic,
 } from '@engine/syntax/diagnostic.types'
-import { ParserContext } from '@engine/parser/parser.context'
 import { DiagnosticReporter } from '@engine/core/diagnostics/diagnostic-reporter'
 import { IREntityType, type IREntity } from '@engine/generator/ir/models'
-import { MemberRegistry } from '@engine/parser/rules/member-strategies/member.registry'
-import { TypeRegistry } from '@engine/parser/rules/type-strategies/type.registry'
 
 describe('Implicit Entity Type Inference', () => {
   const parseAndAnalyze = (source: string) => {
@@ -21,21 +18,17 @@ describe('Implicit Entity Type Inference', () => {
     const program = parser.parse(tokens)
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const members = new MemberRegistry()
-    const types = new TypeRegistry()
-    const context = new ParserContext(tokens, reporter, members, types)
-
-    const ir = analyzer.analyze(program, context)
-    return { parser, analyzer, program, context, ir }
+    const ir = analyzer.analyze(program, reporter)
+    return { reporter, ir }
   }
 
   it('should infer INTERFACE type when a Class implements an unknown entity', () => {
     const source = `class MyClass >I MyInterface`
 
-    const { context, ir } = parseAndAnalyze(source)
+    const { reporter, ir } = parseAndAnalyze(source)
 
     // Should NOT have invalid realization error
-    const errors = context
+    const errors = reporter
       .getDiagnostics()
       .filter((d: Diagnostic) => d.severity === DiagnosticSeverity.ERROR)
     expect(errors).toHaveLength(0)
@@ -50,10 +43,10 @@ describe('Implicit Entity Type Inference', () => {
   it('should infer INTERFACE type when an Interface inherits an unknown entity', () => {
     const source = `interface MyInterface >> ParentInterface`
 
-    const { context, ir } = parseAndAnalyze(source)
+    const { reporter, ir } = parseAndAnalyze(source)
 
     // Should NOT have invalid inheritance error
-    const errors = context
+    const errors = reporter
       .getDiagnostics()
       .filter((d: Diagnostic) => d.severity === DiagnosticSeverity.ERROR)
     expect(errors).toHaveLength(0)
@@ -68,9 +61,9 @@ describe('Implicit Entity Type Inference', () => {
   it('should infer CLASS type when a Class inherits an unknown entity', () => {
     const source = `class MyClass >> ParentClass`
 
-    const { context, ir } = parseAndAnalyze(source)
+    const { reporter, ir } = parseAndAnalyze(source)
 
-    const errors = context
+    const errors = reporter
       .getDiagnostics()
       .filter((d: Diagnostic) => d.severity === DiagnosticSeverity.ERROR)
     expect(errors).toHaveLength(0)
@@ -103,9 +96,9 @@ describe('Implicit Entity Type Inference', () => {
       class A >I B 
     `
     // This semantic SHOULD fail because Class cannot implement Class.
-    const { context, ir } = parseAndAnalyze(source)
+    const { reporter, ir } = parseAndAnalyze(source)
 
-    const error = context
+    const error = reporter
       .getDiagnostics()
       .find((d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_REALIZATION_INVALID)
     expect(error).toBeDefined()

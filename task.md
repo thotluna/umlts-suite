@@ -390,9 +390,9 @@
 - [x] **Phase 0.5**: Cimentación de Infraestructura Semántica <!-- id: 401 -->
   - [x] Implementar `ISemanticContext` e `IRFactory`
   - [x] Implementar `ValidationEngine` base y Registro de Reglas
-- [ ] **Phase 1**: Desacoplamiento Total del Parser <!-- id: 402 -->
-  - [ ] Migrar `SemanticAnalyzer` para usar `ISemanticContext`
-  - [ ] Eliminar toda dependencia de `@engine/parser` en el paquete de semántica
+- [x] **Phase 1**: Desacoplamiento Total del Parser <!-- id: 402 -->
+  - [x] Migrar `SemanticAnalyzer` para usar `ISemanticContext`
+  - [x] Eliminar toda dependencia de `@engine/parser` en el paquete de semántica
 - [ ] **Phase 2**: Reglas Atómicas y Concurrencia <!-- id: 403 -->
   - [ ] Refactorizar validaciones existentes a `ISemanticRule` (Stateless)
   - [ ] Implementar motor de ejecución de reglas (con soporte futuro para paralelismo)
