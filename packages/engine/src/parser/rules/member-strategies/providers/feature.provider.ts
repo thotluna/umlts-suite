@@ -12,47 +12,12 @@ export class FeatureMemberProvider implements IMemberProvider {
   private readonly methodRule = new MethodRule()
 
   canHandle(context: IParserHub): boolean {
-    return context.checkAny(
-      TokenType.VIS_PUB,
-      TokenType.VIS_PRIV,
-      TokenType.VIS_PROT,
-      TokenType.VIS_PACK,
-      TokenType.KW_PUBLIC,
-      TokenType.KW_PRIVATE,
-      TokenType.KW_PROTECTED,
-      TokenType.KW_INTERNAL,
-      TokenType.KW_STATIC,
-      TokenType.KW_ABSTRACT,
-      TokenType.KW_ACTIVE,
-      TokenType.KW_LEAF,
-      TokenType.KW_FINAL,
-      TokenType.KW_ROOT,
-      TokenType.MOD_STATIC,
-      TokenType.MOD_ABSTRACT,
-      TokenType.MOD_ACTIVE,
-      TokenType.MOD_LEAF,
-      TokenType.MOD_ROOT,
-      TokenType.IDENTIFIER,
-    )
+    const type = context.peek().type
+    return this.isVisibility(type) || ModifierRule.isModifier(type) || type === TokenType.IDENTIFIER
   }
 
   parse(context: IParserHub, orchestrator: Orchestrator): MemberNode | null {
-    let visibility = 'public'
-    if (
-      context.match(TokenType.VIS_PUB, TokenType.VIS_PRIV, TokenType.VIS_PROT, TokenType.VIS_PACK)
-    ) {
-      visibility = context.prev().value
-    } else if (
-      context.match(
-        TokenType.KW_PUBLIC,
-        TokenType.KW_PRIVATE,
-        TokenType.KW_PROTECTED,
-        TokenType.KW_INTERNAL,
-      )
-    ) {
-      visibility = context.prev().value
-    }
-
+    const visibility = this.parseVisibility(context)
     const modifiers = ModifierRule.parse(context)
     const nameToken = context.consume(TokenType.IDENTIFIER, 'Expected member name')
 
@@ -61,5 +26,25 @@ export class FeatureMemberProvider implements IMemberProvider {
     } else {
       return this.attributeRule.parse(context, nameToken, visibility, modifiers, orchestrator)
     }
+  }
+
+  private isVisibility(type: TokenType): boolean {
+    return [
+      TokenType.VIS_PUB,
+      TokenType.VIS_PRIV,
+      TokenType.VIS_PROT,
+      TokenType.VIS_PACK,
+      TokenType.KW_PUBLIC,
+      TokenType.KW_PRIVATE,
+      TokenType.KW_PROTECTED,
+      TokenType.KW_INTERNAL,
+    ].includes(type)
+  }
+
+  private parseVisibility(context: IParserHub): string {
+    if (this.isVisibility(context.peek().type)) {
+      return context.advance().value
+    }
+    return 'public'
   }
 }

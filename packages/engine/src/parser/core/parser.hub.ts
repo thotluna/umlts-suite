@@ -11,7 +11,7 @@ import type { IPrimaryTypeProvider, ITypeModifierProvider } from './type-provide
 export interface IParserHub {
   // Navigation
   peek(): Token
-  peekNext(): Token
+  lookahead(n?: number): Token
   prev(): Token
   advance(): Token
   getPosition(): number

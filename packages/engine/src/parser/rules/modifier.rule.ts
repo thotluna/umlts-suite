@@ -6,7 +6,7 @@ export class ModifierRule {
   /**
    * Parses modifiers from the current position in the token stream.
    */
-  public static parse(context: IParserHub): Modifiers {
+  public static parse(context: IParserHub, modifiersOR?: Modifiers): Modifiers {
     const modifiers: Modifiers = {
       isAbstract: false,
       isStatic: false,
@@ -14,8 +14,15 @@ export class ModifierRule {
       isLeaf: false,
       isFinal: false,
       isRoot: false,
+      ...(modifiersOR ?? {}),
     }
 
+    ModifierRule.findModifiers(context, modifiers)
+
+    return modifiers
+  }
+
+  private static findModifiers(context: IParserHub, modifiers: Modifiers): Modifiers {
     let found = true
     while (found) {
       found = false
@@ -45,5 +52,35 @@ export class ModifierRule {
       }
     }
     return modifiers
+  }
+
+  /**
+   * Identifica si un token es un modificador conocido (Keyword o Símbolo).
+   */
+  public static isModifier(type: TokenType): boolean {
+    return [
+      TokenType.MOD_ABSTRACT,
+      TokenType.KW_ABSTRACT,
+      TokenType.MOD_STATIC,
+      TokenType.KW_STATIC,
+      TokenType.MOD_ACTIVE,
+      TokenType.KW_ACTIVE,
+      TokenType.MOD_LEAF,
+      TokenType.KW_LEAF,
+      TokenType.KW_FINAL,
+      TokenType.MOD_ROOT,
+      TokenType.KW_ROOT,
+    ].includes(type)
+  }
+
+  /**
+   * Mira hacia adelante y devuelve cuántos modificadores consecutivos hay.
+   */
+  public static countModifiers(context: IParserHub, startOffset: number = 0): number {
+    let count = 0
+    while (ModifierRule.isModifier(context.lookahead(startOffset + count).type)) {
+      count++
+    }
+    return count
   }
 }

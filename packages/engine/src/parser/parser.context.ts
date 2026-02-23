@@ -40,8 +40,8 @@ export class ParserContext implements IParserHub {
     return this.stream.peek()
   }
 
-  public peekNext(): Token {
-    return this.stream.peekNext()
+  public lookahead(n: number = 0): Token {
+    return this.stream.lookahead(n)
   }
 
   public prev(): Token {

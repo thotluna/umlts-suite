@@ -13,34 +13,13 @@ import { ASTFactory } from '../factory/ast.factory'
  */
 export class EnumRule implements StatementRule {
   public canHandle(context: IParserHub): boolean {
-    const pos = context.getPosition()
-    try {
-      while (
-        context.checkAny(
-          TokenType.MOD_STATIC,
-          TokenType.KW_STATIC,
-          TokenType.MOD_LEAF,
-          TokenType.KW_LEAF,
-          TokenType.KW_FINAL,
-          TokenType.MOD_ABSTRACT,
-          TokenType.KW_ABSTRACT,
-          TokenType.MOD_ACTIVE,
-          TokenType.KW_ACTIVE,
-          TokenType.MOD_ROOT,
-          TokenType.KW_ROOT,
-        )
-      ) {
-        context.advance()
-      }
-      return context.check(TokenType.KW_ENUM)
-    } finally {
-      context.rollback(pos)
-    }
+    const skip = ModifierRule.countModifiers(context)
+    return context.lookahead(skip).type === TokenType.KW_ENUM
   }
 
   public parse(context: IParserHub, _orchestrator: Orchestrator): StatementNode[] {
     const pos = context.getPosition()
-    const modifiers = ModifierRule.parse(context)
+    let modifiers = ModifierRule.parse(context)
 
     if (!context.match(TokenType.KW_ENUM)) {
       context.rollback(pos)
@@ -49,13 +28,7 @@ export class EnumRule implements StatementRule {
     const keywordToken = context.prev()
 
     // Soporte para modificadores después de la palabra clave (ej: enum * MyEnum)
-    const postModifiers = ModifierRule.parse(context)
-    modifiers.isAbstract = modifiers.isAbstract || postModifiers.isAbstract
-    modifiers.isStatic = modifiers.isStatic || postModifiers.isStatic
-    modifiers.isActive = modifiers.isActive || postModifiers.isActive
-    modifiers.isLeaf = modifiers.isLeaf || postModifiers.isLeaf
-    modifiers.isFinal = modifiers.isFinal || postModifiers.isFinal
-    modifiers.isRoot = modifiers.isRoot || postModifiers.isRoot
+    modifiers = ModifierRule.parse(context, modifiers)
 
     const nameToken = context.softConsume(TokenType.IDENTIFIER, 'Enum name expected')
     const docs = context.consumePendingDocs()

@@ -16,49 +16,30 @@ export class RelationshipRule implements StatementRule {
   private readonly memberRule = new MemberRule()
 
   public canHandle(context: IParserHub): boolean {
-    const pos = context.getPosition()
-    try {
-      // 1. Omitir modificadores iniciales
-      while (
-        context.checkAny(
-          TokenType.MOD_ABSTRACT,
-          TokenType.KW_ABSTRACT,
-          TokenType.MOD_STATIC,
-          TokenType.KW_STATIC,
-          TokenType.MOD_ACTIVE,
-          TokenType.KW_ACTIVE,
-          TokenType.MOD_LEAF,
-          TokenType.KW_LEAF,
-          TokenType.KW_FINAL,
-          TokenType.MOD_ROOT,
-          TokenType.KW_ROOT,
-        )
-      ) {
-        context.advance()
-      }
+    let i = ModifierRule.countModifiers(context)
 
-      // 2. Debe empezar con un identificador (entidad de origen)
-      if (!context.match(TokenType.IDENTIFIER)) return false
-      while (context.match(TokenType.DOT)) {
-        if (!context.match(TokenType.IDENTIFIER)) break
-      }
-
-      // 3. Omitir opcionalmente la multiplicidad "[1]" o "1"
-      if (context.check(TokenType.LBRACKET)) {
-        context.advance()
-        while (!context.check(TokenType.RBRACKET) && !context.isAtEnd()) {
-          context.advance()
-        }
-        context.match(TokenType.RBRACKET)
-      } else {
-        context.match(TokenType.STRING)
-      }
-
-      // 4. Debe seguir un operador de relación (>>, ->, :>, etc.)
-      return this.isRelationshipType(context.peek().type)
-    } finally {
-      context.rollback(pos)
+    // 2. Debe empezar con un identificador (entidad de origen)
+    if (context.lookahead(i).type !== TokenType.IDENTIFIER) return false
+    i++
+    while (context.lookahead(i).type === TokenType.DOT) {
+      i++
+      if (context.lookahead(i).type !== TokenType.IDENTIFIER) break
+      i++
     }
+
+    // 3. Omitir opcionalmente la multiplicidad "[1]" o '"1"'
+    if (context.lookahead(i).type === TokenType.LBRACKET) {
+      i++
+      while (context.lookahead(i).type !== TokenType.RBRACKET && !context.isAtEnd()) {
+        i++
+      }
+      if (context.lookahead(i).type === TokenType.RBRACKET) i++
+    } else if (context.lookahead(i).type === TokenType.STRING) {
+      i++
+    }
+
+    // 4. Debe seguir un operador de relación (>>, ->, :>, etc.)
+    return this.isRelationshipType(context.lookahead(i).type)
   }
 
   public parse(context: IParserHub, orchestrator: Orchestrator): StatementNode[] {
