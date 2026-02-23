@@ -399,9 +399,9 @@
 - [x] **Phase 3**: Migración de Componentes Especializados <!-- id: 404 -->
   - [x] Actualizar Analizadores (`Entity`, `Relationship`, `Constraint`) (Completado implícitamente en Fases 1-2)
   - [x] Actualizar Validadores (`Hierarchy`, `Association`, `Multiplicity`) (Completado implícitamente en Fases 1-2)
-- [ ] **Phase 4**: Integración en el Pipeline (Compiler Phase) <!-- id: 405 -->
-  - [ ] Refactorizar `SemanticPhase` (`compiler/phases/semantic.phases.ts`)
-  - [ ] Instanciar `ISemanticContext` directamente sin `ParserContext`
-- [ ] **Phase 5**: Limpieza Estricta y Verificación <!-- id: 406 -->
-  - [ ] Purgar importaciones de Parser remanentes (si las hubiera)
-  - [ ] Verificación final tests/build
+- [x] **Phase 4**: Integración en el Pipeline (Compiler Phase) <!-- id: 405 -->
+  - [x] Refactorizar `SemanticPhase` (`compiler/phases/semantic.phases.ts`)
+  - [x] Instanciar `ISemanticContext` directamente sin `ParserContext`
+- [x] **Phase 5**: Limpieza Estricta y Verificación <!-- id: 406 -->
+  - [x] Purgar importaciones de Parser remanentes (si las hubiera)
+  - [x] Verificación final tests/build
