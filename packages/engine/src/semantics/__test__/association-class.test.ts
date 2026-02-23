@@ -1,11 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { LexerFactory } from '@engine/lexer/lexer.factory'
 import { ParserFactory } from '@engine/parser/parser.factory'
-import { ParserContext } from '@engine/parser/parser.context'
 import { DiagnosticReporter } from '@engine/core/diagnostics/diagnostic-reporter'
 import { SemanticAnalyzer } from '@engine/semantics/analyzer'
-import { MemberRegistry } from '@engine/parser/rules/member-strategies/member.registry'
-import { TypeRegistry } from '@engine/parser/rules/type-strategies/type.registry'
 import type { Diagnostic } from '@engine/syntax/diagnostic.types'
 import type { IREntity, IRRelationship } from '@engine/generator/ir/models'
 
@@ -17,10 +14,7 @@ describe('Association Class Support', () => {
     const program = parser.parse(tokens)
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const members = new MemberRegistry()
-    const types = new TypeRegistry()
-    const context = new ParserContext(tokens, reporter, members, types)
-    return analyzer.analyze(program, context)
+    return analyzer.analyze(program, reporter)
   }
 
   it('should parse and resolve a basic association class', () => {
@@ -131,12 +125,9 @@ describe('Association Class Support', () => {
     const program = parser.parse(tokens)
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const members = new MemberRegistry()
-    const types = new TypeRegistry()
-    const context = new ParserContext(tokens, reporter, members, types)
-    analyzer.analyze(program, context)
+    analyzer.analyze(program, reporter)
 
-    const diagnostics = context.getDiagnostics()
+    const diagnostics = reporter.getDiagnostics()
     expect(
       diagnostics.some((d: Diagnostic) => d.message.includes('must have exactly 2 participants')),
     ).toBe(true)

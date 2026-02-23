@@ -3,10 +3,7 @@ import { LexerFactory } from '@engine/lexer/lexer.factory'
 import { ParserFactory } from '@engine/parser/parser.factory'
 import { SemanticAnalyzer } from '@engine/semantics/analyzer'
 import { IRRelationshipType, type IRRelationship, type IREntity } from '@engine/generator/ir/models'
-import { ParserContext } from '@engine/parser/parser.context'
 import { DiagnosticReporter } from '@engine/core/diagnostics/diagnostic-reporter'
-import { MemberRegistry } from '@engine/parser/rules/member-strategies/member.registry'
-import { TypeRegistry } from '@engine/parser/rules/type-strategies/type.registry'
 
 describe('SemanticAnalyzer', () => {
   it('should create an implicit entity when a relationship target is missing', () => {
@@ -17,10 +14,7 @@ describe('SemanticAnalyzer', () => {
 
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const members = new MemberRegistry()
-    const types = new TypeRegistry()
-    const context = new ParserContext(tokens, reporter, members, types)
-    const ir = analyzer.analyze(ast, context)
+    const ir = analyzer.analyze(ast, reporter)
 
     // Should have 2 entities: Hero (explicit) and Person (implicit)
     expect(ir.entities).toHaveLength(2)
@@ -56,10 +50,7 @@ describe('SemanticAnalyzer', () => {
 
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const members = new MemberRegistry()
-    const types = new TypeRegistry()
-    const context = new ParserContext(tokens, reporter, members, types)
-    const ir = analyzer.analyze(ast, context)
+    const ir = analyzer.analyze(ast, reporter)
 
     const user = ir.entities.find((e: IREntity) => e.id === 'core.User')
     const profile = ir.entities.find((e: IREntity) => e.id === 'core.domain.Profile')
@@ -79,10 +70,7 @@ describe('SemanticAnalyzer', () => {
 
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const members = new MemberRegistry()
-    const types = new TypeRegistry()
-    const context = new ParserContext(tokens, reporter, members, types)
-    const ir = analyzer.analyze(ast, context)
+    const ir = analyzer.analyze(ast, reporter)
 
     expect(ir.entities).toHaveLength(2)
     expect(ir.entities.every((e) => e.isImplicit)).toBe(true)
@@ -103,10 +91,7 @@ describe('SemanticAnalyzer', () => {
 
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const members = new MemberRegistry()
-    const types = new TypeRegistry()
-    const context = new ParserContext(tokens, reporter, members, types)
-    const ir = analyzer.analyze(ast, context)
+    const ir = analyzer.analyze(ast, reporter)
 
     // Should have 2 relationships from DiagramNode to IRMember
     const rels = ir.relationships.filter(

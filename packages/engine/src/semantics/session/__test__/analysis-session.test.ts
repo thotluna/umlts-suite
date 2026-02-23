@@ -4,7 +4,7 @@ import type { SymbolTable } from '@engine/semantics/symbol-table'
 import type { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
 import type { ConfigStore } from '@engine/semantics/session/config-store'
 import type { PluginManager } from '@engine/plugins/plugin-manager'
-import type { ParserContext } from '@engine/parser/parser.context'
+import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
 
 describe('AnalysisSession', () => {
   let session: AnalysisSession
@@ -12,7 +12,7 @@ describe('AnalysisSession', () => {
   let constraintRegistry: ConstraintRegistry
   let configStore: ConfigStore
   let pluginManager: PluginManager
-  let context: ParserContext
+  let context: ISemanticContext
 
   beforeEach(() => {
     symbolTable = {
@@ -34,7 +34,7 @@ describe('AnalysisSession', () => {
     } as unknown as PluginManager
     context = {
       scope: [],
-    } as unknown as ParserContext
+    } as unknown as ISemanticContext
 
     session = new AnalysisSession(
       symbolTable,
