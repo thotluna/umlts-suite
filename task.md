@@ -383,3 +383,8 @@
 - [x] **ARCH**: Dividir `EntityRule` en `ClassRule` e `InterfaceRule` utilizando una clase base abstracta `BaseEntityRule` para mejorar la atomicidad y mantenibilidad.
 - [x] **DX**: Configurar Aliased Imports (`@engine/*`) en `tsconfig.json` y `vitest.config.ts`.
 - [x] **DX**: Refactorización masiva de todos los imports en el paquete `engine` para utilizar el nuevo alias `@engine`, eliminando rutas relativas complejas.
+- [ ] **SaaS-Ready Infrastructure (V4 / Global Backlog)**
+  - [ ] **Multi-file Support**: Implementar propagación de `sourceId` desde Lexer hasta IR para atribución de errores.
+  - [ ] **Error Recovery**: Evolucionar Lexer y Parser para generar ASTs parciales en caso de sintaxis rota (Draft mode).
+  - [ ] **Extension Slots**: Soporte para Estereotipos (`« »`) y Perfiles UML en el esquema de la IR y el Parser.
+  - [ ] **Incremental Processing**: Motor de análisis capaz de re-validar solo los nodos modificados en tiempo real.
