@@ -16,6 +16,12 @@ import { ConstraintRegistry } from '@engine/semantics/session/constraint-registr
 import { EntityAnalyzer } from '@engine/semantics/analyzers/entity-analyzer'
 import { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
 import { ConstraintAnalyzer } from '@engine/semantics/analyzers/constraint-analyzer'
+import { ValidationEngine } from '@engine/semantics/core/validation-engine'
+import { EntityModifierRule } from '@engine/semantics/rules/entity/entity-modifier.rule'
+import { InheritanceCycleRule } from '@engine/semantics/rules/diagram/inheritance-cycle.rule'
+import { CompositionTargetRule } from '@engine/semantics/rules/relationship/composition-target.rule'
+import { PackageTargetRule } from '@engine/semantics/rules/relationship/package-target.rule'
+import { GeneralizationRule } from '@engine/semantics/rules/relationship/generalization.rule'
 import { HierarchyValidator } from '@engine/semantics/validators/hierarchy-validator'
 
 // Pipeline & Passes
@@ -75,6 +81,17 @@ export class SemanticAnalyzer {
 
     // 2. Inicialización de Servicios
     const constraintAnalyzer = new ConstraintAnalyzer(symbolTable, context)
+    const validationEngine = new ValidationEngine()
+    validationEngine
+      .register(new EntityModifierRule())
+      .register(new InheritanceCycleRule(symbolTable))
+      .register(new CompositionTargetRule(symbolTable))
+      .register(new PackageTargetRule(symbolTable))
+      .register(new GeneralizationRule(symbolTable))
+
+    // Validations now managed mostly by ValidationEngine, except some dependencies inside passes.
+    // However, some passes temporarily require HierarchyValidator for older interfaces.
+    // For now we will keep dummy/mock usage or refactor passes if needed.
     const hierarchyValidator = new HierarchyValidator(symbolTable, context)
     const entityAnalyzer = new EntityAnalyzer(
       symbolTable,
@@ -105,7 +122,10 @@ export class SemanticAnalyzer {
 
     // 6. Post-Procesamiento (Inferencia y Refinamiento)
     memberInference.run()
-    hierarchyValidator.validateNoCycles(session.relationships)
+
+    // Ejecución de Reglas Atómicas V3:
+    validationEngine.validate(session.toIRDiagram(), session.context)
+
     this.refineDataTypeSemantics(session)
 
     // 7. Generación de Resultado

@@ -393,9 +393,9 @@
 - [x] **Phase 1**: Desacoplamiento Total del Parser <!-- id: 402 -->
   - [x] Migrar `SemanticAnalyzer` para usar `ISemanticContext`
   - [x] Eliminar toda dependencia de `@engine/parser` en el paquete de semántica
-- [ ] **Phase 2**: Reglas Atómicas y Concurrencia <!-- id: 403 -->
-  - [ ] Refactorizar validaciones existentes a `ISemanticRule` (Stateless)
-  - [ ] Implementar motor de ejecución de reglas (con soporte futuro para paralelismo)
+- [x] **Phase 2**: Reglas Atómicas y Concurrencia <!-- id: 403 -->
+  - [x] Refactorizar validaciones existentes a `ISemanticRule` (Stateless)
+  - [x] Implementar motor de ejecución de reglas (con soporte futuro para paralelismo)
 - [ ] **Phase 3**: Soporte SaaS y Multi-archivo <!-- id: 404 -->
   - [ ] Gestión de multi-tenancy en la sesión de análisis
   - [ ] Procesamiento incremental y slots de extensión (estereotipos)
