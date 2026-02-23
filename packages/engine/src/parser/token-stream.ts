@@ -1,4 +1,4 @@
-import { TokenType, type Token } from '../syntax/token.types'
+import { TokenType, type Token } from '@engine/syntax/token.types'
 
 /**
  * TokenStream: Gestiona la navegación y el estado de los tokens.

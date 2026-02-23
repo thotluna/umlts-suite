@@ -1,8 +1,8 @@
-import type { Token } from '../syntax/token.types'
-import type { TypeNode, StatementNode, MemberNode } from '../syntax/nodes'
-import type { IREntity, IRRelationshipType } from '../generator/ir/models'
-import type { IParserHub } from '../parser/core/parser.hub'
-import type { Orchestrator } from '../parser/rule.types'
+import type { Token } from '@engine/syntax/token.types'
+import type { TypeNode, StatementNode, MemberNode } from '@engine/syntax/nodes'
+import type { IREntity, IRRelationshipType } from '@engine/generator/ir/models'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import type { Orchestrator } from '@engine/parser/rule.types'
 
 /**
  * Result of a type transformation by a plugin.

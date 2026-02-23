@@ -1,8 +1,8 @@
-import { TokenType } from '../../syntax/token.types'
-import { type RelationshipHeaderNode } from '../../syntax/nodes'
-import type { IParserHub } from '../core/parser.hub'
-import { ModifierRule } from './modifier.rule'
-import { ASTFactory } from '../factory/ast.factory'
+import { TokenType } from '@engine/syntax/token.types'
+import { type RelationshipHeaderNode } from '@engine/syntax/nodes'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import { ModifierRule } from '@engine/parser/rules/modifier.rule'
+import { ASTFactory } from '@engine/parser/factory/ast.factory'
 
 export class RelationshipHeaderRule {
   public parse(context: IParserHub): RelationshipHeaderNode[] {

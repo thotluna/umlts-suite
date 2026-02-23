@@ -1,4 +1,4 @@
-import type { Diagnostic } from './diagnostic.types'
+import type { Diagnostic } from '@engine/syntax/diagnostic.types'
 
 export enum ASTNodeType {
   PROGRAM = 'Program',

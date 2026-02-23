@@ -1,6 +1,6 @@
-import type { IREntity } from '../generator/ir/models'
-import { IREntityType } from '../generator/ir/models'
-import type { Modifiers } from '../syntax/nodes'
+import type { IREntity } from '@engine/generator/ir/models'
+import { IREntityType } from '@engine/generator/ir/models'
+import type { Modifiers } from '@engine/syntax/nodes'
 
 export interface FQNResolution {
   fqn: string

@@ -3,12 +3,12 @@ import {
   IRVisibility,
   type IRConstraint,
   type IRModifiers,
-} from '../../generator/ir/models'
-import { ASTNodeType, type Modifiers, type TypeNode } from '../../syntax/nodes'
-import type { AnalysisSession } from '../session/analysis-session'
-import type { RelationshipAnalyzer } from '../analyzers/relationship-analyzer'
-import type { TypeResolutionPipeline } from './type-resolution.pipeline'
-import { TypeValidator } from '../utils/type-validator'
+} from '@engine/generator/ir/models'
+import { ASTNodeType, type Modifiers, type TypeNode } from '@engine/syntax/nodes'
+import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
+import type { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
+import type { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
+import { TypeValidator } from '@engine/semantics/utils/type-validator'
 
 /**
  * Infers relationships between entities based on their members (properties and operations).

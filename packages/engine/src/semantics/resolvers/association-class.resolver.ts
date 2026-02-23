@@ -1,9 +1,9 @@
-import { IRRelationshipType } from '../../generator/ir/models'
-import { DiagnosticCode } from '../../syntax/diagnostic.types'
-import { TokenType, type Token } from '../../syntax/token.types'
-import type { AssociationClassNode } from '../../syntax/nodes'
-import type { AnalysisSession } from '../session/analysis-session'
-import type { RelationshipAnalyzer } from '../analyzers/relationship-analyzer'
+import { IRRelationshipType } from '@engine/generator/ir/models'
+import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
+import { TokenType, type Token } from '@engine/syntax/token.types'
+import type { AssociationClassNode } from '@engine/syntax/nodes'
+import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
+import type { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
 
 /**
  * Handles the semantic resolution of Association Classes.

@@ -1,7 +1,7 @@
-import type { ProgramNode } from '../../syntax/nodes'
-import type { AnalysisSession } from '../session/analysis-session'
-import type { HierarchyValidator } from '../validators/hierarchy-validator'
-import type { ISemanticPass } from './semantic-pass.interface'
+import type { ProgramNode } from '@engine/syntax/nodes'
+import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
+import type { HierarchyValidator } from '@engine/semantics/validators/hierarchy-validator'
+import type { ISemanticPass } from '@engine/semantics/passes/semantic-pass.interface'
 
 /**
  * Pase 1.5: Validación de Jerarquía.

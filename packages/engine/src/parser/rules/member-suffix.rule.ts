@@ -1,15 +1,15 @@
-import { TokenType } from '../../syntax/token.types'
+import { TokenType } from '@engine/syntax/token.types'
 import {
   type TypeNode,
   type Modifiers,
   type ConstraintNode,
   type NoteNode,
-} from '../../syntax/nodes'
-import { TypeRule } from './type.rule'
-import { ConstraintRule } from './constraint.rule'
-import { ModifierRule } from './modifier.rule'
-import type { IParserHub } from '../core/parser.hub'
-import { ASTFactory } from '../factory/ast.factory'
+} from '@engine/syntax/nodes'
+import { TypeRule } from '@engine/parser/rules/type.rule'
+import { ConstraintRule } from '@engine/parser/rules/constraint.rule'
+import { ModifierRule } from '@engine/parser/rules/modifier.rule'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import { ASTFactory } from '@engine/parser/factory/ast.factory'
 
 export interface MemberSuffix {
   typeAnnotation: TypeNode

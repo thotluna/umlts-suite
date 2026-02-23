@@ -1,16 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { AssociationClassResolver } from '../association-class.resolver'
-import type { AnalysisSession } from '../../session/analysis-session'
-import type { RelationshipAnalyzer } from '../../analyzers/relationship-analyzer'
+import { AssociationClassResolver } from '@engine/semantics/resolvers/association-class.resolver'
+import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
+import type { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
 import {
   IRRelationshipType,
   type IRRelationship,
   type IREntity,
   IREntityType,
-} from '../../../generator/ir/models'
-import { ASTNodeType, type AssociationClassNode } from '../../../syntax/nodes'
-import type { SymbolTable } from '../../symbol-table'
-import type { ConstraintRegistry } from '../../session/constraint-registry'
+} from '@engine/generator/ir/models'
+import { ASTNodeType, type AssociationClassNode } from '@engine/syntax/nodes'
+import type { SymbolTable } from '@engine/semantics/symbol-table'
+import type { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
 
 describe('AssociationClassResolver', () => {
   let mockSession: Partial<AnalysisSession>

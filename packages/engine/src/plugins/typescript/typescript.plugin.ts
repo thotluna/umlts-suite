@@ -3,13 +3,13 @@ import type {
   TypeMapping,
   ILexerReader,
   IPluginMemberProvider,
-} from '../language-plugin'
-import type { IParserHub } from '../../parser/core/parser.hub'
-import type { Token } from '../../syntax/token.types'
-import { TokenType } from '../../syntax/token.types'
-import type { TypeNode } from '../../syntax/nodes'
-import type { IREntity } from '../../generator/ir/models'
-import { IREntityType, IRRelationshipType } from '../../generator/ir/models'
+} from '@engine/plugins/language-plugin'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import type { Token } from '@engine/syntax/token.types'
+import { TokenType } from '@engine/syntax/token.types'
+import type { TypeNode } from '@engine/syntax/nodes'
+import type { IREntity } from '@engine/generator/ir/models'
+import { IREntityType, IRRelationshipType } from '@engine/generator/ir/models'
 
 /**
  * TypeScript Language Plugin for UMLTS.

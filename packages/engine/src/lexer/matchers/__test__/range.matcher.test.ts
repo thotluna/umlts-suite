@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { LexerReader } from '../../lexer.reader'
-import { RangeMatcher } from '../range.matcher'
-import { TokenType } from '../../../syntax/token.types'
+import { LexerReader } from '@engine/lexer/lexer.reader'
+import { RangeMatcher } from '@engine/lexer/matchers/range.matcher'
+import { TokenType } from '@engine/syntax/token.types'
 
 describe('RangeMatcher', () => {
   const matcher = new RangeMatcher()

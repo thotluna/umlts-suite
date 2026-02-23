@@ -1,7 +1,7 @@
-import type { LexerReader } from '../lexer.reader'
-import type { Token } from '../../syntax/token.types'
-import { TokenType } from '../../syntax/token.types'
-import { BaseAlphaMatcher } from './base.alpha.matcher'
+import type { LexerReader } from '@engine/lexer/lexer.reader'
+import type { Token } from '@engine/syntax/token.types'
+import { TokenType } from '@engine/syntax/token.types'
+import { BaseAlphaMatcher } from '@engine/lexer/matchers/base.alpha.matcher'
 
 /**
  * Matches identifiers and classifies them as Keywords if they match.

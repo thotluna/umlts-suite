@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { LexerReader } from '../lexer.reader'
-import { MasterMatcher } from '../matchers/master.matcher'
-import { WhitespaceMatcher } from '../matchers/whitespace.matcher'
-import { CommentMatcher } from '../matchers/comment.matcher'
-import { IdentifierMatcher } from '../matchers/identifier.matcher'
-import { NumberMatcher } from '../matchers/number.matcher'
-import { StringMatcher } from '../matchers/string.matcher'
-import { SymbolMatcher } from '../matchers/symbol.matcher'
-import { TokenType } from '../../syntax/token.types'
+import { LexerReader } from '@engine/lexer/lexer.reader'
+import { MasterMatcher } from '@engine/lexer/matchers/master.matcher'
+import { WhitespaceMatcher } from '@engine/lexer/matchers/whitespace.matcher'
+import { CommentMatcher } from '@engine/lexer/matchers/comment.matcher'
+import { IdentifierMatcher } from '@engine/lexer/matchers/identifier.matcher'
+import { NumberMatcher } from '@engine/lexer/matchers/number.matcher'
+import { StringMatcher } from '@engine/lexer/matchers/string.matcher'
+import { SymbolMatcher } from '@engine/lexer/matchers/symbol.matcher'
+import { TokenType } from '@engine/syntax/token.types'
 
 describe('MasterMatcher Integration', () => {
   const master = new MasterMatcher()

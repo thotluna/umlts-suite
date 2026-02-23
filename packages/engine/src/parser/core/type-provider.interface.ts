@@ -1,6 +1,6 @@
-import type { IParserHub } from './parser.hub'
-import type { TypeNode } from '../../syntax/nodes'
-import type { TypeRule } from '../rules/type.rule'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import type { TypeNode } from '@engine/syntax/nodes'
+import type { TypeRule } from '@engine/parser/rules/type.rule'
 
 export interface ITypeStrategy {
   canHandle(context: IParserHub): boolean

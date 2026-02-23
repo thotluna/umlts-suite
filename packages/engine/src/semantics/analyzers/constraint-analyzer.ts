@@ -1,8 +1,8 @@
-import type { ConstraintNode } from '../../syntax/nodes'
+import type { ConstraintNode } from '@engine/syntax/nodes'
 
-import type { IRConstraint, IRRelationship } from '../../generator/ir/models'
-import type { SymbolTable } from '../symbol-table'
-import type { ParserContext } from '../../parser/parser.context'
+import type { IRConstraint, IRRelationship } from '@engine/generator/ir/models'
+import type { SymbolTable } from '@engine/semantics/symbol-table'
+import type { ParserContext } from '@engine/parser/parser.context'
 
 /**
  * Analyzer for constraints (XOR, Ordered, Unique, etc.)

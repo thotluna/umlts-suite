@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { LexerReader } from '../../lexer.reader'
-import { KeywordOperatorMatcher } from '../keyword.operator.matcher'
-import { TokenType } from '../../../syntax/token.types'
+import { LexerReader } from '@engine/lexer/lexer.reader'
+import { KeywordOperatorMatcher } from '@engine/lexer/matchers/keyword.operator.matcher'
+import { TokenType } from '@engine/syntax/token.types'
 
 describe('KeywordOperatorMatcher', () => {
   const matcher = new KeywordOperatorMatcher()

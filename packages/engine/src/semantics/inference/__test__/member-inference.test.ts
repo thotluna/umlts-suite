@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { MemberInference } from '../member-inference'
-import type { AnalysisSession } from '../../session/analysis-session'
-import type { TypeResolutionPipeline } from '../type-resolution.pipeline'
-import type { RelationshipAnalyzer } from '../../analyzers/relationship-analyzer'
-import { SymbolTable } from '../../symbol-table'
-import { IREntityType, IRRelationshipType, IRVisibility } from '../../../generator/ir/models'
-import type { IREntity, IRProperty } from '../../../generator/ir/models'
+import { MemberInference } from '@engine/semantics/inference/member-inference'
+import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
+import type { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
+import type { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
+import { SymbolTable } from '@engine/semantics/symbol-table'
+import { IREntityType, IRRelationshipType, IRVisibility } from '@engine/generator/ir/models'
+import type { IREntity, IRProperty } from '@engine/generator/ir/models'
 
 describe('MemberInference', () => {
   let mockSession: Partial<AnalysisSession>

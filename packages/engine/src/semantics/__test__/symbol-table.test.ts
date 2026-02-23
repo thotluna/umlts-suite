@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { SymbolTable } from '../symbol-table'
-import { IREntityType, type IREntity } from '../../generator/ir/models'
+import { SymbolTable } from '@engine/semantics/symbol-table'
+import { IREntityType, type IREntity } from '@engine/generator/ir/models'
 
 describe('SymbolTable', () => {
   it('should register and retrieve entities', () => {

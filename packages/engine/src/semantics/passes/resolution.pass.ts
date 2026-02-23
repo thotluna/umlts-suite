@@ -1,4 +1,4 @@
-import { type ASTVisitor, walkAST } from '../../syntax/visitor'
+import { type ASTVisitor, walkAST } from '@engine/syntax/visitor'
 import {
   ASTNodeType,
   type ProgramNode,
@@ -10,13 +10,13 @@ import {
   type AssociationClassNode,
   type ConstraintNode,
   type TypeNode,
-} from '../../syntax/nodes'
-import type { AnalysisSession } from '../session/analysis-session'
-import type { RelationshipAnalyzer } from '../analyzers/relationship-analyzer'
-import type { ConstraintAnalyzer } from '../analyzers/constraint-analyzer'
-import { AssociationClassResolver } from '../resolvers/association-class.resolver'
-import { TypeValidator } from '../utils/type-validator'
-import type { ISemanticPass } from './semantic-pass.interface'
+} from '@engine/syntax/nodes'
+import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
+import type { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
+import type { ConstraintAnalyzer } from '@engine/semantics/analyzers/constraint-analyzer'
+import { AssociationClassResolver } from '@engine/semantics/resolvers/association-class.resolver'
+import { TypeValidator } from '@engine/semantics/utils/type-validator'
+import type { ISemanticPass } from '@engine/semantics/passes/semantic-pass.interface'
 
 /**
  * Pase 3: Resolución.

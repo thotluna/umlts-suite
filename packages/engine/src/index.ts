@@ -1,8 +1,8 @@
 // Exportación de la API principal
-export type { ParseResult } from './generator/types'
+export type { ParseResult } from '@engine/generator/types'
 
 // Exportación de modelos de la IR (Representación Intermedia)
-export { IREntityType, IRRelationshipType, IRVisibility } from './generator/ir/models'
+export { IREntityType, IRRelationshipType, IRVisibility } from '@engine/generator/ir/models'
 
 export type {
   IRDiagram,
@@ -13,9 +13,9 @@ export type {
   IRParameter,
   IRConstraint,
   IRMultiplicity,
-} from './generator/ir/models'
+} from '@engine/generator/ir/models'
 
 // Exportación de diagnósticos
-export type { Diagnostic, DiagnosticSeverity } from './syntax/diagnostic.types'
+export type { Diagnostic, DiagnosticSeverity } from '@engine/syntax/diagnostic.types'
 
-export * from './UMLEngine'
+export * from '@engine/UMLEngine'

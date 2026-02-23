@@ -1,10 +1,10 @@
-import type { IREntity } from '../../generator/ir/models'
-import { IRRelationshipType, IREntityType } from '../../generator/ir/models'
-import { DiagnosticCode } from '../../syntax/diagnostic.types'
-import { TokenType } from '../../syntax/token.types'
-import type { Token } from '../../syntax/token.types'
-import type { ParserContext } from '../../parser/parser.context'
-import type { SymbolTable } from '../symbol-table'
+import type { IREntity } from '@engine/generator/ir/models'
+import { IRRelationshipType, IREntityType } from '@engine/generator/ir/models'
+import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
+import { TokenType } from '@engine/syntax/token.types'
+import type { Token } from '@engine/syntax/token.types'
+import type { ParserContext } from '@engine/parser/parser.context'
+import type { SymbolTable } from '@engine/semantics/symbol-table'
 
 /**
  * Validator for Association-related rules (Composition, Aggregation, etc.).

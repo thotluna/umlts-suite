@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ConfigStore } from '../config-store'
-import type { PluginManager } from '../../../plugins/plugin-manager'
-import type { SymbolTable } from '../../symbol-table'
-import type { LanguagePlugin } from '../../../plugins/language-plugin'
-import { IREntityType, type IREntity } from '../../../generator/ir/models'
+import { ConfigStore } from '@engine/semantics/session/config-store'
+import type { PluginManager } from '@engine/plugins/plugin-manager'
+import type { SymbolTable } from '@engine/semantics/symbol-table'
+import type { LanguagePlugin } from '@engine/plugins/language-plugin'
+import { IREntityType, type IREntity } from '@engine/generator/ir/models'
 
 describe('ConfigStore', () => {
   let store: ConfigStore

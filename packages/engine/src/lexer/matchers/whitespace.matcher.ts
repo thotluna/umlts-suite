@@ -1,5 +1,5 @@
-import { AbstractCompositeMatcher } from './base.composite'
-import { SimpleWhitespaceMatcher } from './simple.whitespace.matcher'
+import { AbstractCompositeMatcher } from '@engine/lexer/matchers/base.composite'
+import { SimpleWhitespaceMatcher } from '@engine/lexer/matchers/simple.whitespace.matcher'
 
 /**
  * Composite matcher for whitespace.

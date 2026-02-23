@@ -1,7 +1,7 @@
-import { CompilerContext } from './compiler/phases/context'
-import { PhasesFactory } from './compiler/phases/phases.factory'
-import { PipelineArtifacts } from './compiler/phases/pipeline-artifacts'
-import { ParseResult } from './generator/types'
+import { CompilerContext } from '@engine/compiler/phases/context'
+import { PhasesFactory } from '@engine/compiler/phases/phases.factory'
+import { PipelineArtifacts } from '@engine/compiler/phases/pipeline-artifacts'
+import { ParseResult } from '@engine/generator/types'
 
 export class UMLEngine {
   private readonly factory = new PhasesFactory()

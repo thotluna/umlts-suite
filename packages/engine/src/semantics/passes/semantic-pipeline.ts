@@ -1,6 +1,6 @@
-import type { ProgramNode } from '../../syntax/nodes'
-import type { AnalysisSession } from '../session/analysis-session'
-import type { ISemanticPass } from './semantic-pass.interface'
+import type { ProgramNode } from '@engine/syntax/nodes'
+import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
+import type { ISemanticPass } from '@engine/semantics/passes/semantic-pass.interface'
 
 /**
  * Orquestador de una secuencia de pases semánticos.

@@ -1,11 +1,11 @@
-import type { Token } from '../../syntax/token.types'
-import { TokenType } from '../../syntax/token.types'
-import { type MethodNode, type Modifiers } from '../../syntax/nodes'
-import type { IParserHub } from '../core/parser.hub'
-import { ParameterRule } from './parameter.rule'
-import { MemberSuffixRule, type MemberSuffix } from './member-suffix.rule'
-import { ASTFactory } from '../factory/ast.factory'
-import type { Orchestrator } from '../rule.types'
+import type { Token } from '@engine/syntax/token.types'
+import { TokenType } from '@engine/syntax/token.types'
+import { type MethodNode, type Modifiers } from '@engine/syntax/nodes'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import { ParameterRule } from '@engine/parser/rules/parameter.rule'
+import { MemberSuffixRule, type MemberSuffix } from '@engine/parser/rules/member-suffix.rule'
+import { ASTFactory } from '@engine/parser/factory/ast.factory'
+import type { Orchestrator } from '@engine/parser/rule.types'
 
 export class MethodRule {
   private readonly parameterRule = new ParameterRule()

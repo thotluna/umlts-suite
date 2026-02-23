@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { LexerFactory } from '../lexer/lexer.factory'
-import { ParserFactory } from '../parser/parser.factory'
-import { SemanticAnalyzer } from './analyzer'
-import { IRRelationshipType } from '../generator/ir/models'
-import { ParserContext } from '../parser/parser.context'
-import { DiagnosticReporter } from '../parser/diagnostic-reporter'
+import { LexerFactory } from '@engine/lexer/lexer.factory'
+import { ParserFactory } from '@engine/parser/parser.factory'
+import { SemanticAnalyzer } from '@engine/semantics/analyzer'
+import { IRRelationshipType } from '@engine/generator/ir/models'
+import { ParserContext } from '@engine/parser/parser.context'
+import { DiagnosticReporter } from '@engine/parser/diagnostic-reporter'
 
 describe('SemanticAnalyzer', () => {
   it('should create an implicit entity when a relationship target is missing', () => {

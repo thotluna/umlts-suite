@@ -1,5 +1,5 @@
-import { AbstractCompositeMatcher } from './base.composite'
-import { QuotedStringMatcher } from './quoted.string.matcher'
+import { AbstractCompositeMatcher } from '@engine/lexer/matchers/base.composite'
+import { QuotedStringMatcher } from '@engine/lexer/matchers/quoted.string.matcher'
 
 /**
  * Composite matcher for strings (supports single and double quotes).

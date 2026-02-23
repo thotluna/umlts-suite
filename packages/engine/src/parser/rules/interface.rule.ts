@@ -1,9 +1,9 @@
-import { TokenType } from '../../syntax/token.types'
-import { ASTNodeType } from '../../syntax/nodes'
-import type { IParserHub } from '../core/parser.hub'
-import type { Orchestrator } from '../rule.types'
-import { BaseEntityRule } from './base-entity.rule'
-import type { StatementNode, Modifiers } from '../../syntax/nodes'
+import { TokenType } from '@engine/syntax/token.types'
+import { ASTNodeType } from '@engine/syntax/nodes'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import type { Orchestrator } from '@engine/parser/rule.types'
+import { BaseEntityRule } from '@engine/parser/rules/base-entity.rule'
+import type { StatementNode, Modifiers } from '@engine/syntax/nodes'
 
 /**
  * InterfaceRule: Regla especializada para el parseo de Interfaces.

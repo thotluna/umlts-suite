@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { LexerReader } from '../../lexer.reader'
-import { SimpleWhitespaceMatcher } from '../simple.whitespace.matcher'
+import { LexerReader } from '@engine/lexer/lexer.reader'
+import { SimpleWhitespaceMatcher } from '@engine/lexer/matchers/simple.whitespace.matcher'
 
 describe('SimpleWhitespaceMatcher', () => {
   const matcher = new SimpleWhitespaceMatcher()

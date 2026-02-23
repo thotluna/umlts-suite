@@ -1,11 +1,11 @@
-import { TokenType } from '../../syntax/token.types'
-import { ASTNodeType } from '../../syntax/nodes'
-import type { MemberNode, StatementNode } from '../../syntax/nodes'
-import type { IParserHub } from '../core/parser.hub'
-import type { StatementRule, Orchestrator } from '../rule.types'
-import { ModifierRule } from './modifier.rule'
+import { TokenType } from '@engine/syntax/token.types'
+import { ASTNodeType } from '@engine/syntax/nodes'
+import type { MemberNode, StatementNode } from '@engine/syntax/nodes'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import type { StatementRule, Orchestrator } from '@engine/parser/rule.types'
+import { ModifierRule } from '@engine/parser/rules/modifier.rule'
 
-import { ASTFactory } from '../factory/ast.factory'
+import { ASTFactory } from '@engine/parser/factory/ast.factory'
 
 /**
  * EnumRule: Regla especializada para el parseo de enumeraciones.

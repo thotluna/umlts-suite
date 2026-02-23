@@ -8,8 +8,8 @@ import type {
   ConfigNode,
   AssociationClassNode,
   ConstraintNode,
-} from './nodes'
-import { ASTNodeType } from './nodes'
+} from '@engine/syntax/nodes'
+import { ASTNodeType } from '@engine/syntax/nodes'
 
 /**
  * Interfaz base para visitantes del AST.

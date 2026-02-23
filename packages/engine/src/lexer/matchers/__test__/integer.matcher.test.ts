@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { LexerReader } from '../../lexer.reader'
-import { IntegerMatcher } from '../integer.matcher'
-import { TokenType } from '../../../syntax/token.types'
+import { LexerReader } from '@engine/lexer/lexer.reader'
+import { IntegerMatcher } from '@engine/lexer/matchers/integer.matcher'
+import { TokenType } from '@engine/syntax/token.types'
 
 describe('IntegerMatcher', () => {
   const matcher = new IntegerMatcher()

@@ -381,3 +381,5 @@
 - [x] **VERIFY**: Asegurar paridad de funcionalidades y 100% de éxito en tests de integración
 - [x] **REFACTOR**: Mejorar `ModifierRule` para que gestione automáticamente modificadores Pre y Post palabra clave, centralizando la lógica que actualmente está duplicada en `EntityRule` y `EnumRule`.
 - [x] **ARCH**: Dividir `EntityRule` en `ClassRule` e `InterfaceRule` utilizando una clase base abstracta `BaseEntityRule` para mejorar la atomicidad y mantenibilidad.
+- [x] **DX**: Configurar Aliased Imports (`@engine/*`) en `tsconfig.json` y `vitest.config.ts`.
+- [x] **DX**: Refactorización masiva de todos los imports en el paquete `engine` para utilizar el nuevo alias `@engine`, eliminando rutas relativas complejas.

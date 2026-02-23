@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { LexerFactory } from './lexer.factory'
-import { TokenType } from '../syntax/token.types'
+import { LexerFactory } from '@engine/lexer/lexer.factory'
+import { TokenType } from '@engine/syntax/token.types'
 
 describe('Lexer', () => {
   describe('Basic Tokenization', () => {

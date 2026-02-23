@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { UMLTypeResolver } from '../uml-type-resolver'
-import { ASTNodeType, type TypeNode } from '../../../syntax/nodes'
+import { UMLTypeResolver } from '@engine/semantics/inference/uml-type-resolver'
+import { ASTNodeType, type TypeNode } from '@engine/syntax/nodes'
 
 describe('UMLTypeResolver', () => {
   let resolver: UMLTypeResolver

@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
-import { PluginTypeResolutionAdapter } from '../plugin-adapter'
-import type { PluginManager } from '../../../plugins/plugin-manager'
-import type { LanguagePlugin, TypeMapping } from '../../../plugins/language-plugin'
-import { ASTNodeType, type TypeNode } from '../../../syntax/nodes'
-import { IRRelationshipType } from '../../../generator/ir/models'
+import { PluginTypeResolutionAdapter } from '@engine/semantics/inference/plugin-adapter'
+import type { PluginManager } from '@engine/plugins/plugin-manager'
+import type { LanguagePlugin, TypeMapping } from '@engine/plugins/language-plugin'
+import { ASTNodeType, type TypeNode } from '@engine/syntax/nodes'
+import { IRRelationshipType } from '@engine/generator/ir/models'
 
 describe('PluginTypeResolutionAdapter', () => {
   let adapter: PluginTypeResolutionAdapter

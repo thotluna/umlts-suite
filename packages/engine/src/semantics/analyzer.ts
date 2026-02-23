@@ -1,35 +1,35 @@
-import type { ProgramNode } from '../syntax/nodes'
-import { type IRDiagram, IREntityType, IRRelationshipType } from '../generator/ir/models'
-import { BUILTIN_PLUGINS } from '../plugins'
-import type { ParserContext } from '../parser/parser.context'
+import type { ProgramNode } from '@engine/syntax/nodes'
+import { type IRDiagram, IREntityType, IRRelationshipType } from '@engine/generator/ir/models'
+import { BUILTIN_PLUGINS } from '@engine/plugins'
+import type { ParserContext } from '@engine/parser/parser.context'
 
 // Core Components
-import { SymbolTable } from './symbol-table'
-import { PluginManager } from '../plugins/plugin-manager'
+import { SymbolTable } from '@engine/semantics/symbol-table'
+import { PluginManager } from '@engine/plugins/plugin-manager'
 
 // Session & State
-import { AnalysisSession } from './session/analysis-session'
-import { ConfigStore } from './session/config-store'
-import { ConstraintRegistry } from './session/constraint-registry'
+import { AnalysisSession } from '@engine/semantics/session/analysis-session'
+import { ConfigStore } from '@engine/semantics/session/config-store'
+import { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
 
 // Analyzers & Validators
-import { EntityAnalyzer } from './analyzers/entity-analyzer'
-import { RelationshipAnalyzer } from './analyzers/relationship-analyzer'
-import { ConstraintAnalyzer } from './analyzers/constraint-analyzer'
-import { HierarchyValidator } from './validators/hierarchy-validator'
+import { EntityAnalyzer } from '@engine/semantics/analyzers/entity-analyzer'
+import { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
+import { ConstraintAnalyzer } from '@engine/semantics/analyzers/constraint-analyzer'
+import { HierarchyValidator } from '@engine/semantics/validators/hierarchy-validator'
 
 // Pipeline & Passes
-import { SemanticPipeline } from './passes/semantic-pipeline'
-import { DiscoveryPass } from './passes/discovery.pass'
-import { DefinitionPass } from './passes/definition.pass'
-import { ResolutionPass } from './passes/resolution.pass'
+import { SemanticPipeline } from '@engine/semantics/passes/semantic-pipeline'
+import { DiscoveryPass } from '@engine/semantics/passes/discovery.pass'
+import { DefinitionPass } from '@engine/semantics/passes/definition.pass'
+import { ResolutionPass } from '@engine/semantics/passes/resolution.pass'
 
 // Inference & Resolution Strategy
-import { TypeResolutionPipeline } from './inference/type-resolution.pipeline'
-import { UMLTypeResolver } from './inference/uml-type-resolver'
-import { PluginTypeResolutionAdapter } from './inference/plugin-adapter'
-import { MemberInference } from './inference/member-inference'
-import { AssociationClassResolver } from './resolvers/association-class.resolver'
+import { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
+import { UMLTypeResolver } from '@engine/semantics/inference/uml-type-resolver'
+import { PluginTypeResolutionAdapter } from '@engine/semantics/inference/plugin-adapter'
+import { MemberInference } from '@engine/semantics/inference/member-inference'
+import { AssociationClassResolver } from '@engine/semantics/resolvers/association-class.resolver'
 
 /**
  * Semantic Analyzer (Refactored to Pipeline).

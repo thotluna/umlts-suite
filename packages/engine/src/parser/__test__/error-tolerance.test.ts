@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { LexerFactory } from '../../lexer/lexer.factory'
-import { ParserFactory } from '../parser.factory'
+import { LexerFactory } from '@engine/lexer/lexer.factory'
+import { ParserFactory } from '@engine/parser/parser.factory'
 import {
   ASTNodeType,
   type PackageNode,
   type EntityNode,
   type AttributeNode,
-} from '../../syntax/nodes'
+} from '@engine/syntax/nodes'
 
 describe('Parser Error Tolerance (Soft Consume)', () => {
   it('should parse a package even if the name is missing', () => {

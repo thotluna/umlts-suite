@@ -1,5 +1,5 @@
-import { IREntityType, IRRelationshipType } from '../../generator/ir/models'
-import type { TypeInferrer } from '../analyzers/type-inferrer'
+import { IREntityType, IRRelationshipType } from '@engine/generator/ir/models'
+import type { TypeInferrer } from '@engine/semantics/analyzers/type-inferrer'
 
 /**
  * Registers the default inference rules for standard UML types.

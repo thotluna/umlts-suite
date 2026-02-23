@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { LexerFactory } from '../../lexer/lexer.factory'
-import { ParserFactory } from '../../parser/parser.factory'
-import { ParserContext } from '../../parser/parser.context'
-import { DiagnosticReporter } from '../../parser/diagnostic-reporter'
-import { SemanticAnalyzer } from '../analyzer'
+import { LexerFactory } from '@engine/lexer/lexer.factory'
+import { ParserFactory } from '@engine/parser/parser.factory'
+import { ParserContext } from '@engine/parser/parser.context'
+import { DiagnosticReporter } from '@engine/parser/diagnostic-reporter'
+import { SemanticAnalyzer } from '@engine/semantics/analyzer'
 
 describe('Chained Relationships Support', () => {
   const analyze = (input: string) => {

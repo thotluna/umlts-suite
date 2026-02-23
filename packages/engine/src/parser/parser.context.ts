@@ -1,13 +1,16 @@
-import { TokenType, type Token } from '../syntax/token.types'
-import type { Diagnostic, DiagnosticCode } from '../syntax/diagnostic.types'
-import { TokenStream } from './token-stream'
-import { DiagnosticReporter } from './diagnostic-reporter'
-import { ParserSession } from './core/parser.session'
-import { IParserHub } from './core/parser.hub'
-import type { MemberRegistry } from './rules/member-strategies/member.registry'
-import type { TypeRegistry } from './rules/type-strategies/type.registry'
-import type { IMemberProvider } from './core/member-provider.interface'
-import type { IPrimaryTypeProvider, ITypeModifierProvider } from './core/type-provider.interface'
+import { TokenType, type Token } from '@engine/syntax/token.types'
+import type { Diagnostic, DiagnosticCode } from '@engine/syntax/diagnostic.types'
+import { TokenStream } from '@engine/parser/token-stream'
+import { DiagnosticReporter } from '@engine/parser/diagnostic-reporter'
+import { ParserSession } from '@engine/parser/core/parser.session'
+import { IParserHub } from '@engine/parser/core/parser.hub'
+import type { MemberRegistry } from '@engine/parser/rules/member-strategies/member.registry'
+import type { TypeRegistry } from '@engine/parser/rules/type-strategies/type.registry'
+import type { IMemberProvider } from '@engine/parser/core/member-provider.interface'
+import type {
+  IPrimaryTypeProvider,
+  ITypeModifierProvider,
+} from '@engine/parser/core/type-provider.interface'
 
 /**
  * ParserContext: Fachada (Facade) que coordina los subsistemas del parser.

@@ -1,5 +1,5 @@
-import { AbstractCompositeMatcher } from './base.composite'
-import { IntegerMatcher } from './integer.matcher'
+import { AbstractCompositeMatcher } from '@engine/lexer/matchers/base.composite'
+import { IntegerMatcher } from '@engine/lexer/matchers/integer.matcher'
 
 /**
  * Composite matcher for numbers.

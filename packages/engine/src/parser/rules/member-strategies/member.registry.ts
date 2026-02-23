@@ -1,9 +1,9 @@
-import type { IMemberProvider } from '../../core/member-provider.interface'
-import { DocCommentProvider } from './providers/doc-comment.provider'
-import { CommentProvider } from './providers/comment.provider'
-import { ConstraintMemberProvider } from './providers/constraint.provider'
-import { NoteMemberProvider } from './providers/note.provider'
-import { FeatureMemberProvider } from './providers/feature.provider'
+import type { IMemberProvider } from '@engine/parser/core/member-provider.interface'
+import { DocCommentProvider } from '@engine/parser/rules/member-strategies/providers/doc-comment.provider'
+import { CommentProvider } from '@engine/parser/rules/member-strategies/providers/comment.provider'
+import { ConstraintMemberProvider } from '@engine/parser/rules/member-strategies/providers/constraint.provider'
+import { NoteMemberProvider } from '@engine/parser/rules/member-strategies/providers/note.provider'
+import { FeatureMemberProvider } from '@engine/parser/rules/member-strategies/providers/feature.provider'
 
 /**
  * MemberRegistry: Gestiona el registro de proveedores de estrategias para miembros.

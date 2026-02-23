@@ -1,8 +1,8 @@
-import { NoteRule } from '../../note.rule'
-import type { MemberNode } from '../../../../syntax/nodes'
-import type { IParserHub } from '../../../core/parser.hub'
-import type { IMemberProvider } from '../../../core/member-provider.interface'
-import type { Orchestrator } from '../../../../parser/rule.types'
+import { NoteRule } from '@engine/parser/rules/note.rule'
+import type { MemberNode } from '@engine/syntax/nodes'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import type { IMemberProvider } from '@engine/parser/core/member-provider.interface'
+import type { Orchestrator } from '@engine/parser/rule.types'
 
 export class NoteMemberProvider implements IMemberProvider {
   private readonly noteRule = new NoteRule()

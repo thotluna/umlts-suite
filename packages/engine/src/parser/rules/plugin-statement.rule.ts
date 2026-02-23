@@ -1,7 +1,7 @@
-import type { StatementNode } from '../../syntax/nodes'
-import type { LanguagePlugin, IPluginStatementRule } from '../../plugins/language-plugin'
-import type { IParserHub } from '../core/parser.hub'
-import type { StatementRule, Orchestrator } from '../rule.types'
+import type { StatementNode } from '@engine/syntax/nodes'
+import type { LanguagePlugin, IPluginStatementRule } from '@engine/plugins/language-plugin'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import type { StatementRule, Orchestrator } from '@engine/parser/rule.types'
 
 /**
  * Master Rule for plugin statements.

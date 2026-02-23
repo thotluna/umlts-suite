@@ -1,5 +1,5 @@
-import { TypeScriptPlugin } from './typescript/typescript.plugin'
-import type { LanguagePlugin } from './language-plugin'
+import { TypeScriptPlugin } from '@engine/plugins/typescript/typescript.plugin'
+import type { LanguagePlugin } from '@engine/plugins/language-plugin'
 
 /**
  * Registry of all built-in language plugins.

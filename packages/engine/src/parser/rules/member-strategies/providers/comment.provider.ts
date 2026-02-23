@@ -1,8 +1,8 @@
-import { TokenType } from '../../../../syntax/token.types'
-import { ASTNodeType, type MemberNode } from '../../../../syntax/nodes'
-import type { IParserHub } from '../../../core/parser.hub'
-import type { IMemberProvider } from '../../../core/member-provider.interface'
-import { Orchestrator } from '../../../rule.types'
+import { TokenType } from '@engine/syntax/token.types'
+import { ASTNodeType, type MemberNode } from '@engine/syntax/nodes'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import type { IMemberProvider } from '@engine/parser/core/member-provider.interface'
+import { Orchestrator } from '@engine/parser/rule.types'
 
 export class CommentProvider implements IMemberProvider {
   canHandle(context: IParserHub): boolean {

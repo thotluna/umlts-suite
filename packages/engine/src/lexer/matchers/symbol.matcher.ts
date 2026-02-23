@@ -1,9 +1,9 @@
-import { AbstractCompositeMatcher } from './base.composite'
-import { RelationshipMatcher } from './relationship.matcher'
-import { KeywordOperatorMatcher } from './keyword.operator.matcher'
-import { RangeMatcher } from './range.matcher'
-import { BidirAssociationMatcher } from './bidir.association.matcher'
-import { SimpleSymbolMatcher } from './simple.symbol.matcher'
+import { AbstractCompositeMatcher } from '@engine/lexer/matchers/base.composite'
+import { RelationshipMatcher } from '@engine/lexer/matchers/relationship.matcher'
+import { KeywordOperatorMatcher } from '@engine/lexer/matchers/keyword.operator.matcher'
+import { RangeMatcher } from '@engine/lexer/matchers/range.matcher'
+import { BidirAssociationMatcher } from '@engine/lexer/matchers/bidir.association.matcher'
+import { SimpleSymbolMatcher } from '@engine/lexer/matchers/simple.symbol.matcher'
 
 /**
  * Composite matcher for all symbols and operators.

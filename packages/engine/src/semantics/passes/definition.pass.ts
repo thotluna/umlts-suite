@@ -1,4 +1,4 @@
-import { type ASTVisitor, walkAST } from '../../syntax/visitor'
+import { type ASTVisitor, walkAST } from '@engine/syntax/visitor'
 import type {
   ProgramNode,
   PackageNode,
@@ -8,11 +8,11 @@ import type {
   ConfigNode,
   AssociationClassNode,
   ConstraintNode,
-} from '../../syntax/nodes'
-import type { IRConstraint } from '../../generator/ir/models'
-import type { AnalysisSession } from '../session/analysis-session'
-import type { EntityAnalyzer } from '../analyzers/entity-analyzer'
-import type { ISemanticPass } from './semantic-pass.interface'
+} from '@engine/syntax/nodes'
+import type { IRConstraint } from '@engine/generator/ir/models'
+import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
+import type { EntityAnalyzer } from '@engine/semantics/analyzers/entity-analyzer'
+import type { ISemanticPass } from '@engine/semantics/passes/semantic-pass.interface'
 
 /**
  * Pase 2: Definición.

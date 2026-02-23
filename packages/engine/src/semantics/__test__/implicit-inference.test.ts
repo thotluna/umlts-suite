@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { LexerFactory } from '../../lexer/lexer.factory'
-import { ParserFactory } from '../../parser/parser.factory'
-import { SemanticAnalyzer } from '../analyzer'
-import { DiagnosticCode, DiagnosticSeverity } from '../../syntax/diagnostic.types'
-import { ParserContext } from '../../parser/parser.context'
-import { DiagnosticReporter } from '../../parser/diagnostic-reporter'
-import { IREntityType } from '../../generator/ir/models'
+import { LexerFactory } from '@engine/lexer/lexer.factory'
+import { ParserFactory } from '@engine/parser/parser.factory'
+import { SemanticAnalyzer } from '@engine/semantics/analyzer'
+import { DiagnosticCode, DiagnosticSeverity } from '@engine/syntax/diagnostic.types'
+import { ParserContext } from '@engine/parser/parser.context'
+import { DiagnosticReporter } from '@engine/parser/diagnostic-reporter'
+import { IREntityType } from '@engine/generator/ir/models'
 
 describe('Implicit Entity Type Inference', () => {
   const parseAndAnalyze = (source: string) => {

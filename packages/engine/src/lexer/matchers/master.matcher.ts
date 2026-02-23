@@ -1,4 +1,4 @@
-import { AbstractCompositeMatcher } from './base.composite'
+import { AbstractCompositeMatcher } from '@engine/lexer/matchers/base.composite'
 
 /**
  * A simple implementation of AbstractCompositeMatcher that can be used

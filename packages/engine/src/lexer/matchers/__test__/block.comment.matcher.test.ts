@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { LexerReader } from '../../lexer.reader'
-import { BlockCommentMatcher } from '../block.comment.matcher'
-import { TokenType } from '../../../syntax/token.types'
+import { LexerReader } from '@engine/lexer/lexer.reader'
+import { BlockCommentMatcher } from '@engine/lexer/matchers/block.comment.matcher'
+import { TokenType } from '@engine/syntax/token.types'
 
 describe('BlockCommentMatcher', () => {
   it('should match a standard block comment', () => {
