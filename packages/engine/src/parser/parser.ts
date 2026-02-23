@@ -67,16 +67,7 @@ export class Parser implements Orchestrator {
    * Intenta parsear una sentencia delegando en las reglas registradas.
    */
   public parseStatement(context: IParserHub): StatementNode[] {
-    if (context.isAtEnd()) return []
-
-    const startPos = context.getPosition()
-    for (const rule of this.rules) {
-      if (rule.canHandle(context)) {
-        const nodes = rule.parse(context, this)
-        if (nodes.length > 0 || context.getPosition() > startPos) return nodes
-      }
-    }
-
-    return []
+    const rule = this.rules.find((r) => r.canHandle(context))
+    return rule ? rule.parse(context, this) : []
   }
 }

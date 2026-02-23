@@ -17,21 +17,29 @@ export class EntityRule implements StatementRule {
   private readonly memberRule = new MemberRule()
 
   public canHandle(context: IParserHub): boolean {
-    return context.checkAny(
-      TokenType.KW_CLASS,
-      TokenType.KW_INTERFACE,
-      TokenType.MOD_ABSTRACT,
-      TokenType.KW_ABSTRACT,
-      TokenType.MOD_STATIC,
-      TokenType.KW_STATIC,
-      TokenType.MOD_ACTIVE,
-      TokenType.KW_ACTIVE,
-      TokenType.MOD_LEAF,
-      TokenType.KW_LEAF,
-      TokenType.KW_FINAL,
-      TokenType.MOD_ROOT,
-      TokenType.KW_ROOT,
-    )
+    const pos = context.getPosition()
+    try {
+      while (
+        context.checkAny(
+          TokenType.MOD_ABSTRACT,
+          TokenType.KW_ABSTRACT,
+          TokenType.MOD_STATIC,
+          TokenType.KW_STATIC,
+          TokenType.MOD_LEAF,
+          TokenType.KW_LEAF,
+          TokenType.KW_FINAL,
+          TokenType.MOD_ROOT,
+          TokenType.KW_ROOT,
+          TokenType.MOD_ACTIVE,
+          TokenType.KW_ACTIVE,
+        )
+      ) {
+        context.advance()
+      }
+      return context.checkAny(TokenType.KW_CLASS, TokenType.KW_INTERFACE)
+    } finally {
+      context.rollback(pos)
+    }
   }
 
   public parse(context: IParserHub, orchestrator: Orchestrator): StatementNode[] {

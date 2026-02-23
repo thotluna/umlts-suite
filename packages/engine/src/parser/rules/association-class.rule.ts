@@ -17,14 +17,56 @@ export class AssociationClassRule implements StatementRule {
   private readonly memberRule = new MemberRule()
 
   public canHandle(context: IParserHub): boolean {
-    // Empieza como una clase normal
-    return context.checkAny(
-      TokenType.KW_CLASS,
-      TokenType.MOD_ABSTRACT,
-      TokenType.KW_ABSTRACT,
-      TokenType.MOD_STATIC,
-      TokenType.KW_STATIC,
-    )
+    const pos = context.getPosition()
+    try {
+      // 1. Omitir modificadores iniciales
+      while (
+        context.checkAny(
+          TokenType.MOD_ABSTRACT,
+          TokenType.KW_ABSTRACT,
+          TokenType.MOD_STATIC,
+          TokenType.KW_STATIC,
+          TokenType.MOD_LEAF,
+          TokenType.KW_LEAF,
+          TokenType.KW_FINAL,
+          TokenType.MOD_ROOT,
+          TokenType.KW_ROOT,
+        )
+      ) {
+        context.advance()
+      }
+
+      // 2. Debe empezar con 'class'
+      if (!context.match(TokenType.KW_CLASS)) return false
+
+      // 3. Omitir nombre (puede ser FQN)
+      if (!context.match(TokenType.IDENTIFIER)) return false
+      while (context.match(TokenType.DOT)) {
+        if (!context.match(TokenType.IDENTIFIER)) break
+      }
+
+      // 4. Omitir modificadores secundarios (ej: class abstract Name)
+      while (
+        context.checkAny(
+          TokenType.MOD_ABSTRACT,
+          TokenType.KW_ABSTRACT,
+          TokenType.MOD_STATIC,
+          TokenType.KW_STATIC,
+          TokenType.MOD_LEAF,
+          TokenType.KW_LEAF,
+          TokenType.KW_FINAL,
+          TokenType.MOD_ROOT,
+          TokenType.KW_ROOT,
+        )
+      ) {
+        context.advance()
+      }
+
+      // 5. Debe tener el operador de asociación <>
+      return context.check(TokenType.OP_ASSOC_BIDIR)
+    } finally {
+      context.rollback(pos)
+    }
   }
 
   public parse(context: IParserHub, orchestrator: Orchestrator): StatementNode[] {

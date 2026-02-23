@@ -60,8 +60,8 @@ El objetivo es preparar los cimientos sin romper el parser actual.
 
 ## Orden de Ejecución Sugerido
 
-1. [ ] **Implementar `ASTFactory`** (Bajo riesgo, alta recompensa en tipado).
-2. [ ] **Extraer `EnumRule`** (Reduce la complejidad de `EntityRule` drásticamente).
-3. [ ] **Inyectar `MemberRegistry`** (Prepara el terreno para plugins reales).
-4. [ ] **Refactorizar `ParserContext`** hacia `IParserHub`.
-5. [ ] **Migrar el Orchestrator** al nuevo bucle de composición.
+1. [x] **Implementar `ASTFactory`** (Bajo riesgo, alta recompensa en tipado).
+2. [x] **Extraer `EnumRule`** (Reduce la complejidad de `EntityRule` drásticamente).
+3. [x] **Inyectar `MemberRegistry`** (Prepara el terreno para plugins reales).
+4. [x] **Refactorizar `ParserContext`** hacia `IParserHub`.
+5. [x] **Migrar el Orchestrator** al nuevo bucle de composición.
