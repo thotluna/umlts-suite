@@ -2,7 +2,7 @@ import type { ConstraintNode } from '@engine/syntax/nodes'
 
 import type { IRConstraint, IRRelationship } from '@engine/generator/ir/models'
 import type { SymbolTable } from '@engine/semantics/symbol-table'
-import type { ParserContext } from '@engine/parser/parser.context'
+import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
 
 /**
  * Analyzer for constraints (XOR, Ordered, Unique, etc.)
@@ -10,7 +10,7 @@ import type { ParserContext } from '@engine/parser/parser.context'
 export class ConstraintAnalyzer {
   constructor(
     private readonly symbolTable: SymbolTable,
-    private readonly context?: ParserContext,
+    private readonly context?: ISemanticContext,
   ) {}
 
   /**

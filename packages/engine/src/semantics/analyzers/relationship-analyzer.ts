@@ -10,7 +10,7 @@ import {
 import { TypeInferrer } from '@engine/semantics/analyzers/type-inferrer'
 import { registerDefaultInferenceRules } from '@engine/semantics/rules/inference-rules'
 import type { SymbolTable } from '@engine/semantics/symbol-table'
-import type { ParserContext } from '@engine/parser/parser.context'
+import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
 import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
 import type { HierarchyValidator } from '@engine/semantics/validators/hierarchy-validator'
 import { AssociationValidator } from '@engine/semantics/validators/association-validator'
@@ -37,14 +37,14 @@ export class RelationshipAnalyzer {
     private readonly symbolTable: SymbolTable,
     private readonly relationships: IRRelationship[],
     private readonly hierarchyValidator: HierarchyValidator,
-    private readonly context?: ParserContext,
+    private readonly context?: ISemanticContext,
   ) {
     this.typeInferrer = new TypeInferrer()
     registerDefaultInferenceRules(this.typeInferrer)
     this.associationValidator = new AssociationValidator(context!)
   }
 
-  public getContext(): ParserContext | undefined {
+  public getContext(): ISemanticContext | undefined {
     return this.context
   }
 

@@ -47,9 +47,7 @@ describe('ConfigStore', () => {
   })
 
   it('should load standard library from plugin upon activation', () => {
-    const mockEntities: IREntity[] = [
-      { id: 'String', type: IREntityType.CLASS, attributes: [], methods: [] },
-    ]
+    const mockEntities = [{ id: 'String', type: IREntityType.CLASS } as unknown as IREntity]
     const mockPlugin = {
       name: 'ts',
       getStandardLibrary: vi.fn().mockReturnValue(mockEntities),
@@ -74,14 +72,12 @@ describe('ConfigStore', () => {
   })
 
   it('should handle namespace registration for standard library entities', () => {
-    const mockEntities: IREntity[] = [
+    const mockEntities = [
       {
         id: 'java.lang.String',
         type: IREntityType.CLASS,
         namespace: 'java.lang',
-        attributes: [],
-        methods: [],
-      },
+      } as unknown as IREntity,
     ]
     const mockPlugin = {
       name: 'java',

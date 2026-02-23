@@ -3,7 +3,7 @@ import { PluginManager } from '@engine/plugins/plugin-manager'
 import { IREntityType, IRVisibility } from '@engine/generator/ir/models'
 import type { SymbolTable } from '@engine/semantics/symbol-table'
 import type { ConfigStore } from '@engine/semantics/session/config-store'
-import type { ParserContext } from '@engine/parser/parser.context'
+import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
 import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
 import { TypeValidator } from '@engine/semantics/utils/type-validator'
 import { FQNBuilder } from '@engine/semantics/utils/fqn-builder'
@@ -27,7 +27,7 @@ export class EntityAnalyzer {
   constructor(
     private readonly symbolTable: SymbolTable,
     private readonly constraintAnalyzer: ConstraintAnalyzer,
-    private readonly context: ParserContext,
+    private readonly context: ISemanticContext,
     private readonly configStore: ConfigStore,
     private readonly pluginManager: PluginManager,
   ) {}

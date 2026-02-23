@@ -1,7 +1,7 @@
 import type { ProgramNode } from '@engine/syntax/nodes'
 import { type IRDiagram, IREntityType, IRRelationshipType } from '@engine/generator/ir/models'
 import { BUILTIN_PLUGINS } from '@engine/plugins'
-import type { ParserContext } from '@engine/parser/parser.context'
+import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
 
 // Core Components
 import { SymbolTable } from '@engine/semantics/symbol-table'
@@ -59,7 +59,7 @@ export class SemanticAnalyzer {
   /**
    * Punto de entrada principal para el análisis semántico.
    */
-  public analyze(program: ProgramNode, context: ParserContext): IRDiagram {
+  public analyze(program: ProgramNode, context: ISemanticContext): IRDiagram {
     // 1. Inicialización de Estado (Sesión)
     const symbolTable = new SymbolTable()
     const constraintRegistry = new ConstraintRegistry()

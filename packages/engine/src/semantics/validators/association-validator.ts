@@ -3,14 +3,14 @@ import { IRRelationshipType, IREntityType } from '@engine/generator/ir/models'
 import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
 import { TokenType } from '@engine/syntax/token.types'
 import type { Token } from '@engine/syntax/token.types'
-import type { ParserContext } from '@engine/parser/parser.context'
+import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
 import type { SymbolTable } from '@engine/semantics/symbol-table'
 
 /**
  * Validator for Association-related rules (Composition, Aggregation, etc.).
  */
 export class AssociationValidator {
-  constructor(private readonly context: ParserContext) {}
+  constructor(private readonly context?: ISemanticContext) {}
 
   /**
    * Validates structural integrity of an association.
@@ -27,7 +27,7 @@ export class AssociationValidator {
     // Only Classes and Interfaces can be the 'Whole' in a strong structural relationship.
     if (type === IRRelationshipType.COMPOSITION || type === IRRelationshipType.AGGREGATION) {
       if (from.type === IREntityType.ENUMERATION) {
-        this.context.addError(
+        this.context?.addError(
           `Association Violation: An Enum ('${from.name}') cannot be the aggregate/whole in a ${type} relationship.`,
           errorToken,
           DiagnosticCode.SEMANTIC_INVALID_TYPE,
@@ -52,7 +52,7 @@ export class AssociationValidator {
       const allowedWithPackages = [IRRelationshipType.DEPENDENCY]
 
       if (!allowedWithPackages.includes(type)) {
-        this.context.addError(
+        this.context?.addError(
           `Semantic Violation: Cannot use ${type} with a Package ('${toFQN}'). Packages only support Dependencies (>-).`,
           {
             line: line || 1,

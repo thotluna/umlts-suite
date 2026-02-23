@@ -383,3 +383,19 @@
 - [x] **ARCH**: Dividir `EntityRule` en `ClassRule` e `InterfaceRule` utilizando una clase base abstracta `BaseEntityRule` para mejorar la atomicidad y mantenibilidad.
 - [x] **DX**: Configurar Aliased Imports (`@engine/*`) en `tsconfig.json` y `vitest.config.ts`.
 - [x] **DX**: Refactorización masiva de todos los imports en el paquete `engine` para utilizar el nuevo alias `@engine`, eliminando rutas relativas complejas.
+
+## Refactorización de Semántica (V3 - SaaS Ready)
+
+- [x] **Phase 0**: Migrar infraestructura compartida (`DiagnosticReporter`) a `src/core` <!-- id: 400 -->
+- [x] **Phase 0.5**: Cimentación de Infraestructura Semántica <!-- id: 401 -->
+  - [x] Implementar `ISemanticContext` e `IRFactory`
+  - [x] Implementar `ValidationEngine` base y Registro de Reglas
+- [ ] **Phase 1**: Desacoplamiento Total del Parser <!-- id: 402 -->
+  - [ ] Migrar `SemanticAnalyzer` para usar `ISemanticContext`
+  - [ ] Eliminar toda dependencia de `@engine/parser` en el paquete de semántica
+- [ ] **Phase 2**: Reglas Atómicas y Concurrencia <!-- id: 403 -->
+  - [ ] Refactorizar validaciones existentes a `ISemanticRule` (Stateless)
+  - [ ] Implementar motor de ejecución de reglas (con soporte futuro para paralelismo)
+- [ ] **Phase 3**: Soporte SaaS y Multi-archivo <!-- id: 404 -->
+  - [ ] Gestión de multi-tenancy en la sesión de análisis
+  - [ ] Procesamiento incremental y slots de extensión (estereotipos)

@@ -2,10 +2,16 @@ import { describe, it, expect } from 'vitest'
 import { LexerFactory } from '@engine/lexer/lexer.factory'
 import { ParserFactory } from '@engine/parser/parser.factory'
 import { SemanticAnalyzer } from '@engine/semantics/analyzer'
-import { DiagnosticCode, DiagnosticSeverity } from '@engine/syntax/diagnostic.types'
+import {
+  DiagnosticCode,
+  DiagnosticSeverity,
+  type Diagnostic,
+} from '@engine/syntax/diagnostic.types'
 import { ParserContext } from '@engine/parser/parser.context'
-import { DiagnosticReporter } from '@engine/parser/diagnostic-reporter'
-import { IREntityType } from '@engine/generator/ir/models'
+import { DiagnosticReporter } from '@engine/core/diagnostics/diagnostic-reporter'
+import { IREntityType, type IREntity } from '@engine/generator/ir/models'
+import { MemberRegistry } from '@engine/parser/rules/member-strategies/member.registry'
+import { TypeRegistry } from '@engine/parser/rules/type-strategies/type.registry'
 
 describe('Implicit Entity Type Inference', () => {
   const parseAndAnalyze = (source: string) => {
@@ -15,7 +21,9 @@ describe('Implicit Entity Type Inference', () => {
     const program = parser.parse(tokens)
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const members = new MemberRegistry()
+    const types = new TypeRegistry()
+    const context = new ParserContext(tokens, reporter, members, types)
 
     const ir = analyzer.analyze(program, context)
     return { parser, analyzer, program, context, ir }
@@ -27,11 +35,13 @@ describe('Implicit Entity Type Inference', () => {
     const { context, ir } = parseAndAnalyze(source)
 
     // Should NOT have invalid realization error
-    const errors = context.getDiagnostics().filter((d) => d.severity === DiagnosticSeverity.ERROR)
+    const errors = context
+      .getDiagnostics()
+      .filter((d: Diagnostic) => d.severity === DiagnosticSeverity.ERROR)
     expect(errors).toHaveLength(0)
 
     // Verify MyInterface was created as INTERFACE
-    const myInterface = ir.entities.find((e) => e.name === 'MyInterface')
+    const myInterface = ir.entities.find((e: IREntity) => e.name === 'MyInterface')
     expect(myInterface).toBeDefined()
     expect(myInterface?.type).toBe(IREntityType.INTERFACE)
     expect(myInterface?.isImplicit).toBe(true)
@@ -43,11 +53,13 @@ describe('Implicit Entity Type Inference', () => {
     const { context, ir } = parseAndAnalyze(source)
 
     // Should NOT have invalid inheritance error
-    const errors = context.getDiagnostics().filter((d) => d.severity === DiagnosticSeverity.ERROR)
+    const errors = context
+      .getDiagnostics()
+      .filter((d: Diagnostic) => d.severity === DiagnosticSeverity.ERROR)
     expect(errors).toHaveLength(0)
 
     // Verify ParentInterface was created as INTERFACE
-    const parent = ir.entities.find((e) => e.name === 'ParentInterface')
+    const parent = ir.entities.find((e: IREntity) => e.name === 'ParentInterface')
     expect(parent).toBeDefined()
     expect(parent?.type).toBe(IREntityType.INTERFACE)
     expect(parent?.isImplicit).toBe(true)
@@ -58,10 +70,12 @@ describe('Implicit Entity Type Inference', () => {
 
     const { context, ir } = parseAndAnalyze(source)
 
-    const errors = context.getDiagnostics().filter((d) => d.severity === DiagnosticSeverity.ERROR)
+    const errors = context
+      .getDiagnostics()
+      .filter((d: Diagnostic) => d.severity === DiagnosticSeverity.ERROR)
     expect(errors).toHaveLength(0)
 
-    const parent = ir.entities.find((e) => e.name === 'ParentClass')
+    const parent = ir.entities.find((e: IREntity) => e.name === 'ParentClass')
     expect(parent).toBeDefined()
     expect(parent?.type).toBe(IREntityType.CLASS)
     expect(parent?.isImplicit).toBe(true)
@@ -76,7 +90,7 @@ describe('Implicit Entity Type Inference', () => {
     const { ir } = parseAndAnalyze(source)
 
     // Check by id or name
-    const order = ir.entities.find((e) => e.name === 'Order' || e.id === 'Order')
+    const order = ir.entities.find((e: IREntity) => e.name === 'Order' || e.id === 'Order')
     expect(order).toBeDefined()
     expect(order?.type).toBe(IREntityType.CLASS)
   })
@@ -93,12 +107,12 @@ describe('Implicit Entity Type Inference', () => {
 
     const error = context
       .getDiagnostics()
-      .find((d) => d.code === DiagnosticCode.SEMANTIC_REALIZATION_INVALID)
+      .find((d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_REALIZATION_INVALID)
     expect(error).toBeDefined()
     expect(error?.message).toContain('Invalid implementation')
 
     // Verify B is still a CLASS
-    const b = ir.entities.find((e) => e.name === 'B')
+    const b = ir.entities.find((e: IREntity) => e.name === 'B')
     expect(b?.type).toBe(IREntityType.CLASS)
   })
 })

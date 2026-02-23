@@ -2,8 +2,12 @@ import { describe, it, expect } from 'vitest'
 import { LexerFactory } from '@engine/lexer/lexer.factory'
 import { ParserFactory } from '@engine/parser/parser.factory'
 import { ParserContext } from '@engine/parser/parser.context'
-import { DiagnosticReporter } from '@engine/parser/diagnostic-reporter'
+import { DiagnosticReporter } from '@engine/core/diagnostics/diagnostic-reporter'
 import { SemanticAnalyzer } from '@engine/semantics/analyzer'
+import { MemberRegistry } from '@engine/parser/rules/member-strategies/member.registry'
+import { TypeRegistry } from '@engine/parser/rules/type-strategies/type.registry'
+import type { Diagnostic } from '@engine/syntax/diagnostic.types'
+import type { IREntity, IRRelationship } from '@engine/generator/ir/models'
 
 describe('Association Class Support', () => {
   const analyze = (input: string) => {
@@ -13,7 +17,9 @@ describe('Association Class Support', () => {
     const program = parser.parse(tokens)
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const members = new MemberRegistry()
+    const types = new TypeRegistry()
+    const context = new ParserContext(tokens, reporter, members, types)
     return analyzer.analyze(program, context)
   }
 
@@ -29,7 +35,7 @@ describe('Association Class Support', () => {
 
     // 3 entities: Estudiante, Curso, Matricula (nota: Real is a UML primitive)
     expect(ir.entities).toHaveLength(3)
-    const matricula = ir.entities.find((e) => e.name === 'Matricula')
+    const matricula = ir.entities.find((e: IREntity) => e.name === 'Matricula')
     expect(matricula).toBeDefined()
     expect(matricula?.properties).toHaveLength(1)
     expect(matricula?.properties[0].name).toBe('nota')
@@ -53,9 +59,9 @@ describe('Association Class Support', () => {
     const ir = analyze(input)
 
     expect(ir.entities).toHaveLength(3) // Empresa, Persona (implicitas) + Empleo
-    const empresa = ir.entities.find((e) => e.name === 'Empresa')
-    const persona = ir.entities.find((e) => e.name === 'Persona')
-    const empleo = ir.entities.find((e) => e.name === 'Empleo')
+    const empresa = ir.entities.find((e: IREntity) => e.name === 'Empresa')
+    const persona = ir.entities.find((e: IREntity) => e.name === 'Persona')
+    const empleo = ir.entities.find((e: IREntity) => e.name === 'Empleo')
 
     expect(empresa?.isImplicit).toBe(true)
     expect(persona?.isImplicit).toBe(true)
@@ -76,9 +82,13 @@ describe('Association Class Support', () => {
     // Relaciones: A>>E, B>>F y la asociación C vinculando A y B
     expect(ir.relationships).toHaveLength(3)
 
-    const relAE = ir.relationships.find((r) => r.from.includes('A') && r.to.includes('E'))
-    const relBF = ir.relationships.find((r) => r.from.includes('B') && r.to.includes('F'))
-    const relC = ir.relationships.find((r) => r.associationClassId !== undefined)
+    const relAE = ir.relationships.find(
+      (r: IRRelationship) => r.from.includes('A') && r.to.includes('E'),
+    )
+    const relBF = ir.relationships.find(
+      (r: IRRelationship) => r.from.includes('B') && r.to.includes('F'),
+    )
+    const relC = ir.relationships.find((r: IRRelationship) => r.associationClassId !== undefined)
 
     expect(relAE).toBeDefined()
     expect(relBF).toBeDefined()
@@ -99,8 +109,10 @@ describe('Association Class Support', () => {
     // Relación A>>E y la asociación C vinculando A y B
     expect(ir.relationships).toHaveLength(2)
 
-    const relAE = ir.relationships.find((r) => r.from.includes('A') && r.to.includes('E'))
-    const relC = ir.relationships.find((r) => r.associationClassId !== undefined)
+    const relAE = ir.relationships.find(
+      (r: IRRelationship) => r.from.includes('A') && r.to.includes('E'),
+    )
+    const relC = ir.relationships.find((r: IRRelationship) => r.associationClassId !== undefined)
 
     expect(relAE).toBeDefined()
     expect(relC).toBeDefined()
@@ -119,13 +131,15 @@ describe('Association Class Support', () => {
     const program = parser.parse(tokens)
     const analyzer = new SemanticAnalyzer()
     const reporter = new DiagnosticReporter()
-    const context = new ParserContext(tokens, reporter)
+    const members = new MemberRegistry()
+    const types = new TypeRegistry()
+    const context = new ParserContext(tokens, reporter, members, types)
     analyzer.analyze(program, context)
 
     const diagnostics = context.getDiagnostics()
-    expect(diagnostics.some((d) => d.message.includes('must have exactly 2 participants'))).toBe(
-      true,
-    )
+    expect(
+      diagnostics.some((d: Diagnostic) => d.message.includes('must have exactly 2 participants')),
+    ).toBe(true)
   })
 
   it('should parse association class with multiplicity before relationship', () => {
@@ -142,7 +156,7 @@ describe('Association Class Support', () => {
 
     // Verificar relación de Subscription
     const subRel = ir.relationships.find(
-      (r) => r.from.includes('Customer') && r.to.includes('Plan'),
+      (r: IRRelationship) => r.from.includes('Customer') && r.to.includes('Plan'),
     )
     expect(subRel).toBeDefined()
     expect(subRel?.fromMultiplicity).toEqual({ lower: 1, upper: 1 })
@@ -150,7 +164,7 @@ describe('Association Class Support', () => {
 
     // Verificar relaciones heredadas
     const inherit1 = ir.relationships.find(
-      (r) => r.from.includes('Customer') && r.to.includes('LegalEntity'),
+      (r: IRRelationship) => r.from.includes('Customer') && r.to.includes('LegalEntity'),
     )
     expect(inherit1).toBeDefined()
   })

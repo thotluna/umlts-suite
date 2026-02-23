@@ -1,4 +1,4 @@
-import { ParserContext } from '@engine/parser/parser.context'
+import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
 import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
 import { TokenType } from '@engine/syntax/token.types'
 import type { Token } from '@engine/syntax/token.types'
@@ -72,7 +72,7 @@ export class MultiplicityValidator {
     multiplicity: string,
     line?: number,
     column?: number,
-    context?: ParserContext,
+    context?: ISemanticContext,
   ): MultiplicityBounds | null {
     const bounds = this.parse(multiplicity)
 

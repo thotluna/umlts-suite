@@ -8,7 +8,7 @@ import {
   type Diagnostic,
 } from '@engine/syntax/diagnostic.types'
 import { ParserContext } from '@engine/parser/parser.context'
-import { DiagnosticReporter } from '@engine/parser/diagnostic-reporter'
+import { DiagnosticReporter } from '@engine/core/diagnostics/diagnostic-reporter'
 import { MemberRegistry } from '@engine/parser/rules/member-strategies/member.registry'
 import { TypeRegistry } from '@engine/parser/rules/type-strategies/type.registry'
 
@@ -134,7 +134,7 @@ describe('Semantic Rules', () => {
     analyzer.analyze(program, context)
 
     const diagnostics = context.getDiagnostics()
-    const error = diagnostics.find((d) => d.message.includes('is already defined'))
+    const error = diagnostics.find((d: Diagnostic) => d.message.includes('is already defined'))
     expect(error).toBeDefined()
   })
 
@@ -151,8 +151,12 @@ describe('Semantic Rules', () => {
 
     const diagnostics = context.getDiagnostics()
     expect(diagnostics.length).toBeGreaterThanOrEqual(2)
-    expect(diagnostics.some((d) => d.code === DiagnosticCode.SEMANTIC_CYCLE_DETECTED)).toBe(true)
-    expect(diagnostics.some((d) => d.code === DiagnosticCode.SEMANTIC_DUPLICATE_MEMBER)).toBe(true)
+    expect(
+      diagnostics.some((d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_CYCLE_DETECTED),
+    ).toBe(true)
+    expect(
+      diagnostics.some((d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_DUPLICATE_MEMBER),
+    ).toBe(true)
   })
 
   it('should resolve forward references in packages (Pass 1 Discovery)', () => {
@@ -173,7 +177,7 @@ describe('Semantic Rules', () => {
 
     // No debería haber errores de "Entidad implícita" porque B se registra en la pasada 1
     const implicitErrors = diagnostics.filter(
-      (d) => d.code === DiagnosticCode.SEMANTIC_IMPLICIT_ENTITY,
+      (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_IMPLICIT_ENTITY,
     )
     expect(implicitErrors.length).toBe(0)
   })
@@ -191,7 +195,9 @@ describe('Semantic Rules', () => {
     analyzer.analyze(program, context)
 
     const diagnostics = context.getDiagnostics()
-    const error = diagnostics.find((d) => d.code === DiagnosticCode.SEMANTIC_AMBIGUOUS_ENTITY)
+    const error = diagnostics.find(
+      (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_AMBIGUOUS_ENTITY,
+    )
     expect(error).toBeDefined()
     expect(error?.message).toContain('Ambiguity detected')
   })
@@ -206,7 +212,9 @@ describe('Semantic Rules', () => {
     analyzer.analyze(program, context)
 
     const diagnostics = context.getDiagnostics()
-    const error = diagnostics.find((d) => /enum/i.test(d.message) && /aggregation/i.test(d.message))
+    const error = diagnostics.find(
+      (d: Diagnostic) => /enum/i.test(d.message) && /aggregation/i.test(d.message),
+    )
     expect(error).toBeDefined()
   })
 
@@ -221,7 +229,7 @@ describe('Semantic Rules', () => {
 
     const diagnostics = context.getDiagnostics()
     const error = diagnostics.find(
-      (d) => /interface/i.test(d.message) && /composition/i.test(d.message),
+      (d: Diagnostic) => /interface/i.test(d.message) && /composition/i.test(d.message),
     )
     expect(error).toBeUndefined()
   })
