@@ -3,6 +3,7 @@ import { type AttributeNode, type Modifiers } from '../../syntax/nodes'
 import type { IParserHub } from '../core/parser.hub'
 import { MemberSuffixRule } from './member-suffix.rule'
 import { ASTFactory } from '../factory/ast.factory'
+import type { Orchestrator } from '../rule.types'
 
 export class AttributeRule {
   public parse(
@@ -10,6 +11,7 @@ export class AttributeRule {
     name: Token,
     visibility: string,
     modifiers: Modifiers,
+    _orchestrator: Orchestrator,
   ): AttributeNode {
     const suffix = MemberSuffixRule.parse(context)
 

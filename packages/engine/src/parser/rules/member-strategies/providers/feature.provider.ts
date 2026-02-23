@@ -5,6 +5,7 @@ import { AttributeRule } from '../../attribute.rule'
 import { MethodRule } from '../../method.rule'
 import { ModifierRule } from '../../modifier.rule'
 import type { IMemberProvider } from '../../../core/member-provider.interface'
+import { Orchestrator } from '../../../rule.types'
 
 export class FeatureMemberProvider implements IMemberProvider {
   private readonly attributeRule = new AttributeRule()
@@ -35,7 +36,7 @@ export class FeatureMemberProvider implements IMemberProvider {
     )
   }
 
-  parse(context: IParserHub): MemberNode | null {
+  parse(context: IParserHub, orchestrator: Orchestrator): MemberNode | null {
     let visibility = 'public'
     if (
       context.match(TokenType.VIS_PUB, TokenType.VIS_PRIV, TokenType.VIS_PROT, TokenType.VIS_PACK)
@@ -56,9 +57,9 @@ export class FeatureMemberProvider implements IMemberProvider {
     const nameToken = context.consume(TokenType.IDENTIFIER, 'Expected member name')
 
     if (context.check(TokenType.LPAREN)) {
-      return this.methodRule.parse(context, nameToken, visibility, modifiers)
+      return this.methodRule.parse(context, nameToken, visibility, modifiers, orchestrator)
     } else {
-      return this.attributeRule.parse(context, nameToken, visibility, modifiers)
+      return this.attributeRule.parse(context, nameToken, visibility, modifiers, orchestrator)
     }
   }
 }

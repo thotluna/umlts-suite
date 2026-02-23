@@ -6,7 +6,7 @@ import {
   type MemberNode,
 } from '../../syntax/nodes'
 import type { IParserHub } from '../core/parser.hub'
-import type { StatementRule } from '../rule.types'
+import type { StatementRule, Orchestrator } from '../rule.types'
 import { ModifierRule } from './modifier.rule'
 import { MemberRule } from './member.rule'
 import { ConstraintRule } from './constraint.rule'
@@ -15,7 +15,7 @@ import { ASTFactory } from '../factory/ast.factory'
 export class RelationshipRule implements StatementRule {
   private readonly memberRule = new MemberRule()
 
-  public canStart(context: IParserHub): boolean {
+  public canHandle(context: IParserHub): boolean {
     return context.checkAny(
       TokenType.IDENTIFIER,
       TokenType.LBRACKET,
@@ -33,7 +33,7 @@ export class RelationshipRule implements StatementRule {
     )
   }
 
-  public parse(context: IParserHub): StatementNode[] {
+  public parse(context: IParserHub, orchestrator: Orchestrator): StatementNode[] {
     const pos = context.getPosition()
 
     try {
@@ -127,7 +127,7 @@ export class RelationshipRule implements StatementRule {
             // Intentar parsear como miembro
             try {
               const posBefore = context.getPosition()
-              const member = this.memberRule.parse(context)
+              const member = this.memberRule.parse(context, orchestrator)
               if (member) {
                 body.push(member)
               } else {

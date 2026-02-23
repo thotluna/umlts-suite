@@ -16,7 +16,7 @@ export class AssociationClassRule implements StatementRule {
   private readonly relationshipHeaderRule = new RelationshipHeaderRule()
   private readonly memberRule = new MemberRule()
 
-  public canStart(context: IParserHub): boolean {
+  public canHandle(context: IParserHub): boolean {
     // Empieza como una clase normal
     return context.checkAny(
       TokenType.KW_CLASS,
@@ -27,7 +27,7 @@ export class AssociationClassRule implements StatementRule {
     )
   }
 
-  public parse(context: IParserHub, _orchestrator: Orchestrator): StatementNode[] {
+  public parse(context: IParserHub, orchestrator: Orchestrator): StatementNode[] {
     const pos = context.getPosition()
     ModifierRule.parse(context)
 
@@ -80,7 +80,7 @@ export class AssociationClassRule implements StatementRule {
     if (context.match(TokenType.LBRACE)) {
       body = []
       while (!context.check(TokenType.RBRACE) && !context.isAtEnd()) {
-        const member = this.memberRule.parse(context)
+        const member = this.memberRule.parse(context, orchestrator)
         if (member) {
           body.push(member)
         } else {

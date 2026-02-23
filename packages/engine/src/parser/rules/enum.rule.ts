@@ -12,7 +12,7 @@ import { ASTFactory } from '../factory/ast.factory'
  * Soporta tanto la sintaxis en línea como de bloque.
  */
 export class EnumRule implements StatementRule {
-  public canStart(context: IParserHub): boolean {
+  public canHandle(context: IParserHub): boolean {
     return (
       context.checkAny(
         TokenType.KW_ENUM,
