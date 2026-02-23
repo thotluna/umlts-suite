@@ -6,16 +6,15 @@ import { ASTFactory } from '../factory/ast.factory'
 
 export class LinkRule implements StatementRule {
   public canHandle(context: IParserHub): boolean {
-    const pos = context.getPosition()
-    try {
-      if (!context.match(TokenType.IDENTIFIER)) return false
-      while (context.match(TokenType.DOT)) {
-        if (!context.match(TokenType.IDENTIFIER)) break
-      }
-      return context.check(TokenType.RANGE)
-    } finally {
-      context.rollback(pos)
+    let i = 0
+    if (context.lookahead(i).type !== TokenType.IDENTIFIER) return false
+    i++
+    while (context.lookahead(i).type === TokenType.DOT) {
+      i++
+      if (context.lookahead(i).type !== TokenType.IDENTIFIER) break
+      i++
     }
+    return context.lookahead(i).type === TokenType.RANGE
   }
 
   public parse(context: IParserHub, _orchestrator: Orchestrator): StatementNode[] {

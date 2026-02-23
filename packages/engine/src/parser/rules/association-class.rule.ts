@@ -17,56 +17,26 @@ export class AssociationClassRule implements StatementRule {
   private readonly memberRule = new MemberRule()
 
   public canHandle(context: IParserHub): boolean {
-    const pos = context.getPosition()
-    try {
-      // 1. Omitir modificadores iniciales
-      while (
-        context.checkAny(
-          TokenType.MOD_ABSTRACT,
-          TokenType.KW_ABSTRACT,
-          TokenType.MOD_STATIC,
-          TokenType.KW_STATIC,
-          TokenType.MOD_LEAF,
-          TokenType.KW_LEAF,
-          TokenType.KW_FINAL,
-          TokenType.MOD_ROOT,
-          TokenType.KW_ROOT,
-        )
-      ) {
-        context.advance()
-      }
+    let i = ModifierRule.countModifiers(context)
 
-      // 2. Debe empezar con 'class'
-      if (!context.match(TokenType.KW_CLASS)) return false
+    // 2. Debe tener 'class'
+    if (context.lookahead(i).type !== TokenType.KW_CLASS) return false
+    i++
 
-      // 3. Omitir nombre (puede ser FQN)
-      if (!context.match(TokenType.IDENTIFIER)) return false
-      while (context.match(TokenType.DOT)) {
-        if (!context.match(TokenType.IDENTIFIER)) break
-      }
-
-      // 4. Omitir modificadores secundarios (ej: class abstract Name)
-      while (
-        context.checkAny(
-          TokenType.MOD_ABSTRACT,
-          TokenType.KW_ABSTRACT,
-          TokenType.MOD_STATIC,
-          TokenType.KW_STATIC,
-          TokenType.MOD_LEAF,
-          TokenType.KW_LEAF,
-          TokenType.KW_FINAL,
-          TokenType.MOD_ROOT,
-          TokenType.KW_ROOT,
-        )
-      ) {
-        context.advance()
-      }
-
-      // 5. Debe tener el operador de asociación <>
-      return context.check(TokenType.OP_ASSOC_BIDIR)
-    } finally {
-      context.rollback(pos)
+    // 3. Omitir nombre (puede ser FQN)
+    if (context.lookahead(i).type !== TokenType.IDENTIFIER) return false
+    i++
+    while (context.lookahead(i).type === TokenType.DOT) {
+      i++
+      if (context.lookahead(i).type !== TokenType.IDENTIFIER) return false
+      i++
     }
+
+    // 4. Omitir modificadores secundarios (ej: class abstract Name)
+    i += ModifierRule.countModifiers(context, i)
+
+    // 5. Debe tener el operador de asociación <>
+    return context.lookahead(i).type === TokenType.OP_ASSOC_BIDIR
   }
 
   public parse(context: IParserHub, orchestrator: Orchestrator): StatementNode[] {

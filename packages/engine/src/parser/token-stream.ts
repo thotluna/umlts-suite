@@ -11,24 +11,22 @@ export class TokenStream {
   constructor(private readonly tokens: Token[]) {}
 
   public peek(): Token {
-    if (this.splitTokens.length > 0) {
-      return this.splitTokens[0]
-    }
-    if (this.current >= this.tokens.length) {
-      return this.tokens[this.tokens.length - 1]
-    }
-    return this.tokens[this.current]
+    return this.lookahead(0)
   }
 
-  public peekNext(): Token {
-    if (this.splitTokens.length > 1) {
-      return this.splitTokens[1]
+  public lookahead(n: number = 0): Token {
+    if (n < this.splitTokens.length) {
+      return this.splitTokens[n]
     }
-    const offset = this.splitTokens.length === 1 ? 0 : 1
-    if (this.current + offset >= this.tokens.length) {
+
+    const offset = n - this.splitTokens.length
+    const target = this.current + offset
+
+    if (target >= this.tokens.length) {
       return this.tokens[this.tokens.length - 1]
     }
-    return this.tokens[this.current + offset]
+
+    return this.tokens[target]
   }
 
   public prev(): Token {

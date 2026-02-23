@@ -17,34 +17,14 @@ export class EntityRule implements StatementRule {
   private readonly memberRule = new MemberRule()
 
   public canHandle(context: IParserHub): boolean {
-    const pos = context.getPosition()
-    try {
-      while (
-        context.checkAny(
-          TokenType.MOD_ABSTRACT,
-          TokenType.KW_ABSTRACT,
-          TokenType.MOD_STATIC,
-          TokenType.KW_STATIC,
-          TokenType.MOD_LEAF,
-          TokenType.KW_LEAF,
-          TokenType.KW_FINAL,
-          TokenType.MOD_ROOT,
-          TokenType.KW_ROOT,
-          TokenType.MOD_ACTIVE,
-          TokenType.KW_ACTIVE,
-        )
-      ) {
-        context.advance()
-      }
-      return context.checkAny(TokenType.KW_CLASS, TokenType.KW_INTERFACE)
-    } finally {
-      context.rollback(pos)
-    }
+    const skip = ModifierRule.countModifiers(context)
+    const target = context.lookahead(skip).type
+    return target === TokenType.KW_CLASS || target === TokenType.KW_INTERFACE
   }
 
   public parse(context: IParserHub, orchestrator: Orchestrator): StatementNode[] {
     const pos = context.getPosition()
-    const modifiers = ModifierRule.parse(context)
+    let modifiers = ModifierRule.parse(context)
 
     if (!context.match(TokenType.KW_CLASS, TokenType.KW_INTERFACE)) {
       context.rollback(pos)
@@ -52,14 +32,7 @@ export class EntityRule implements StatementRule {
     }
     const keywordToken = context.prev()
 
-    // Soporte para modificadores después de la palabra clave (ej: class * MyClass)
-    const postModifiers = ModifierRule.parse(context)
-    modifiers.isAbstract = modifiers.isAbstract || postModifiers.isAbstract
-    modifiers.isStatic = modifiers.isStatic || postModifiers.isStatic
-    modifiers.isActive = modifiers.isActive || postModifiers.isActive
-    modifiers.isLeaf = modifiers.isLeaf || postModifiers.isLeaf
-    modifiers.isFinal = modifiers.isFinal || postModifiers.isFinal
-    modifiers.isRoot = modifiers.isRoot || postModifiers.isRoot
+    modifiers = ModifierRule.parse(context, modifiers)
 
     const nameToken = context.softConsume(TokenType.IDENTIFIER, 'Entity name expected')
     const type =

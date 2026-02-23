@@ -3,20 +3,27 @@ config {
     spacing: 100
 }
 
-class Parser{
-  -rules: >* Rule[0..*]
+abstract class A {
+  +x: number
 }
 
-class Rule{
-  -modifiers: >* Modifier[0..*]
-  -members: >* MemberStrategy[0..*]
+class *B >> A {
+  +y: number
 }
 
-class MemberStrategy{
-  -type: >- Provider
+$class C >> A {
+  +z: number
 }
 
-class Provider{
-  type: >*
+class ^*D {
+  +x: number
+}
+
+class *E >> D {
+  +y: number
+}
+
+$!class F >> D {
+  +z: number
 }
 
