@@ -6,25 +6,25 @@ import {
   type IRConstraint,
   type IREntity,
   type IRMultiplicity,
-} from '../../generator/ir/models'
-import { TypeInferrer } from './type-inferrer'
-import { registerDefaultInferenceRules } from '../rules/inference-rules'
-import type { SymbolTable } from '../symbol-table'
-import type { ParserContext } from '../../parser/parser.context'
-import { DiagnosticCode } from '../../syntax/diagnostic.types'
-import type { HierarchyValidator } from '../validators/hierarchy-validator'
-import { AssociationValidator } from '../validators/association-validator'
-import { ASTNodeType } from '../../syntax/nodes'
-import { TypeValidator } from '../utils/type-validator'
+} from '@engine/generator/ir/models'
+import { TypeInferrer } from '@engine/semantics/analyzers/type-inferrer'
+import { registerDefaultInferenceRules } from '@engine/semantics/rules/inference-rules'
+import type { SymbolTable } from '@engine/semantics/symbol-table'
+import type { ParserContext } from '@engine/parser/parser.context'
+import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
+import type { HierarchyValidator } from '@engine/semantics/validators/hierarchy-validator'
+import { AssociationValidator } from '@engine/semantics/validators/association-validator'
+import { ASTNodeType } from '@engine/syntax/nodes'
+import { TypeValidator } from '@engine/semantics/utils/type-validator'
 import type {
   RelationshipNode,
   RelationshipHeaderNode,
   ASTNode,
   Modifiers,
-} from '../../syntax/nodes'
-import { MultiplicityValidator } from '../utils/multiplicity-validator'
-import { TokenType } from '../../syntax/token.types'
-import type { Token } from '../../syntax/token.types'
+} from '@engine/syntax/nodes'
+import { MultiplicityValidator } from '@engine/semantics/utils/multiplicity-validator'
+import { TokenType } from '@engine/syntax/token.types'
+import type { Token } from '@engine/syntax/token.types'
 
 /**
  * Handles creation and validation of relationships.

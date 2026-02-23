@@ -1,5 +1,5 @@
-import type { ProgramNode } from '../../syntax/nodes'
-import type { AnalysisSession } from '../session/analysis-session'
+import type { ProgramNode } from '@engine/syntax/nodes'
+import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
 
 /**
  * Contrato para todas las fases de análisis semántico.

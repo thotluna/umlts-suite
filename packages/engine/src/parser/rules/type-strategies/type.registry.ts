@@ -1,11 +1,11 @@
 import type {
   IPrimaryTypeProvider,
   ITypeModifierProvider,
-} from '../../core/type-provider.interface'
-import { BaseTypeProvider } from './primary/base.provider'
-import { XorTypeProvider } from './primary/xor.provider'
-import { EnumTypeModifier } from './modifier/enum.modifier'
-import { GenericTypeModifier } from './modifier/generic.modifier'
+} from '@engine/parser/core/type-provider.interface'
+import { BaseTypeProvider } from '@engine/parser/rules/type-strategies/primary/base.provider'
+import { XorTypeProvider } from '@engine/parser/rules/type-strategies/primary/xor.provider'
+import { EnumTypeModifier } from '@engine/parser/rules/type-strategies/modifier/enum.modifier'
+import { GenericTypeModifier } from '@engine/parser/rules/type-strategies/modifier/generic.modifier'
 
 /**
  * TypeRegistry: Gestiona el registro de estrategias para el parseo de tipos.

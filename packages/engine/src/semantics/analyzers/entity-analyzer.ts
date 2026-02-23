@@ -1,24 +1,24 @@
-import type { IREntity, IRMultiplicity } from '../../generator/ir/models'
-import { PluginManager } from '../../plugins/plugin-manager'
-import { IREntityType, IRVisibility } from '../../generator/ir/models'
-import type { SymbolTable } from '../symbol-table'
-import type { ConfigStore } from '../session/config-store'
-import type { ParserContext } from '../../parser/parser.context'
-import { DiagnosticCode } from '../../syntax/diagnostic.types'
-import { TypeValidator } from '../utils/type-validator'
-import { FQNBuilder } from '../utils/fqn-builder'
-import { MultiplicityValidator } from '../utils/multiplicity-validator'
-import { TokenType } from '../../syntax/token.types'
-import type { Token } from '../../syntax/token.types'
+import type { IREntity, IRMultiplicity } from '@engine/generator/ir/models'
+import { PluginManager } from '@engine/plugins/plugin-manager'
+import { IREntityType, IRVisibility } from '@engine/generator/ir/models'
+import type { SymbolTable } from '@engine/semantics/symbol-table'
+import type { ConfigStore } from '@engine/semantics/session/config-store'
+import type { ParserContext } from '@engine/parser/parser.context'
+import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
+import { TypeValidator } from '@engine/semantics/utils/type-validator'
+import { FQNBuilder } from '@engine/semantics/utils/fqn-builder'
+import { MultiplicityValidator } from '@engine/semantics/utils/multiplicity-validator'
+import { TokenType } from '@engine/syntax/token.types'
+import type { Token } from '@engine/syntax/token.types'
 import type {
   EntityNode,
   MemberNode,
   AttributeNode,
   MethodNode,
   AssociationClassNode,
-} from '../../syntax/nodes'
-import { ASTNodeType } from '../../syntax/nodes'
-import type { ConstraintAnalyzer } from './constraint-analyzer'
+} from '@engine/syntax/nodes'
+import { ASTNodeType } from '@engine/syntax/nodes'
+import type { ConstraintAnalyzer } from '@engine/semantics/analyzers/constraint-analyzer'
 
 /**
  * Handles the declaration of entities and their members.

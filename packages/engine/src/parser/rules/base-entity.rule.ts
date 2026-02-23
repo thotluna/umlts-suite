@@ -1,12 +1,12 @@
-import { TokenType } from '../../syntax/token.types'
-import { ASTNodeType } from '../../syntax/nodes'
-import type { Token } from '../../syntax/token.types'
-import type { MemberNode, StatementNode, Modifiers } from '../../syntax/nodes'
-import type { IParserHub } from '../core/parser.hub'
-import type { StatementRule, Orchestrator } from '../rule.types'
-import { RelationshipHeaderRule } from './relationship-header.rule'
-import { MemberRule } from './member.rule'
-import { ASTFactory } from '../factory/ast.factory'
+import { TokenType } from '@engine/syntax/token.types'
+import { ASTNodeType } from '@engine/syntax/nodes'
+import type { Token } from '@engine/syntax/token.types'
+import type { MemberNode, StatementNode, Modifiers } from '@engine/syntax/nodes'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import type { StatementRule, Orchestrator } from '@engine/parser/rule.types'
+import { RelationshipHeaderRule } from '@engine/parser/rules/relationship-header.rule'
+import { MemberRule } from '@engine/parser/rules/member.rule'
+import { ASTFactory } from '@engine/parser/factory/ast.factory'
 
 /**
  * BaseEntityRule: Clase base abstracta para entidades como Clases e Interfaces.

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { ConstraintRegistry } from '../constraint-registry'
-import type { IRConstraint } from '../../../generator/ir/models'
+import { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
+import type { IRConstraint } from '@engine/generator/ir/models'
 
 describe('ConstraintRegistry', () => {
   let registry: ConstraintRegistry

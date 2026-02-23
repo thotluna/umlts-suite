@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
-import { TypeResolutionPipeline } from '../type-resolution.pipeline'
-import type { ITypeResolutionStrategy, TypeResolution } from '../type-resolution.pipeline'
-import { ASTNodeType, type TypeNode } from '../../../syntax/nodes'
-import { IRRelationshipType } from '../../../generator/ir/models'
+import { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
+import type {
+  ITypeResolutionStrategy,
+  TypeResolution,
+} from '@engine/semantics/inference/type-resolution.pipeline'
+import { ASTNodeType, type TypeNode } from '@engine/syntax/nodes'
+import { IRRelationshipType } from '@engine/generator/ir/models'
 
 describe('TypeResolutionPipeline', () => {
   let pipeline: TypeResolutionPipeline

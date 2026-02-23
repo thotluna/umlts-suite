@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { LexerFactory } from '../../lexer/lexer.factory'
-import { ParserFactory } from '../../parser/parser.factory'
+import { LexerFactory } from '@engine/lexer/lexer.factory'
+import { ParserFactory } from '@engine/parser/parser.factory'
 
 describe('Inline Enum Support', () => {
   const parse = (input: string) => {

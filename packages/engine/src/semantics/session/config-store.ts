@@ -1,5 +1,5 @@
-import { PluginManager } from '../../plugins/plugin-manager'
-import { SymbolTable } from '../symbol-table'
+import { PluginManager } from '@engine/plugins/plugin-manager'
+import { SymbolTable } from '@engine/semantics/symbol-table'
 
 /**
  * Manages the semantic configuration and language activation.

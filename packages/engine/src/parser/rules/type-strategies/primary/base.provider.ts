@@ -1,9 +1,9 @@
-import { TokenType } from '../../../../syntax/token.types'
-import { type TypeNode } from '../../../../syntax/nodes'
-import type { IParserHub } from '../../../core/parser.hub'
-import type { TypeRule } from '../../type.rule'
-import type { IPrimaryTypeProvider } from '../../../core/type-provider.interface'
-import { ASTFactory } from '../../../factory/ast.factory'
+import { TokenType } from '@engine/syntax/token.types'
+import { type TypeNode } from '@engine/syntax/nodes'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import type { TypeRule } from '@engine/parser/rules/type.rule'
+import type { IPrimaryTypeProvider } from '@engine/parser/core/type-provider.interface'
+import { ASTFactory } from '@engine/parser/factory/ast.factory'
 
 export class BaseTypeProvider implements IPrimaryTypeProvider {
   canHandle(context: IParserHub): boolean {

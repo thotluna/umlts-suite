@@ -1,10 +1,10 @@
-import { TokenType } from '../../syntax/token.types'
-import { ASTNodeType } from '../../syntax/nodes'
-import type { IParserHub } from '../core/parser.hub'
-import type { Orchestrator } from '../rule.types'
-import { ModifierRule } from './modifier.rule'
-import { BaseEntityRule } from './base-entity.rule'
-import type { Modifiers, StatementNode } from '../../syntax/nodes'
+import { TokenType } from '@engine/syntax/token.types'
+import { ASTNodeType } from '@engine/syntax/nodes'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import type { Orchestrator } from '@engine/parser/rule.types'
+import { ModifierRule } from '@engine/parser/rules/modifier.rule'
+import { BaseEntityRule } from '@engine/parser/rules/base-entity.rule'
+import type { Modifiers, StatementNode } from '@engine/syntax/nodes'
 
 /**
  * ClassRule: Regla especializada para el parseo de Clases.

@@ -1,16 +1,16 @@
-import { TokenType } from '../../syntax/token.types'
+import { TokenType } from '@engine/syntax/token.types'
 import {
   type RelationshipNode,
   type StatementNode,
   type ConstraintNode,
   type MemberNode,
-} from '../../syntax/nodes'
-import type { IParserHub } from '../core/parser.hub'
-import type { StatementRule, Orchestrator } from '../rule.types'
-import { ModifierRule } from './modifier.rule'
-import { MemberRule } from './member.rule'
-import { ConstraintRule } from './constraint.rule'
-import { ASTFactory } from '../factory/ast.factory'
+} from '@engine/syntax/nodes'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import type { StatementRule, Orchestrator } from '@engine/parser/rule.types'
+import { ModifierRule } from '@engine/parser/rules/modifier.rule'
+import { MemberRule } from '@engine/parser/rules/member.rule'
+import { ConstraintRule } from '@engine/parser/rules/constraint.rule'
+import { ASTFactory } from '@engine/parser/factory/ast.factory'
 
 export class RelationshipRule implements StatementRule {
   private readonly memberRule = new MemberRule()

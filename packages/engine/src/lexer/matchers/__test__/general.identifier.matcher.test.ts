@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { LexerReader } from '../../lexer.reader'
-import { GeneralIdentifierMatcher } from '../general.identifier.matcher'
-import { TokenType } from '../../../syntax/token.types'
+import { LexerReader } from '@engine/lexer/lexer.reader'
+import { GeneralIdentifierMatcher } from '@engine/lexer/matchers/general.identifier.matcher'
+import { TokenType } from '@engine/syntax/token.types'
 
 describe('GeneralIdentifierMatcher', () => {
   const matcher = new GeneralIdentifierMatcher()

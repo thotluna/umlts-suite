@@ -1,6 +1,6 @@
-import type { Token } from '../../syntax/token.types'
-import type { ProgramNode } from '../../syntax/nodes'
-import type { IRDiagram } from '../../generator/ir/models'
+import type { Token } from '@engine/syntax/token.types'
+import type { ProgramNode } from '@engine/syntax/nodes'
+import type { IRDiagram } from '@engine/generator/ir/models'
 
 export class PipelineArtifacts {
   public tokens: Token[] = []

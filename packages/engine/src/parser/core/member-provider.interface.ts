@@ -1,6 +1,6 @@
-import type { IParserHub } from './parser.hub'
-import type { MemberNode } from '../../syntax/nodes'
-import { Orchestrator } from '../rule.types'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import type { MemberNode } from '@engine/syntax/nodes'
+import { Orchestrator } from '@engine/parser/rule.types'
 
 export interface IMemberProvider {
   canHandle(context: IParserHub): boolean

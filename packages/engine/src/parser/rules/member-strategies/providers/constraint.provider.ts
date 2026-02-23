@@ -1,9 +1,9 @@
-import { TokenType } from '../../../../syntax/token.types'
-import type { MemberNode } from '../../../../syntax/nodes'
-import type { IParserHub } from '../../../core/parser.hub'
-import { ConstraintRule } from '../../constraint.rule'
-import type { IMemberProvider } from '../../../core/member-provider.interface'
-import { Orchestrator } from '../../../rule.types'
+import { TokenType } from '@engine/syntax/token.types'
+import type { MemberNode } from '@engine/syntax/nodes'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import { ConstraintRule } from '@engine/parser/rules/constraint.rule'
+import type { IMemberProvider } from '@engine/parser/core/member-provider.interface'
+import { Orchestrator } from '@engine/parser/rule.types'
 
 export class ConstraintMemberProvider implements IMemberProvider {
   canHandle(context: IParserHub): boolean {

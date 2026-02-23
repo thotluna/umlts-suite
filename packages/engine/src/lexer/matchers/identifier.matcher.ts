@@ -1,5 +1,5 @@
-import { AbstractCompositeMatcher } from './base.composite'
-import { GeneralIdentifierMatcher } from './general.identifier.matcher'
+import { AbstractCompositeMatcher } from '@engine/lexer/matchers/base.composite'
+import { GeneralIdentifierMatcher } from '@engine/lexer/matchers/general.identifier.matcher'
 
 /**
  * Composite matcher for identifiers and keywords.

@@ -1,7 +1,10 @@
-import type { TypeNode } from '../../syntax/nodes'
-import type { PluginManager } from '../../plugins/plugin-manager'
-import type { ITypeResolutionStrategy, TypeResolution } from './type-resolution.pipeline'
-import { TypeValidator } from '../utils/type-validator'
+import type { TypeNode } from '@engine/syntax/nodes'
+import type { PluginManager } from '@engine/plugins/plugin-manager'
+import type {
+  ITypeResolutionStrategy,
+  TypeResolution,
+} from '@engine/semantics/inference/type-resolution.pipeline'
+import { TypeValidator } from '@engine/semantics/utils/type-validator'
 
 /**
  * Adapts the active LanguagePlugin to the ITypeResolutionStrategy interface.

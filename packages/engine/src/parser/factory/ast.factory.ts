@@ -1,4 +1,4 @@
-import { ASTNodeType } from '../../syntax/nodes'
+import { ASTNodeType } from '@engine/syntax/nodes'
 import type {
   ProgramNode,
   PackageNode,
@@ -18,8 +18,8 @@ import type {
   StatementNode,
   MemberNode,
   Modifiers,
-} from '../../syntax/nodes'
-import type { Diagnostic } from '../../syntax/diagnostic.types'
+} from '@engine/syntax/nodes'
+import type { Diagnostic } from '@engine/syntax/diagnostic.types'
 
 /**
  * ASTFactory: Centraliza la creación de los nodos del Abstract Syntax Tree (AST).

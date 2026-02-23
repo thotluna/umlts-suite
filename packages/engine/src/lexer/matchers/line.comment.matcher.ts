@@ -1,6 +1,6 @@
-import { type Token, TokenType } from '../../syntax/token.types'
-import type { LexerReader } from '../lexer.reader'
-import type { TokenMatcher } from '../matcher.types'
+import { type Token, TokenType } from '@engine/syntax/token.types'
+import type { LexerReader } from '@engine/lexer/lexer.reader'
+import type { TokenMatcher } from '@engine/lexer/matcher.types'
 
 /**
  * Matches single line comments starting with //

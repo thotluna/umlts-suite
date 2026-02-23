@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { LexerReader } from '../../lexer.reader'
-import { LineCommentMatcher } from '../line.comment.matcher'
-import { TokenType } from '../../../syntax/token.types'
+import { LexerReader } from '@engine/lexer/lexer.reader'
+import { LineCommentMatcher } from '@engine/lexer/matchers/line.comment.matcher'
+import { TokenType } from '@engine/syntax/token.types'
 
 describe('LineCommentMatcher', () => {
   it('should match a line comment starting with //', () => {

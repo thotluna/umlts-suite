@@ -1,6 +1,6 @@
-import type { Diagnostic, DiagnosticCode } from '../syntax/diagnostic.types'
-import { DiagnosticSeverity } from '../syntax/diagnostic.types'
-import type { Token } from '../syntax/token.types'
+import type { Diagnostic, DiagnosticCode } from '@engine/syntax/diagnostic.types'
+import { DiagnosticSeverity } from '@engine/syntax/diagnostic.types'
+import type { Token } from '@engine/syntax/token.types'
 
 /**
  * DiagnosticReporter: Gestiona el registro y la exposición de errores y warnings.

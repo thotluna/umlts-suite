@@ -1,8 +1,11 @@
-import type { TokenType, Token } from '../../syntax/token.types'
-import type { Diagnostic, DiagnosticCode } from '../../syntax/diagnostic.types'
+import type { TokenType, Token } from '@engine/syntax/token.types'
+import type { Diagnostic, DiagnosticCode } from '@engine/syntax/diagnostic.types'
 
-import type { IMemberProvider } from './member-provider.interface'
-import type { IPrimaryTypeProvider, ITypeModifierProvider } from './type-provider.interface'
+import type { IMemberProvider } from '@engine/parser/core/member-provider.interface'
+import type {
+  IPrimaryTypeProvider,
+  ITypeModifierProvider,
+} from '@engine/parser/core/type-provider.interface'
 
 /**
  * IParserHub: Interfaz de fachada que expone los servicios del parser a las reglas.

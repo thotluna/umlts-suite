@@ -1,6 +1,6 @@
-import type { Diagnostic } from '../../syntax/diagnostic.types'
-import { DiagnosticSeverity } from '../../syntax/diagnostic.types'
-import type { LanguagePlugin } from '../../plugins/language-plugin'
+import type { Diagnostic } from '@engine/syntax/diagnostic.types'
+import { DiagnosticSeverity } from '@engine/syntax/diagnostic.types'
+import type { LanguagePlugin } from '@engine/plugins/language-plugin'
 
 export class CompilerContext {
   public readonly diagnostics: Diagnostic[] = []

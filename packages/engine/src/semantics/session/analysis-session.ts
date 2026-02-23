@@ -1,9 +1,9 @@
-import type { IRDiagram, IRRelationship } from '../../generator/ir/models'
-import type { ParserContext } from '../../parser/parser.context'
-import type { PluginManager } from '../../plugins/plugin-manager'
-import type { SymbolTable } from '../symbol-table'
-import type { ConstraintRegistry } from './constraint-registry'
-import type { ConfigStore } from './config-store'
+import type { IRDiagram, IRRelationship } from '@engine/generator/ir/models'
+import type { ParserContext } from '@engine/parser/parser.context'
+import type { PluginManager } from '@engine/plugins/plugin-manager'
+import type { SymbolTable } from '@engine/semantics/symbol-table'
+import type { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
+import type { ConfigStore } from '@engine/semantics/session/config-store'
 
 /**
  * Encapsulates the complete state of a semantic analysis session.

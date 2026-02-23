@@ -1,12 +1,12 @@
-import type { Token } from '../syntax/token.types'
-import type { ProgramNode, StatementNode } from '../syntax/nodes'
-import { ParserContext } from './parser.context'
-import { DiagnosticReporter } from './diagnostic-reporter'
-import type { IParserHub } from './core/parser.hub'
-import type { StatementRule, Orchestrator } from './rule.types'
-import type { MemberRegistry } from './rules/member-strategies/member.registry'
-import type { TypeRegistry } from './rules/type-strategies/type.registry'
-import { ASTFactory } from './factory/ast.factory'
+import type { Token } from '@engine/syntax/token.types'
+import type { ProgramNode, StatementNode } from '@engine/syntax/nodes'
+import { ParserContext } from '@engine/parser/parser.context'
+import { DiagnosticReporter } from '@engine/parser/diagnostic-reporter'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import type { StatementRule, Orchestrator } from '@engine/parser/rule.types'
+import type { MemberRegistry } from '@engine/parser/rules/member-strategies/member.registry'
+import type { TypeRegistry } from '@engine/parser/rules/type-strategies/type.registry'
+import { ASTFactory } from '@engine/parser/factory/ast.factory'
 
 /**
  * Parser: El protagonista y cerebro del proceso de transformación.

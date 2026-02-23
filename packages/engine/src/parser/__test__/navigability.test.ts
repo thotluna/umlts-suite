@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { LexerFactory } from '../../lexer/lexer.factory'
-import { ParserFactory } from '../parser.factory'
+import { LexerFactory } from '@engine/lexer/lexer.factory'
+import { ParserFactory } from '@engine/parser/parser.factory'
 import {
   type EntityNode,
   type AttributeNode,
   type MethodNode,
   type RelationshipNode,
-} from '../ast/nodes'
+} from '@engine/parser/ast/nodes'
 
 describe('Relationship Navigability', () => {
   it('should parse composition operators with default and explicit navigability', () => {

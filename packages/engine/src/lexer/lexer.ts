@@ -1,7 +1,7 @@
-import type { Token } from '../syntax/token.types'
-import { TokenType } from '../syntax/token.types'
-import { LexerReader } from './lexer.reader'
-import type { TokenMatcher } from './matcher.types'
+import type { Token } from '@engine/syntax/token.types'
+import { TokenType } from '@engine/syntax/token.types'
+import { LexerReader } from '@engine/lexer/lexer.reader'
+import type { TokenMatcher } from '@engine/lexer/matcher.types'
 
 export class Lexer {
   private readonly reader: LexerReader

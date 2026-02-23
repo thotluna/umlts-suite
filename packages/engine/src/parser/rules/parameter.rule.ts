@@ -1,10 +1,10 @@
-import { TokenType } from '../../syntax/token.types'
-import { type ParameterNode, type ConstraintNode } from '../../syntax/nodes'
-import type { IParserHub } from '../core/parser.hub'
-import { TypeRule } from './type.rule'
-import { ConstraintRule } from './constraint.rule'
-import { ModifierRule } from './modifier.rule'
-import { ASTFactory } from '../factory/ast.factory'
+import { TokenType } from '@engine/syntax/token.types'
+import { type ParameterNode, type ConstraintNode } from '@engine/syntax/nodes'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import { TypeRule } from '@engine/parser/rules/type.rule'
+import { ConstraintRule } from '@engine/parser/rules/constraint.rule'
+import { ModifierRule } from '@engine/parser/rules/modifier.rule'
+import { ASTFactory } from '@engine/parser/factory/ast.factory'
 
 export class ParameterRule {
   private readonly typeRule = new TypeRule()

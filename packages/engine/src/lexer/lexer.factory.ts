@@ -1,13 +1,13 @@
-import { Lexer } from './lexer'
-import { LexerReader } from './lexer.reader'
-import type { LanguagePlugin } from '../plugins/language-plugin'
-import { WhitespaceMatcher } from './matchers/whitespace.matcher'
-import { CommentMatcher } from './matchers/comment.matcher'
-import { IdentifierMatcher } from './matchers/identifier.matcher'
-import { NumberMatcher } from './matchers/number.matcher'
-import { SymbolMatcher } from './matchers/symbol.matcher'
-import { StringMatcher } from './matchers/string.matcher'
-import { MasterMatcher } from './matchers/master.matcher'
+import { Lexer } from '@engine/lexer/lexer'
+import { LexerReader } from '@engine/lexer/lexer.reader'
+import type { LanguagePlugin } from '@engine/plugins/language-plugin'
+import { WhitespaceMatcher } from '@engine/lexer/matchers/whitespace.matcher'
+import { CommentMatcher } from '@engine/lexer/matchers/comment.matcher'
+import { IdentifierMatcher } from '@engine/lexer/matchers/identifier.matcher'
+import { NumberMatcher } from '@engine/lexer/matchers/number.matcher'
+import { SymbolMatcher } from '@engine/lexer/matchers/symbol.matcher'
+import { StringMatcher } from '@engine/lexer/matchers/string.matcher'
+import { MasterMatcher } from '@engine/lexer/matchers/master.matcher'
 
 export class LexerFactory {
   /**

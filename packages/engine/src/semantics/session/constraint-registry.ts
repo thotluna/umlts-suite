@@ -1,4 +1,4 @@
-import type { IRConstraint } from '../../generator/ir/models'
+import type { IRConstraint } from '@engine/generator/ir/models'
 
 /**
  * Registry responsible for storing and deduplicating constraints during the semantic analysis session.

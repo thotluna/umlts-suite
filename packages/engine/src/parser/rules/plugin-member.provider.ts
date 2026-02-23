@@ -1,8 +1,8 @@
-import type { MemberNode } from '../../syntax/nodes'
-import type { LanguagePlugin, IPluginMemberProvider } from '../../plugins/language-plugin'
-import type { IParserHub } from '../core/parser.hub'
-import type { IMemberProvider } from '../core/member-provider.interface'
-import { Orchestrator } from '../rule.types'
+import type { MemberNode } from '@engine/syntax/nodes'
+import type { LanguagePlugin, IPluginMemberProvider } from '@engine/plugins/language-plugin'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import type { IMemberProvider } from '@engine/parser/core/member-provider.interface'
+import { Orchestrator } from '@engine/parser/rule.types'
 
 /**
  * Master Provider for plugin members.

@@ -1,4 +1,4 @@
-import type { LanguagePlugin } from './language-plugin'
+import type { LanguagePlugin } from '@engine/plugins/language-plugin'
 
 /**
  * Orchestrates language plugins within the engine.

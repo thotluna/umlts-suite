@@ -1,6 +1,6 @@
-import type { MemberNode } from '../../syntax/nodes'
-import type { IParserHub } from '../core/parser.hub'
-import type { Orchestrator } from '../rule.types'
+import type { MemberNode } from '@engine/syntax/nodes'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import type { Orchestrator } from '@engine/parser/rule.types'
 
 export class MemberRule {
   /**

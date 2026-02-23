@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { ParserFactory } from '../parser.factory'
-import { LexerFactory } from '../../lexer/lexer.factory'
-import { ASTNodeType, type EntityNode, type AttributeNode } from '../../syntax/nodes'
+import { ParserFactory } from '@engine/parser/parser.factory'
+import { LexerFactory } from '@engine/lexer/lexer.factory'
+import { ASTNodeType, type EntityNode, type AttributeNode } from '@engine/syntax/nodes'
 
 describe('EntityRule', () => {
   it('should parse an enum with literals and comments', () => {

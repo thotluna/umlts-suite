@@ -1,5 +1,8 @@
-import type { TypeNode } from '../../syntax/nodes'
-import type { ITypeResolutionStrategy, TypeResolution } from './type-resolution.pipeline'
+import type { TypeNode } from '@engine/syntax/nodes'
+import type {
+  ITypeResolutionStrategy,
+  TypeResolution,
+} from '@engine/semantics/inference/type-resolution.pipeline'
 
 /**
  * Standard UML 2.5.1 Primitive Resolver.

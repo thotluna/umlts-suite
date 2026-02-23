@@ -1,4 +1,4 @@
-import { IREntityType, IRRelationshipType } from '../../generator/ir/models'
+import { IREntityType, IRRelationshipType } from '@engine/generator/ir/models'
 
 /**
  * Responsible for inferring the type of an implicit target entity based on the source entity type and the relationship.

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { TypeInferrer } from '../analyzers/type-inferrer'
-import { registerDefaultInferenceRules } from '../rules/inference-rules'
-import { IREntityType, IRRelationshipType } from '../../generator/ir/models'
+import { TypeInferrer } from '@engine/semantics/analyzers/type-inferrer'
+import { registerDefaultInferenceRules } from '@engine/semantics/rules/inference-rules'
+import { IREntityType, IRRelationshipType } from '@engine/generator/ir/models'
 
 describe('TypeInferrer', () => {
   let inferrer: TypeInferrer

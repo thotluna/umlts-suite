@@ -1,6 +1,6 @@
-import { type TypeNode } from '../../syntax/nodes'
-import type { IParserHub } from '../core/parser.hub'
-import { ASTFactory } from '../factory/ast.factory'
+import { type TypeNode } from '@engine/syntax/nodes'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import { ASTFactory } from '@engine/parser/factory/ast.factory'
 
 /**
  * TypeRule: Regla central para el parseo de tipos.

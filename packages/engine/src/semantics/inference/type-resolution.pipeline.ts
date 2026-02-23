@@ -1,5 +1,5 @@
-import { IRRelationshipType } from '../../generator/ir/models'
-import type { TypeNode } from '../../syntax/nodes'
+import { IRRelationshipType } from '@engine/generator/ir/models'
+import type { TypeNode } from '@engine/syntax/nodes'
 
 /**
  * Result of resolving a type node to a specific entity relationship.

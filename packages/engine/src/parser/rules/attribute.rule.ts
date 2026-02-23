@@ -1,9 +1,9 @@
-import type { Token } from '../../syntax/token.types'
-import { type AttributeNode, type Modifiers } from '../../syntax/nodes'
-import type { IParserHub } from '../core/parser.hub'
-import { MemberSuffixRule } from './member-suffix.rule'
-import { ASTFactory } from '../factory/ast.factory'
-import type { Orchestrator } from '../rule.types'
+import type { Token } from '@engine/syntax/token.types'
+import { type AttributeNode, type Modifiers } from '@engine/syntax/nodes'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import { MemberSuffixRule } from '@engine/parser/rules/member-suffix.rule'
+import { ASTFactory } from '@engine/parser/factory/ast.factory'
+import type { Orchestrator } from '@engine/parser/rule.types'
 
 export class AttributeRule {
   public parse(

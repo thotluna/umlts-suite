@@ -1,11 +1,11 @@
-import { TokenType } from '../../../../syntax/token.types'
-import type { MemberNode } from '../../../../syntax/nodes'
-import type { IParserHub } from '../../../core/parser.hub'
-import { AttributeRule } from '../../attribute.rule'
-import { MethodRule } from '../../method.rule'
-import { ModifierRule } from '../../modifier.rule'
-import type { IMemberProvider } from '../../../core/member-provider.interface'
-import { Orchestrator } from '../../../rule.types'
+import { TokenType } from '@engine/syntax/token.types'
+import type { MemberNode } from '@engine/syntax/nodes'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import { AttributeRule } from '@engine/parser/rules/attribute.rule'
+import { MethodRule } from '@engine/parser/rules/method.rule'
+import { ModifierRule } from '@engine/parser/rules/modifier.rule'
+import type { IMemberProvider } from '@engine/parser/core/member-provider.interface'
+import { Orchestrator } from '@engine/parser/rule.types'
 
 export class FeatureMemberProvider implements IMemberProvider {
   private readonly attributeRule = new AttributeRule()

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { LexerFactory } from '../../lexer/lexer.factory'
-import { ParserFactory } from '../parser.factory'
+import { LexerFactory } from '@engine/lexer/lexer.factory'
+import { ParserFactory } from '@engine/parser/parser.factory'
 import {
   ASTNodeType,
   type EntityNode,
@@ -8,7 +8,7 @@ import {
   type AttributeNode,
   type MethodNode,
   type RelationshipNode,
-} from '../../syntax/nodes'
+} from '@engine/syntax/nodes'
 
 describe('Parser', () => {
   it('should parse a simple class', () => {

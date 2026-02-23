@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { UMLEngine } from '../../index'
-import { DiagnosticCode } from '../../syntax/diagnostic.types'
+import { UMLEngine } from '@engine/index'
+import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
 
 describe('Leaf and Final Modifiers', () => {
   const engine = new UMLEngine()

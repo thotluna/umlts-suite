@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { LexerReader } from '../../lexer.reader'
-import { SimpleSymbolMatcher } from '../simple.symbol.matcher'
-import { TokenType } from '../../../syntax/token.types'
+import { LexerReader } from '@engine/lexer/lexer.reader'
+import { SimpleSymbolMatcher } from '@engine/lexer/matchers/simple.symbol.matcher'
+import { TokenType } from '@engine/syntax/token.types'
 
 describe('SimpleSymbolMatcher', () => {
   const matcher = new SimpleSymbolMatcher()

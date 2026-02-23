@@ -1,7 +1,7 @@
-import { TokenType } from '../../syntax/token.types'
-import type { StatementNode } from '../../syntax/nodes'
-import type { IParserHub } from '../core/parser.hub'
-import type { StatementRule, Orchestrator } from '../rule.types'
+import { TokenType } from '@engine/syntax/token.types'
+import type { StatementNode } from '@engine/syntax/nodes'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
+import type { StatementRule, Orchestrator } from '@engine/parser/rule.types'
 
 export class DocCommentRule implements StatementRule {
   public canHandle(context: IParserHub): boolean {

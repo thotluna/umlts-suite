@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { LexerReader } from './lexer.reader'
+import { LexerReader } from '@engine/lexer/lexer.reader'
 
 describe('LexerReader', () => {
   describe('Basic Navigation', () => {

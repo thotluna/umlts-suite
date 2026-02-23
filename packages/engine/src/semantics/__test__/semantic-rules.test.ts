@@ -1,12 +1,16 @@
 import { describe, it, expect } from 'vitest'
-import { LexerFactory } from '../../lexer/lexer.factory'
-import { ParserFactory } from '../../parser/parser.factory'
-import { SemanticAnalyzer } from '../analyzer'
-import { DiagnosticCode, DiagnosticSeverity, type Diagnostic } from '../../syntax/diagnostic.types'
-import { ParserContext } from '../../parser/parser.context'
-import { DiagnosticReporter } from '../../parser/diagnostic-reporter'
-import { MemberRegistry } from '../../parser/rules/member-strategies/member.registry'
-import { TypeRegistry } from '../../parser/rules/type-strategies/type.registry'
+import { LexerFactory } from '@engine/lexer/lexer.factory'
+import { ParserFactory } from '@engine/parser/parser.factory'
+import { SemanticAnalyzer } from '@engine/semantics/analyzer'
+import {
+  DiagnosticCode,
+  DiagnosticSeverity,
+  type Diagnostic,
+} from '@engine/syntax/diagnostic.types'
+import { ParserContext } from '@engine/parser/parser.context'
+import { DiagnosticReporter } from '@engine/parser/diagnostic-reporter'
+import { MemberRegistry } from '@engine/parser/rules/member-strategies/member.registry'
+import { TypeRegistry } from '@engine/parser/rules/type-strategies/type.registry'
 
 describe('Semantic Rules', () => {
   const parseAndAnalyze = (source: string) => {

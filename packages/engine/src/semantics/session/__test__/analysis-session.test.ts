@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { AnalysisSession } from '../analysis-session'
-import type { SymbolTable } from '../../symbol-table'
-import type { ConstraintRegistry } from '../constraint-registry'
-import type { ConfigStore } from '../config-store'
-import type { PluginManager } from '../../../plugins/plugin-manager'
-import type { ParserContext } from '../../../parser/parser.context'
+import { AnalysisSession } from '@engine/semantics/session/analysis-session'
+import type { SymbolTable } from '@engine/semantics/symbol-table'
+import type { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
+import type { ConfigStore } from '@engine/semantics/session/config-store'
+import type { PluginManager } from '@engine/plugins/plugin-manager'
+import type { ParserContext } from '@engine/parser/parser.context'
 
 describe('AnalysisSession', () => {
   let session: AnalysisSession

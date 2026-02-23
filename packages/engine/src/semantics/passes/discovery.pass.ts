@@ -1,4 +1,4 @@
-import { type ASTVisitor, walkAST } from '../../syntax/visitor'
+import { type ASTVisitor, walkAST } from '@engine/syntax/visitor'
 import type {
   ProgramNode,
   PackageNode,
@@ -8,13 +8,13 @@ import type {
   ConfigNode,
   AssociationClassNode,
   ConstraintNode,
-} from '../../syntax/nodes'
-import { DiagnosticCode } from '../../syntax/diagnostic.types'
-import { TokenType, type Token } from '../../syntax/token.types'
-import type { AnalysisSession } from '../session/analysis-session'
-import type { EntityAnalyzer } from '../analyzers/entity-analyzer'
-import type { HierarchyValidator } from '../validators/hierarchy-validator'
-import type { ISemanticPass } from './semantic-pass.interface'
+} from '@engine/syntax/nodes'
+import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
+import { TokenType, type Token } from '@engine/syntax/token.types'
+import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
+import type { EntityAnalyzer } from '@engine/semantics/analyzers/entity-analyzer'
+import type { HierarchyValidator } from '@engine/semantics/validators/hierarchy-validator'
+import type { ISemanticPass } from '@engine/semantics/passes/semantic-pass.interface'
 
 /**
  * Pase 1: Descubrimiento.

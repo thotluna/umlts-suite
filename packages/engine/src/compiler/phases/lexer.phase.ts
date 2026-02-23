@@ -1,7 +1,7 @@
-import { LexerFactory } from '../../lexer/lexer.factory'
-import type { CompilerContext } from './context'
-import type { PipelineArtifacts } from './pipeline-artifacts'
-import type { CompilerPhase } from './types'
+import { LexerFactory } from '@engine/lexer/lexer.factory'
+import type { CompilerContext } from '@engine/compiler/phases/context'
+import type { PipelineArtifacts } from '@engine/compiler/phases/pipeline-artifacts'
+import type { CompilerPhase } from '@engine/compiler/phases/types'
 
 export class LexerPhase implements CompilerPhase {
   public run(context: CompilerContext, artifacts: PipelineArtifacts): void {
