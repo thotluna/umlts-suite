@@ -396,6 +396,12 @@
 - [x] **Phase 2**: Reglas Atómicas y Concurrencia <!-- id: 403 -->
   - [x] Refactorizar validaciones existentes a `ISemanticRule` (Stateless)
   - [x] Implementar motor de ejecución de reglas (con soporte futuro para paralelismo)
-- [ ] **Phase 3**: Soporte SaaS y Multi-archivo <!-- id: 404 -->
-  - [ ] Gestión de multi-tenancy en la sesión de análisis
-  - [ ] Procesamiento incremental y slots de extensión (estereotipos)
+- [x] **Phase 3**: Migración de Componentes Especializados <!-- id: 404 -->
+  - [x] Actualizar Analizadores (`Entity`, `Relationship`, `Constraint`) (Completado implícitamente en Fases 1-2)
+  - [x] Actualizar Validadores (`Hierarchy`, `Association`, `Multiplicity`) (Completado implícitamente en Fases 1-2)
+- [ ] **Phase 4**: Integración en el Pipeline (Compiler Phase) <!-- id: 405 -->
+  - [ ] Refactorizar `SemanticPhase` (`compiler/phases/semantic.phases.ts`)
+  - [ ] Instanciar `ISemanticContext` directamente sin `ParserContext`
+- [ ] **Phase 5**: Limpieza Estricta y Verificación <!-- id: 406 -->
+  - [ ] Purgar importaciones de Parser remanentes (si las hubiera)
+  - [ ] Verificación final tests/build
