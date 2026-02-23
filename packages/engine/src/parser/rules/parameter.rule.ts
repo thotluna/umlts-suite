@@ -1,9 +1,10 @@
 import { TokenType } from '../../syntax/token.types'
-import { ASTNodeType, type ParameterNode, type ConstraintNode } from '../../syntax/nodes'
+import { type ParameterNode, type ConstraintNode } from '../../syntax/nodes'
 import type { IParserHub } from '../core/parser.hub'
 import { TypeRule } from './type.rule'
 import { ConstraintRule } from './constraint.rule'
 import { ModifierRule } from './modifier.rule'
+import { ASTFactory } from '../factory/ast.factory'
 
 export class ParameterRule {
   private readonly typeRule = new TypeRule()
@@ -55,17 +56,18 @@ export class ParameterRule {
       constraints.push(ConstraintRule.parseInline(context))
     }
 
-    return {
-      type: ASTNodeType.PARAMETER,
-      name: paramName.value,
+    return ASTFactory.createParameter(
+      paramName.value,
       typeAnnotation,
-      relationshipKind,
-      isNavigable,
-      targetModifiers: modifiers,
-      multiplicity,
-      constraints: constraints.length > 0 ? constraints : undefined,
-      line: paramName.line,
-      column: paramName.column,
-    }
+      paramName.line,
+      paramName.column,
+      {
+        relationshipKind,
+        isNavigable,
+        targetModifiers: modifiers,
+        multiplicity,
+        constraints: constraints.length > 0 ? constraints : undefined,
+      },
+    )
   }
 }

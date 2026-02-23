@@ -2,10 +2,8 @@ import { TokenType } from '../../../../syntax/token.types'
 import type { TypeNode } from '../../../../syntax/nodes'
 import type { IParserHub } from '../../../core/parser.hub'
 import type { TypeRule } from '../../type.rule'
-import type {
-  IPrimaryTypeProvider,
-  ITypeModifierProvider,
-} from '../../../core/type-provider.interface'
+import type { ITypeModifierProvider } from '../../../core/type-provider.interface'
+import { ASTFactory } from '../../../factory/ast.factory'
 
 export class GenericTypeModifier implements ITypeModifierProvider {
   canHandle(context: IParserHub): boolean {
@@ -14,27 +12,29 @@ export class GenericTypeModifier implements ITypeModifierProvider {
 
   apply(context: IParserHub, baseNode: TypeNode, typeRule: TypeRule): TypeNode {
     context.consume(TokenType.LT, '')
-    baseNode.kind = 'generic'
-    baseNode.raw += '<'
-    baseNode.arguments = []
+    const args: TypeNode[] = []
+    let raw = baseNode.raw + '<'
 
     do {
       if (context.match(TokenType.PIPE)) {
-        baseNode.raw += ' | '
+        raw += ' | '
         continue
       }
 
       const argType = typeRule.parse(context)
-      baseNode.arguments.push(argType)
-      baseNode.raw += argType.raw
+      args.push(argType)
+      raw += argType.raw
 
       if (context.check(TokenType.COMMA)) {
         context.advance()
-        baseNode.raw += ', '
+        raw += ', '
       }
     } while (!context.check(TokenType.GT) && !context.isAtEnd())
 
-    baseNode.raw += context.consume(TokenType.GT, "Expected '>'").value
-    return baseNode
+    raw += context.consume(TokenType.GT, "Expected '>'").value
+
+    return ASTFactory.createType(baseNode.name, 'generic', raw, baseNode.line, baseNode.column, {
+      arguments: args,
+    })
   }
 }

@@ -1,6 +1,5 @@
 import { TokenType } from '../../syntax/token.types'
 import {
-  ASTNodeType,
   type TypeNode,
   type Modifiers,
   type ConstraintNode,
@@ -10,6 +9,7 @@ import { TypeRule } from './type.rule'
 import { ConstraintRule } from './constraint.rule'
 import { ModifierRule } from './modifier.rule'
 import type { IParserHub } from '../core/parser.hub'
+import { ASTFactory } from '../factory/ast.factory'
 
 export interface MemberSuffix {
   typeAnnotation: TypeNode
@@ -76,12 +76,7 @@ export class MemberSuffixRule {
       if (relationshipKind && !label) {
         label = value
       } else {
-        notes.push({
-          type: ASTNodeType.NOTE,
-          value,
-          line: stringToken.line,
-          column: stringToken.column,
-        })
+        notes.push(ASTFactory.createNote(value, stringToken.line, stringToken.column))
       }
     }
 

@@ -1,7 +1,8 @@
 import { TokenType } from '../../syntax/token.types'
-import { ASTNodeType, type RelationshipHeaderNode } from '../../syntax/nodes'
+import { type RelationshipHeaderNode } from '../../syntax/nodes'
 import type { IParserHub } from '../core/parser.hub'
 import { ModifierRule } from './modifier.rule'
+import { ASTFactory } from '../factory/ast.factory'
 
 export class RelationshipHeaderRule {
   public parse(context: IParserHub): RelationshipHeaderNode[] {
@@ -49,15 +50,16 @@ export class RelationshipHeaderRule {
         target += context.consume(TokenType.GT, "Se esperaba '>'").value
       }
 
-      relationships.push({
-        type: ASTNodeType.RELATIONSHIP,
-        kind,
-        isNavigable,
-        target,
-        targetModifiers: modifiers,
-        line: targetToken.line,
-        column: targetToken.column,
-      })
+      relationships.push(
+        ASTFactory.createRelationshipHeader(
+          kind,
+          target,
+          isNavigable,
+          targetToken.line,
+          targetToken.column,
+          modifiers,
+        ),
+      )
     }
 
     return relationships

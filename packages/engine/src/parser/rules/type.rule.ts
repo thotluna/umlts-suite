@@ -1,6 +1,6 @@
-import { ASTNodeType } from '../../syntax/nodes'
-import type { TypeNode } from '../../syntax/nodes'
+import { type TypeNode } from '../../syntax/nodes'
 import type { IParserHub } from '../core/parser.hub'
+import { ASTFactory } from '../factory/ast.factory'
 
 /**
  * TypeRule: Regla central para el parseo de tipos.
@@ -21,15 +21,11 @@ export class TypeRule {
     if (!baseNode) {
       // Fallback: Si no hay nada, devolvemos un tipo Unknown para no romper el proceso
       const token = context.peek()
-      baseNode = {
-        type: ASTNodeType.TYPE,
-        kind: 'simple',
-        name: 'Unknown',
-        raw: 'Unknown',
-        line: token.line,
-        column: token.column,
-      }
+      baseNode = ASTFactory.createType('Unknown', 'simple', 'Unknown', token.line, token.column)
     }
+
+    // Aseguramos que baseNode no es undefined para el resto del proceso
+    let currentType: TypeNode = baseNode
 
     // 2. Aplicar modificadores (Ej: List<T>, Enum(...)) mientras existan
     let foundModifier = true
@@ -37,13 +33,13 @@ export class TypeRule {
       foundModifier = false
       for (const modifier of context.getTypeModifiers()) {
         if (modifier.canHandle(context)) {
-          baseNode = modifier.apply(context, baseNode, this)
+          currentType = modifier.apply(context, currentType, this)
           foundModifier = true
           break
         }
       }
     }
 
-    return baseNode
+    return currentType
   }
 }

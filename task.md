@@ -370,6 +370,7 @@
 - [x] **DESIGN**: Crear documento de arquitectura V3 (`docs/PARSER_V3_ARCHITECTURE.md`)
 - [x] **PLAN**: Crear plan de implementación paso a paso (`docs/PARSER_V3_IMPLEMENTATION_PLAN.md`)
 - [x] **TASK**: Implementar `ASTFactory` para centralizar creación de nodos
+- [x] **TASK**: Migrar todas las reglas del parser para utilizar `ASTFactory` de forma consistente
 - [x] **CONTRACT**: Crear interfaz `IParserHub` y hacer que `ParserContext` la implemente
 - [x] **TASK**: Refactorizar reglas para usar `IParserHub` en lugar de `ParserContext` (Eliminar dependencia circular)
 - [x] **TASK**: Refactorizar `ParserContext` para eliminar dependencias estáticas y separar el `StateStore` (ParserSession)

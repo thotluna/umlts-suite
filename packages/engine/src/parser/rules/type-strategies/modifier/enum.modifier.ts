@@ -2,10 +2,8 @@ import { TokenType } from '../../../../syntax/token.types'
 import type { TypeNode } from '../../../../syntax/nodes'
 import type { IParserHub } from '../../../core/parser.hub'
 import type { TypeRule } from '../../type.rule'
-import type {
-  IPrimaryTypeProvider,
-  ITypeModifierProvider,
-} from '../../../core/type-provider.interface'
+import type { ITypeModifierProvider } from '../../../core/type-provider.interface'
+import { ASTFactory } from '../../../factory/ast.factory'
 
 export class EnumTypeModifier implements ITypeModifierProvider {
   canHandle(context: IParserHub): boolean {
@@ -14,24 +12,25 @@ export class EnumTypeModifier implements ITypeModifierProvider {
 
   apply(context: IParserHub, baseNode: TypeNode, _typeRule: TypeRule): TypeNode {
     context.consume(TokenType.LPAREN, '')
-    baseNode.kind = 'enum'
-    baseNode.values = []
-    baseNode.raw += '('
+    const values: string[] = []
+    let raw = baseNode.raw + '('
 
     while (!context.check(TokenType.RPAREN) && !context.isAtEnd()) {
       const next = context.peek()
       if (next.type === TokenType.IDENTIFIER || next.type.startsWith('KW_')) {
         const valToken = context.advance()
-        baseNode.values?.push(valToken.value)
-        baseNode.raw += valToken.value
+        values.push(valToken.value)
+        raw += valToken.value
       } else if (context.match(TokenType.PIPE)) {
-        baseNode.raw += ' | '
+        raw += ' | '
       } else {
         context.advance()
       }
     }
 
-    baseNode.raw += context.consume(TokenType.RPAREN, "Expected ')'").value
-    return baseNode
+    raw += context.consume(TokenType.RPAREN, "Expected ')'").value
+    return ASTFactory.createType(baseNode.name, 'enum', raw, baseNode.line, baseNode.column, {
+      values,
+    })
   }
 }

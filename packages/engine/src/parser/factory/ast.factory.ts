@@ -234,6 +234,7 @@ export class ASTFactory {
     line: number,
     column: number,
     body?: MemberNode[],
+    docs?: string,
   ): AssociationClassNode {
     return {
       type: ASTNodeType.ASSOCIATION_CLASS,
@@ -242,6 +243,7 @@ export class ASTFactory {
       body,
       line,
       column,
+      docs,
     }
   }
 

@@ -1,9 +1,10 @@
 import type { Token } from '../../syntax/token.types'
 import { TokenType } from '../../syntax/token.types'
-import { ASTNodeType, type MethodNode, type TypeNode, type Modifiers } from '../../syntax/nodes'
+import { type MethodNode, type Modifiers } from '../../syntax/nodes'
 import type { IParserHub } from '../core/parser.hub'
 import { ParameterRule } from './parameter.rule'
 import { MemberSuffixRule, type MemberSuffix } from './member-suffix.rule'
+import { ASTFactory } from '../factory/ast.factory'
 
 export class MethodRule {
   private readonly parameterRule = new ParameterRule()
@@ -30,33 +31,24 @@ export class MethodRule {
       suffix = MemberSuffixRule.parse(context)
     }
 
-    return {
-      type: ASTNodeType.METHOD,
-      name: name.value,
+    return ASTFactory.createMethod(
+      name.value,
       visibility,
+      suffix?.typeAnnotation ??
+        ASTFactory.createType('void', 'simple', 'void', name.line, name.column),
       modifiers,
       parameters,
-      returnType: suffix?.typeAnnotation ?? this.createVoidType(name),
-      returnMultiplicity: suffix?.multiplicity,
-      returnRelationshipKind: suffix?.relationshipKind,
-      isNavigable: suffix?.isNavigable,
-      constraints: suffix?.constraints,
-      returnTargetModifiers: suffix?.targetModifiers ?? this.createDefaultModifiers(),
-      docs: context.consumePendingDocs(),
-      line: name.line,
-      column: name.column,
-    }
-  }
-
-  private createVoidType(name: Token): TypeNode {
-    return {
-      type: ASTNodeType.TYPE,
-      kind: 'simple',
-      name: 'void',
-      raw: 'void',
-      line: name.line,
-      column: name.column,
-    }
+      name.line,
+      name.column,
+      {
+        returnMultiplicity: suffix?.multiplicity,
+        returnRelationshipKind: suffix?.relationshipKind,
+        isNavigable: suffix?.isNavigable,
+        constraints: suffix?.constraints,
+        returnTargetModifiers: suffix?.targetModifiers ?? this.createDefaultModifiers(),
+        docs: context.consumePendingDocs(),
+      },
+    )
   }
 
   private createDefaultModifiers(): Modifiers {

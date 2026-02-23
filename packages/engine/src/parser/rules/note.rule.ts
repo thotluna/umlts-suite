@@ -1,7 +1,8 @@
 import { TokenType } from '../../syntax/token.types'
-import { ASTNodeType, type StatementNode, type NoteNode } from '../../syntax/nodes'
+import { type StatementNode } from '../../syntax/nodes'
 import type { IParserHub } from '../core/parser.hub'
 import type { StatementRule, Orchestrator } from '../rule.types'
+import { ASTFactory } from '../factory/ast.factory'
 
 export class NoteRule implements StatementRule {
   public canStart(context: IParserHub): boolean {
@@ -22,26 +23,11 @@ export class NoteRule implements StatementRule {
         id = context.consume(TokenType.IDENTIFIER, "Expected identifier after 'as'").value
       }
 
-      return [
-        {
-          type: ASTNodeType.NOTE,
-          value: textToken.value,
-          id,
-          line: startToken.line,
-          column: startToken.column,
-        } as NoteNode,
-      ]
+      return [ASTFactory.createNote(textToken.value, startToken.line, startToken.column, id)]
     }
 
     if (context.match(TokenType.STRING)) {
-      return [
-        {
-          type: ASTNodeType.NOTE,
-          value: context.prev().value,
-          line: startToken.line,
-          column: startToken.column,
-        } as NoteNode,
-      ]
+      return [ASTFactory.createNote(context.prev().value, startToken.line, startToken.column)]
     }
 
     return []

@@ -7,6 +7,8 @@ import { RelationshipHeaderRule } from './relationship-header.rule'
 import { MemberRule } from './member.rule'
 import { ModifierRule } from './modifier.rule'
 
+import { ASTFactory } from '../factory/ast.factory'
+
 /**
  * EntityRule: Regla para parsear Clases e Interfaces.
  */
@@ -53,7 +55,9 @@ export class EntityRule implements StatementRule {
 
     const nameToken = context.softConsume(TokenType.IDENTIFIER, 'Entity name expected')
     const type =
-      keywordToken.type === TokenType.KW_CLASS ? ASTNodeType.CLASS : ASTNodeType.INTERFACE
+      keywordToken.type === TokenType.KW_CLASS
+        ? (ASTNodeType.CLASS as const)
+        : (ASTNodeType.INTERFACE as const)
 
     const docs = context.consumePendingDocs()
 
@@ -94,17 +98,17 @@ export class EntityRule implements StatementRule {
     }
 
     return [
-      {
+      ASTFactory.createEntity(
         type,
-        name: nameToken.value,
+        nameToken.value,
         modifiers,
-        typeParameters,
-        docs,
         relationships,
         body,
-        line: keywordToken.line,
-        column: keywordToken.column,
-      },
+        keywordToken.line,
+        keywordToken.column,
+        docs,
+        typeParameters,
+      ),
     ]
   }
 }

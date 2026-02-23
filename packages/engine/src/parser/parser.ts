@@ -1,5 +1,4 @@
 import type { Token } from '../syntax/token.types'
-import { ASTNodeType } from '../syntax/nodes'
 import type { ProgramNode, StatementNode } from '../syntax/nodes'
 import { ParserContext } from './parser.context'
 import { DiagnosticReporter } from './diagnostic-reporter'
@@ -7,6 +6,7 @@ import type { IParserHub } from './core/parser.hub'
 import type { StatementRule, Orchestrator } from './rule.types'
 import type { MemberRegistry } from './rules/member-strategies/member.registry'
 import type { TypeRegistry } from './rules/type-strategies/type.registry'
+import { ASTFactory } from './factory/ast.factory'
 
 /**
  * Parser: El protagonista y cerebro del proceso de transformación.
@@ -55,13 +55,12 @@ export class Parser implements Orchestrator {
       }
     }
 
-    return {
-      type: ASTNodeType.PROGRAM,
+    return ASTFactory.createProgram(
       body,
-      line: firstToken?.line ?? 1,
-      column: firstToken?.column ?? 1,
-      diagnostics: reporter.getDiagnostics(),
-    }
+      firstToken?.line ?? 1,
+      firstToken?.column ?? 1,
+      reporter.getDiagnostics(),
+    )
   }
 
   /**

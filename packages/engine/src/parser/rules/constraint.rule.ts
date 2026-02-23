@@ -1,7 +1,9 @@
 import { TokenType } from '../../syntax/token.types'
-import { ASTNodeType, type ConstraintNode, type StatementNode } from '../../syntax/nodes'
+import { type ConstraintNode, type StatementNode } from '../../syntax/nodes'
 import type { IParserHub } from '../core/parser.hub'
 import type { StatementRule, Orchestrator } from '../rule.types'
+
+import { ASTFactory } from '../factory/ast.factory'
 
 /**
  * ConstraintRule: Maneja restricciones globales y bloques xor.
@@ -32,13 +34,9 @@ export class ConstraintRule implements StatementRule {
         context.consume(TokenType.RBRACE, "Expected '}' at the end of xor block")
 
         return [
-          {
-            type: ASTNodeType.CONSTRAINT,
-            kind: 'xor',
+          ASTFactory.createConstraint('xor', startToken.line, startToken.column, {
             body,
-            line: startToken.line,
-            column: startToken.column,
-          },
+          }),
         ]
       }
 
@@ -84,13 +82,9 @@ export class ConstraintRule implements StatementRule {
       context.advance()
     }
 
-    return {
-      type: ASTNodeType.CONSTRAINT,
-      kind,
+    return ASTFactory.createConstraint(kind, startToken.line, startToken.column, {
       targets: targets.length > 0 ? targets : undefined,
       expression: expression || undefined,
-      line: startToken.line,
-      column: startToken.column,
-    }
+    })
   }
 }

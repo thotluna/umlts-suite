@@ -1,7 +1,8 @@
 import { TokenType } from '../../syntax/token.types'
-import { ASTNodeType, type ConfigNode, type StatementNode } from '../../syntax/nodes'
+import { type StatementNode } from '../../syntax/nodes'
 import type { IParserHub } from '../core/parser.hub'
 import type { StatementRule, Orchestrator } from '../rule.types'
+import { ASTFactory } from '../factory/ast.factory'
 
 /**
  * ConfigRule: Parses the 'config { ... }' block.
@@ -26,14 +27,7 @@ export class ConfigRule implements StatementRule {
       const options = this.parseBlockOptions(context)
       context.consume(TokenType.RBRACE, "Expected '}' at the end of config block.")
 
-      return [
-        {
-          type: ASTNodeType.CONFIG,
-          options,
-          line: configToken.line,
-          column: configToken.column,
-        },
-      ]
+      return [ASTFactory.createConfig(options, configToken.line, configToken.column)]
     }
 
     // 2. Sintaxis de línea: @key: value
@@ -43,14 +37,7 @@ export class ConfigRule implements StatementRule {
       context.consume(TokenType.COLON, "Expected ':' after key.")
       const value = this.parseValue(context)
 
-      return [
-        {
-          type: ASTNodeType.CONFIG,
-          options: { [keyToken.value]: value },
-          line: atToken.line,
-          column: atToken.column,
-        } as ConfigNode,
-      ]
+      return [ASTFactory.createConfig({ [keyToken.value]: value }, atToken.line, atToken.column)]
     }
 
     return []
