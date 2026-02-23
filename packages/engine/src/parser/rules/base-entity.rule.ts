@@ -6,27 +6,22 @@ import type { StatementRule, Orchestrator } from '../rule.types'
 import { RelationshipHeaderRule } from './relationship-header.rule'
 import { MemberRule } from './member.rule'
 import { ModifierRule } from './modifier.rule'
-
 import { ASTFactory } from '../factory/ast.factory'
 
 /**
- * EntityRule: Regla para parsear Clases e Interfaces.
+ * BaseEntityRule: Clase base abstracta para entidades como Clases e Interfaces.
  */
-export class EntityRule implements StatementRule {
+export abstract class BaseEntityRule implements StatementRule {
   private readonly relationshipHeaderRule = new RelationshipHeaderRule()
   private readonly memberRule = new MemberRule()
 
-  public canHandle(context: IParserHub): boolean {
-    const skip = ModifierRule.countModifiers(context)
-    const target = context.lookahead(skip).type
-    return target === TokenType.KW_CLASS || target === TokenType.KW_INTERFACE
-  }
+  public abstract canHandle(context: IParserHub): boolean
 
   public parse(context: IParserHub, orchestrator: Orchestrator): StatementNode[] {
     const pos = context.getPosition()
     let modifiers = ModifierRule.parse(context)
 
-    if (!context.match(TokenType.KW_CLASS, TokenType.KW_INTERFACE)) {
+    if (!context.match(...this.getSupportedKeywords())) {
       context.rollback(pos)
       return []
     }
@@ -35,10 +30,7 @@ export class EntityRule implements StatementRule {
     modifiers = ModifierRule.parse(context, modifiers)
 
     const nameToken = context.softConsume(TokenType.IDENTIFIER, 'Entity name expected')
-    const type =
-      keywordToken.type === TokenType.KW_CLASS
-        ? (ASTNodeType.CLASS as const)
-        : (ASTNodeType.INTERFACE as const)
+    const type = this.getASTNodeType(keywordToken.type)
 
     const docs = context.consumePendingDocs()
 
@@ -92,4 +84,7 @@ export class EntityRule implements StatementRule {
       ),
     ]
   }
+
+  protected abstract getSupportedKeywords(): TokenType[]
+  protected abstract getASTNodeType(type: TokenType): ASTNodeType.CLASS | ASTNodeType.INTERFACE
 }

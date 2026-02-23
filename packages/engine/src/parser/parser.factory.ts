@@ -2,7 +2,8 @@ import type { LanguagePlugin } from '../plugins/language-plugin'
 import { Parser } from './parser'
 import { CommentRule } from './rules/comment.rule'
 import { PackageRule } from './rules/package.rule'
-import { EntityRule } from './rules/entity.rule'
+import { ClassRule } from './rules/class.rule'
+import { InterfaceRule } from './rules/interface.rule'
 import { RelationshipRule } from './rules/relationship.rule'
 import { EnumRule } from './rules/enum.rule'
 import { AssociationClassRule } from './rules/association-class.rule'
@@ -35,7 +36,8 @@ export class ParserFactory {
       new PackageRule(),
       new EnumRule(),
       new AssociationClassRule(),
-      new EntityRule(),
+      new ClassRule(),
+      new InterfaceRule(),
       new RelationshipRule(),
     ]
 

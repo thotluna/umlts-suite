@@ -380,3 +380,4 @@
 - [x] **TASK**: Migrar reglas existentes al nuevo sistema de base (`StatementRule` / `MemberProvider`)
 - [x] **VERIFY**: Asegurar paridad de funcionalidades y 100% de éxito en tests de integración
 - [x] **REFACTOR**: Mejorar `ModifierRule` para que gestione automáticamente modificadores Pre y Post palabra clave, centralizando la lógica que actualmente está duplicada en `EntityRule` y `EnumRule`.
+- [x] **ARCH**: Dividir `EntityRule` en `ClassRule` e `InterfaceRule` utilizando una clase base abstracta `BaseEntityRule` para mejorar la atomicidad y mantenibilidad.
