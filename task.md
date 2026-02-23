@@ -376,6 +376,7 @@
 - [x] **TASK**: Refactorizar `ParserContext` para eliminar dependencias estáticas y separar el `StateStore` (ParserSession)
 - [x] **TASK**: Desacoplar `MemberRegistry` (instancia vs static) y mover a inyección de dependencias
 - [x] **ARCH**: Separar `EnumRule` y `AssociationClassRule` de `EntityRule`
-- [x] **TASK**: Implementar sistema de sincronización basado en heurísticas `canStart` de reglas registradas
+- [x] **TASK**: Implementar sistema de sincronización basado en heurísticas `canHandle` de reglas registradas
 - [x] **TASK**: Migrar reglas existentes al nuevo sistema de base (`StatementRule` / `MemberProvider`)
 - [x] **VERIFY**: Asegurar paridad de funcionalidades y 100% de éxito en tests de integración
+- [ ] **REFACTOR**: Mejorar `ModifierRule` para que gestione automáticamente modificadores Pre y Post palabra clave, centralizando la lógica que actualmente está duplicada en `EntityRule` y `EnumRule`.

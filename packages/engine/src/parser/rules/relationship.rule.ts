@@ -6,7 +6,7 @@ import {
   type MemberNode,
 } from '../../syntax/nodes'
 import type { IParserHub } from '../core/parser.hub'
-import type { StatementRule } from '../rule.types'
+import type { StatementRule, Orchestrator } from '../rule.types'
 import { ModifierRule } from './modifier.rule'
 import { MemberRule } from './member.rule'
 import { ConstraintRule } from './constraint.rule'
@@ -15,25 +15,53 @@ import { ASTFactory } from '../factory/ast.factory'
 export class RelationshipRule implements StatementRule {
   private readonly memberRule = new MemberRule()
 
-  public canStart(context: IParserHub): boolean {
-    return context.checkAny(
-      TokenType.IDENTIFIER,
-      TokenType.LBRACKET,
-      TokenType.MOD_ABSTRACT,
-      TokenType.KW_ABSTRACT,
-      TokenType.MOD_STATIC,
-      TokenType.KW_STATIC,
-      TokenType.MOD_ACTIVE,
-      TokenType.KW_ACTIVE,
-      TokenType.MOD_LEAF,
-      TokenType.KW_LEAF,
-      TokenType.KW_FINAL,
-      TokenType.MOD_ROOT,
-      TokenType.KW_ROOT,
-    )
+  public canHandle(context: IParserHub): boolean {
+    const pos = context.getPosition()
+    try {
+      // 1. Omitir modificadores iniciales
+      while (
+        context.checkAny(
+          TokenType.MOD_ABSTRACT,
+          TokenType.KW_ABSTRACT,
+          TokenType.MOD_STATIC,
+          TokenType.KW_STATIC,
+          TokenType.MOD_ACTIVE,
+          TokenType.KW_ACTIVE,
+          TokenType.MOD_LEAF,
+          TokenType.KW_LEAF,
+          TokenType.KW_FINAL,
+          TokenType.MOD_ROOT,
+          TokenType.KW_ROOT,
+        )
+      ) {
+        context.advance()
+      }
+
+      // 2. Debe empezar con un identificador (entidad de origen)
+      if (!context.match(TokenType.IDENTIFIER)) return false
+      while (context.match(TokenType.DOT)) {
+        if (!context.match(TokenType.IDENTIFIER)) break
+      }
+
+      // 3. Omitir opcionalmente la multiplicidad "[1]" o "1"
+      if (context.check(TokenType.LBRACKET)) {
+        context.advance()
+        while (!context.check(TokenType.RBRACKET) && !context.isAtEnd()) {
+          context.advance()
+        }
+        context.match(TokenType.RBRACKET)
+      } else {
+        context.match(TokenType.STRING)
+      }
+
+      // 4. Debe seguir un operador de relación (>>, ->, :>, etc.)
+      return this.isRelationshipType(context.peek().type)
+    } finally {
+      context.rollback(pos)
+    }
   }
 
-  public parse(context: IParserHub): StatementNode[] {
+  public parse(context: IParserHub, orchestrator: Orchestrator): StatementNode[] {
     const pos = context.getPosition()
 
     try {
@@ -127,7 +155,7 @@ export class RelationshipRule implements StatementRule {
             // Intentar parsear como miembro
             try {
               const posBefore = context.getPosition()
-              const member = this.memberRule.parse(context)
+              const member = this.memberRule.parse(context, orchestrator)
               if (member) {
                 body.push(member)
               } else {

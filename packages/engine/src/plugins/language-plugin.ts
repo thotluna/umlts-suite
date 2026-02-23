@@ -63,7 +63,7 @@ export interface LanguagePlugin {
  * Interface for a plugin-specific statement rule.
  */
 export interface IPluginStatementRule {
-  canStart(context: IParserHub): boolean
+  canHandle(context: IParserHub): boolean
   parse(context: IParserHub, orchestrator: Orchestrator): StatementNode[] | null
 }
 
@@ -72,7 +72,7 @@ export interface IPluginStatementRule {
  */
 export interface IPluginMemberProvider {
   canHandle(context: IParserHub): boolean
-  parse(context: IParserHub): MemberNode | null
+  parse(context: IParserHub, orchestrator: Orchestrator): MemberNode | null
 }
 
 /**

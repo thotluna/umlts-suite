@@ -5,6 +5,7 @@ import type { IParserHub } from '../core/parser.hub'
 import { ParameterRule } from './parameter.rule'
 import { MemberSuffixRule, type MemberSuffix } from './member-suffix.rule'
 import { ASTFactory } from '../factory/ast.factory'
+import type { Orchestrator } from '../rule.types'
 
 export class MethodRule {
   private readonly parameterRule = new ParameterRule()
@@ -14,6 +15,7 @@ export class MethodRule {
     name: Token,
     visibility: string,
     modifiers: Modifiers,
+    _orchestrator: Orchestrator,
   ): MethodNode {
     context.consume(TokenType.LPAREN, '')
     const parameters = []

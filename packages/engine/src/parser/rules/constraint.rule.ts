@@ -11,7 +11,7 @@ import { ASTFactory } from '../factory/ast.factory'
  * Soporta individual: {ordered}
  */
 export class ConstraintRule implements StatementRule {
-  public canStart(context: IParserHub): boolean {
+  public canHandle(context: IParserHub): boolean {
     return context.check(TokenType.KW_XOR) || context.check(TokenType.LBRACE)
   }
 

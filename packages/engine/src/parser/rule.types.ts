@@ -12,7 +12,7 @@ export interface StatementRule {
    * Indica si la regla puede comenzar con el token actual.
    * Útil para recuperación de errores y sincronización.
    */
-  canStart: (context: IParserHub) => boolean
+  canHandle: (context: IParserHub) => boolean
 }
 
 /**

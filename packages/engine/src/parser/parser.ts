@@ -47,7 +47,7 @@ export class Parser implements Orchestrator {
         reporter.addError(message, context.peek())
 
         // El Parser toma el mando estratégico: "Busca un punto seguro"
-        context.sync(() => this.rules.some((rule) => rule.canStart(context)))
+        context.sync(() => this.rules.some((rule) => rule.canHandle(context)))
       } finally {
         // La sesión se limpia en cada ciclo para evitar que el estado (ej. docs)
         // se arrastre entre sentencias fallidas o exitosas.
@@ -67,16 +67,7 @@ export class Parser implements Orchestrator {
    * Intenta parsear una sentencia delegando en las reglas registradas.
    */
   public parseStatement(context: IParserHub): StatementNode[] {
-    if (context.isAtEnd()) return []
-
-    const startPos = context.getPosition()
-    for (const rule of this.rules) {
-      if (rule.canStart(context)) {
-        const nodes = rule.parse(context, this)
-        if (nodes.length > 0 || context.getPosition() > startPos) return nodes
-      }
-    }
-
-    return []
+    const rule = this.rules.find((r) => r.canHandle(context))
+    return rule ? rule.parse(context, this) : []
   }
 }

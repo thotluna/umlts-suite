@@ -4,7 +4,7 @@ import type { IParserHub } from '../core/parser.hub'
 import type { StatementRule, Orchestrator } from '../rule.types'
 
 export class DocCommentRule implements StatementRule {
-  public canStart(context: IParserHub): boolean {
+  public canHandle(context: IParserHub): boolean {
     return context.check(TokenType.DOC_COMMENT)
   }
 

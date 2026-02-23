@@ -15,7 +15,7 @@ import { ASTFactory } from '../factory/ast.factory'
  * }
  */
 export class ConfigRule implements StatementRule {
-  public canStart(context: IParserHub): boolean {
+  public canHandle(context: IParserHub): boolean {
     return context.check(TokenType.KW_CONFIG) || context.check(TokenType.AT)
   }
 

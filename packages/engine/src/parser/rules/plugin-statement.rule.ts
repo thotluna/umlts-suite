@@ -14,13 +14,13 @@ export class PluginStatementRule implements StatementRule {
     this.rules = plugin.getStatementRules?.() ?? []
   }
 
-  public canStart(context: IParserHub): boolean {
-    return this.rules.some((rule) => rule.canStart(context))
+  public canHandle(context: IParserHub): boolean {
+    return this.rules.some((rule) => rule.canHandle(context))
   }
 
   public parse(context: IParserHub, orchestrator: Orchestrator): StatementNode[] {
     for (const rule of this.rules) {
-      if (rule.canStart(context)) {
+      if (rule.canHandle(context)) {
         const result = rule.parse(context, orchestrator)
         if (result) {
           return result

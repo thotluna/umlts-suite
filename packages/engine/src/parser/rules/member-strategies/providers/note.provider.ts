@@ -8,11 +8,11 @@ export class NoteMemberProvider implements IMemberProvider {
   private readonly noteRule = new NoteRule()
 
   canHandle(context: IParserHub): boolean {
-    return this.noteRule.canStart(context)
+    return this.noteRule.canHandle(context)
   }
 
-  parse(context: IParserHub): MemberNode | null {
-    const nodes = this.noteRule.parse(context, null as unknown as Orchestrator)
+  parse(context: IParserHub, orchestrator: Orchestrator): MemberNode | null {
+    const nodes = this.noteRule.parse(context, orchestrator)
     return nodes.length > 0 ? (nodes[0] as MemberNode) : null
   }
 }
