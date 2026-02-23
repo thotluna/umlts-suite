@@ -11,6 +11,7 @@ import { PluginManager } from '@engine/plugins/plugin-manager'
 import { AnalysisSession } from '@engine/semantics/session/analysis-session'
 import { ConfigStore } from '@engine/semantics/session/config-store'
 import { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
+import type { WorkspaceContext } from '@engine/semantics/session/context/workspace'
 
 // Analyzers & Validators
 import { EntityAnalyzer } from '@engine/semantics/analyzers/entity-analyzer'
@@ -65,7 +66,11 @@ export class SemanticAnalyzer {
   /**
    * Punto de entrada principal para el análisis semántico.
    */
-  public analyze(program: ProgramNode, context: ISemanticContext): IRDiagram {
+  public analyze(
+    program: ProgramNode,
+    context: ISemanticContext,
+    workspace?: WorkspaceContext,
+  ): IRDiagram {
     // 1. Inicialización de Estado (Sesión)
     const symbolTable = new SymbolTable()
     const constraintRegistry = new ConstraintRegistry()
@@ -77,6 +82,7 @@ export class SemanticAnalyzer {
       configStore,
       this.pluginManager,
       context,
+      workspace,
     )
 
     // 2. Inicialización de Servicios

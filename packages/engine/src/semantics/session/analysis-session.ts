@@ -4,6 +4,7 @@ import type { PluginManager } from '@engine/plugins/plugin-manager'
 import type { SymbolTable } from '@engine/semantics/symbol-table'
 import type { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
 import type { ConfigStore } from '@engine/semantics/session/config-store'
+import type { WorkspaceContext } from '@engine/semantics/session/context/workspace'
 
 /**
  * Encapsulates the complete state of a semantic analysis session.
@@ -20,6 +21,7 @@ export class AnalysisSession {
     public readonly configStore: ConfigStore,
     public readonly pluginManager: PluginManager,
     public readonly context: ISemanticContext,
+    public readonly workspace?: WorkspaceContext,
   ) {}
 
   /**
