@@ -5,13 +5,7 @@ import type { ISemanticContext } from '@engine/semantics/core/semantic-context.i
 import { SemanticTargetType } from '@engine/semantics/core/semantic-rule.interface'
 
 // Core Components
-import { SymbolTable } from '@engine/semantics/symbol-table'
 import { PluginManager } from '@engine/plugins/plugin-manager'
-
-// Session & State
-import { AnalysisSession } from '@engine/semantics/session/analysis-session'
-import { ConfigStore } from '@engine/semantics/session/config-store'
-import { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
 
 // Infrastructure & Orchestration
 import { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
@@ -19,6 +13,7 @@ import { UMLTypeResolver } from '@engine/semantics/inference/uml-type-resolver'
 import { PluginTypeResolutionAdapter } from '@engine/semantics/inference/plugin-adapter'
 import { SemanticServicesProvider } from '@engine/semantics/factories/services-provider'
 import { SemanticPipelineOrchestrator } from '@engine/semantics/passes/pipeline-orchestrator'
+import { SessionFactory } from '@engine/semantics/factories/session-factory'
 
 /**
  * Main orchestrator for semantic analysis.
@@ -27,6 +22,7 @@ import { SemanticPipelineOrchestrator } from '@engine/semantics/passes/pipeline-
 export class SemanticAnalyzer {
   private readonly pluginManager: PluginManager
   private readonly typePipeline: TypeResolutionPipeline
+  private readonly sessionFactory: SessionFactory
 
   constructor(pluginManager?: PluginManager, typePipeline?: TypeResolutionPipeline) {
     this.pluginManager = pluginManager ?? new PluginManager()
@@ -36,6 +32,7 @@ export class SemanticAnalyzer {
     }
 
     this.typePipeline = typePipeline ?? this.createDefaultTypePipeline(this.pluginManager)
+    this.sessionFactory = new SessionFactory(this.pluginManager)
   }
 
   private createDefaultTypePipeline(pluginManager: PluginManager): TypeResolutionPipeline {
@@ -50,7 +47,7 @@ export class SemanticAnalyzer {
    */
   public analyze(program: ProgramNode, context: ISemanticContext): IRDiagram {
     // 1. Initialize State
-    const session = this.createSession(context)
+    const session = this.sessionFactory.create(context)
 
     // 2. Initialize Infrastructure
     const services = new SemanticServicesProvider(session, this.typePipeline)
@@ -78,22 +75,5 @@ export class SemanticAnalyzer {
     this.pluginManager.getActive()?.onPostAnalysis?.(session)
 
     return diagram
-  }
-
-  /**
-   * Creates a fresh analysis session with its internal storage components.
-   */
-  private createSession(context: ISemanticContext): AnalysisSession {
-    const symbolTable = new SymbolTable()
-    const constraintRegistry = new ConstraintRegistry()
-    const configStore = new ConfigStore(this.pluginManager, symbolTable)
-
-    return new AnalysisSession(
-      symbolTable,
-      constraintRegistry,
-      configStore,
-      this.pluginManager,
-      context,
-    )
   }
 }
