@@ -10,9 +10,9 @@ import type {
   ConstraintNode,
 } from '@engine/syntax/nodes'
 import type { IRConstraint } from '@engine/generator/ir/models'
-import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
 import type { EntityAnalyzer } from '@engine/semantics/analyzers/entity-analyzer'
 import type { ISemanticPass } from '@engine/semantics/passes/semantic-pass.interface'
+import type { ISemanticState } from '@engine/semantics/core/semantic-state.interface'
 
 /**
  * Pase 2: Definición.
@@ -21,12 +21,12 @@ import type { ISemanticPass } from '@engine/semantics/passes/semantic-pass.inter
 export class DefinitionPass implements ISemanticPass, ASTVisitor {
   public readonly name = 'Definition'
   private currentNamespace: string[] = []
-  private session!: AnalysisSession
+  private state!: ISemanticState
 
   constructor(private readonly entityAnalyzer: EntityAnalyzer) {}
 
-  public execute(program: ProgramNode, session: AnalysisSession): void {
-    this.session = session
+  public execute(program: ProgramNode, state: ISemanticState): void {
+    this.state = state
     this.currentNamespace = []
     walkAST(program, this)
   }
@@ -42,8 +42,8 @@ export class DefinitionPass implements ISemanticPass, ASTVisitor {
   }
 
   visitEntity(node: EntityNode): void {
-    const fqn = this.session.symbolTable.resolveFQN(node.name, this.currentNamespace.join('.')).fqn
-    const entity = this.session.symbolTable.get(fqn)
+    const fqn = this.state.symbolTable.resolveFQN(node.name, this.currentNamespace.join('.')).fqn
+    const entity = this.state.symbolTable.get(fqn)
 
     if (entity) {
       this.entityAnalyzer.processMembers(entity, node)
@@ -56,7 +56,7 @@ export class DefinitionPass implements ISemanticPass, ASTVisitor {
       allMembers.forEach((member) => {
         member.constraints?.forEach((c) => {
           if (c.kind === 'xor') {
-            this.session.constraintRegistry.add(c)
+            this.state.constraintRegistry.add(c)
           }
         })
       })
@@ -66,8 +66,8 @@ export class DefinitionPass implements ISemanticPass, ASTVisitor {
   visitRelationship(node: RelationshipNode): void {
     if (node.body && node.body.length > 0) {
       const ns = this.currentNamespace.join('.')
-      const fromFQN = this.session.symbolTable.resolveFQN(node.from, ns).fqn
-      const fromEntity = this.session.symbolTable.get(fromFQN)
+      const fromFQN = this.state.symbolTable.resolveFQN(node.from, ns).fqn
+      const fromEntity = this.state.symbolTable.get(fromFQN)
       if (fromEntity) {
         this.entityAnalyzer.appendMembers(fromEntity, node.body)
       }
@@ -78,8 +78,8 @@ export class DefinitionPass implements ISemanticPass, ASTVisitor {
   visitConfig(_node: ConfigNode): void {}
 
   visitAssociationClass(node: AssociationClassNode): void {
-    const fqn = this.session.symbolTable.resolveFQN(node.name, this.currentNamespace.join('.')).fqn
-    const entity = this.session.symbolTable.get(fqn)
+    const fqn = this.state.symbolTable.resolveFQN(node.name, this.currentNamespace.join('.')).fqn
+    const entity = this.state.symbolTable.get(fqn)
     if (entity && node.body) {
       this.entityAnalyzer.processAssociationClassMembers(entity, node)
     }

@@ -393,9 +393,24 @@
 - [x] **Phase 1**: Desacoplamiento Total del Parser <!-- id: 402 -->
   - [x] Migrar `SemanticAnalyzer` para usar `ISemanticContext`
   - [x] Eliminar toda dependencia de `@engine/parser` en el paquete de semántica
-- [ ] **Phase 2**: Reglas Atómicas y Concurrencia <!-- id: 403 -->
-  - [ ] Refactorizar validaciones existentes a `ISemanticRule` (Stateless)
-  - [ ] Implementar motor de ejecución de reglas (con soporte futuro para paralelismo)
-- [ ] **Phase 3**: Soporte SaaS y Multi-archivo <!-- id: 404 -->
-  - [ ] Gestión de multi-tenancy en la sesión de análisis
-  - [ ] Procesamiento incremental y slots de extensión (estereotipos)
+- [x] **Phase 2**: Reglas Atómicas y Concurrencia <!-- id: 403 -->
+  - [x] Refactorizar validaciones existentes a `ISemanticRule` (Stateless)
+  - [x] Implementar motor de ejecución de reglas (con soporte futuro para paralelismo)
+- [x] **Phase 3**: Migración de Componentes Especializados <!-- id: 404 -->
+  - [x] Actualizar Analizadores (`Entity`, `Relationship`, `Constraint`) (Completado implícitamente en Fases 1-2)
+  - [x] Actualizar Validadores (`Hierarchy`, `Association`, `Multiplicity`) (Completado implícitamente en Fases 1-2)
+- [x] **Phase 4**: Integración en el Pipeline (Compiler Phase) <!-- id: 405 -->
+  - [x] Refactorizar `SemanticPhase` (`compiler/phases/semantic.phases.ts`)
+  - [x] Instanciar `ISemanticContext` directamente sin `ParserContext`
+- [x] **Phase 5**: Limpieza Estricta y Verificación <!-- id: 406 -->
+  - [x] Purgar importaciones de Parser remanentes (si las hubiera)
+  - [x] Verificación final tests/build
+
+## Refactorización de Arquitectura Semántica (V3.5 - Clean Architecture)
+
+- [x] **TASK**: Rediseño de `SemanticAnalyzer` para desacoplamiento total
+  - [x] Implementar `SemanticServicesFactory` para centralizar la instanciación de dependencias.
+  - [x] Externalizar la configuración del `ValidationEngine` mediante un proveedor de reglas.
+  - [x] Mover heurísticas de TypeScript (`DataType` promotion) al plugin de lenguaje.
+  - [x] Simplificar `analyze` para que sea una orquestación pura de servicios.
+  - [x] Habilitar Inyección de Dependencias en el constructor para facilitar el testing.

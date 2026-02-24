@@ -11,12 +11,12 @@ import {
   type ConstraintNode,
   type TypeNode,
 } from '@engine/syntax/nodes'
-import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
 import type { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
 import type { ConstraintAnalyzer } from '@engine/semantics/analyzers/constraint-analyzer'
 import { AssociationClassResolver } from '@engine/semantics/resolvers/association-class.resolver'
 import { TypeValidator } from '@engine/semantics/utils/type-validator'
 import type { ISemanticPass } from '@engine/semantics/passes/semantic-pass.interface'
+import type { ISemanticState } from '@engine/semantics/core/semantic-state.interface'
 
 /**
  * Pase 3: Resolución.
@@ -26,7 +26,7 @@ export class ResolutionPass implements ISemanticPass, ASTVisitor {
   public readonly name = 'Resolution'
   private currentNamespace: string[] = []
   private currentConstraintGroupId?: string
-  private session!: AnalysisSession
+  private state!: ISemanticState
 
   constructor(
     private readonly relationshipAnalyzer: RelationshipAnalyzer,
@@ -34,8 +34,8 @@ export class ResolutionPass implements ISemanticPass, ASTVisitor {
     private readonly associationResolver: AssociationClassResolver,
   ) {}
 
-  public execute(program: ProgramNode, session: AnalysisSession): void {
-    this.session = session
+  public execute(program: ProgramNode, state: ISemanticState): void {
+    this.state = state
     this.currentNamespace = []
     walkAST(program, this)
   }
@@ -52,8 +52,8 @@ export class ResolutionPass implements ISemanticPass, ASTVisitor {
 
   visitEntity(node: EntityNode): void {
     const ns = this.currentNamespace.join('.')
-    const fromFQN = this.session.symbolTable.resolveFQN(node.name, ns).fqn
-    const fromEntity = this.session.symbolTable.get(fromFQN)
+    const fromFQN = this.state.symbolTable.resolveFQN(node.name, ns).fqn
+    const fromEntity = this.state.symbolTable.get(fromFQN)
 
     ;(node.relationships || []).forEach((rel) => {
       const relType = this.relationshipAnalyzer.mapRelationshipType(rel.kind)
@@ -62,7 +62,7 @@ export class ResolutionPass implements ISemanticPass, ASTVisitor {
         : undefined
 
       const typeNodeLike = this.createTypeNode(rel.target, rel.line, rel.column)
-      const plugin = this.session.pluginManager.getActive()
+      const plugin = this.state.pluginManager.getActive()
       const mapping = plugin?.resolveType(typeNodeLike)
       const targetName = mapping ? mapping.targetName : rel.target
 
@@ -96,14 +96,14 @@ export class ResolutionPass implements ISemanticPass, ASTVisitor {
       node.line,
       node.column,
     )
-    const fromEntity = this.session.symbolTable.get(fromFQN)
+    const fromEntity = this.state.symbolTable.get(fromFQN)
 
     const inferenceContext = fromEntity
       ? { sourceType: fromEntity.type, relationshipKind: relType }
       : undefined
 
     const typeNodeLike = this.createTypeNode(node.to, node.line, node.column)
-    const plugin = this.session.pluginManager.getActive()
+    const plugin = this.state.pluginManager.getActive()
     const mapping = plugin?.resolveType(typeNodeLike)
     const targetName = mapping ? mapping.targetName : node.to
 
@@ -129,7 +129,7 @@ export class ResolutionPass implements ISemanticPass, ASTVisitor {
   visitConfig(_node: ConfigNode): void {}
 
   visitAssociationClass(node: AssociationClassNode): void {
-    const resolver = new AssociationClassResolver(this.session, this.relationshipAnalyzer, [
+    const resolver = new AssociationClassResolver(this.state, this.relationshipAnalyzer, [
       ...this.currentNamespace,
     ])
     resolver.resolve(node)
@@ -139,11 +139,11 @@ export class ResolutionPass implements ISemanticPass, ASTVisitor {
     const irConstraint = this.constraintAnalyzer.process(node)
 
     if (irConstraint.targets.length > 0) {
-      this.session.constraintRegistry.add(irConstraint)
+      this.state.constraintRegistry.add(irConstraint)
     } else if (node.kind === 'xor' && node.body) {
       const groupId = `xor_${node.line}_${node.column}`
       irConstraint.targets = [groupId]
-      this.session.constraintRegistry.add(irConstraint)
+      this.state.constraintRegistry.add(irConstraint)
 
       const oldGroupId = this.currentConstraintGroupId
       this.currentConstraintGroupId = groupId

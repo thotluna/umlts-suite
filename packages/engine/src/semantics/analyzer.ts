@@ -1,148 +1,79 @@
 import type { ProgramNode } from '@engine/syntax/nodes'
-import { type IRDiagram, IREntityType, IRRelationshipType } from '@engine/generator/ir/models'
+import type { IRDiagram } from '@engine/generator/ir/models'
 import { BUILTIN_PLUGINS } from '@engine/plugins'
 import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
+import { SemanticTargetType } from '@engine/semantics/core/semantic-rule.interface'
 
 // Core Components
-import { SymbolTable } from '@engine/semantics/symbol-table'
 import { PluginManager } from '@engine/plugins/plugin-manager'
 
-// Session & State
-import { AnalysisSession } from '@engine/semantics/session/analysis-session'
-import { ConfigStore } from '@engine/semantics/session/config-store'
-import { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
-
-// Analyzers & Validators
-import { EntityAnalyzer } from '@engine/semantics/analyzers/entity-analyzer'
-import { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
-import { ConstraintAnalyzer } from '@engine/semantics/analyzers/constraint-analyzer'
-import { HierarchyValidator } from '@engine/semantics/validators/hierarchy-validator'
-
-// Pipeline & Passes
-import { SemanticPipeline } from '@engine/semantics/passes/semantic-pipeline'
-import { DiscoveryPass } from '@engine/semantics/passes/discovery.pass'
-import { DefinitionPass } from '@engine/semantics/passes/definition.pass'
-import { ResolutionPass } from '@engine/semantics/passes/resolution.pass'
-
-// Inference & Resolution Strategy
+// Infrastructure & Orchestration
 import { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
 import { UMLTypeResolver } from '@engine/semantics/inference/uml-type-resolver'
 import { PluginTypeResolutionAdapter } from '@engine/semantics/inference/plugin-adapter'
-import { MemberInference } from '@engine/semantics/inference/member-inference'
-import { AssociationClassResolver } from '@engine/semantics/resolvers/association-class.resolver'
+import { SemanticServicesProvider } from '@engine/semantics/factories/services-provider'
+import { SemanticPipelineOrchestrator } from '@engine/semantics/passes/pipeline-orchestrator'
+import { SessionFactory } from '@engine/semantics/factories/session-factory'
 
 /**
- * Semantic Analyzer (Refactored to Pipeline).
- * Orquesta el proceso de análisis coordinando pases especializados a través de una tubería.
+ * Main orchestrator for semantic analysis.
+ * Acts as a lean entry point that delegates work to specialized services and pipelines.
  */
 export class SemanticAnalyzer {
   private readonly pluginManager: PluginManager
   private readonly typePipeline: TypeResolutionPipeline
+  private readonly sessionFactory: SessionFactory
 
-  constructor(pluginManager?: PluginManager) {
+  constructor(pluginManager?: PluginManager, typePipeline?: TypeResolutionPipeline) {
     this.pluginManager = pluginManager ?? new PluginManager()
 
     if (!pluginManager) {
       BUILTIN_PLUGINS.forEach((plugin) => this.pluginManager.register(plugin))
     }
 
-    // 2. Initialize the type resolution pipeline with standard strategies
-    this.typePipeline = new TypeResolutionPipeline()
-    this.typePipeline.add(new UMLTypeResolver())
-    this.typePipeline.add(new PluginTypeResolutionAdapter(this.pluginManager))
+    this.typePipeline = typePipeline ?? this.createDefaultTypePipeline(this.pluginManager)
+    this.sessionFactory = new SessionFactory(this.pluginManager)
   }
 
-  public getPluginManager(): PluginManager {
-    return this.pluginManager
+  private createDefaultTypePipeline(pluginManager: PluginManager): TypeResolutionPipeline {
+    const pipeline = new TypeResolutionPipeline()
+    pipeline.add(new UMLTypeResolver())
+    pipeline.add(new PluginTypeResolutionAdapter(pluginManager))
+    return pipeline
   }
 
   /**
-   * Punto de entrada principal para el análisis semántico.
+   * Performs full semantic analysis on a parsed program.
    */
   public analyze(program: ProgramNode, context: ISemanticContext): IRDiagram {
-    // 1. Inicialización de Estado (Sesión)
-    const symbolTable = new SymbolTable()
-    const constraintRegistry = new ConstraintRegistry()
-    const configStore = new ConfigStore(this.pluginManager, symbolTable)
+    // 1. Initialize State
+    const session = this.sessionFactory.create(context)
 
-    const session = new AnalysisSession(
-      symbolTable,
-      constraintRegistry,
-      configStore,
-      this.pluginManager,
-      context,
-    )
+    // 2. Initialize Infrastructure
+    const services = new SemanticServicesProvider(session, this.typePipeline)
+    const orchestrator = new SemanticPipelineOrchestrator(services)
 
-    // 2. Inicialización de Servicios
-    const constraintAnalyzer = new ConstraintAnalyzer(symbolTable, context)
-    const hierarchyValidator = new HierarchyValidator(symbolTable, context)
-    const entityAnalyzer = new EntityAnalyzer(
-      symbolTable,
-      constraintAnalyzer,
-      context,
-      configStore,
-      this.pluginManager,
-    )
-    const relationshipAnalyzer = new RelationshipAnalyzer(
-      symbolTable,
-      session.relationships,
-      hierarchyValidator,
-      context,
-    )
+    // 3. Execute Standard Pipeline (Passes)
+    orchestrator.execute(program, session)
 
-    const memberInference = new MemberInference(session, relationshipAnalyzer, this.typePipeline)
-    const assocClassResolver = new AssociationClassResolver(session, relationshipAnalyzer, [])
+    // 4. Post-processing Refinements
+    services.getMemberInference().run()
 
-    // 4. Configuración de la Tubería Semántica
-    const pipeline = new SemanticPipeline()
-    pipeline
-      .use(new DiscoveryPass(entityAnalyzer, hierarchyValidator))
-      .use(new DefinitionPass(entityAnalyzer))
-      .use(new ResolutionPass(relationshipAnalyzer, constraintAnalyzer, assocClassResolver))
+    // 5. Semantic Validations
+    const diagram = session.toIRDiagram()
+    const engine = services.getValidationEngine()
 
-    // 5. Ejecutar Pases
-    pipeline.execute(program, session)
+    engine.execute(SemanticTargetType.DIAGRAM, diagram, context)
+    for (const entity of diagram.entities) {
+      engine.execute(SemanticTargetType.ENTITY, entity, context)
+    }
+    for (const rel of diagram.relationships) {
+      engine.execute(SemanticTargetType.RELATIONSHIP, rel, context)
+    }
 
-    // 6. Post-Procesamiento (Inferencia y Refinamiento)
-    memberInference.run()
-    hierarchyValidator.validateNoCycles(session.relationships)
-    this.refineDataTypeSemantics(session)
+    // 6. Language-specific refinements (Plugin Hook)
+    this.pluginManager.getActive()?.onPostAnalysis?.(session)
 
-    // 7. Generación de Resultado
-    return session.toIRDiagram()
-  }
-
-  /**
-   * Refina el tipo de las entidades DataType basándose en su uso en la jerarquía.
-   */
-  private refineDataTypeSemantics(session: AnalysisSession): void {
-    const isTS = session.configStore.get().language === 'typescript'
-    if (!isTS) return
-
-    session.relationships.forEach((rel) => {
-      const source = session.symbolTable.get(rel.from)
-      const target = session.symbolTable.get(rel.to)
-
-      if (target && target.type === IREntityType.DATA_TYPE) {
-        if (rel.type === IRRelationshipType.IMPLEMENTATION) {
-          target.type = IREntityType.INTERFACE
-        } else if (rel.type === IRRelationshipType.INHERITANCE) {
-          if (source && source.type === IREntityType.INTERFACE) {
-            target.type = IREntityType.INTERFACE
-          } else {
-            target.type = IREntityType.CLASS
-          }
-        }
-      }
-
-      if (source && source.type === IREntityType.DATA_TYPE) {
-        if (
-          rel.type === IRRelationshipType.INHERITANCE ||
-          rel.type === IRRelationshipType.IMPLEMENTATION
-        ) {
-          source.type = IREntityType.CLASS
-        }
-      }
-    })
+    return diagram
   }
 }

@@ -1,5 +1,5 @@
 import type { ProgramNode } from '@engine/syntax/nodes'
-import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
+import type { ISemanticState } from '@engine/semantics/core/semantic-state.interface'
 
 /**
  * Contrato para todas las fases de análisis semántico.
@@ -12,7 +12,7 @@ export interface ISemanticPass {
   readonly name: string
 
   /**
-   * Ejecuta la lógica de análisis sobre el AST y la sesión proporcionada.
+   * Ejecuta la lógica de análisis sobre el AST y el estado proporcionado.
    */
-  execute(program: ProgramNode, session: AnalysisSession): void
+  execute(program: ProgramNode, state: ISemanticState): void
 }

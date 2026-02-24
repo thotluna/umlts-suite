@@ -1,17 +1,16 @@
-import type { IRDiagram, IRRelationship } from '@engine/generator/ir/models'
+import type { IRDiagram, IRRelationship, IREntity } from '@engine/generator/ir/models'
 import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
 import type { PluginManager } from '@engine/plugins/plugin-manager'
 import type { SymbolTable } from '@engine/semantics/symbol-table'
 import type { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
 import type { ConfigStore } from '@engine/semantics/session/config-store'
+import type { ISemanticState } from '@engine/semantics/core/semantic-state.interface'
 
 /**
  * Encapsulates the complete state of a semantic analysis session.
- *
- * This context object breaks the bidirectional coupling between visitors and the analyzer.
- * Visitors now depend on this neutral state container instead of the SemanticAnalyzer orchestrator.
+ * Implements ISemanticState to provide a formal contract for analyzers.
  */
-export class AnalysisSession {
+export class AnalysisSession implements ISemanticState {
   public readonly relationships: IRRelationship[] = []
 
   constructor(
@@ -21,6 +20,14 @@ export class AnalysisSession {
     public readonly pluginManager: PluginManager,
     public readonly context: ISemanticContext,
   ) {}
+
+  public recordRelationship(relationship: IRRelationship): void {
+    this.relationships.push(relationship)
+  }
+
+  public getEntity(id: string): IREntity | undefined {
+    return this.symbolTable.get(id)
+  }
 
   /**
    * Compiles the current session state into the final IR Diagram.
