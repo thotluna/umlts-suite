@@ -1,52 +1,40 @@
-import type { IREntity, IRRelationship, IRDiagram } from '@engine/generator/ir/models'
 import type { ISemanticContext } from './semantic-context.interface'
-import { SemanticTargetType, type ISemanticRule } from './semantic-rule.interface'
+import { type ISemanticRule, type RuleTargetMap } from './semantic-rule.interface'
 
 /**
- * Executes a registry of semantic rules over the IR Diagram.
+ * Executes a registry of semantic rules over the IR Models.
  * This Engine manages rules that have no state and rely only
- * on context, enabling easier testing and parallel execution.
+ * on context. It is completely decoupled from the traversal logic.
  */
 export class ValidationEngine {
-  private readonly entityRules: ISemanticRule<IREntity>[] = []
-  private readonly relationshipRules: ISemanticRule<IRRelationship>[] = []
-  private readonly diagramRules: ISemanticRule<IRDiagram>[] = []
+  private readonly rules: {
+    [K in keyof RuleTargetMap]?: ISemanticRule<K>[]
+  } = {}
 
   /**
    * Registers a semantic rule into the engine for execution.
    */
-  public register<T>(rule: ISemanticRule<T>): this {
-    if (rule.target === SemanticTargetType.ENTITY) {
-      this.entityRules.push(rule as unknown as ISemanticRule<IREntity>)
-    } else if (rule.target === SemanticTargetType.RELATIONSHIP) {
-      this.relationshipRules.push(rule as unknown as ISemanticRule<IRRelationship>)
-    } else if (rule.target === SemanticTargetType.DIAGRAM) {
-      this.diagramRules.push(rule as unknown as ISemanticRule<IRDiagram>)
+  public register<K extends keyof RuleTargetMap>(rule: ISemanticRule<K>): this {
+    if (!this.rules[rule.target]) {
+      this.rules[rule.target] = []
     }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.rules[rule.target]!.push(rule)
     return this
   }
 
   /**
-   * Validates an entire IRDiagram against all registered ISemanticRules.
+   * Executes purely all registered rules of a specific category against a given element.
+   * Completely decoupled from knowing where the element came from (AST, IRDiagram, CLI, etc).
    */
-  public validate(diagram: IRDiagram, context: ISemanticContext): void {
-    // 1. Entity-Level Rules
-    for (const entity of diagram.entities) {
-      for (const rule of this.entityRules) {
-        rule.validate(entity, context)
-      }
-    }
-
-    // 2. Relationship-Level Rules
-    for (const rel of diagram.relationships) {
-      for (const rule of this.relationshipRules) {
-        rule.validate(rel, context)
-      }
-    }
-
-    // 3. Diagram-Level Rules (Global checks, e.g. cross-referencing loops)
-    for (const rule of this.diagramRules) {
-      rule.validate(diagram, context)
+  public execute<K extends keyof RuleTargetMap>(
+    target: K,
+    element: RuleTargetMap[K],
+    context: ISemanticContext,
+  ): void {
+    const targetRules = this.rules[target] ?? []
+    for (const rule of targetRules) {
+      rule.validate(element, context)
     }
   }
 
@@ -54,8 +42,8 @@ export class ValidationEngine {
    * Clears all registered rules.
    */
   public clear(): void {
-    this.entityRules.length = 0
-    this.relationshipRules.length = 0
-    this.diagramRules.length = 0
+    for (const key of Object.keys(this.rules)) {
+      delete this.rules[key as keyof RuleTargetMap]
+    }
   }
 }

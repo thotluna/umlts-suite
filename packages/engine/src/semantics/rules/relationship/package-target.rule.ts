@@ -12,7 +12,7 @@ import type { SymbolTable } from '@engine/semantics/symbol-table'
 /**
  * Validates if the target of a relationship is a valid Classifier (not a package).
  */
-export class PackageTargetRule implements ISemanticRule<IRRelationship> {
+export class PackageTargetRule implements ISemanticRule<SemanticTargetType.RELATIONSHIP> {
   public readonly id = 'rule:relationship:package-target'
   public readonly target = SemanticTargetType.RELATIONSHIP
 

@@ -3,6 +3,7 @@ import type {
   TypeMapping,
   ILexerReader,
   IPluginMemberProvider,
+  ISemanticSession,
 } from '@engine/plugins/language-plugin'
 import type { IParserHub } from '@engine/parser/core/parser.hub'
 import type { Token } from '@engine/syntax/token.types'
@@ -194,6 +195,37 @@ export class TypeScriptPlugin implements LanguagePlugin {
       default:
         return null
     }
+  }
+
+  public onPostAnalysis(session: ISemanticSession): void {
+    const isTS = session.configStore.get().language === 'typescript'
+    if (!isTS) return
+
+    session.relationships.forEach((rel) => {
+      const source = session.symbolTable.get(rel.from)
+      const target = session.symbolTable.get(rel.to)
+
+      if (target && target.type === IREntityType.DATA_TYPE) {
+        if (rel.type === IRRelationshipType.IMPLEMENTATION) {
+          target.type = IREntityType.INTERFACE
+        } else if (rel.type === IRRelationshipType.INHERITANCE) {
+          if (source && source.type === IREntityType.INTERFACE) {
+            target.type = IREntityType.INTERFACE
+          } else {
+            target.type = IREntityType.CLASS
+          }
+        }
+      }
+
+      if (source && source.type === IREntityType.DATA_TYPE) {
+        if (
+          rel.type === IRRelationshipType.INHERITANCE ||
+          rel.type === IRRelationshipType.IMPLEMENTATION
+        ) {
+          source.type = IREntityType.CLASS
+        }
+      }
+    })
   }
 
   private createPrimitive(name: string, namespace: string): IREntity {

@@ -1,6 +1,6 @@
 import type { Token } from '@engine/syntax/token.types'
 import type { TypeNode, StatementNode, MemberNode } from '@engine/syntax/nodes'
-import type { IREntity, IRRelationshipType } from '@engine/generator/ir/models'
+import type { IREntity, IRRelationship, IRRelationshipType } from '@engine/generator/ir/models'
 import type { IParserHub } from '@engine/parser/core/parser.hub'
 import type { Orchestrator } from '@engine/parser/rule.types'
 
@@ -13,6 +13,19 @@ export interface TypeMapping {
   label?: string
   relationshipType?: IRRelationshipType
   isIgnored?: boolean
+}
+
+/**
+ * Minimal interface to access session data during post-analysis without circular dependencies.
+ */
+export interface ISemanticSession {
+  readonly relationships: IRRelationship[]
+  readonly symbolTable: {
+    get(id: string): IREntity | undefined
+  }
+  readonly configStore: {
+    get(): { language?: string }
+  }
 }
 
 /**
@@ -57,6 +70,12 @@ export interface LanguagePlugin {
    * Returns a list of language-specific member providers.
    */
   getMemberRules?(): IPluginMemberProvider[]
+
+  /**
+   * Optional hook executed after all analysis passes are completed.
+   * Useful for language-specific semantic refinements or inferences.
+   */
+  onPostAnalysis?(session: ISemanticSession): void
 }
 
 /**

@@ -12,7 +12,7 @@ import type { SymbolTable } from '@engine/semantics/symbol-table'
 /**
  * Validates inheritance (>>) and realization (>I) correctness between classifiers.
  */
-export class GeneralizationRule implements ISemanticRule<IRRelationship> {
+export class GeneralizationRule implements ISemanticRule<SemanticTargetType.RELATIONSHIP> {
   public readonly id = 'rule:relationship:generalization'
   public readonly target = SemanticTargetType.RELATIONSHIP
 

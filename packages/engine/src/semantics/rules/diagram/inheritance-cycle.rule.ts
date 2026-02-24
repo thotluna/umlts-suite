@@ -11,7 +11,7 @@ import type { SymbolTable } from '@engine/semantics/symbol-table'
 /**
  * Validates that there are no inheritance cycles in the diagram.
  */
-export class InheritanceCycleRule implements ISemanticRule<IRDiagram> {
+export class InheritanceCycleRule implements ISemanticRule<SemanticTargetType.DIAGRAM> {
   public readonly id = 'rule:diagram:inheritance-cycle'
   public readonly target = SemanticTargetType.DIAGRAM
 

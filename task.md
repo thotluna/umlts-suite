@@ -405,3 +405,12 @@
 - [x] **Phase 5**: Limpieza Estricta y Verificación <!-- id: 406 -->
   - [x] Purgar importaciones de Parser remanentes (si las hubiera)
   - [x] Verificación final tests/build
+
+## Refactorización de Arquitectura Semántica (V3.5 - Clean Architecture)
+
+- [x] **TASK**: Rediseño de `SemanticAnalyzer` para desacoplamiento total
+  - [x] Implementar `SemanticServicesFactory` para centralizar la instanciación de dependencias.
+  - [x] Externalizar la configuración del `ValidationEngine` mediante un proveedor de reglas.
+  - [x] Mover heurísticas de TypeScript (`DataType` promotion) al plugin de lenguaje.
+  - [x] Simplificar `analyze` para que sea una orquestación pura de servicios.
+  - [x] Habilitar Inyección de Dependencias en el constructor para facilitar el testing.

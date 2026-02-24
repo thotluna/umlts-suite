@@ -10,7 +10,7 @@ import {
 /**
  * Validates internal consistency of an entity's hierarchy modifiers.
  */
-export class EntityModifierRule implements ISemanticRule<IREntity> {
+export class EntityModifierRule implements ISemanticRule<SemanticTargetType.ENTITY> {
   public readonly id = 'rule:entity:modifiers'
   public readonly target = SemanticTargetType.ENTITY
 

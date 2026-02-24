@@ -12,7 +12,7 @@ import type { SymbolTable } from '@engine/semantics/symbol-table'
 /**
  * Validates Composition and Aggregation structural rules.
  */
-export class CompositionTargetRule implements ISemanticRule<IRRelationship> {
+export class CompositionTargetRule implements ISemanticRule<SemanticTargetType.RELATIONSHIP> {
   public readonly id = 'rule:relationship:composition-target'
   public readonly target = SemanticTargetType.RELATIONSHIP
 
