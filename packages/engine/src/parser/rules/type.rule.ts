@@ -22,6 +22,9 @@ export class TypeRule {
       // Fallback: Si no hay nada, devolvemos un tipo Unknown para no romper el proceso
       const token = context.peek()
       baseNode = ASTFactory.createType('Unknown', 'simple', 'Unknown', token.line, token.column)
+      if (!context.isAtEnd()) {
+        context.advance()
+      }
     }
 
     // Aseguramos que baseNode no es undefined para el resto del proceso
