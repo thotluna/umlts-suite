@@ -429,3 +429,10 @@
   - [x] Purificar `ConfigStore` y `AnalysisSession` (eliminación de activación de lenguajes)
   - [x] Actualizar diagramas de arquitectura (`engine-architecture.umlts`) para reflejar un motor UML puro
   - [x] Eliminar archivos y tests obsoletos relacionados con la infraestructura de plugins
+
+## Arquitectura de Plugins Descentralizada (IoC)
+
+- [x] Diseñar arquitectura de plugins basada en `getCapability` (docs/plugin-architecture.md)
+- [x] Crear plan de implementación detallado (docs/plugin-implementation-plan.md)
+- [x] Definir interfaces base `IUMLPlugin` y `ILanguageAPI` (Fase 1 - Diseño)
+- [x] Establecer estrategia de carga perezosa y restricción de instancia única
