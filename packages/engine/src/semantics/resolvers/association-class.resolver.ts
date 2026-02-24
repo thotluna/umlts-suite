@@ -2,8 +2,8 @@ import { IRRelationshipType } from '@engine/generator/ir/models'
 import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
 import { TokenType, type Token } from '@engine/syntax/token.types'
 import type { AssociationClassNode } from '@engine/syntax/nodes'
-import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
 import type { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
+import type { ISemanticState } from '@engine/semantics/core/semantic-state.interface'
 
 /**
  * Handles the semantic resolution of Association Classes.
@@ -11,14 +11,14 @@ import type { RelationshipAnalyzer } from '@engine/semantics/analyzers/relations
  */
 export class AssociationClassResolver {
   constructor(
-    private readonly session: AnalysisSession,
+    private readonly state: ISemanticState,
     private readonly relationshipAnalyzer: RelationshipAnalyzer,
     private readonly currentNamespace: string[],
   ) {}
 
   public resolve(node: AssociationClassNode): void {
     const ns = this.currentNamespace.join('.')
-    const assocFQN = this.session.symbolTable.resolveFQN(node.name, ns).fqn
+    const assocFQN = this.state.symbolTable.resolveFQN(node.name, ns).fqn
 
     ;(node.participants || []).forEach((p) => {
       let currentFromFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
@@ -31,7 +31,7 @@ export class AssociationClassResolver {
 
       p.relationships?.forEach((rel) => {
         const relType = this.relationshipAnalyzer.mapRelationshipType(rel.kind)
-        const fromEntity = this.session.symbolTable.get(currentFromFQN)
+        const fromEntity = this.state.symbolTable.get(currentFromFQN)
         const inferenceContext = fromEntity
           ? { sourceType: fromEntity.type, relationshipKind: relType }
           : undefined
@@ -58,8 +58,8 @@ export class AssociationClassResolver {
     })
 
     if (node.participants.length !== 2) {
-      if (this.session.context) {
-        this.session.context.addError(
+      if (this.state.context) {
+        this.state.context.addError(
           `Association class '${node.name}' must have exactly 2 participants, found ${node.participants.length}.`,
           {
             line: node.line,

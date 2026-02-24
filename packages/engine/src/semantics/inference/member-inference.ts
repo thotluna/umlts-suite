@@ -5,9 +5,9 @@ import {
   type IRModifiers,
 } from '@engine/generator/ir/models'
 import { ASTNodeType, type Modifiers, type TypeNode } from '@engine/syntax/nodes'
-import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
 import type { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
 import type { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
+import type { ISemanticState } from '@engine/semantics/core/semantic-state.interface'
 import { TypeValidator } from '@engine/semantics/utils/type-validator'
 
 /**
@@ -16,7 +16,7 @@ import { TypeValidator } from '@engine/semantics/utils/type-validator'
  */
 export class MemberInference {
   constructor(
-    private readonly session: AnalysisSession,
+    private readonly session: ISemanticState,
     private readonly relationshipAnalyzer: RelationshipAnalyzer,
     private readonly pipeline: TypeResolutionPipeline,
   ) {}

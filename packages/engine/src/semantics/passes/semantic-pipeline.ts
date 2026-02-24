@@ -1,5 +1,5 @@
 import type { ProgramNode } from '@engine/syntax/nodes'
-import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
+import type { ISemanticState } from '@engine/semantics/core/semantic-state.interface'
 import type { ISemanticPass } from '@engine/semantics/passes/semantic-pass.interface'
 
 /**
@@ -27,9 +27,9 @@ export class SemanticPipeline {
   /**
    * Ejecuta todos los pases registrados en orden secuencial.
    */
-  public execute(program: ProgramNode, session: AnalysisSession): void {
+  public execute(program: ProgramNode, state: ISemanticState): void {
     for (const pass of this.passes) {
-      pass.execute(program, session)
+      pass.execute(program, state)
     }
   }
 }

@@ -2,6 +2,7 @@ import type { ProgramNode } from '@engine/syntax/nodes'
 import type { IRDiagram } from '@engine/generator/ir/models'
 import { BUILTIN_PLUGINS } from '@engine/plugins'
 import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
+import { SemanticTargetType } from '@engine/semantics/core/semantic-rule.interface'
 
 // Core Components
 import { SymbolTable } from '@engine/semantics/symbol-table'
@@ -12,25 +13,16 @@ import { AnalysisSession } from '@engine/semantics/session/analysis-session'
 import { ConfigStore } from '@engine/semantics/session/config-store'
 import { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
 
-// Pipeline & Passes
-import { SemanticPipeline } from '@engine/semantics/passes/semantic-pipeline'
-import { DiscoveryPass } from '@engine/semantics/passes/discovery.pass'
-import { DefinitionPass } from '@engine/semantics/passes/definition.pass'
-import { ResolutionPass } from '@engine/semantics/passes/resolution.pass'
-
-// Inference & Resolution Strategy
+// Infrastructure & Orchestration
 import { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
 import { UMLTypeResolver } from '@engine/semantics/inference/uml-type-resolver'
 import { PluginTypeResolutionAdapter } from '@engine/semantics/inference/plugin-adapter'
-import { SemanticTargetType } from './core/semantic-rule.interface'
-
-// Factories & Providers
-import { SemanticServicesFactory } from '@engine/semantics/factories/semantic-services.factory'
-import { UMLRuleProvider } from '@engine/semantics/factories/rule-provider'
+import { SemanticServicesProvider } from '@engine/semantics/factories/services-provider'
+import { SemanticPipelineOrchestrator } from '@engine/semantics/passes/pipeline-orchestrator'
 
 /**
- * Semantic Analyzer (Refactored to Lean Orchestrator).
- * Orquesta el proceso de análisis coordinando pases especializados a través de una tubería.
+ * Main orchestrator for semantic analysis.
+ * Acts as a lean entry point that delegates work to specialized services and pipelines.
  */
 export class SemanticAnalyzer {
   private readonly pluginManager: PluginManager
@@ -53,59 +45,44 @@ export class SemanticAnalyzer {
     return pipeline
   }
 
-  public getPluginManager(): PluginManager {
-    return this.pluginManager
+  /**
+   * Performs full semantic analysis on a parsed program.
+   */
+  public analyze(program: ProgramNode, context: ISemanticContext): IRDiagram {
+    // 1. Initialize State
+    const session = this.createSession(context)
+
+    // 2. Initialize Infrastructure
+    const services = new SemanticServicesProvider(session, this.typePipeline)
+    const orchestrator = new SemanticPipelineOrchestrator(services)
+
+    // 3. Execute Standard Pipeline (Passes)
+    orchestrator.execute(program, session)
+
+    // 4. Post-processing Refinements
+    services.getMemberInference().run()
+
+    // 5. Semantic Validations
+    const diagram = session.toIRDiagram()
+    const engine = services.getValidationEngine()
+
+    engine.execute(SemanticTargetType.DIAGRAM, diagram, context)
+    for (const entity of diagram.entities) {
+      engine.execute(SemanticTargetType.ENTITY, entity, context)
+    }
+    for (const rel of diagram.relationships) {
+      engine.execute(SemanticTargetType.RELATIONSHIP, rel, context)
+    }
+
+    // 6. Language-specific refinements (Plugin Hook)
+    this.pluginManager.getActive()?.onPostAnalysis?.(session)
+
+    return diagram
   }
 
   /**
-   * Punto de entrada principal para el análisis semántico.
+   * Creates a fresh analysis session with its internal storage components.
    */
-  public analyze(program: ProgramNode, context: ISemanticContext): IRDiagram {
-    const session = this.createSession(context)
-    const factory = new SemanticServicesFactory(session)
-
-    // 1. Initialize Services
-    const validationEngine = factory.createValidationEngine()
-    UMLRuleProvider.registerDefaultRules(validationEngine, session.symbolTable)
-
-    const constraintAnalyzer = factory.createConstraintAnalyzer()
-    const hierarchyValidator = factory.createHierarchyValidator()
-    const entityAnalyzer = factory.createEntityAnalyzer(constraintAnalyzer)
-    const relationshipAnalyzer = factory.createRelationshipAnalyzer(hierarchyValidator)
-    const memberInference = factory.createMemberInference(relationshipAnalyzer, this.typePipeline)
-    const assocClassResolver = factory.createAssociationClassResolver(relationshipAnalyzer)
-
-    // 2. Execute Pipeline
-    const pipeline = new SemanticPipeline()
-    pipeline
-      .use(new DiscoveryPass(entityAnalyzer, hierarchyValidator))
-      .use(new DefinitionPass(entityAnalyzer))
-      .use(new ResolutionPass(relationshipAnalyzer, constraintAnalyzer, assocClassResolver))
-
-    pipeline.execute(program, session)
-
-    // 3. Post-Processing & Refinement
-    memberInference.run()
-
-    const diagram = session.toIRDiagram()
-
-    // 4. Semantic Validations
-    validationEngine.execute(SemanticTargetType.DIAGRAM, diagram, session.context)
-
-    for (const entity of diagram.entities) {
-      validationEngine.execute(SemanticTargetType.ENTITY, entity, session.context)
-    }
-
-    for (const rel of diagram.relationships) {
-      validationEngine.execute(SemanticTargetType.RELATIONSHIP, rel, session.context)
-    }
-
-    // 5. Language-Specific Refinements
-    this.pluginManager.getActive()?.onPostAnalysis?.(session)
-
-    return session.toIRDiagram()
-  }
-
   private createSession(context: ISemanticContext): AnalysisSession {
     const symbolTable = new SymbolTable()
     const constraintRegistry = new ConstraintRegistry()
