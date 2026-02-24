@@ -33,4 +33,12 @@ package Test {
     id: string
     version: number
   }
+
+
+  class Hijo >> *Padre >I Madre{
+    +hermana: >< Hermana
+    +hermano: <> Hermano
+    -primos: >- Primo
+
+  }
 }

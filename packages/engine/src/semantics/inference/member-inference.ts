@@ -4,21 +4,18 @@ import {
   type IRConstraint,
   type IRModifiers,
 } from '@engine/generator/ir/models'
-import { ASTNodeType, type Modifiers, type TypeNode } from '@engine/syntax/nodes'
+import { type Modifiers } from '@engine/syntax/nodes'
 import type { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
-import type { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
 import type { ISemanticState } from '@engine/semantics/core/semantic-state.interface'
 import { TypeValidator } from '@engine/semantics/utils/type-validator'
 
 /**
  * Infers relationships between entities based on their members (properties and operations).
- * Extracted from SemanticAnalyzer to decouple domain logic from orchestration.
  */
 export class MemberInference {
   constructor(
     private readonly session: ISemanticState,
     private readonly relationshipAnalyzer: RelationshipAnalyzer,
-    private readonly pipeline: TypeResolutionPipeline,
   ) {}
 
   /**
@@ -41,7 +38,7 @@ export class MemberInference {
             entity.namespace,
             prop.name,
             relType,
-            undefined, // Multiplicity is an object now, resolved in Refiner
+            undefined,
             prop.visibility,
             undefined,
             undefined,
@@ -56,7 +53,6 @@ export class MemberInference {
 
       // 2. Inference from Operations (Return types and Parameters)
       ;(entity.operations || []).forEach((op) => {
-        // Return types
         if (op.returnType) {
           this.inferFromType(
             entity.id,
@@ -75,7 +71,6 @@ export class MemberInference {
           )
         }
 
-        // Parameters: only infer relationships when explicitly declared with a relationship kind
         ;(op.parameters || []).forEach((p) => {
           if (p.type && p.relationshipKind) {
             this.inferFromType(
@@ -115,73 +110,15 @@ export class MemberInference {
     memberConstraints?: IRConstraint[],
     explicitLabel?: string,
   ): void {
-    // Helper to create AST node from string implementation
-    const typeNodeLike = this.createTypeNode(typeName, line || 0, column || 0)
+    const { baseName, multiplicity } = TypeValidator.decomposeGeneric(typeName)
+    const { values: enumValues } = TypeValidator.decomposeEnum(typeName)
 
-    // 1. Try to resolve via Pipeline (Plugins + Core strategies)
-    const resolution = this.pipeline.resolve(typeNodeLike)
+    if (TypeValidator.isPrimitive(baseName)) return
 
-    const { baseName, values } = TypeValidator.decomposeEnum(typeName)
-
-    if (resolution) {
-      if (resolution.isIgnored) return
-
-      const fromEntity = this.session.symbolTable.get(fromFQN)
-      const finalToFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-        resolution.targetName,
-        fromNamespace || '',
-        targetModifiers || {},
-        line,
-        column,
-        fromEntity
-          ? {
-              sourceType: fromEntity.type,
-              relationshipKind: resolution.relationshipType || relType,
-            }
-          : undefined,
-        fromEntity?.typeParameters,
-        values.length > 0 ? values : undefined,
-      )
-
-      this.relationshipAnalyzer.addResolvedRelationship(
-        fromFQN,
-        finalToFQN,
-        resolution.relationshipType || relType,
-        {
-          line,
-          column,
-          label: resolution.label,
-          toName: explicitLabel || label,
-          toMultiplicity: resolution.multiplicity || toMultiplicity,
-          fromMultiplicity,
-          visibility,
-          associationClassId,
-          constraints: memberConstraints,
-        },
-      )
-      return
-    }
-
-    // 2. Fallback: Check if it is a primitive (UML or Language specific handled by pipeline)
-    const isPrim = this.pipeline.isPrimitive(typeName)
-    if (isPrim) {
-      return
-    }
-
-    // 3. Fallback: Check internal generic parameters
     const fromEntity = this.session.symbolTable.get(fromFQN)
     if (fromEntity?.typeParameters?.includes(baseName)) return
 
-    if (this.pipeline.isPrimitive(baseName)) return
-
-    // Check if the resolved target is a Primitive or DataType in the SymbolTable
-    const targetResolution = this.session.symbolTable.resolveFQN(baseName, fromNamespace)
-    const knownTarget = this.session.symbolTable.get(targetResolution.fqn)
-    if (knownTarget && (knownTarget.type === 'PrimitiveType' || knownTarget.type === 'DataType')) {
-      return
-    }
-
-    // 4. Default: It's an implicit relationship to another entity
+    // Resolve target
     const finalToFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
       baseName,
       fromNamespace || '',
@@ -190,48 +127,19 @@ export class MemberInference {
       column,
       fromEntity ? { sourceType: fromEntity.type, relationshipKind: relType } : undefined,
       fromEntity?.typeParameters,
-      values.length > 0 ? values : undefined,
+      enumValues.length > 0 ? enumValues : undefined,
     )
 
     this.relationshipAnalyzer.addResolvedRelationship(fromFQN, finalToFQN, relType, {
       line,
       column,
-      label,
+      label: explicitLabel || label,
       toName: label,
-      toMultiplicity,
+      toMultiplicity: multiplicity || toMultiplicity,
       fromMultiplicity,
       visibility,
       associationClassId,
       constraints: memberConstraints,
     })
-  }
-
-  private createTypeNode(typeName: string, line: number, column: number): TypeNode {
-    const { baseName, args, multiplicity } = TypeValidator.decomposeGeneric(typeName)
-    const { values } = TypeValidator.decomposeEnum(typeName)
-
-    if (multiplicity !== undefined) {
-      return {
-        type: ASTNodeType.TYPE,
-        name: baseName,
-        raw: typeName,
-        kind: 'array',
-        arguments: args.map((arg) => this.createTypeNode(arg, line, column)),
-        values: values.length > 0 ? values : undefined,
-        line,
-        column,
-      }
-    }
-
-    return {
-      type: ASTNodeType.TYPE,
-      name: baseName,
-      raw: typeName,
-      kind: values.length > 0 ? 'enum' : args.length > 0 ? 'generic' : 'simple',
-      arguments: args.map((arg) => this.createTypeNode(arg, line, column)),
-      values: values.length > 0 ? values : undefined,
-      line,
-      column,
-    }
   }
 }

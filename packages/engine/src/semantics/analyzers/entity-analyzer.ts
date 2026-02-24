@@ -1,5 +1,4 @@
 import type { IREntity, IRMultiplicity } from '@engine/generator/ir/models'
-import { PluginManager } from '@engine/plugins/plugin-manager'
 import { IREntityType, IRVisibility } from '@engine/generator/ir/models'
 import type { SymbolTable } from '@engine/semantics/symbol-table'
 import type { ConfigStore } from '@engine/semantics/session/config-store'
@@ -10,6 +9,7 @@ import { FQNBuilder } from '@engine/semantics/utils/fqn-builder'
 import { MultiplicityValidator } from '@engine/semantics/utils/multiplicity-validator'
 import { TokenType } from '@engine/syntax/token.types'
 import type { Token } from '@engine/syntax/token.types'
+
 import type {
   EntityNode,
   MemberNode,
@@ -29,7 +29,6 @@ export class EntityAnalyzer {
     private readonly constraintAnalyzer: ConstraintAnalyzer,
     private readonly context: ISemanticContext,
     private readonly configStore: ConfigStore,
-    private readonly pluginManager: PluginManager,
   ) {}
 
   /**
@@ -236,30 +235,7 @@ export class EntityAnalyzer {
         }
       })
 
-    // UML Heuristic: Identity vs Value
-    // ONLY for TypeScript: Classes or Interfaces without operations are considered DataTypes.
-    // In other languages (or generic UML), we keep identity (Class/Interface) to allow sketching.
-    const isTS = this.configStore.get().language === 'typescript'
-
-    const hasModifiers =
-      entity.isAbstract ||
-      entity.isActive ||
-      entity.isLeaf ||
-      entity.isFinal ||
-      entity.isRoot ||
-      entity.isStatic
-
-    if (
-      isTS &&
-      entity.operations.length === 0 &&
-      (entity.type === IREntityType.CLASS || entity.type === IREntityType.INTERFACE) &&
-      !hasModifiers &&
-      !keepAsClass
-    ) {
-      entity.type = IREntityType.DATA_TYPE
-    }
-
-    // Ensure we revert to Class if keepAsClass is manually requested or inferred
+    // Manual Reversion to Class if explicitly requested via Relationships (e.g. >> or >I)
     if (keepAsClass && entity.type === IREntityType.DATA_TYPE) {
       entity.type = IREntityType.CLASS
     }
@@ -277,33 +253,17 @@ export class EntityAnalyzer {
   }
 
   private validateMemberType(
-    typeName: string,
+    typeName: string | undefined,
     namespace: string,
     node: MemberNode,
     typeParameters?: string[],
   ): void {
+    if (!typeName) return
     if (TypeValidator.isPrimitive(typeName)) return
     if (node.type === ASTNodeType.CONSTRAINT || node.type === ASTNodeType.NOTE) return
 
-    // Consultar al plugin antes de registrar implícitamente
-    // Si el plugin resuelve que es un tipo que se debe eliminar (ignorar), no lo registramos.
-    const plugin = this.pluginManager.getActive()
-    if (plugin) {
-      const mapping = plugin.resolveType({
-        type: ASTNodeType.TYPE,
-        name: TypeValidator.getBaseTypeName(typeName),
-        raw: typeName,
-        kind: 'simple',
-        line: 0,
-        column: 0,
-      })
-      if (mapping?.targetName === '') return // Ignorar si el plugin lo marca como vacío (ej: void)
-
-      const primitiveMapped = plugin.mapPrimitive(TypeValidator.getBaseTypeName(typeName))
-      if (primitiveMapped === '') return // Ignorar si es un primitivo que se mapea a vacío
-    }
-
     const baseType = TypeValidator.getBaseTypeName(typeName)
+    if (TypeValidator.isPrimitive(baseType)) return
     if (typeParameters?.includes(baseType)) return
 
     const modifiers =
@@ -313,37 +273,11 @@ export class EntityAnalyzer {
           ? (node as MethodNode).returnTargetModifiers
           : undefined
 
-    const result = this.symbolTable.resolveOrRegisterImplicit(baseType, namespace, modifiers)
-
-    if (result.isAmbiguous) {
-      this.context.addError(
-        `Ambiguity detected: '${baseType}' matches multiple entities.`,
-        { line: node.line, column: node.column, type: TokenType.UNKNOWN, value: '' } as Token,
-        DiagnosticCode.SEMANTIC_AMBIGUOUS_ENTITY,
-      )
-    }
-
-    // Silently register the implicit entity if it does not exist.
-    // We don't report diagnostics (neither error nor info) because inline declaration is a strength of the DSL.
+    this.symbolTable.resolveOrRegisterImplicit(baseType, namespace, modifiers)
   }
 
   private processType(typeName?: string): string | undefined {
-    if (!typeName) return undefined
-
-    const plugin = this.pluginManager.getActive()
-    let result = typeName
-
-    if (plugin) {
-      // Map primitives (e.g., string -> String)
-      const base = TypeValidator.getBaseTypeName(typeName)
-      const mapped = plugin.mapPrimitive(base)
-      if (mapped === '') return undefined // El plugin solicita explícitamente eliminar el tipo (ej: void)
-      if (mapped) {
-        result = typeName.replace(base, mapped)
-      }
-    }
-
-    return result
+    return typeName
   }
 
   private processMultiplicity(

@@ -8,7 +8,7 @@ export class UMLEngine {
   private readonly phases = this.factory.getPhases()
 
   public parse(source: string): ParseResult {
-    const context = new CompilerContext(source, this.factory.getPlugin())
+    const context = new CompilerContext(source)
     const artifacts = new PipelineArtifacts()
 
     for (const phase of this.phases) {

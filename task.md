@@ -414,3 +414,25 @@
   - [x] Mover heurísticas de TypeScript (`DataType` promotion) al plugin de lenguaje.
   - [x] Simplificar `analyze` para que sea una orquestación pura de servicios.
   - [x] Habilitar Inyección de Dependencias en el constructor para facilitar el testing.
+- [x] **REFACTOR**: Pre-escaneo de configuración y motor UML "bruto"
+  - [x] Crear `ConfigPreScanner` para detectar el lenguaje antes del proceso de compilación principal.
+  - [x] Integrar el pre-escaneo en la primera línea de `UMLEngine.parse` para asegurar la activación temprana de plugins.
+  - [x] Limpiar `TypeValidator` y `UMLTypeResolver` para que sean estrictamente conformes a UML (case-sensitive, solo 5 primitivas).
+  - [x] Delegar la validación de tipos específicos de lenguaje a la interfaz `LanguagePlugin`.
+
+## Purificación de la Arquitectura del Motor (Pure UML)
+
+- [x] **ARCH**: Eliminar toda lógica y dependencia de plugins del núcleo del motor <!-- id: 500 -->
+  - [x] Purgar `PluginManager` de `UMLEngine`, `PhasesFactory` y `SemanticAnalyzer`
+  - [x] Eliminar `TypeResolutionPipeline` y adaptadores de plugins de los analizadores semánticos
+  - [x] Refactorizar `EntityAnalyzer` y `RelationshipAnalyzer` para cumplimiento estricto de UML 2.5.1
+  - [x] Purificar `ConfigStore` y `AnalysisSession` (eliminación de activación de lenguajes)
+  - [x] Actualizar diagramas de arquitectura (`engine-architecture.umlts`) para reflejar un motor UML puro
+  - [x] Eliminar archivos y tests obsoletos relacionados con la infraestructura de plugins
+
+## Arquitectura de Plugins Descentralizada (IoC)
+
+- [x] Diseñar arquitectura de plugins basada en `getCapability` (docs/plugin-architecture.md)
+- [x] Crear plan de implementación detallado (docs/plugin-implementation-plan.md)
+- [x] Definir interfaces base `IUMLPlugin` y `ILanguageAPI` (Fase 1 - Diseño)
+- [x] Establecer estrategia de carga perezosa y restricción de instancia única

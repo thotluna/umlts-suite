@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemberInference } from '@engine/semantics/inference/member-inference'
 import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
-import type { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
 import type { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
 import { SymbolTable } from '@engine/semantics/symbol-table'
 import { IREntityType, IRRelationshipType, IRVisibility } from '@engine/generator/ir/models'
@@ -10,7 +9,6 @@ import type { IREntity, IRProperty } from '@engine/generator/ir/models'
 describe('MemberInference', () => {
   let mockSession: Partial<AnalysisSession>
   let mockAnalyzer: Partial<RelationshipAnalyzer>
-  let mockPipeline: Partial<TypeResolutionPipeline>
   let symbolTable: SymbolTable
   let inference: MemberInference
 
@@ -21,15 +19,10 @@ describe('MemberInference', () => {
       addResolvedRelationship: vi.fn(),
       resolveOrRegisterImplicit: vi.fn().mockReturnValue('ImplicitTarget'),
     }
-    mockPipeline = {
-      resolve: vi.fn().mockReturnValue(null),
-      isPrimitive: vi.fn().mockImplementation((name) => ['String', 'Integer'].includes(name)),
-    }
 
     inference = new MemberInference(
       mockSession as AnalysisSession,
       mockAnalyzer as RelationshipAnalyzer,
-      mockPipeline as TypeResolutionPipeline,
     )
   })
 
@@ -106,7 +99,7 @@ describe('MemberInference', () => {
     expect(mockAnalyzer.addResolvedRelationship).not.toHaveBeenCalled()
   })
 
-  it('should use pipeline resolution if available', () => {
+  it('should infer relationship from generic type base name', () => {
     const entity: IREntity = {
       id: 'User',
       name: 'User',
@@ -130,15 +123,6 @@ describe('MemberInference', () => {
     }
     symbolTable.register(entity)
 
-    // Mock pipeline returning a resolved type (e.g. Role with multiplicity *)
-    vi.spyOn(mockPipeline, 'resolve').mockReturnValue({
-      targetName: 'Role',
-      multiplicity: '0..*',
-      relationshipType: IRRelationshipType.ASSOCIATION,
-      label: 'roles',
-      isIgnored: false,
-    })
-
     inference.run()
 
     expect(mockAnalyzer.addResolvedRelationship).toHaveBeenCalledWith(
@@ -146,13 +130,23 @@ describe('MemberInference', () => {
       'ImplicitTarget',
       IRRelationshipType.ASSOCIATION,
       expect.objectContaining({
-        toMultiplicity: '0..*',
         label: 'roles',
       }),
     )
+    // It should have resolved 'Role' instead of 'Array<Role>'
+    expect(mockAnalyzer.resolveOrRegisterImplicit).toHaveBeenCalledWith(
+      'Role',
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+    )
   })
 
-  it('should fallback to implicit resolution if pipeline returns null', () => {
+  it('should fallback to implicit resolution for unknown types', () => {
     const entity: IREntity = {
       id: 'Order',
       name: 'Order',

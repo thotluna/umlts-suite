@@ -4,15 +4,15 @@ config {
 }
 
 abstract class A {
-  +x: number
+  +x: Integer
 }
 
 class *B >> A {
-  +y: number
+  +y: Integer
 }
 
 $class C >> A {
-  +z: number
+  +z: Integer
 }
 
 class ^*D {

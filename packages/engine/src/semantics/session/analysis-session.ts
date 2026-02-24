@@ -1,6 +1,5 @@
 import type { IRDiagram, IRRelationship, IREntity } from '@engine/generator/ir/models'
 import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
-import type { PluginManager } from '@engine/plugins/plugin-manager'
 import type { SymbolTable } from '@engine/semantics/symbol-table'
 import type { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
 import type { ConfigStore } from '@engine/semantics/session/config-store'
@@ -17,7 +16,6 @@ export class AnalysisSession implements ISemanticState {
     public readonly symbolTable: SymbolTable,
     public readonly constraintRegistry: ConstraintRegistry,
     public readonly configStore: ConfigStore,
-    public readonly pluginManager: PluginManager,
     public readonly context: ISemanticContext,
   ) {}
 
