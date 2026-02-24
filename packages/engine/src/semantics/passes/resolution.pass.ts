@@ -1,6 +1,5 @@
 import { type ASTVisitor, walkAST } from '@engine/syntax/visitor'
 import {
-  ASTNodeType,
   type ProgramNode,
   type PackageNode,
   type EntityNode,
@@ -9,12 +8,10 @@ import {
   type ConfigNode,
   type AssociationClassNode,
   type ConstraintNode,
-  type TypeNode,
 } from '@engine/syntax/nodes'
 import type { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
 import type { ConstraintAnalyzer } from '@engine/semantics/analyzers/constraint-analyzer'
 import { AssociationClassResolver } from '@engine/semantics/resolvers/association-class.resolver'
-import { TypeValidator } from '@engine/semantics/utils/type-validator'
 import type { ISemanticPass } from '@engine/semantics/passes/semantic-pass.interface'
 import type { ISemanticState } from '@engine/semantics/core/semantic-state.interface'
 
@@ -61,13 +58,8 @@ export class ResolutionPass implements ISemanticPass, ASTVisitor {
         ? { sourceType: fromEntity.type, relationshipKind: relType }
         : undefined
 
-      const typeNodeLike = this.createTypeNode(rel.target, rel.line, rel.column)
-      const plugin = this.state.pluginManager.getActive()
-      const mapping = plugin?.resolveType(typeNodeLike)
-      const targetName = mapping ? mapping.targetName : rel.target
-
       const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-        targetName,
+        rel.target,
         ns,
         rel.targetModifiers,
         rel.line,
@@ -102,13 +94,8 @@ export class ResolutionPass implements ISemanticPass, ASTVisitor {
       ? { sourceType: fromEntity.type, relationshipKind: relType }
       : undefined
 
-    const typeNodeLike = this.createTypeNode(node.to, node.line, node.column)
-    const plugin = this.state.pluginManager.getActive()
-    const mapping = plugin?.resolveType(typeNodeLike)
-    const targetName = mapping ? mapping.targetName : node.to
-
     const toFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
-      targetName,
+      node.to,
       ns,
       node.toModifiers,
       node.line,
@@ -149,19 +136,6 @@ export class ResolutionPass implements ISemanticPass, ASTVisitor {
       this.currentConstraintGroupId = groupId
       ;(node.body || []).forEach((stmt) => walkAST(stmt, this))
       this.currentConstraintGroupId = oldGroupId
-    }
-  }
-
-  private createTypeNode(typeName: string, line: number, column: number): TypeNode {
-    const { baseName, args } = TypeValidator.decomposeGeneric(typeName)
-    return {
-      type: ASTNodeType.TYPE,
-      name: baseName,
-      raw: typeName,
-      kind: args.length > 0 ? 'generic' : 'simple',
-      arguments: args.map((arg) => this.createTypeNode(arg, line, column)),
-      line,
-      column,
     }
   }
 }

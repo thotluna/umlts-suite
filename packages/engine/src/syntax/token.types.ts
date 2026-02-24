@@ -75,7 +75,6 @@ export enum TokenType {
   DOC_COMMENT = 'DOC_COMMENT',
   EOF = 'EOF',
   UNKNOWN = 'UNKNOWN',
-  PLUGIN_TOKEN = 'PLUGIN_TOKEN',
 }
 
 export interface Token {

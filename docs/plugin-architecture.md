@@ -61,3 +61,98 @@ const result = engine.parse(sourceText)
 ```
 
 Este diseño garantiza que el motor funcione en cualquier entorno (Node.js, Navegador, etc.) manteniendo su núcleo purificado y agnóstico.
+
+## 6. Gestión de Memoria: Instanciación Bajo Demanda (Lazy Loading)
+
+Para evitar que el motor se vuelva pesado o sufra de _Memory Leaks_ al cargar múltiples plugins, la arquitectura implementará una carga perezosa:
+
+- **Registro de Definiciones, no Instancias:** Durante el arranque del motor, los plugins solo registran sus interfaces y firmas (metadatos ligeros).
+- **Instanciación On-Demand:** Los objetos "pesados" del plugin (como Orquestadores de Matchers o Resolutores Semánticos complejos) solo se instancian en el momento preciso en que el motor requiere su intervención durante el análisis.
+- **Ciclo de Vida Efímero:** Una vez finalizado el proceso de análisis (`parse`), las instancias pesadas creadas bajo demanda pueden ser liberadas, manteniendo el consumo de RAM al mínimo y evitando arrastrar objetos innecesarios a través del pipeline.
+
+Esto permite que un sistema con decenas de plugins instalados mantenga el mismo rendimiento y ligereza que uno que no tiene ninguno, activando solo el código estrictamente necesario para el archivo que se está procesando.
+
+## 7. Contrato de Interfaces y Descubrimiento de Capacidades
+
+Para garantizar que el motor sea extensible y que los plugins antiguos sigan funcionando incluso si el motor evoluciona (compatibilidad hacia atrás), se utilizará un sistema de **Capacidades Opcionales**.
+
+### 1. Interfaz Genérica (`IUMLPlugin`)
+
+Es el contrato base que todos los plugins deben implementar. No contiene lógica pesada, solo identidad y el método de descubrimiento.
+
+```typescript
+export interface IUMLPlugin {
+  readonly name: string
+  readonly version: string
+
+  /**
+   * Método de descubrimiento. El motor pregunta por una capacidad específica.
+   * Si el plugin no la soporta (o es antiguo y no la conoce), devuelve undefined.
+   */
+  getCapability?<T>(name: string): T | undefined
+}
+```
+
+### 2. Capacidad de Lenguaje (`ILanguageCapability`)
+
+Un plugin que extiende la sintaxis o semántica de un lenguaje implementa esta capacidad.
+
+```typescript
+export interface ILanguageCapability {
+  /**
+   * El motor llama a este método pasando la API necesaria para configurar el pipeline.
+   */
+  setup(api: ILanguageAPI): void
+}
+```
+
+### 3. API de Lenguaje (`ILanguageAPI`)
+
+Es el conjunto de herramientas que el motor pone a disposición del plugin durante la fase de `setup`.
+
+```typescript
+export interface ILanguageAPI {
+  // --- Nivel Léxico ---
+  addTokenMatcher(matcher: TokenMatcher): void
+
+  // --- Nivel Sintáctico (Parser) ---
+  addTypePrimary(provider: IPrimaryTypeProvider): void
+  addTypeModifier(modifier: ITypeModifierProvider): void
+  addMemberProvider(provider: IMemberProvider): void
+  addStatementRule(rule: StatementRule): void
+
+  // --- Nivel Semántico ---
+  registerPrimitiveTypes(types: string[]): void
+}
+```
+
+Este diseño de "Interfaces en 3 capas" asegura que:
+
+1.  **IUMLPlugin:** Identifica al plugin.
+2.  **Capability:** Define qué sabe hacer el plugin (desacoplado del motor).
+3.  **API:** Define qué le permite hacer el motor al plugin (seguridad y control).
+
+## 8. Orquestación Interna y Flujo de Datos (Fontanería)
+
+Para evitar el _prop drilling_ (pasar objetos por múltiples capas) y mantener el sistema desacoplado, el motor utiliza un flujo de datos unidireccional y consumo bajo demanda:
+
+### 1. Fase de Registro (Bootstrap)
+
+Al instanciar `UMLEngine`, se crea un `PluginRegistry`. El motor recorre los plugins y les permite registrar sus capacidades. El `PluginRegistry` almacena únicamente las definiciones de capacidades inyectadas.
+
+### 2. Inyección vía Factorías
+
+El motor utiliza factorías especializadas (`LexerFactory`, `ParserFactory`) para crear las instancias de cada fase. El motor solo pasa el `PluginRegistry` a la **Factoría**, no a todos los componentes internos.
+
+### 3. Distribución a Orquestadores
+
+La Factoría es la encargada de "vitaminar" a los orquestadores de cada etapa:
+
+- **Lexer:** La `LexerFactory` obtiene los matchers de lenguaje del registro y los inyecta directamente en el `MasterMatcher`.
+- **Parser:** La `ParserFactory` obtiene las reglas y proveedores de tipos y los inyecta en el `IParserHub`.
+
+### 4. Consumo en Reglas Atómicas
+
+Las reglas individuales (como `TypeRule`) no conocen la existencia de los plugins. Ellas simplemente preguntan a su orquestador (`IParserHub`) por los proveedores disponibles. El orquestador devuelve la lista ya mezclada (Nativos + Plugins), permitiendo una ejecución transparente.
+
+Este flujo garantiza que los plugins estén disponibles exactamente donde se necesitan, sin ensuciar la lógica de negocio del compilador con parámetros de configuración redundantes.

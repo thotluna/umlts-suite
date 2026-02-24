@@ -1,6 +1,4 @@
 import { Lexer } from '@engine/lexer/lexer'
-import { LexerReader } from '@engine/lexer/lexer.reader'
-import type { LanguagePlugin } from '@engine/plugins/language-plugin'
 import { WhitespaceMatcher } from '@engine/lexer/matchers/whitespace.matcher'
 import { CommentMatcher } from '@engine/lexer/matchers/comment.matcher'
 import { IdentifierMatcher } from '@engine/lexer/matchers/identifier.matcher'
@@ -13,7 +11,7 @@ export class LexerFactory {
   /**
    * Crea una instancia del Lexer con la configuración estándar de UMLTS.
    */
-  public static create(input: string, plugin?: LanguagePlugin): Lexer {
+  public static create(input: string): Lexer {
     const master = new MasterMatcher()
 
     master.use(
@@ -24,13 +22,6 @@ export class LexerFactory {
       new StringMatcher(),
       new SymbolMatcher(),
     )
-
-    // Si el plugin tiene lógica de lexing, lo añadimos como un matcher más
-    if (plugin?.matchToken != null) {
-      master.use({
-        match: (reader: LexerReader) => plugin.matchToken!(reader),
-      })
-    }
 
     return new Lexer(input, master)
   }

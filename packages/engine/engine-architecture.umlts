@@ -109,7 +109,7 @@ package Engine {
   }
 
   package Infrastructure {
-    class AnalysisSession >> ISemanticState {
+    class AnalysisSession >I ISemanticState {
       +symbolTable : SymbolTable
       +relationships : IRRelationship[0..*]
       +configStore : ConfigStore
@@ -120,7 +120,7 @@ package Engine {
     }
 
     class ConfigStore {
-      -config : Map<String, Any>
+      // -config : Map<String, Any>
       +merge(options: Map)
     }
   }
