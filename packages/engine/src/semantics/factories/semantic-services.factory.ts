@@ -9,10 +9,7 @@ import type { TypeResolutionPipeline } from '@engine/semantics/inference/type-re
 import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
 
 export class SemanticServicesFactory {
-  constructor(
-    private readonly session: AnalysisSession,
-    private readonly typePipeline: TypeResolutionPipeline,
-  ) {}
+  constructor(private readonly session: AnalysisSession) {}
 
   public createConstraintAnalyzer(): ConstraintAnalyzer {
     return new ConstraintAnalyzer(this.session.symbolTable, this.session.context)
@@ -51,7 +48,10 @@ export class SemanticServicesFactory {
     return new AssociationClassResolver(this.session, relationshipAnalyzer, [])
   }
 
-  public createMemberInference(relationshipAnalyzer: RelationshipAnalyzer): MemberInference {
-    return new MemberInference(this.session, relationshipAnalyzer, this.typePipeline)
+  public createMemberInference(
+    relationshipAnalyzer: RelationshipAnalyzer,
+    typePipeline: TypeResolutionPipeline,
+  ): MemberInference {
+    return new MemberInference(this.session, relationshipAnalyzer, typePipeline)
   }
 }

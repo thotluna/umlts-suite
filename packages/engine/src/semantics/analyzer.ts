@@ -62,7 +62,7 @@ export class SemanticAnalyzer {
    */
   public analyze(program: ProgramNode, context: ISemanticContext): IRDiagram {
     const session = this.createSession(context)
-    const factory = new SemanticServicesFactory(session, this.typePipeline)
+    const factory = new SemanticServicesFactory(session)
 
     // 1. Initialize Services
     const validationEngine = factory.createValidationEngine()
@@ -72,7 +72,7 @@ export class SemanticAnalyzer {
     const hierarchyValidator = factory.createHierarchyValidator()
     const entityAnalyzer = factory.createEntityAnalyzer(constraintAnalyzer)
     const relationshipAnalyzer = factory.createRelationshipAnalyzer(hierarchyValidator)
-    const memberInference = factory.createMemberInference(relationshipAnalyzer)
+    const memberInference = factory.createMemberInference(relationshipAnalyzer, this.typePipeline)
     const assocClassResolver = factory.createAssociationClassResolver(relationshipAnalyzer)
 
     // 2. Execute Pipeline
