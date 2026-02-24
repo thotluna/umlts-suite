@@ -185,16 +185,33 @@ export class TypeScriptPlugin implements LanguagePlugin {
       case 'string':
         return 'String'
       case 'number':
-        return 'Real' // Or Integer depending on context, but Real is safer
+        return 'Real'
       case 'boolean':
         return 'Boolean'
       case 'date':
-        return 'Date' // Mapeo directo a nuestro DataType estándar
+        return 'Date'
+      case 'url':
+        return 'URL'
+      case 'regexp':
+        return 'RegExp'
+      case 'error':
+        return 'Error'
       case 'void':
-        return '' // Indica al motor que este tipo representa la "ausencia de tipo" en UML
+        return ''
       default:
         return null
     }
+  }
+
+  public isPrimitive(name: string): boolean {
+    const lower = name.toLowerCase()
+
+    // 1. Check if it maps to a UML primitive or a known standard type
+    if (this.mapPrimitive(lower) !== null) return true
+
+    // 2. Check technical TS primitives
+    const tsTechnical = new Set(['any', 'never', 'unknown', 'object', 'symbol', 'bigint'])
+    return tsTechnical.has(lower)
   }
 
   public onPostAnalysis(session: ISemanticSession): void {

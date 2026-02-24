@@ -56,6 +56,11 @@ export interface LanguagePlugin {
   mapPrimitive(name: string): string | null
 
   /**
+   * Checks if a type name is considered a primitive in this language.
+   */
+  isPrimitive(name: string): boolean
+
+  /**
    * Hook for the Lexer: allows the plugin to match a token that the core engine doesn't recognize.
    * If the plugin returns a token, the Lexer will add it to the stream.
    */

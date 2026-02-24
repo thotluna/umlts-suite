@@ -58,11 +58,7 @@ export class PluginTypeResolutionAdapter implements ITypeResolutionStrategy {
     const plugin = this.pluginManager.getActive()
     if (!plugin) return false
 
-    // Check if the plugin considers this a primitive mapping
     const baseName = TypeValidator.getBaseTypeName(typeName)
-    const mapped = plugin.mapPrimitive(baseName)
-
-    // If it maps to something (e.g. number -> Real), it IS a primitive for this language context
-    return mapped !== null
+    return plugin.isPrimitive(baseName)
   }
 }

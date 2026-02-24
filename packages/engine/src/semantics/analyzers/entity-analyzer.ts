@@ -20,6 +20,8 @@ import type {
 import { ASTNodeType } from '@engine/syntax/nodes'
 import type { ConstraintAnalyzer } from '@engine/semantics/analyzers/constraint-analyzer'
 
+import type { ITypeResolutionStrategy } from '@engine/semantics/inference/type-resolution.pipeline'
+
 /**
  * Handles the declaration of entities and their members.
  */
@@ -27,6 +29,7 @@ export class EntityAnalyzer {
   constructor(
     private readonly symbolTable: SymbolTable,
     private readonly constraintAnalyzer: ConstraintAnalyzer,
+    private readonly typePipeline: ITypeResolutionStrategy,
     private readonly context: ISemanticContext,
     private readonly configStore: ConfigStore,
     private readonly pluginManager: PluginManager,
@@ -282,28 +285,11 @@ export class EntityAnalyzer {
     node: MemberNode,
     typeParameters?: string[],
   ): void {
-    if (TypeValidator.isPrimitive(typeName)) return
+    if (this.typePipeline.isPrimitive(typeName)) return
     if (node.type === ASTNodeType.CONSTRAINT || node.type === ASTNodeType.NOTE) return
 
-    // Consultar al plugin antes de registrar implícitamente
-    // Si el plugin resuelve que es un tipo que se debe eliminar (ignorar), no lo registramos.
-    const plugin = this.pluginManager.getActive()
-    if (plugin) {
-      const mapping = plugin.resolveType({
-        type: ASTNodeType.TYPE,
-        name: TypeValidator.getBaseTypeName(typeName),
-        raw: typeName,
-        kind: 'simple',
-        line: 0,
-        column: 0,
-      })
-      if (mapping?.targetName === '') return // Ignorar si el plugin lo marca como vacío (ej: void)
-
-      const primitiveMapped = plugin.mapPrimitive(TypeValidator.getBaseTypeName(typeName))
-      if (primitiveMapped === '') return // Ignorar si es un primitivo que se mapea a vacío
-    }
-
     const baseType = TypeValidator.getBaseTypeName(typeName)
+    if (this.typePipeline.isPrimitive(baseType)) return
     if (typeParameters?.includes(baseType)) return
 
     const modifiers =

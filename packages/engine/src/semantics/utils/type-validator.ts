@@ -18,8 +18,7 @@ export class TypeValidator {
    */
   public static isPrimitive(typeName: string): boolean {
     const baseType = this.getBaseTypeName(typeName)
-    // Buscamos coincidencia exacta o insensible a mayúsculas para los 5 tipos UML
-    return Array.from(this.PRIMITIVES).some((p) => p.toLowerCase() === baseType.toLowerCase())
+    return this.PRIMITIVES.has(baseType)
   }
 
   /**

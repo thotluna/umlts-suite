@@ -53,6 +53,7 @@ export class SemanticServicesProvider {
     return (this._entityAnalyzer ??= new EntityAnalyzer(
       this.state.symbolTable,
       this.getConstraintAnalyzer(),
+      this.typePipeline,
       this.state.context,
       this.state.configStore,
       this.state.pluginManager,
@@ -64,6 +65,7 @@ export class SemanticServicesProvider {
       this.state.symbolTable,
       this.state.relationships,
       this.getHierarchyValidator(),
+      this.typePipeline,
       this.state.context,
     ))
   }

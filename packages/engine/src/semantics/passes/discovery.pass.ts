@@ -78,7 +78,9 @@ export class DiscoveryPass implements ISemanticPass, ASTVisitor {
 
   visitRelationship(_node: RelationshipNode): void {}
   visitComment(_node: CommentNode): void {}
-  visitConfig(_node: ConfigNode): void {}
+  visitConfig(node: ConfigNode): void {
+    this.state.configStore.merge(node.options)
+  }
 
   visitAssociationClass(node: AssociationClassNode): void {
     const ns = this.currentNamespace.join('.')

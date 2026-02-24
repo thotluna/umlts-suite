@@ -25,6 +25,7 @@ import type {
 import { MultiplicityValidator } from '@engine/semantics/utils/multiplicity-validator'
 import { TokenType } from '@engine/syntax/token.types'
 import type { Token } from '@engine/syntax/token.types'
+import type { ITypeResolutionStrategy } from '@engine/semantics/inference/type-resolution.pipeline'
 
 /**
  * Handles creation and validation of relationships.
@@ -37,6 +38,7 @@ export class RelationshipAnalyzer {
     private readonly symbolTable: SymbolTable,
     private readonly relationships: IRRelationship[],
     private readonly hierarchyValidator: HierarchyValidator,
+    private readonly typePipeline: ITypeResolutionStrategy,
     private readonly context?: ISemanticContext,
   ) {
     this.typeInferrer = new TypeInferrer()
@@ -65,7 +67,7 @@ export class RelationshipAnalyzer {
     // If it's a generic parameter of the current context, we treat it as a "virtual" entity
     // that won't be registered in the symbol table to avoid orphan boxes.
     const baseName = TypeValidator.getBaseTypeName(name)
-    if (typeParameters?.includes(baseName)) {
+    if (typeParameters?.includes(baseName) || this.typePipeline.isPrimitive(baseName)) {
       return baseName // Return as-is, won't be found in SymbolTable, won't be rendered as a box
     }
 

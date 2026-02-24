@@ -18,6 +18,10 @@ export class PhasesFactory {
     return this.pluginManager.getActive()
   }
 
+  public activateLanguage(name: string): void {
+    this.pluginManager.activate(name)
+  }
+
   public getPhases(): CompilerPhase[] {
     return [new LexerPhase(), new ParserPhase(), new SemanticPhase(this.pluginManager)]
   }

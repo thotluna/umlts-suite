@@ -1,0 +1,143 @@
+@language: typescript
+
+config {
+  theme: dark
+  direction: DOWN
+}
+
+package Engine {
+  
+  class UMLEngine {
+    -factory : >* PhasesFactory
+    -phases : >- CompilerPhase[0..*]
+    +parse(source: String): IRDiagram
+  }
+
+  package Compiler {
+    class ConfigPreScanner {
+      +scanLanguage(source: String): String
+    }
+
+    class PhasesFactory {
+      -pluginManager : >* PluginManager
+      +getPhases(): CompilerPhase[0..*]
+      +activateLanguage(name: String)
+    }
+
+    interface CompilerPhase {
+      +run(context: CompilerContext, artifacts: PipelineArtifacts)
+    }
+
+    class LexerPhase >I CompilerPhase {
+      -lexer : >- Lexer
+    }
+    class ParserPhase >I CompilerPhase {
+      -parser : >- Parser
+    }
+    class SemanticPhase >I CompilerPhase {
+      -analyzer : >* SemanticAnalyzer
+    }
+
+    class Lexer {
+      -matchers : >* TokenMatcher[0..*]
+      +tokenize(): Token[0..*]
+    }
+
+    interface TokenMatcher {
+      +match(reader: LexerReader): Token
+    }
+
+    class Parser {
+      -rules : >* ParserRule[0..*]
+      +parse(tokens: Token[0..*]): ProgramNode
+    }
+
+    interface ParserRule {
+      +canHandle(context: ParserHub): Boolean
+      +parse(context: ParserHub): Node[0..*]
+    }
+    
+    class ParserHub
+    
+    class CompilerContext {
+      +plugin : >- LanguagePlugin
+      +source : String
+    }
+  }
+
+  package Semantics {
+    class SemanticAnalyzer {
+      -orchestrator : >* SemanticPipelineOrchestrator
+      -services : >* SemanticServicesProvider
+      +analyze(program: ProgramNode): IRDiagram
+    }
+
+    class SemanticPipelineOrchestrator {
+      -pipeline : >* SemanticPipeline
+      +execute(program: ProgramNode, state: ISemanticState)
+    }
+
+    class SemanticPipeline {
+      -passes : >* ISemanticPass[0..*]
+      +execute(program: ProgramNode, state: ISemanticState)
+    }
+
+    interface ISemanticPass {
+      +execute(program: ProgramNode, state: ISemanticState)
+    }
+
+    class DiscoveryPass >I ISemanticPass
+    class DefinitionPass >I ISemanticPass
+    class ResolutionPass >I ISemanticPass
+
+    class SemanticServicesProvider {
+      +getEntityAnalyzer(): EntityAnalyzer
+      +getRelationshipAnalyzer(): RelationshipAnalyzer
+      +getValidationEngine(): ValidationEngine
+    }
+
+    class SymbolTable {
+      +register(entity: IREntity)
+      +resolveFQN(name: String): String
+    }
+
+    class ValidationEngine {
+      +execute(target: Target)
+    }
+
+    class TypeResolutionPipeline >> ITypeResolutionStrategy {
+      -strategies : >* ITypeResolutionStrategy[0..*]
+      +resolve(node: TypeNode): TypeResolution
+      +isPrimitive(name: String): Boolean
+    }
+
+    interface ITypeResolutionStrategy
+    
+    class UMLTypeResolver >> ITypeResolutionStrategy
+    class PluginTypeResolutionAdapter >> ITypeResolutionStrategy {
+      -pluginManager : >- PluginManager
+    }
+  }
+
+  package Plugins {
+    interface LanguagePlugin {
+      +getMatchers(): TokenMatcher[0..*]
+      +getRules(): ParserRule[0..*]
+      +mapPrimitive(name: String): String
+    }
+
+    class PluginManager {
+      -activePlugin : >* LanguagePlugin
+      +activate(name: String)
+      +getActive(): LanguagePlugin
+    }
+
+    class TypeScriptPlugin >I LanguagePlugin {
+      -tsMatchers : >* TypeScriptMatcher
+      -tsRules : >* TypeScriptRule
+    }
+
+    class TypeScriptMatcher >I TokenMatcher
+    class TypeScriptRule >I ParserRule
+  }
+}
