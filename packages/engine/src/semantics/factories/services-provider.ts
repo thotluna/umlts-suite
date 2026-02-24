@@ -5,7 +5,6 @@ import { HierarchyValidator } from '@engine/semantics/validators/hierarchy-valid
 import { ValidationEngine } from '@engine/semantics/core/validation-engine'
 import { AssociationClassResolver } from '@engine/semantics/resolvers/association-class.resolver'
 import { MemberInference } from '@engine/semantics/inference/member-inference'
-import type { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
 import type { ISemanticState } from '@engine/semantics/core/semantic-state.interface'
 import { UMLRuleProvider } from './rule-provider'
 
@@ -22,10 +21,7 @@ export class SemanticServicesProvider {
   private _assocClassResolver?: AssociationClassResolver
   private _memberInference?: MemberInference
 
-  constructor(
-    private readonly state: ISemanticState,
-    private readonly typePipeline: TypeResolutionPipeline,
-  ) {}
+  constructor(private readonly state: ISemanticState) {}
 
   public getConstraintAnalyzer(): ConstraintAnalyzer {
     return (this._constraintAnalyzer ??= new ConstraintAnalyzer(
@@ -53,10 +49,8 @@ export class SemanticServicesProvider {
     return (this._entityAnalyzer ??= new EntityAnalyzer(
       this.state.symbolTable,
       this.getConstraintAnalyzer(),
-      this.typePipeline,
       this.state.context,
       this.state.configStore,
-      this.state.pluginManager,
     ))
   }
 
@@ -65,7 +59,6 @@ export class SemanticServicesProvider {
       this.state.symbolTable,
       this.state.relationships,
       this.getHierarchyValidator(),
-      this.typePipeline,
       this.state.context,
     ))
   }
@@ -82,7 +75,6 @@ export class SemanticServicesProvider {
     return (this._memberInference ??= new MemberInference(
       this.state,
       this.getRelationshipAnalyzer(),
-      this.typePipeline,
     ))
   }
 }

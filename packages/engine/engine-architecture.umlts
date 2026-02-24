@@ -10,18 +10,12 @@ package Engine {
   class UMLEngine {
     -factory : >* PhasesFactory
     -phases : >- CompilerPhase[0..*]
-    +parse(source: String): IRDiagram
+    +parse(source: String): ParseResult
   }
 
   package Compiler {
-    class ConfigPreScanner {
-      +scanLanguage(source: String): String
-    }
-
     class PhasesFactory {
-      -pluginManager : >* PluginManager
       +getPhases(): CompilerPhase[0..*]
-      +activateLanguage(name: String)
     }
 
     interface CompilerPhase {
@@ -39,7 +33,7 @@ package Engine {
     }
 
     class Lexer {
-      -matchers : >* TokenMatcher[0..*]
+      -matchers : >* TokenMatcher[0..*] // Core Matchers (e.g. Standard UML)
       +tokenize(): Token[0..*]
     }
 
@@ -48,7 +42,7 @@ package Engine {
     }
 
     class Parser {
-      -rules : >* ParserRule[0..*]
+      -rules : >* ParserRule[0..*] // Core Rules
       +parse(tokens: Token[0..*]): ProgramNode
     }
 
@@ -60,8 +54,8 @@ package Engine {
     class ParserHub
     
     class CompilerContext {
-      +plugin : >- LanguagePlugin
       +source : String
+      +diagnostics : Diagnostic[0..*]
     }
   }
 
@@ -69,7 +63,7 @@ package Engine {
     class SemanticAnalyzer {
       -orchestrator : >* SemanticPipelineOrchestrator
       -services : >* SemanticServicesProvider
-      +analyze(program: ProgramNode): IRDiagram
+      +analyze(program: ProgramNode, context: ISemanticContext): IRDiagram
     }
 
     class SemanticPipelineOrchestrator {
@@ -94,50 +88,40 @@ package Engine {
       +getEntityAnalyzer(): EntityAnalyzer
       +getRelationshipAnalyzer(): RelationshipAnalyzer
       +getValidationEngine(): ValidationEngine
+      +getMemberInference(): MemberInference
     }
 
     class SymbolTable {
       +register(entity: IREntity)
       +resolveFQN(name: String): String
+      +getAllEntities(): IREntity[0..*]
     }
 
     class ValidationEngine {
-      +execute(target: Target)
+      +execute(target: Target, data: Any, context: ISemanticContext)
     }
 
-    class TypeResolutionPipeline >> ITypeResolutionStrategy {
-      -strategies : >* ITypeResolutionStrategy[0..*]
-      +resolve(node: TypeNode): TypeResolution
-      +isPrimitive(name: String): Boolean
-    }
-
-    interface ITypeResolutionStrategy
-    
-    class UMLTypeResolver >> ITypeResolutionStrategy
-    class PluginTypeResolutionAdapter >> ITypeResolutionStrategy {
-      -pluginManager : >- PluginManager
+    class MemberInference {
+      -state : ISemanticState
+      -relAnalyzer : RelationshipAnalyzer
+      +run()
     }
   }
 
-  package Plugins {
-    interface LanguagePlugin {
-      +getMatchers(): TokenMatcher[0..*]
-      +getRules(): ParserRule[0..*]
-      +mapPrimitive(name: String): String
+  package Infrastructure {
+    class AnalysisSession >> ISemanticState {
+      +symbolTable : SymbolTable
+      +relationships : IRRelationship[0..*]
+      +configStore : ConfigStore
     }
 
-    class PluginManager {
-      -activePlugin : >* LanguagePlugin
-      +activate(name: String)
-      +getActive(): LanguagePlugin
+    interface ISemanticState {
+      +recordRelationship(rel: IRRelationship)
     }
 
-    class TypeScriptPlugin >I LanguagePlugin {
-      -tsMatchers : >* TypeScriptMatcher
-      -tsRules : >* TypeScriptRule
+    class ConfigStore {
+      -config : Map<String, Any>
+      +merge(options: Map)
     }
-
-    class TypeScriptMatcher >I TokenMatcher
-    class TypeScriptRule >I ParserRule
   }
 }
