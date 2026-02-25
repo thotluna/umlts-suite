@@ -44,21 +44,57 @@ Este documento detalla los pasos secuenciales para implementar la nueva arquitec
 2.  Modificar `ParserFactory` en: `packages/engine/src/parser/parser.factory.ts`.
 3.  Actualizar reglas clave: `packages/engine/src/parser/rules/type.rule.ts` y `packages/engine/src/parser/rules/member-suffix.rule.ts`.
 
-## Fase 6: Cierre Semántico y Validación Inicial
+## Fase 6: Infraestructura Semántica y Resolución de Tipos
 
-**Objetivo:** Inyectar tipos base y validación básica.
+**Objetivo:** Permitir que los plugins controlen la semántica de tipos y el lenguaje.
 
-1.  Actualizar el registro de tipos en: `packages/engine/src/semantics/passes/resolution.pass.ts`.
-2.  Crear plugin de prueba interno `TS-Lite` para validar el pipeline.
+1.  Implementar `TypeResolutionPipeline` en: `packages/engine/src/semantics/inference/type-resolution.pipeline.ts`.
+2.  Refactorizar `SymbolTable` para eliminar tipos hardcodeados y permitir registro dinámico en `DiscoveryPass`.
+3.  Implementar `ITypeResolutionStrategy` para permitir lógicas de resolución personalizadas (ej. Mapped Types).
+4.  Inyectar el pipeline en `AnalysisSession`, `EntityAnalyzer` y `RelationshipAnalyzer`.
+5.  Actualizar `LanguageExtension` para centralizar estrategias y tipos primitivos registrados.
 
-## Fase 7: Creación del Primer Plugin Externo (@umlts/plugin-ts)
+## Fase 7: Implementación del Plugin de Referencia (@umlts/plugin-ts)
 
-**Objetivo:** Implementar el primer plugin real como un paquete independiente.
+**Objetivo:** Desplegar un plugin de lenguaje completo que explote todos los puntos de extensión.
 
-1.  Inicializar directorio `packages/plugin-ts/` con su propio `package.json`, `tsconfig.json` y `vitest.config.ts`.
-2.  Configurar la dependencia hacia `@umlts/engine` (como peerDependency o devDependency para los tipos).
-3.  Implementar la lógica real de TypeScript (Matchers, Rules, Modificadores) moviéndola desde el motor si existiera alguna lógica previa.
-4.  Publicar/Vincular para pruebas en la aplicación Host (ej. VS Code).
+### 7.1: Estructura y Contrato
+
+1.  Inicializar `packages/plugin-ts/` con soporte para `pnpm workspaces`.
+2.  Implementar la clase maestra `TypeScriptPlugin` que hereda de `IUMLPlugin`.
+3.  Configurar el método `getCapability('language')` para devolver una instancia de `TSLanguageCapability`.
+
+### 7.2: Extensión del Léxico (Tokens)
+
+1.  Registrar `matchers` para palabras clave específicas de TS (ej: `readonly`, `type`, `interface`, `namespace`).
+2.  Asegurar que los matchers de TS tengan prioridad sobre los genéricos mediante la orquestación en `LexerFactory`.
+
+### 7.3: Extensión de la Gramática (Rules)
+
+1.  Implementar `TypeScriptStatementRules`: soporte para bloques `namespace` o `type alias` utilizando `IParserHub`.
+2.  Implementar `TypeScriptMemberProviders`: lógica para parsear modificadores de acceso específicos o decoradores.
+
+### 7.4: Dominio Semántico (Tipos y Resolución)
+
+1.  **Registro de Primitivas:** Inyectar tipos nativos (`any`, `unknown`, `never`, `void`, `Record`, `Partial`, etc.) a través de `ILanguageAPI.addPrimitiveType`.
+2.  **Estrategias de Resolución:**
+    - Implementar `TSGenericResolutionStrategy` para manejar la descomposición de utilidades como `Array<T>` o `Promise<T>`.
+    - Implementar `TSMappedTypeStrategy` para resolver tipos derivados de objetos.
+3.  **Reglas de Validación:** Registrar `ISemanticRule` personalizadas (ej: prohibir herencia múltiple de clases, pero permitir interfaces).
+
+### 7.5: Distribución e Integración
+
+1.  Configurar `@umlts/engine` como `peerDependency` para evitar duplicidad de instancias en el `PluginRegistry`.
+2.  Vincular el plugin en la fachada `UMLEngine` mediante la configuración de `BUILTIN_PLUGINS`.
+
+---
+
+**Nota sobre Estructura:**
+
+- `packages/engine/src/plugin/`: Contiene EXCLUSIVAMENTE la infraestructura para que el motor acepte cualquier plugin (interfaces y registro).
+- `packages/plugin-*/`: Son paquetes autónomos y desacoplados que implementan las capacidades para cada lenguaje o herramienta específica.
+
+**Regla de Oro:** Cada paso debe mantener los tests existentes en verde y no debe introducir cambios de comportamiento para los usuarios que no usan plugins.
 
 ---
 

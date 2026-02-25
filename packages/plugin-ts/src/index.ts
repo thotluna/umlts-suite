@@ -1,4 +1,5 @@
 import { IUMLPlugin, ICapability, ILanguageCapability, ILanguageAPI } from '@umlts/engine'
+import { TSKeywordMatcher } from '@plugin-ts/lexical/ts-keyword.matcher'
 
 /**
  * TypeScriptPlugin: Reference implementation of a language plugin for UMLTS.
@@ -55,8 +56,10 @@ class TSLanguageCapability implements ILanguageCapability {
       'NonNullable',
     ])
 
+    // 2. Extensión del Léxico (Fase 7.2)
+    api.addTokenMatcher(new TSKeywordMatcher())
+
     // Future iterations will register:
-    // - TokenMatchers (Phase 7.2)
     // - StatementRules/MemberProviders (Phase 7.3)
     // - TypeResolutionStrategies (Phase 7.4)
   }

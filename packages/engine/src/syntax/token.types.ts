@@ -24,6 +24,9 @@ export enum TokenType {
   KW_XOR = 'KW_XOR',
   KW_NOTE = 'KW_NOTE',
   KW_DERIVED = 'KW_DERIVED',
+  KW_READONLY = 'KW_READONLY',
+  KW_TYPE = 'KW_TYPE',
+  KW_NAMESPACE = 'KW_NAMESPACE',
   AT = 'AT', // @
 
   // Operators and Symbols

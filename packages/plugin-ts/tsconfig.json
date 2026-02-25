@@ -5,6 +5,7 @@
     "rootDir": "src",
     "baseUrl": ".",
     "paths": {
+      "@plugin-ts/*": ["src/*"],
       "@engine/*": ["../engine/src/*"]
     }
   },

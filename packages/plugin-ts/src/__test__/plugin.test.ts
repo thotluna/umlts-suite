@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { TypeScriptPlugin } from '../index'
+import { TypeScriptPlugin } from '@plugin-ts/index'
 
 describe('TypeScriptPlugin', () => {
   it('should have correct name and version', () => {
