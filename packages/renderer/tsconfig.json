@@ -2,9 +2,6 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "paths": {
-      "@renderer/*": ["src/*"]
-    },
     "outDir": "./dist"
   },
   "include": ["src/**/*"],

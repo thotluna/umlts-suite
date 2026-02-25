@@ -1,6 +1,6 @@
-import { type DiagramModel } from '@renderer/core/model/nodes'
-import { type DiagramConfig, type LayoutResult } from '@renderer/core/types'
-import { type Theme } from '@renderer/core/theme'
+import { type DiagramModel } from './model/nodes'
+import { type DiagramConfig, type LayoutResult } from './types'
+import { type Theme } from './theme'
 
 /**
  * Normalizes input from various sources (IR, Standard UML, JSON)

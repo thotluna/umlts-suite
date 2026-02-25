@@ -1,4 +1,5 @@
-import { type DiagramModel, type UMLNode } from './model/nodes'
+import type { LayoutConfig } from '../graph-orchestrator/types'
+import type { DiagramModel, UMLNode } from './model/nodes'
 
 /**
  * Resultado del proceso de layout.
@@ -16,12 +17,7 @@ export interface LayoutResult {
  */
 export interface DiagramConfig {
   theme?: string
-  layout?: {
-    direction?: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT'
-    spacing?: number
-    nodePadding?: number
-    routing?: 'ORTHOGONAL' | 'SPLINES' | 'POLYLINE'
-  }
+  layout?: LayoutConfig
   render?: {
     showVisibility?: boolean
     showIcons?: boolean

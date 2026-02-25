@@ -1,10 +1,7 @@
-import { type DiagramConfig } from '@renderer/core/types'
-import { type Theme, lightTheme, darkTheme } from '@renderer/core/theme'
-import {
-  type IDataProvider,
-  type ILayoutStrategy,
-  type IDrawingEngine,
-} from '@renderer/core/contract'
+import { type DiagramConfig } from './types'
+import { type Theme, lightTheme, darkTheme } from './theme'
+import { type IDataProvider, type ILayoutStrategy, type IDrawingEngine } from './contract'
+import { ConfigProcessor } from './config-processor'
 
 export interface RenderOptions {
   theme?: 'light' | 'dark' | Theme
@@ -27,28 +24,20 @@ export class DiagramRenderer<TSource, TOutput = string> {
    */
   public async render(source: TSource, options: RenderOptions = {}): Promise<TOutput> {
     // 1. Data Adaptation Phase
-    let model = this.provider.provide(source)
+    const model = this.provider.provide(source)
 
     // 2. Configuration & Theme Resolution
-    const mergedConfig = this.mergeConfig(options.config)
+    // Precedencia: Opciones externas < Configuración del Modelo (DSL)
+    const mergedConfig = ConfigProcessor.merge(options.config, model.config)
     const theme = this.resolveTheme(options.theme || mergedConfig.theme)
 
-    // 3. Normalization/Pre-processing Phase
-    // (Future: this could be another injected stage)
-    if (mergedConfig.render?.showDependencies === false) {
-      model = {
-        ...model,
-        edges: model.edges.filter((e) => e.type.toLowerCase() !== 'dependency'),
-      }
-    }
-
-    // 4. Layout Phase
+    // 3. Layout Phase
     if (!this.layoutStrategy.supports(model)) {
       throw new Error('The provided layout strategy does not support this diagram model.')
     }
     const layoutResult = await this.layoutStrategy.layout(model, mergedConfig.layout)
 
-    // 5. Drawing Phase
+    // 4. Drawing Phase
     return this.drawingEngine.draw(layoutResult, theme, mergedConfig.render || {})
   }
 
@@ -58,14 +47,5 @@ export class DiagramRenderer<TSource, TOutput = string> {
     if (themeOption === 'light') return lightTheme
     if (typeof themeOption === 'string') return lightTheme
     return themeOption
-  }
-
-  private mergeConfig(optionsConfig?: DiagramConfig): DiagramConfig {
-    // Simplified merge for now, prioritizing options
-    return {
-      ...optionsConfig,
-      layout: { ...optionsConfig?.layout },
-      render: { ...optionsConfig?.render },
-    }
   }
 }
