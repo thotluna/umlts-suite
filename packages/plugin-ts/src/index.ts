@@ -1,5 +1,7 @@
 import { IUMLPlugin, ICapability, ILanguageCapability, ILanguageAPI } from '@umlts/engine'
 import { TSKeywordMatcher } from '@plugin-ts/lexical/ts-keyword.matcher'
+import { TSNamespaceRule } from '@plugin-ts/syntax/rules/ts-namespace.rule'
+import { TSTypeAliasRule } from '@plugin-ts/syntax/rules/ts-type-alias.rule'
 
 /**
  * TypeScriptPlugin: Reference implementation of a language plugin for UMLTS.
@@ -59,8 +61,11 @@ class TSLanguageCapability implements ILanguageCapability {
     // 2. Extensión del Léxico (Fase 7.2)
     api.addTokenMatcher(new TSKeywordMatcher())
 
+    // 3. Extensión de la Gramática (Fase 7.3)
+    api.addStatementRule(new TSNamespaceRule())
+    api.addStatementRule(new TSTypeAliasRule())
+
     // Future iterations will register:
-    // - StatementRules/MemberProviders (Phase 7.3)
     // - TypeResolutionStrategies (Phase 7.4)
   }
 }
