@@ -1,6 +1,7 @@
 import * as vscode from 'vscode'
 import { UMLEngine } from '@umlts/engine'
 import { render, darkTheme, lightTheme } from '@umlts/renderer'
+import { TypeScriptPlugin } from '@umlts/plugin-ts'
 
 export class UMLPreviewPanel {
   public static currentPanel: UMLPreviewPanel | undefined
@@ -38,7 +39,7 @@ export class UMLPreviewPanel {
 
   private constructor(panel: vscode.WebviewPanel, _extensionUri: vscode.Uri) {
     this._panel = panel
-    this._engine = new UMLEngine()
+    this._engine = new UMLEngine([new TypeScriptPlugin()])
 
     this._update()
 

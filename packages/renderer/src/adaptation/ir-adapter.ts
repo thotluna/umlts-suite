@@ -29,11 +29,14 @@ export class IRAdapter {
     const visibleEntities = ir.entities.filter(
       (e: IREntity) => !hidden.has(e.id) || nodesWithEdges.has(e.id),
     )
+    const visibleEntityIds = new Set(visibleEntities.map((e) => e.id))
 
     const nodes: UMLNode[] = visibleEntities.map((entity: IREntity) => this.transformEntity(entity))
-    const edges: UMLEdge[] = ir.relationships.map((rel: IRRelationship) =>
-      this.transformRelationship(rel),
-    )
+    const edges: UMLEdge[] = ir.relationships
+      .filter(
+        (rel: IRRelationship) => visibleEntityIds.has(rel.from) && visibleEntityIds.has(rel.to),
+      )
+      .map((rel: IRRelationship) => this.transformRelationship(rel))
 
     // Build the package/namespace hierarchy
     const packages = this.buildHierarchy(nodes)

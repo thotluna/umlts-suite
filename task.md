@@ -359,6 +359,7 @@
   - [x] Modificar `IRAdapter` para incluir todos los nodos en `model.nodes` independientemente de su profundidad. Esto permite al motor ELK calcular dimensiones correctas para elementos anidados.
 - [x] **FIX**: "Ruido" visual de la librería estándar de TypeScript en diagramas
   - [x] Implementar filtrado de `hiddenEntities` en `IRAdapter` para no renderizar primitivos y utilidades de TS inyectadas por el plugin.
+  - [x] Filtrar relaciones (edges) que apuntan a primitivos/entidades ocultas en `IRAdapter` para evitar `JsonImportException` en ELK ("Referenced shape does not exist").
   - [x] **FIX**: Palabras reservadas (enum, xor) invisibles en literales de enum
   - [x] Modificar `EntityRule.ts` para permitir palabras clave como literales de enum en bloques y en línea.
   - [x] Modificar `EnumTypeModifier.ts` para permitir palabras clave como valores en tipos de enum en línea.
@@ -450,5 +451,15 @@
   - [x] Corregir errores de importación y asegurar robustez en `UMLTypeResolver`
   - [x] Purificar `SymbolTable` eliminando primitivas hardcodeadas y usando registro dinámico
 - [x] **DOC**: Profundizar y ampliar el Plan de Implementación de Plugins (Fase 7)
-- [x] **PLUGIN-TS**: Estructura y Contrato (Fase 7.1)
-- [x] **LEXER**: Extensión del Léxico para TypeScript (Fase 7.2)
+- [x] **SYNTAX**: Extensión de la Gramática TS (Fase 7.3)
+  - [x] Implementar `TSNamespaceRule` y `TSTypeAliasRule`
+  - [x] Implementar `TSUnionTypeModifier` para soporte de `|` (Unions)
+- [x] **SEMANTICS**: Dominio Semántico TS (Fase 7.4)
+  - [x] Implementar `TSGenericResolutionStrategy` y `TSMappedTypeStrategy`
+  - [x] Implementar `RegisteredPrimitiveStrategy` en el motor para reconocer primitivos de plugins
+- [x] **FIX**: Refinamiento de Inferencia de Miembros y Primitivos
+  - [x] Soporte recursivo para tipos genéricos (ej: `Array<User>`) en `MemberInference`
+  - [x] Mapeo automático de multiplicidad TS (`Array` -> `*`, `| null/undefined` -> `0..1`)
+  - [x] Corrección de `RegisteredPrimitiveStrategy` para no registrar primitivos como entidades implícitas
+  - [x] Creación del paquete `@umlts/cli` para desacoplar las herramientas de depuración del motor core
+  - [x] Soporte para tipos unión (`|`) en el `TypeValidator` del motor

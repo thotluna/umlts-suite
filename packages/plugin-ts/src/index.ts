@@ -4,6 +4,8 @@ import { TSNamespaceRule } from '@plugin-ts/syntax/rules/ts-namespace.rule'
 import { TSTypeAliasRule } from '@plugin-ts/syntax/rules/ts-type-alias.rule'
 import { TSGenericResolutionStrategy } from '@plugin-ts/semantics/strategies/ts-generic.strategy'
 import { TSMappedTypeStrategy } from '@plugin-ts/semantics/strategies/ts-mapped.strategy'
+import { TSUnionTypeModifier } from '@plugin-ts/syntax/modifiers/ts-union.modifier'
+import { TSMemberProvider } from '@plugin-ts/syntax/providers/ts-member.provider'
 
 /**
  * TypeScriptPlugin: Reference implementation of a language plugin for UMLTS.
@@ -58,6 +60,9 @@ class TSLanguageCapability implements ILanguageCapability {
       'Exclude',
       'Extract',
       'NonNullable',
+      'Promise',
+      'Date',
+      'URL',
     ])
 
     // 2. Extensión del Léxico (Fase 7.2)
@@ -66,6 +71,8 @@ class TSLanguageCapability implements ILanguageCapability {
     // 3. Extensión de la Gramática (Fase 7.3)
     api.addStatementRule(new TSNamespaceRule())
     api.addStatementRule(new TSTypeAliasRule())
+    api.addMemberProvider(new TSMemberProvider())
+    api.addTypeModifier(new TSUnionTypeModifier())
 
     // 4. Dominio Semántico y Estrategias TS (Fase 7.4)
     api.addTypeResolutionStrategy(new TSGenericResolutionStrategy())

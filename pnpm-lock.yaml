@@ -113,6 +113,31 @@ importers:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@22.19.11)(tsx@4.21.0)(yaml@2.8.2)
 
+  packages/cli:
+    dependencies:
+      '@umlts/engine':
+        specifier: workspace:*
+        version: link:../engine
+      '@umlts/plugin-ts':
+        specifier: workspace:*
+        version: link:../plugin-ts
+      commander:
+        specifier: ^12.1.0
+        version: 12.1.0
+    devDependencies:
+      '@types/node':
+        specifier: ^25.2.2
+        version: 25.2.3
+      tsup:
+        specifier: ^8.5.1
+        version: 8.5.1(postcss@8.5.6)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   packages/engine:
     devDependencies:
       '@types/node':
@@ -932,6 +957,10 @@ packages:
 
   colorette@2.0.20:
     resolution: {integrity: sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w==}
+
+  commander@12.1.0:
+    resolution: {integrity: sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==}
+    engines: {node: '>=18'}
 
   commander@14.0.3:
     resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
@@ -3099,6 +3128,8 @@ snapshots:
   color-name@1.1.4: {}
 
   colorette@2.0.20: {}
+
+  commander@12.1.0: {}
 
   commander@14.0.3: {}
 

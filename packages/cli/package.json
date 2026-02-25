@@ -1,0 +1,25 @@
+{
+  "name": "@umlts/cli",
+  "version": "1.0.0",
+  "description": "CLI for UMLTS (Unified Modeling Language TypeScript Syntax)",
+  "main": "dist/main.js",
+  "bin": {
+    "umlts": "dist/main.js"
+  },
+  "scripts": {
+    "dev": "tsx src/main.ts",
+    "build": "tsup src/main.ts --format cjs --minify --clean",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@umlts/engine": "workspace:*",
+    "@umlts/plugin-ts": "workspace:*",
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "@types/node": "^25.2.2"
+  }
+}

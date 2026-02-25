@@ -2,11 +2,11 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src",
     "baseUrl": ".",
     "paths": {
       "@plugin-ts/*": ["src/*"],
-      "@engine/*": ["../engine/src/*"]
+      "@engine/*": ["../engine/src/*"],
+      "@umlts/engine": ["../engine/src/index.ts"]
     }
   },
   "include": ["src/**/*"],

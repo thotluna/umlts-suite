@@ -110,12 +110,54 @@ export class MemberInference {
     memberConstraints?: IRConstraint[],
     explicitLabel?: string,
   ): void {
-    const { baseName, multiplicity } = TypeValidator.decomposeGeneric(typeName)
+    const { baseName, args, multiplicity } = TypeValidator.decomposeGeneric(typeName)
     const { values: enumValues } = TypeValidator.decomposeEnum(typeName)
-    if (this.session.typeResolver.isPrimitive(baseName)) return
+
+    const isBasePrimitive = this.session.typeResolver.isPrimitive(baseName)
+
+    // Recursively process generic arguments FIRST
+    // This ensures that for Record<string, User>, we find User even if Record is primitive
+    if (args && args.length > 0) {
+      args.forEach((arg) => {
+        let argMultiplicity
+        if (baseName === 'Array' || baseName === 'ReadonlyArray') {
+          argMultiplicity = '*'
+        } else if (baseName === 'xor' && (args.includes('null') || args.includes('undefined'))) {
+          argMultiplicity = '0..1'
+        }
+
+        this.inferFromType(
+          fromFQN,
+          arg,
+          fromNamespace,
+          undefined, // Don't propagate label to generic args
+          IRRelationshipType.ASSOCIATION,
+          argMultiplicity || toMultiplicity,
+          visibility,
+          undefined,
+          undefined,
+          line,
+          column,
+          undefined,
+          undefined,
+          undefined,
+        )
+      })
+    }
+
+    // If the base name is primitive, we stop here for the base relationship
+    if (isBasePrimitive) return
 
     const fromEntity = this.session.symbolTable.get(fromFQN)
     if (fromEntity?.typeParameters?.includes(baseName)) return
+
+    // Multiplicity Inference (TS Specifics)
+    let finalMultiplicity = multiplicity || toMultiplicity
+    if (baseName === 'Array' || baseName === 'ReadonlyArray' || multiplicity === '') {
+      finalMultiplicity = '*'
+    } else if (baseName === 'xor' && (args?.includes('null') || args?.includes('undefined'))) {
+      finalMultiplicity = '0..1'
+    }
 
     // Resolve target
     const finalToFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
@@ -134,7 +176,7 @@ export class MemberInference {
       column,
       label: explicitLabel || label,
       toName: label,
-      toMultiplicity: multiplicity || toMultiplicity,
+      toMultiplicity: finalMultiplicity,
       fromMultiplicity,
       visibility,
       associationClassId,

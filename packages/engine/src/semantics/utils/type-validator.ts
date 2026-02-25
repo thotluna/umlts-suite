@@ -11,6 +11,8 @@ export class TypeValidator {
     'String',
     'UnlimitedNatural',
     'Real',
+    'xor',
+    'Unknown',
   ])
 
   /**
@@ -52,6 +54,46 @@ export class TypeValidator {
       ? typeName.slice(0, typeName.lastIndexOf(multiplicity)).trim()
       : typeName
 
+    // Handle union types (A | B) at the top level
+    let currentDepth = 0
+    let currentBracketDepth = 0
+    let pipeIndex = -1
+    for (let i = 0; i < typeWithoutMultiplicity.length; i++) {
+      const char = typeWithoutMultiplicity[i]
+      if (char === '<') currentDepth++
+      else if (char === '>') currentDepth--
+      else if (char === '(') currentBracketDepth++
+      else if (char === ')') currentBracketDepth--
+      else if (char === '|' && currentDepth === 0 && currentBracketDepth === 0) {
+        pipeIndex = i
+        break
+      }
+    }
+
+    if (pipeIndex !== -1) {
+      const parts: string[] = []
+      let lastStart = 0
+      let d = 0
+      let b = 0
+      for (let i = 0; i < typeWithoutMultiplicity.length; i++) {
+        const char = typeWithoutMultiplicity[i]
+        if (char === '<') d++
+        else if (char === '>') d--
+        else if (char === '(') b++
+        else if (char === ')') b--
+        else if (char === '|' && d === 0 && b === 0) {
+          parts.push(typeWithoutMultiplicity.substring(lastStart, i).trim())
+          lastStart = i + 1
+        }
+      }
+      parts.push(typeWithoutMultiplicity.substring(lastStart).trim())
+      return {
+        baseName: 'xor',
+        args: parts,
+        multiplicity: multiplicityMatch ? multiplicityMatch[1] : undefined,
+      }
+    }
+
     const baseName = this.getBaseTypeName(typeWithoutMultiplicity)
     const args: string[] = []
 
@@ -61,11 +103,15 @@ export class TypeValidator {
     if (start !== -1 && end !== -1 && end > start) {
       const argsStr = typeWithoutMultiplicity.substring(start + 1, end)
       let depth = 0
+      let bracketDepth = 0
       let current = ''
       for (const char of argsStr) {
         if (char === '<') depth++
         if (char === '>') depth--
-        if (char === ',' && depth === 0) {
+        if (char === '(') bracketDepth++
+        if (char === ')') bracketDepth--
+
+        if (char === ',' && depth === 0 && bracketDepth === 0) {
           args.push(current.trim())
           current = ''
         } else {
