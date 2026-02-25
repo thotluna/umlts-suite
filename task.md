@@ -359,6 +359,7 @@
   - [x] Modificar `IRAdapter` para incluir todos los nodos en `model.nodes` independientemente de su profundidad. Esto permite al motor ELK calcular dimensiones correctas para elementos anidados.
 - [x] **FIX**: "Ruido" visual de la librería estándar de TypeScript en diagramas
   - [x] Implementar filtrado de `hiddenEntities` en `IRAdapter` para no renderizar primitivos y utilidades de TS inyectadas por el plugin.
+  - [x] Filtrar relaciones (edges) que apuntan a primitivos/entidades ocultas en `IRAdapter` para evitar `JsonImportException` en ELK ("Referenced shape does not exist").
   - [x] **FIX**: Palabras reservadas (enum, xor) invisibles en literales de enum
   - [x] Modificar `EntityRule.ts` para permitir palabras clave como literales de enum en bloques y en línea.
   - [x] Modificar `EnumTypeModifier.ts` para permitir palabras clave como valores en tipos de enum en línea.
