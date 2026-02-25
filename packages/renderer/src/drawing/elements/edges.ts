@@ -232,7 +232,13 @@ export function renderEdge(
   }
 
   return svg.g(
-    { class: 'edge', 'data-from': edge.from, 'data-to': edge.to, 'data-index': index },
+    {
+      class: 'edge',
+      'data-from': edge.from,
+      'data-to': edge.to,
+      'data-type': type.toLowerCase(),
+      'data-index': index,
+    },
     pathEl + labels.join('') + extraElements.join(''),
   )
 }

@@ -29,18 +29,18 @@ _Objetivo: Construir la nueva "carretera" al lado de la vieja._
 2.  Implementar el método `render()` en la nueva arquitectura siguiendo el nuevo pipeline (Normalization -> Layout -> Drawing).
 3.  **Prueba de Paridad**: Verificar que `DiagramRenderer` (usando los wrappers de la Fase 2) produce exactamente los mismos diagramas que el actual.
 
-## Fase 4: Refactorización Atómica (Puntual)
+## Fase 4: Refactorización Atómica (Puntual) ✅
 
 _Objetivo: Sustituir los wrappers por implementaciones puras._
 
-1.  **Limpiar Layout**: Mover la lógica de pesos de UML fuera de ELK y meterla en una estrategia de clase pura.
-2.  **Limpiar Adaptación**: Separar el filtrado de dependencias (ShowDependencies) del orquestador y moverlo al Provider.
-3.  **Inyectar Metadatos**: Empezar a meter los IDs únicos en el SVG para la futura interactividad.
+1.  **Limpiar Layout** ✅: Mover la lógica de pesos de UML fuera de ELK y meterla en una estrategia de clase pura (`ClassLayoutStrategy`).
+2.  **Limpiar Adaptación** ✅: Separar el filtrado de dependencias (ShowDependencies) del orquestador y moverlo al Provider/Adapter.
+3.  **Inyectar Metadatos** ✅: Empezar a meter los IDs únicos y tipos en el SVG para la futura interactividad.
 
-## Fase 5: El Cambio de Mando (Switch)
+## Fase 5: El Cambio de Mando (Switch) ✅
 
-1.  Hacer que el `UMLRenderer` original sea un alias o un wrapper delgado de `DiagramRenderer`.
-2.  Eliminar el código "Legacy" que haya quedado huérfano.
+1.  Hacer que el `UMLRenderer` original sea un alias o un wrapper delgado de `DiagramRenderer` ✅.
+2.  Eliminar el código "Legacy" que haya quedado huérfano ✅ (`LayoutEngine` eliminado, orquestador antiguo simplificado).
 
 ---
 
