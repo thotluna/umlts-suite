@@ -14,9 +14,9 @@ describe('TypeScript Syntax Extension', () => {
     const { ast, diagnostics } = engine.parse(source)
 
     expect(diagnostics).toHaveLength(0)
-    expect(ast.body).toHaveLength(1)
+    expect(ast?.body).toHaveLength(1)
 
-    const nsNode = ast.body[0] as PackageNode
+    const nsNode = ast!.body[0] as PackageNode
     expect(nsNode.type).toBe(ASTNodeType.PACKAGE)
     expect(nsNode.name).toBe('TestNamespace')
   })

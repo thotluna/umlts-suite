@@ -5,7 +5,6 @@ import type {
   StatementRule,
   Orchestrator,
   MemberNode,
-  Modifiers,
 } from '@umlts/engine'
 
 /**
