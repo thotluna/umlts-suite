@@ -2,9 +2,9 @@ import type { IRDiagram } from '@umlts/engine'
 import type { DiagramConfig } from './core/types'
 import type { Theme } from './core/theme'
 import { DiagramRenderer } from './core/diagram-renderer'
-import { LegacyIRProvider } from './core/adapters/legacy-ir-provider'
-import { LegacyClassLayout } from './core/adapters/legacy-class-layout'
-import { LegacySVGEngine } from './core/adapters/legacy-svg-engine'
+import { IRAdapter } from './adaptation/ir-adapter'
+import { ClassLayoutStrategy } from './core/strategies/class-layout-strategy'
+import { SVGRenderer } from './drawing/svg-renderer'
 
 export interface RenderOptions {
   theme?: 'light' | 'dark' | Theme
@@ -20,9 +20,9 @@ export class UMLRenderer {
 
   constructor() {
     this.orchestrator = new DiagramRenderer(
-      new LegacyIRProvider(),
-      new LegacyClassLayout(),
-      new LegacySVGEngine(),
+      new IRAdapter(),
+      new ClassLayoutStrategy(),
+      new SVGRenderer(),
     )
   }
 

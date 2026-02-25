@@ -6,39 +6,54 @@ import {
   type DiagramModel,
   type IRRelType,
 } from '../core/model/nodes'
+import { type IDataProvider } from '../core/contract'
+import { ConfigProcessor } from '../core/config-processor'
 
 /**
- * IRAdapter: Transforms the raw IR from ts-uml-engine into a DiagramModel
- * suitable for layout and rendering.
+ * IRAdapter: Transforms the Intermediate Representation (IR) from the engine
+ * into a DiagramModel suitable for layout and rendering.
  */
-export class IRAdapter {
+export class IRAdapter implements IDataProvider<IRDiagram> {
+  /**
+   * Transforms the IR source into a DiagramModel.
+   */
+  public provide(source: IRDiagram): DiagramModel {
+    const model = this.transform(source)
+    return {
+      ...model,
+      config: ConfigProcessor.normalize(source.config),
+    }
+  }
+
   /**
    * Transforms the entire diagram IR into a hierarchical model.
    */
-  public transform(ir: IRDiagram): DiagramModel {
-    const hidden = new Set((ir.config?.hiddenEntities as string[]) || [])
+  public transform(source: IRDiagram): DiagramModel {
+    const hidden = new Set((source.config?.hiddenEntities as string[]) || [])
     const nodesWithEdges = new Set<string>()
 
     // Find all nodes that participate in relationships
-    ir.relationships.forEach((rel: IRRelationship) => {
+    source.relationships.forEach((rel: IRRelationship) => {
       nodesWithEdges.add(rel.from)
       nodesWithEdges.add(rel.to)
     })
 
     // Filter entities: keep if not hidden OR if they have relationships
-    const visibleEntities = ir.entities.filter(
+    const visibleEntities = source.entities.filter(
       (e: IREntity) => !hidden.has(e.id) || nodesWithEdges.has(e.id),
     )
-    const visibleEntityIds = new Set(visibleEntities.map((e) => e.id))
+    const visibleEntityIds = new Set(visibleEntities.map((e: IREntity) => e.id))
 
     const nodes: UMLNode[] = visibleEntities.map((entity: IREntity) => this.transformEntity(entity))
 
     // 2. Relationship Transformation & Filtering
-    let rawRelationships = ir.relationships
+    let rawRelationships = source.relationships
 
     // Apply showDependencies filter if defined in config
-    if (ir.config?.showDependencies === false) {
-      rawRelationships = rawRelationships.filter((rel) => rel.type.toLowerCase() !== 'dependency')
+    if (source.config?.showDependencies === false) {
+      rawRelationships = rawRelationships.filter(
+        (rel: IRRelationship) => rel.type.toLowerCase() !== 'dependency',
+      )
     }
 
     const edges: UMLEdge[] = rawRelationships
@@ -54,7 +69,7 @@ export class IRAdapter {
       nodes,
       edges,
       packages,
-      constraints: ir.constraints || [],
+      constraints: source.constraints || [],
     }
   }
 

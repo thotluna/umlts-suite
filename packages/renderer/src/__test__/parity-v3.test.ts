@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { UMLRenderer } from '../renderer'
 import { DiagramRenderer } from '../core/diagram-renderer'
-import { LegacyIRProvider } from '../core/adapters/legacy-ir-provider'
-import { LegacyClassLayout } from '../core/adapters/legacy-class-layout'
-import { LegacySVGEngine } from '../core/adapters/legacy-svg-engine'
+import { IRAdapter } from '../adaptation/ir-adapter'
+import { ClassLayoutStrategy } from '../core/strategies/class-layout-strategy'
+import { SVGRenderer } from '../drawing/svg-renderer'
 import { type IRDiagram, IREntityType, IRRelationshipType } from '@umlts/engine'
 
 describe('Renderer V3 Parity Test', () => {
@@ -54,15 +54,15 @@ describe('Renderer V3 Parity Test', () => {
   }
 
   it('New DiagramRenderer (V3) should produce identical output to UMLRenderer (V2)', async () => {
-    // OLD ROAD
+    // OLD ROAD (Wrapper around V3)
     const oldRenderer = new UMLRenderer()
     const oldOutput = await oldRenderer.render(sampleIR)
 
-    // NEW ROAD (V3)
+    // NEW ROAD (V3 Direct)
     const newRenderer = new DiagramRenderer(
-      new LegacyIRProvider(),
-      new LegacyClassLayout(),
-      new LegacySVGEngine(),
+      new IRAdapter(),
+      new ClassLayoutStrategy(),
+      new SVGRenderer(),
     )
     const newOutput = await newRenderer.render(sampleIR)
 

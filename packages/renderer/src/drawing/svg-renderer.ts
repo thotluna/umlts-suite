@@ -15,14 +15,16 @@ import { DrawingRegistry } from './drawable'
 import './elements/class-node'
 import { renderMarkers, midpoint } from './elements/edges'
 
+import { type IDrawingEngine } from '../core/contract'
+
 /**
  * SVGRenderer: Orchestrates the generation of the SVG string from a layouted result.
  */
-export class SVGRenderer {
-  public render(
+export class SVGRenderer implements IDrawingEngine<string> {
+  public draw(
     layoutResult: LayoutResult,
     theme: Theme,
-    config?: DiagramConfig['render'],
+    config: DiagramConfig['render'] = {},
   ): string {
     const { model, totalWidth, totalHeight } = layoutResult
 
