@@ -32,7 +32,16 @@ export class IRAdapter {
     const visibleEntityIds = new Set(visibleEntities.map((e) => e.id))
 
     const nodes: UMLNode[] = visibleEntities.map((entity: IREntity) => this.transformEntity(entity))
-    const edges: UMLEdge[] = ir.relationships
+
+    // 2. Relationship Transformation & Filtering
+    let rawRelationships = ir.relationships
+
+    // Apply showDependencies filter if defined in config
+    if (ir.config?.showDependencies === false) {
+      rawRelationships = rawRelationships.filter((rel) => rel.type.toLowerCase() !== 'dependency')
+    }
+
+    const edges: UMLEdge[] = rawRelationships
       .filter(
         (rel: IRRelationship) => visibleEntityIds.has(rel.from) && visibleEntityIds.has(rel.to),
       )
