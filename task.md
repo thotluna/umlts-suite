@@ -471,6 +471,6 @@
 - [x] **PLAN**: Estrategia de refactorización "Zero-Downtime" (`docs/RENDERER_V3_IMPLEMENTATION_PLAN.md`)
 - [x] **Fase 1**: Definición de Contratos e Infraestructura (`core/contract.ts`)
 - [x] **Fase 2**: Creación de Wrappers (Legacy Adapters)
-- [x] **Fase 3**: Nuevo Orquestador `UMLRendererV3` con DI
+- [x] **Fase 3**: Nuevo Orquestador `DiagramRenderer` con DI
 - [ ] **Fase 4**: Refactorización atómica de componentes (Limpieza de Layout y Providers)
 - [ ] **Fase 5**: Implementación de metadatos para interactividad

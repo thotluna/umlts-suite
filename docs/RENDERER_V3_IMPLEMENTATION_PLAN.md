@@ -21,13 +21,13 @@ _Objetivo: Envolver lo viejo en las interfaces nuevas._
 3.  **`LegacySVGEngine`**: Envolver el `SVGRenderer` actual.
     _En este punto, nada ha cambiado en la superficie, pero todo está preparado para ser inyectado._
 
-## Fase 3: El Nuevo Orquestador (`UMLRendererV3`)
+## Fase 3: El Nuevo Orquestador (`DiagramRenderer`)
 
 _Objetivo: Construir la nueva "carretera" al lado de la vieja._
 
-1.  Crear `UMLRendererV3` que acepte los 3 componentes vía constructor (Inyección de Dependencias).
-2.  Implementar el método `render()` en V3 siguiendo el nuevo pipeline (Normalization -> Layout -> Drawing).
-3.  **Prueba de Paridad**: Verificar que `UMLRendererV3` (usando los wrappers de la Fase 2) produce exactamente los mismos diagramas que el actual.
+1.  Crear `DiagramRenderer` que acepte los 3 componentes vía constructor (Inyección de Dependencias).
+2.  Implementar el método `render()` en la nueva arquitectura siguiendo el nuevo pipeline (Normalization -> Layout -> Drawing).
+3.  **Prueba de Paridad**: Verificar que `DiagramRenderer` (usando los wrappers de la Fase 2) produce exactamente los mismos diagramas que el actual.
 
 ## Fase 4: Refactorización Atómica (Puntual)
 
@@ -39,7 +39,7 @@ _Objetivo: Sustituir los wrappers por implementaciones puras._
 
 ## Fase 5: El Cambio de Mando (Switch)
 
-1.  Hacer que el `UMLRenderer` original sea un alias o un wrapper delgado de `UMLRendererV3`.
+1.  Hacer que el `UMLRenderer` original sea un alias o un wrapper delgado de `DiagramRenderer`.
 2.  Eliminar el código "Legacy" que haya quedado huérfano.
 
 ---
