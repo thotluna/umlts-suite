@@ -16,6 +16,7 @@ import type { ISemanticState } from '@engine/semantics/core/semantic-state.inter
 import { FQNBuilder } from '@engine/semantics/utils/fqn-builder'
 import { TokenType, type Token } from '@engine/syntax/token.types'
 import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
+import { TypeValidator } from '@engine/semantics/utils/type-validator'
 
 /**
  * Pase 1: Descubrimiento.
@@ -34,6 +35,12 @@ export class DiscoveryPass implements ISemanticPass, ASTVisitor {
   public execute(program: ProgramNode, state: ISemanticState): void {
     this.state = state
     this.currentNamespace = []
+
+    // Register primitives from language plugins + UML Standard
+    const pluginPrimitives = state.context.registry?.language?.getPrimitiveTypes() || []
+    const allPrimitives = [...new Set([...pluginPrimitives, ...TypeValidator.PRIMITIVES])]
+    allPrimitives.forEach((p) => state.symbolTable.registerPrimitive(p))
+
     walkAST(program, this)
   }
 

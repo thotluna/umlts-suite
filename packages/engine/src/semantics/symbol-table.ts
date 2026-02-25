@@ -14,6 +14,21 @@ export interface FQNResolution {
 export class SymbolTable {
   private readonly entities = new Map<string, IREntity>()
   private readonly namespaces = new Set<string>()
+  private readonly primitives = new Set<string>()
+
+  /**
+   * Registers a new primitive type.
+   */
+  public registerPrimitive(name: string): void {
+    this.primitives.add(name)
+  }
+
+  /**
+   * Checks if a type name is a primitive.
+   */
+  public isPrimitive(name: string): boolean {
+    return this.primitives.has(name)
+  }
 
   /**
    * Registers a namespace (Package) to prevent collisions with entities.
@@ -70,6 +85,11 @@ export class SymbolTable {
    * Resolves a simple name to an FQN within a namespace context with upward search.
    */
   public resolveFQN(name: string, currentNamespace?: string): FQNResolution {
+    // 0. Check if it's a primitive
+    if (this.isPrimitive(name)) {
+      return { fqn: name, isAmbiguous: false }
+    }
+
     // 1. Exact resolution attempt (absolute FQN)
     if (this.has(name)) {
       return { fqn: name, isAmbiguous: false }
@@ -88,7 +108,6 @@ export class SymbolTable {
     }
 
     // 4. Global search by suffix (Global Scout)
-    // Helps resolving things like 'Target' when 'pkg1.Target' and 'pkg2.Target' might exist.
     const suffix = name.includes('.') ? name : '.' + name
     const matches = this.getAllEntities().filter(
       (e) => !e.isImplicit && (e.id.endsWith(suffix) || e.id === name),
@@ -106,19 +125,18 @@ export class SymbolTable {
       }
     }
 
-    // 5. Generic resolution attempt: If 'Repository<User>', try resolving 'Repository'
+    // 5. Generic resolution attempt
     if (name.includes('<')) {
       const baseName = name.split('<')[0]
       const baseResolution = this.resolveFQN(baseName, currentNamespace)
       const baseEntity = this.get(baseResolution.fqn)
 
-      // Only resolve to base if it's a known generic template
       if (baseEntity && baseEntity.typeParameters && baseEntity.typeParameters.length > 0) {
         return baseResolution
       }
     }
 
-    // 6. Fallback: Contextualize in current namespace or return as is
+    // 6. Fallback
     const fqn = currentNamespace ? `${currentNamespace}.${name}` : name
     return { fqn, isAmbiguous: false }
   }
@@ -134,11 +152,16 @@ export class SymbolTable {
     literals?: string[],
   ): FQNResolution {
     const resolution = this.resolveFQN(name, namespace)
+
+    // Don't register if it's a primitive
+    if (this.isPrimitive(resolution.fqn)) {
+      return resolution
+    }
+
     const existing = this.get(resolution.fqn)
 
     if (!existing) {
       if (this.isNamespace(resolution.fqn)) {
-        // We don't register it, it will be caught by AssociationValidator
         return resolution
       }
 

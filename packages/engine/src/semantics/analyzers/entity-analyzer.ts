@@ -4,6 +4,7 @@ import type { SymbolTable } from '@engine/semantics/symbol-table'
 import type { ConfigStore } from '@engine/semantics/session/config-store'
 import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
 import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
+import type { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
 import { TypeValidator } from '@engine/semantics/utils/type-validator'
 import { FQNBuilder } from '@engine/semantics/utils/fqn-builder'
 import { MultiplicityValidator } from '@engine/semantics/utils/multiplicity-validator'
@@ -29,6 +30,7 @@ export class EntityAnalyzer {
     private readonly constraintAnalyzer: ConstraintAnalyzer,
     private readonly context: ISemanticContext,
     private readonly configStore: ConfigStore,
+    private readonly typeResolver: TypeResolutionPipeline,
   ) {}
 
   /**
@@ -259,11 +261,8 @@ export class EntityAnalyzer {
     typeParameters?: string[],
   ): void {
     if (!typeName) return
-    if (TypeValidator.isPrimitive(typeName)) return
-    if (node.type === ASTNodeType.CONSTRAINT || node.type === ASTNodeType.NOTE) return
-
     const baseType = TypeValidator.getBaseTypeName(typeName)
-    if (TypeValidator.isPrimitive(baseType)) return
+    if (this.typeResolver.isPrimitive(baseType)) return
     if (typeParameters?.includes(baseType)) return
 
     const modifiers =

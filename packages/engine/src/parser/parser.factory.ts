@@ -14,12 +14,13 @@ import { LinkRule } from '@engine/parser/rules/link.rule'
 import { MemberRegistry } from '@engine/parser/rules/member-strategies/member.registry'
 import { TypeRegistry } from '@engine/parser/rules/type-strategies/type.registry'
 import type { StatementRule } from '@engine/parser/rule.types'
+import type { LanguageExtension } from '@engine/plugin/language.extension'
 
 export class ParserFactory {
   /**
-   * Crea una instancia del Parser con las reglas estándar de UMLTS.
+   * Creates a Parser instance with standard UMLTS rules and plugin extensions.
    */
-  public static create(): Parser {
+  public static create(language?: LanguageExtension): Parser {
     const members = new MemberRegistry()
     const types = new TypeRegistry()
 
@@ -37,6 +38,29 @@ export class ParserFactory {
       new InterfaceRule(),
       new RelationshipRule(),
     ]
+
+    // Inject plugin contributions if present
+    if (language) {
+      // 1. External Statement Rules
+      for (const rule of language.getStatementRules()) {
+        rules.unshift(rule)
+      }
+
+      // 2. Member Providers
+      for (const provider of language.getMemberProviders()) {
+        members.registerProvider(provider)
+      }
+
+      // 3. Type Primaries
+      for (const provider of language.getTypePrimaries()) {
+        types.registerPrimary(provider)
+      }
+
+      // 4. Type Modifiers
+      for (const modifier of language.getTypeModifiers()) {
+        types.registerModifier(modifier)
+      }
+    }
 
     return new Parser(rules, members, types)
   }

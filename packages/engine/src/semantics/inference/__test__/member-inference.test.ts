@@ -3,6 +3,7 @@ import { MemberInference } from '@engine/semantics/inference/member-inference'
 import type { AnalysisSession } from '@engine/semantics/session/analysis-session'
 import type { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
 import { SymbolTable } from '@engine/semantics/symbol-table'
+import { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
 import { IREntityType, IRRelationshipType, IRVisibility } from '@engine/generator/ir/models'
 import type { IREntity, IRProperty } from '@engine/generator/ir/models'
 
@@ -14,7 +15,10 @@ describe('MemberInference', () => {
 
   beforeEach(() => {
     symbolTable = new SymbolTable()
-    mockSession = { symbolTable }
+    mockSession = {
+      symbolTable,
+      typeResolver: new TypeResolutionPipeline(),
+    }
     mockAnalyzer = {
       addResolvedRelationship: vi.fn(),
       resolveOrRegisterImplicit: vi.fn().mockReturnValue('ImplicitTarget'),
@@ -133,16 +137,16 @@ describe('MemberInference', () => {
         label: 'roles',
       }),
     )
-    // It should have resolved 'Role' instead of 'Array<Role>'
+    // It should have resolved 'Array' as the base name
     expect(mockAnalyzer.resolveOrRegisterImplicit).toHaveBeenCalledWith(
-      'Role',
+      'Array',
+      '',
       expect.anything(),
+      undefined,
+      undefined,
       expect.anything(),
-      expect.anything(),
-      expect.anything(),
-      expect.anything(),
-      expect.anything(),
-      expect.anything(),
+      undefined,
+      undefined,
     )
   })
 

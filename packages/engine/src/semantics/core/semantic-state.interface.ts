@@ -14,6 +14,7 @@ export interface ISemanticState {
   readonly constraintRegistry: ConstraintRegistry
   readonly configStore: ConfigStore
   readonly context: ISemanticContext
+  readonly typeResolver: import('@engine/semantics/inference/type-resolution.pipeline').TypeResolutionPipeline
 
   /**
    * Records a new relationship in the state.

@@ -12,6 +12,7 @@ import { registerDefaultInferenceRules } from '@engine/semantics/rules/inference
 import type { SymbolTable } from '@engine/semantics/symbol-table'
 import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
 import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
+import type { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
 import type { HierarchyValidator } from '@engine/semantics/validators/hierarchy-validator'
 import { AssociationValidator } from '@engine/semantics/validators/association-validator'
 import { ASTNodeType } from '@engine/syntax/nodes'
@@ -36,6 +37,7 @@ export class RelationshipAnalyzer {
     private readonly symbolTable: SymbolTable,
     private readonly relationships: IRRelationship[],
     private readonly hierarchyValidator: HierarchyValidator,
+    private readonly typeResolver: TypeResolutionPipeline,
     private readonly context?: ISemanticContext,
   ) {
     this.typeInferrer = new TypeInferrer()
@@ -64,7 +66,7 @@ export class RelationshipAnalyzer {
     // If it's a generic parameter of the current context, we treat it as a "virtual" entity
     // that won't be registered in the symbol table to avoid orphan boxes.
     const baseName = TypeValidator.getBaseTypeName(name)
-    if (typeParameters?.includes(baseName) || TypeValidator.isPrimitive(baseName)) {
+    if (typeParameters?.includes(baseName) || this.typeResolver.isPrimitive(baseName)) {
       return baseName // Return as-is, won't be found in SymbolTable, won't be rendered as a box
     }
 
