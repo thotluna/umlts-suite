@@ -2,6 +2,8 @@ import { IUMLPlugin, ICapability, ILanguageCapability, ILanguageAPI } from '@uml
 import { TSKeywordMatcher } from '@plugin-ts/lexical/ts-keyword.matcher'
 import { TSNamespaceRule } from '@plugin-ts/syntax/rules/ts-namespace.rule'
 import { TSTypeAliasRule } from '@plugin-ts/syntax/rules/ts-type-alias.rule'
+import { TSGenericResolutionStrategy } from '@plugin-ts/semantics/strategies/ts-generic.strategy'
+import { TSMappedTypeStrategy } from '@plugin-ts/semantics/strategies/ts-mapped.strategy'
 
 /**
  * TypeScriptPlugin: Reference implementation of a language plugin for UMLTS.
@@ -65,7 +67,8 @@ class TSLanguageCapability implements ILanguageCapability {
     api.addStatementRule(new TSNamespaceRule())
     api.addStatementRule(new TSTypeAliasRule())
 
-    // Future iterations will register:
-    // - TypeResolutionStrategies (Phase 7.4)
+    // 4. Dominio Semántico y Estrategias TS (Fase 7.4)
+    api.addTypeResolutionStrategy(new TSGenericResolutionStrategy())
+    api.addTypeResolutionStrategy(new TSMappedTypeStrategy())
   }
 }

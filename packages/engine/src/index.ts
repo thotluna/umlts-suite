@@ -57,3 +57,8 @@ export type {
 export type { IParserHub } from '@engine/parser/core/parser.hub'
 export type { StatementRule, Orchestrator } from '@engine/parser/rule.types'
 export { MemberRule } from '@engine/parser/rules/member.rule'
+
+export type {
+  ITypeResolutionStrategy,
+  TypeResolution,
+} from '@engine/semantics/inference/type-resolver.types'
