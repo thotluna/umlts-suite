@@ -56,6 +56,7 @@ export enum TokenType {
   PIPE = 'PIPE', // |
   STAR = 'STAR', // *
   EXCLAMATION = 'EXCLAMATION', // !
+  EQUALS = 'EQUALS', // =
 
   VIS_PUB = 'VIS_PUB', // +
   VIS_PRIV = 'VIS_PRIV', // -

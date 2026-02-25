@@ -26,6 +26,7 @@ export class UMLEngine {
     }
 
     return {
+      ast: artifacts.ast || undefined,
       diagram: artifacts.diagram!,
       diagnostics: context.getDiagnostics(),
       isValid: !context.hasErrors(),

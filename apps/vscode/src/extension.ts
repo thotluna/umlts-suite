@@ -9,9 +9,10 @@ import {
   type IRRelationship,
 } from '@umlts/engine'
 import { UMLPreviewPanel } from './preview'
+import { TypeScriptPlugin } from '@umlts/plugin-ts'
 
 export function activate(context: vscode.ExtensionContext) {
-  const engine = new UMLEngine()
+  const engine = new UMLEngine([new TypeScriptPlugin()])
   const diagnosticCollection = vscode.languages.createDiagnosticCollection('umlts')
 
   // Caché simple para evitar re-parseos innecesarios en hovers/completions rápidos

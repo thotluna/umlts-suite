@@ -107,6 +107,7 @@
   "dependencies": {
     "@umlts/engine": "workspace:*",
     "@umlts/renderer": "workspace:*",
+    "@umlts/plugin-ts": "workspace:*",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12"
   }
