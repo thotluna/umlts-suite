@@ -6,6 +6,7 @@ import {
   type IRRelationshipType,
 } from '@umlts/engine'
 import { measureNodeDimensions } from '../../layout/measure'
+import type { DiagramConfig } from '../types'
 
 export type IRRelType = IRRelationshipType | string
 
@@ -134,4 +135,5 @@ export interface DiagramModel {
   edges: UMLEdge[]
   packages: UMLPackage[]
   constraints: IRConstraint[]
+  config?: DiagramConfig
 }

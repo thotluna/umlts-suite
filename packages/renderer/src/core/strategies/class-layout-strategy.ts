@@ -5,78 +5,40 @@ import {
   type UMLHierarchyItem,
   type DiagramModel,
   type UMLEdge,
-} from '../core/model/nodes'
-import { type LayoutResult, type DiagramConfig } from '../core/types'
-import { measureText } from './measure'
+} from '../model/nodes'
+import { type ILayoutStrategy } from '../contract'
+import { type LayoutResult, type DiagramConfig } from '../types'
+import { measureText } from '../../layout/measure'
+import { DiagramConfig as ConfigOrchestrator } from '../../graph-orchestrator/diagram-config'
+import { UMLScorer } from '../../layout/uml-scorer'
 
 const elk = new ELK()
 
-// ─── ELK option keys ──────────────────────────────────────────────────────────
-const BASE_LAYOUT_OPTIONS = {
-  'elk.algorithm': 'layered',
-  'elk.direction': 'DOWN',
-  'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
-  'elk.edgeRouting': 'UNDEFINED',
-
-  // Spacing optimizations
-  'elk.spacing.nodeNode': '50',
-  'elk.layered.spacing.nodeNodeBetweenLayers': '60',
-  'elk.spacing.componentComponent': '70',
-  'elk.padding': '[top=50,left=50,bottom=50,right=50]',
-  'elk.separateConnectedComponents': 'true',
-  'elk.layered.mergeEdges': 'false',
-  'elk.portConstraints': 'FREE',
-
-  // Long Hierarchical Edges optimizations
-  'elk.layered.spacing.edgeEdgeBetweenLayers': '25',
-  'elk.layered.spacing.edgeNodeBetweenLayers': '25',
-  'elk.layered.unnecessaryEdgeBends': 'true',
-  'elk.layered.compaction': 'true',
-
-  // Layered specifics to reduce crossing and "messy" look
-  'elk.layered.nodePlacement.strategy': 'BRANDES_KOEPF',
-  'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
-}
-
 /**
- * LayoutEngine: Uses ELK.js to calculate positions and routing for the diagram elements.
+ * ClassLayoutStrategy: Specialized layout strategy for UML Class Diagrams.
+ * It uses ELK.js as the underlying engine but applies UML-specific
+ * rules for weights, scores, and hierarchy.
  */
-export class LayoutEngine {
+export class ClassLayoutStrategy implements ILayoutStrategy {
+  public supports(_model: DiagramModel): boolean {
+    // For now, this is the default for any model that hasn't specified a type
+    return true
+  }
+
   public async layout(
     model: DiagramModel,
     config?: DiagramConfig['layout'],
   ): Promise<LayoutResult> {
-    const layoutOptions: Record<string, string> = { ...BASE_LAYOUT_OPTIONS }
+    const layoutOptions = new ConfigOrchestrator(config).getLayoutOptions()
 
-    if (config?.direction) {
-      layoutOptions['elk.direction'] = config.direction
-    }
-
-    if (config?.spacing) {
-      const s = config.spacing.toString()
-      layoutOptions['elk.spacing.nodeNode'] = s
-      layoutOptions['elk.layered.spacing.nodeNodeBetweenLayers'] = s
-      layoutOptions['elk.spacing.componentComponent'] = s
-      layoutOptions['elk.spacing.edgeNode'] = (config.spacing * 0.5).toString()
-    }
-
-    if (config?.nodePadding) {
-      const p = config.nodePadding
-      layoutOptions['elk.padding'] = `[top=${p},left=${p},bottom=${p},right=${p}]`
-    }
-
-    if (config?.routing) {
-      layoutOptions['elk.edgeRouting'] = config.routing
-    }
-
+    // 1. Pre-calculate UML priorities and weights
+    const nodeStats = UMLScorer.calculateNodeStats(model)
     const edgesByLCA = this.groupEdgesByLCA(model, layoutOptions)
-    const nodeStats = this.calculateNodeStats(model)
 
-    const nodes = model.nodes || []
-    const topLevelNodes = nodes.filter((n: UMLNode) => !n.namespace)
-
+    // 2. Build ELK Hierarchy
+    const topLevelNodes = model.nodes.filter((n: UMLNode) => !n.namespace)
     const elkChildren: ElkNode[] = [
-      ...topLevelNodes.map((n: UMLNode) => this.toElkNode(n, nodeStats.get(n.id))),
+      ...topLevelNodes.map((n: UMLNode) => this.toElkNode(n, nodeStats.get(n.id)?.score)),
       ...model.packages.map((p: UMLPackage) =>
         this.pkgToElk(p, edgesByLCA, layoutOptions, nodeStats),
       ),
@@ -89,8 +51,10 @@ export class LayoutEngine {
       edges: edgesByLCA.get('root') ?? [],
     }
 
-    this.validateElkGraph(elkGraph)
+    // 3. Execution
     const layoutedGraph = await elk.layout(elkGraph)
+
+    // 4. Back-propagation to Domain Model
     this.applyLayout(model, layoutedGraph)
 
     const bbox = this.calculateModelBoundingBox(model)
@@ -115,7 +79,7 @@ export class LayoutEngine {
         return this.pkgToElk(child, edgesByLCA, layoutOptions, nodeStats)
       }
       const node = child as UMLNode
-      return this.toElkNode(node, nodeStats.get(node.id))
+      return this.toElkNode(node, nodeStats.get(node.id)?.score)
     })
 
     return {
@@ -126,14 +90,14 @@ export class LayoutEngine {
     }
   }
 
-  private toElkNode(node: UMLNode, stats?: { score: number }): ElkNode {
+  private toElkNode(node: UMLNode, score?: number): ElkNode {
     const { width, height } = node.getDimensions()
     const options: Record<string, string> = {
       'elk.portConstraints': 'UNDEFINED',
     }
 
-    if (stats) {
-      options['elk.priority'] = Math.max(1, stats.score + 50).toString()
+    if (score !== undefined) {
+      options['elk.priority'] = Math.max(1, score + 50).toString()
     }
 
     return {
@@ -144,63 +108,22 @@ export class LayoutEngine {
     }
   }
 
-  private calculateNodeStats(model: DiagramModel): Map<string, { score: number }> {
-    const stats = new Map<string, { score: number }>()
-
-    const nodes = model.nodes || []
-    nodes.forEach((n: UMLNode) => {
-      let baseScore = 0
-      if (n.type === 'Interface') baseScore = 5
-      if (n.isAbstract) baseScore += 2
-      stats.set(n.id, { score: baseScore })
-    })
-
-    const edges = model.edges || []
-    edges.forEach((edge: UMLEdge) => {
-      const s = stats.get(edge.from)
-      const t = stats.get(edge.to)
-      if (!s || !t) return
-
-      const type = edge.type.toLowerCase()
-
-      if (type.includes('inheritance') || type.includes('implementation')) {
-        t.score += 20
-        s.score -= 10
-      } else if (type.includes('composition') || type.includes('aggregation')) {
-        s.score += 15
-        t.score -= 5
-      } else {
-        s.score += 2
-        t.score -= 1
-      }
-    })
-
-    return stats
-  }
-
   private groupEdgesByLCA(
     model: DiagramModel,
     _layoutOptions: Record<string, string>,
   ): Map<string, ElkExtendedEdge[]> {
     const groups = new Map<string, ElkExtendedEdge[]>()
 
-    const edges = model.edges || []
-    edges.forEach((edge: UMLEdge, index: number) => {
+    model.edges.forEach((edge: UMLEdge, index: number) => {
       const lcaId = this.findLCA(edge.from, edge.to)
+      const isHierarchy = UMLScorer.isHierarchyEdge(edge.type)
 
-      const isHierarchy =
-        edge.type.toLowerCase().includes('inheritance') ||
-        edge.type.toLowerCase().includes('implementation')
-
+      // In ELK, for hierarchical layout, reversing the edge direction
+      // helps keep the "parent" (base class) above the "child".
       const source = isHierarchy ? edge.to : edge.from
       const target = isHierarchy ? edge.from : edge.to
 
-      let weight = '1'
-      const type = edge.type.toLowerCase()
-      if (type.includes('inheritance') || type.includes('implementation')) weight = '10'
-      else if (type.includes('composition')) weight = '7'
-      else if (type.includes('aggregation')) weight = '5'
-      else if (type.includes('association')) weight = '3'
+      const weight = UMLScorer.getEdgeWeight(edge.type).toString()
 
       const elkEdge: ElkExtendedEdge = {
         id: `e${index}`,
@@ -211,7 +134,6 @@ export class LayoutEngine {
         },
       }
 
-      // Si el LCA es 'root', forzamos ruteo POLYLINE
       if (lcaId === 'root') {
         elkEdge.layoutOptions!['elk.edgeRouting'] = 'POLYLINE'
       }
@@ -261,18 +183,22 @@ export class LayoutEngine {
     for (const elkNode of elkNodes) {
       const node = model.nodes.find((n: UMLNode) => n.id === elkNode.id)
       if (node) {
-        node.x = (elkNode.x || 0) + offsetX
-        node.y = (elkNode.y || 0) + offsetY
-        node.width = elkNode.width || 0
-        node.height = elkNode.height || 0
+        node.updateLayout(
+          (elkNode.x || 0) + offsetX,
+          (elkNode.y || 0) + offsetY,
+          elkNode.width || 0,
+          elkNode.height || 0,
+        )
       }
       if (elkNode.children) {
         const pkg = this.findPackage(model.packages, elkNode.id)
         if (pkg) {
-          pkg.x = (elkNode.x || 0) + offsetX
-          pkg.y = (elkNode.y || 0) + offsetY
-          pkg.width = elkNode.width || 0
-          pkg.height = elkNode.height || 0
+          pkg.updateLayout(
+            (elkNode.x || 0) + offsetX,
+            (elkNode.y || 0) + offsetY,
+            elkNode.width || 0,
+            elkNode.height || 0,
+          )
         }
         this.processElkNodes(
           elkNode.children,
@@ -306,9 +232,7 @@ export class LayoutEngine {
           }
           waypoints.push({ x: section.endPoint.x + offsetX, y: section.endPoint.y + offsetY })
 
-          const isHierarchy =
-            edge.type.toLowerCase().includes('inheritance') ||
-            edge.type.toLowerCase().includes('implementation')
+          const isHierarchy = UMLScorer.isHierarchyEdge(edge.type)
           if (isHierarchy) waypoints.reverse()
 
           let labelPos, labelWidth, labelHeight
@@ -368,6 +292,4 @@ export class LayoutEngine {
       height: maxY - minY + MARGIN * 2,
     }
   }
-
-  private validateElkGraph(_node: ElkNode): void {}
 }

@@ -171,7 +171,12 @@ export function renderClassNode(
   }
 
   return svg.g(
-    { class: 'node', 'data-id': node.id, cursor: 'pointer' },
+    {
+      class: 'node',
+      'data-id': node.id,
+      'data-type': node.type.toLowerCase(),
+      cursor: 'pointer',
+    },
     bg + activeLines + headerSep + headerContent + membersContent + templateBox,
   )
 }
