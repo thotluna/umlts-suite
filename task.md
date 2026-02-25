@@ -103,7 +103,7 @@
 - [x] Implementación de `SVGBuilder` y Patrón de Dibujo Desacoplado
 - [x] Formalización del Orquestador de Pipeline (`UMLRenderer`)
 - [x] Abstracción de Jerarquía (`UMLHierarchyItem`) para soporte agnóstico de contenedores
-- [x] Corrección de Bug de Layout Jerárquico (Offsets de aristas y proporciones)
+- [x] Corrección de Bug de Layout Hierárquico (Offsets de aristas y proporciones)
 
 ## Publicación y Despliegue
 
@@ -316,7 +316,7 @@
 - [x] **FEAT**: Actualizar Lexer with tokens for `note`, `..`, `derived` and nuevas keywords
 - [x] **FEAT**: Implementar `NoteRule` y `LinkRule` en el Parser
 - [x] **FEAT**: Implementar soporte para restricciones in-line y de bloque en miembros
-- [x] **FEAT**: Implementar `XOR Type` (Unión Discriminada) en la IR y Semántica (Mapping a xor_member)
+- [x] **FEAT**: Implementar `XOR Type` (Unión Discriminada) en la IR and Semántica (Mapping a xor_member)
 - [x] **FEAT**: Soporte de propiedades derivadas (`/` via `{derived}`) y notas de miembros help
 - [x] **FEAT**: Reparación de SemanticAnalyzer (Pases 1-3, Bloques XOR, Modificadores de métodos)
 - [ ] **FEAT**: Actualizar Renderer para dibujar Notas y líneas de anclaje (dashed)
@@ -424,7 +424,7 @@
 ## Purificación de la Arquitectura del Motor (Pure UML)
 
 - [x] **ARCH**: Eliminar toda lógica y dependencia de plugins del núcleo del motor <!-- id: 500 -->
-  - [x] Purgar `PluginManager` de `UMLEngine`, `PhasesFactory` y `SemanticAnalyzer`
+  - [x] Purgar `PluginManager` de `UMLEngine`, `PhasesFactory` and `SemanticAnalyzer`
   - [x] Eliminar `TypeResolutionPipeline` y adaptadores de plugins de los analizadores semánticos
   - [x] Refactorizar `EntityAnalyzer` y `RelationshipAnalyzer` para cumplimiento estricto de UML 2.5.1
   - [x] Purificar `ConfigStore` y `AnalysisSession` (eliminación de activación de lenguajes)
@@ -463,3 +463,14 @@
   - [x] Corrección de `RegisteredPrimitiveStrategy` para no registrar primitivos como entidades implícitas
   - [x] Creación del paquete `@umlts/cli` para desacoplar las herramientas de depuración del motor core
   - [x] Soporte para tipos unión (`|`) en el `TypeValidator` del motor
+
+## Refactorización de Arquitectura Renderer (V3)
+
+- [x] **ANÁLISIS**: Descomposición en bloque de legos y análisis de violaciones SRP/DIP (`docs/RENDERER_V3_ANALYSIS.md`)
+- [x] **DISEÑO**: Plan de arquitectura de Puertos y Adaptadores para extensibilidad e interactividad (`docs/RENDERER_V3_DESIGN.md`)
+- [x] **PLAN**: Estrategia de refactorización "Zero-Downtime" (`docs/RENDERER_V3_IMPLEMENTATION_PLAN.md`)
+- [x] **Fase 1**: Definición de Contratos e Infraestructura (`core/contract.ts`)
+- [x] **Fase 2**: Creación de Wrappers (Legacy Adapters)
+- [ ] **Fase 3**: Nuevo Orquestador `UMLRendererV3` con DI
+- [ ] **Fase 4**: Refactorización atómica de componentes (Limpieza de Layout y Providers)
+- [ ] **Fase 5**: Implementación de metadatos para interactividad
