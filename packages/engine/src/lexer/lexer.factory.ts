@@ -6,14 +6,17 @@ import { NumberMatcher } from '@engine/lexer/matchers/number.matcher'
 import { SymbolMatcher } from '@engine/lexer/matchers/symbol.matcher'
 import { StringMatcher } from '@engine/lexer/matchers/string.matcher'
 import { MasterMatcher } from '@engine/lexer/matchers/master.matcher'
+import type { TokenMatcher } from './matcher.types'
 
 export class LexerFactory {
   /**
-   * Crea una instancia del Lexer con la configuración estándar de UMLTS.
+   * Creates a Lexer instance with standard UMLTS configuration and optional plugin matchers.
+   * Standard UML matchers are prioritized, then plugin matchers are evaluated.
    */
-  public static create(input: string): Lexer {
+  public static create(input: string, pluginMatchers: TokenMatcher[] = []): Lexer {
     const master = new MasterMatcher()
 
+    // 1. UML Pure Matchers (Priority)
     master.use(
       new WhitespaceMatcher(),
       new CommentMatcher(),
@@ -22,6 +25,11 @@ export class LexerFactory {
       new StringMatcher(),
       new SymbolMatcher(),
     )
+
+    // 2. Language Specialization Matchers (Plugins)
+    if (pluginMatchers.length > 0) {
+      master.use(...pluginMatchers)
+    }
 
     return new Lexer(input, master)
   }

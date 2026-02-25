@@ -1,8 +1,5 @@
-import type { TypeNode } from '@engine/syntax/nodes'
-import type {
-  ITypeResolutionStrategy,
-  TypeResolution,
-} from '@engine/semantics/inference/type-resolution.pipeline'
+import type { TypeNode } from '../../syntax/nodes'
+import type { ITypeResolutionStrategy, TypeResolution } from './type-resolver.types'
 
 /**
  * Standard UML 2.5.1 Primitive Resolver.
@@ -25,9 +22,8 @@ export class UMLTypeResolver implements ITypeResolutionStrategy {
    * it's likely a reference to another Classifier.
    */
   public resolve(_typeNode: TypeNode): TypeResolution | null {
-    // UML Core doesn't do "List<T> -> * T" mapping. That's a language projection.
+    // UML Core doesn't do mapping. That's a language projection.
     // So this resolver returns null for everything, delegating to the next strategy
-    // or falling back to the default "implicit entity" behavior in MemberInference.
     return null
   }
 

@@ -1,7 +1,7 @@
-// Exportación de la API principal
+// Main API exports
 export type { ParseResult } from '@engine/generator/types'
 
-// Exportación de modelos de la IR (Representación Intermedia)
+// IR (Intermediate Representation) model exports
 export { IREntityType, IRRelationshipType, IRVisibility } from '@engine/generator/ir/models'
 
 export type {
@@ -15,7 +15,11 @@ export type {
   IRMultiplicity,
 } from '@engine/generator/ir/models'
 
-// Exportación de diagnósticos
+// Diagnostics exports
 export type { Diagnostic, DiagnosticSeverity } from '@engine/syntax/diagnostic.types'
 
 export * from '@engine/UMLEngine'
+
+// Plugin System exports
+export * from './plugin/plugin.types'
+export * from './plugin/language.types'

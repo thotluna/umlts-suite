@@ -8,8 +8,8 @@ import type {
 } from '@engine/parser/core/type-provider.interface'
 
 /**
- * IParserHub: Interfaz de fachada que expone los servicios del parser a las reglas.
- * Define el contrato para la navegación de tokens, reporte de errores y gestión de documentación.
+ * IParserHub: Facade interface exposing parser services to rules.
+ * Defines the contract for token navigation, error reporting, and documentation management.
  */
 export interface IParserHub {
   // Navigation
@@ -31,7 +31,7 @@ export interface IParserHub {
 
   // Session Management
   /**
-   * Limpia el estado volátil de la sesión actual (ej. docs pendientes).
+   * Clears the volatile state of the current session (e.g., pending docs).
    */
   clearSession(): void
 
@@ -48,17 +48,17 @@ export interface IParserHub {
 
   // Registry Services
   /**
-   * Obtiene la lista de proveedores de miembros registrados.
+   * Returns the list of registered member providers.
    */
   getMemberProviders(): IMemberProvider[]
 
   /**
-   * Obtiene la lista de proveedores primarios de tipos.
+   * Returns the list of registered primary type providers.
    */
   getTypePrimaries(): IPrimaryTypeProvider[]
 
   /**
-   * Obtiene la lista de modificadores de tipos registrados.
+   * Returns the list of registered type modifiers.
    */
   getTypeModifiers(): ITypeModifierProvider[]
 }

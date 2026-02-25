@@ -5,6 +5,8 @@ import type { CompilerPhase } from '@engine/compiler/phases/types'
 
 export class LexerPhase implements CompilerPhase {
   public run(context: CompilerContext, artifacts: PipelineArtifacts): void {
-    artifacts.tokens = LexerFactory.create(context.source, context.plugin).tokenize()
+    // We pass the matchers from the registry to the factory
+    const pluginMatchers = context.registry.language.getMatchers()
+    artifacts.tokens = LexerFactory.create(context.source, pluginMatchers).tokenize()
   }
 }

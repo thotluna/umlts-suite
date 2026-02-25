@@ -436,3 +436,16 @@
 - [x] Crear plan de implementación detallado (docs/plugin-implementation-plan.md)
 - [x] Definir interfaces base `IUMLPlugin` y `ILanguageAPI` (Fase 1 - Diseño)
 - [x] Establecer estrategia de carga perezosa y restricción de instancia única
+- [x] Implementar `PluginRegistry` y `LanguageExtension` (Fase 2)
+- [x] Integrar `PluginRegistry` en `UMLEngine` y `CompilerContext` (Fase 3)
+- [x] Implementar punto de extensión léxica y priorizar matchers de UML (Fase 4)
+- [x] Implementar puntos de extensión sintáctica y actualizar ParserHub (Fase 5)
+- [x] Cierre Semántico y Validación Inicial: registro de tipos primitivos (Fase 6)
+- [x] Verificar integración completa con tests de extremo a extremo
+- [x] **REFAC**: Refinamiento de Análisis Semántico y Type Resolution
+  - [x] Implementar `TypeResolutionPipeline` para gestionar múltiples estrategias de resolución
+  - [x] Integrar `ITypeResolutionStrategy` en la arquitectura de plugins (`ILanguageAPI`)
+  - [x] Actualizar `AnalysisSession` y `SessionFactory` para inyectar el pipeline de resolución
+  - [x] Refactorizar `MemberInference`, `EntityAnalyzer` y `RelationshipAnalyzer` para usar el pipeline
+  - [x] Corregir errores de importación y asegurar robustez en `UMLTypeResolver`
+  - [x] Purificar `SymbolTable` eliminando primitivas hardcodeadas y usando registro dinámico

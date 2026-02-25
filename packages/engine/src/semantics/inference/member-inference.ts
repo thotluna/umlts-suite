@@ -112,8 +112,7 @@ export class MemberInference {
   ): void {
     const { baseName, multiplicity } = TypeValidator.decomposeGeneric(typeName)
     const { values: enumValues } = TypeValidator.decomposeEnum(typeName)
-
-    if (TypeValidator.isPrimitive(baseName)) return
+    if (this.session.typeResolver.isPrimitive(baseName)) return
 
     const fromEntity = this.session.symbolTable.get(fromFQN)
     if (fromEntity?.typeParameters?.includes(baseName)) return

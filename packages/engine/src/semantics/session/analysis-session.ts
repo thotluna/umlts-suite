@@ -4,6 +4,7 @@ import type { SymbolTable } from '@engine/semantics/symbol-table'
 import type { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
 import type { ConfigStore } from '@engine/semantics/session/config-store'
 import type { ISemanticState } from '@engine/semantics/core/semantic-state.interface'
+import type { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
 
 /**
  * Encapsulates the complete state of a semantic analysis session.
@@ -17,6 +18,7 @@ export class AnalysisSession implements ISemanticState {
     public readonly constraintRegistry: ConstraintRegistry,
     public readonly configStore: ConfigStore,
     public readonly context: ISemanticContext,
+    public readonly typeResolver: TypeResolutionPipeline,
   ) {}
 
   public recordRelationship(relationship: IRRelationship): void {

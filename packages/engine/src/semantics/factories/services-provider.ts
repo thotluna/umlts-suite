@@ -51,6 +51,7 @@ export class SemanticServicesProvider {
       this.getConstraintAnalyzer(),
       this.state.context,
       this.state.configStore,
+      this.state.typeResolver,
     ))
   }
 
@@ -59,6 +60,7 @@ export class SemanticServicesProvider {
       this.state.symbolTable,
       this.state.relationships,
       this.getHierarchyValidator(),
+      this.state.typeResolver,
       this.state.context,
     ))
   }

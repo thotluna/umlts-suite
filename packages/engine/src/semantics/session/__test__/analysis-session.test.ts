@@ -3,15 +3,15 @@ import { AnalysisSession } from '@engine/semantics/session/analysis-session'
 import type { SymbolTable } from '@engine/semantics/symbol-table'
 import type { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
 import type { ConfigStore } from '@engine/semantics/session/config-store'
-import type { PluginManager } from '@engine/plugins/plugin-manager'
 import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
+import { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
+import type { IREntity, IRConstraint } from '@engine/generator/ir/models'
 
 describe('AnalysisSession', () => {
   let session: AnalysisSession
   let symbolTable: SymbolTable
   let constraintRegistry: ConstraintRegistry
   let configStore: ConfigStore
-  let pluginManager: PluginManager
   let context: ISemanticContext
 
   beforeEach(() => {
@@ -29,19 +29,18 @@ describe('AnalysisSession', () => {
       get: vi.fn(),
       merge: vi.fn(),
     } as unknown as ConfigStore
-    pluginManager = {
-      getActive: vi.fn(),
-    } as unknown as PluginManager
     context = {
-      scope: [],
+      addError: vi.fn(),
+      getDiagnostics: vi.fn(),
     } as unknown as ISemanticContext
 
+    const typeResolver = new TypeResolutionPipeline()
     session = new AnalysisSession(
       symbolTable,
       constraintRegistry,
       configStore,
-      pluginManager,
       context,
+      typeResolver,
     )
   })
 
@@ -49,7 +48,6 @@ describe('AnalysisSession', () => {
     expect(session.symbolTable).toBe(symbolTable)
     expect(session.constraintRegistry).toBe(constraintRegistry)
     expect(session.configStore).toBe(configStore)
-    expect(session.pluginManager).toBe(pluginManager)
     expect(session.context).toBe(context)
     expect(session.relationships).toEqual([])
   })
@@ -59,14 +57,8 @@ describe('AnalysisSession', () => {
     const constraints = [{ kind: 'xor' }]
     const config = { direction: 'LR' }
 
-    symbolTable.getAllEntities = vi
-      .fn()
-      .mockReturnValue(entities as unknown as import('../../../generator/ir/models').IREntity[])
-    constraintRegistry.getAll = vi
-      .fn()
-      .mockReturnValue(
-        constraints as unknown as import('../../../generator/ir/models').IRConstraint[],
-      )
+    symbolTable.getAllEntities = vi.fn().mockReturnValue(entities as IREntity[])
+    constraintRegistry.getAll = vi.fn().mockReturnValue(constraints as IRConstraint[])
     configStore.get = vi.fn().mockReturnValue(config)
 
     const diagram = session.toIRDiagram()

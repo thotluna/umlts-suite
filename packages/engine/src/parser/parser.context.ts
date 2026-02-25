@@ -3,7 +3,7 @@ import type { Diagnostic, DiagnosticCode } from '@engine/syntax/diagnostic.types
 import { TokenStream } from '@engine/parser/token-stream'
 import { DiagnosticReporter } from '@engine/core/diagnostics/diagnostic-reporter'
 import { ParserSession } from '@engine/parser/core/parser.session'
-import { IParserHub } from '@engine/parser/core/parser.hub'
+import type { IParserHub } from '@engine/parser/core/parser.hub'
 import type { MemberRegistry } from '@engine/parser/rules/member-strategies/member.registry'
 import type { TypeRegistry } from '@engine/parser/rules/type-strategies/type.registry'
 import type { IMemberProvider } from '@engine/parser/core/member-provider.interface'
@@ -13,9 +13,9 @@ import type {
 } from '@engine/parser/core/type-provider.interface'
 
 /**
- * ParserContext: Fachada (Facade) que coordina los subsistemas del parser.
- * Delega la navegación a TokenStream, los errores a DiagnosticReporter y
- * el estado volátil a ParserSession.
+ * ParserContext: Facade that coordinates parser subsystems.
+ * Delegates navigation to TokenStream, errors to DiagnosticReporter,
+ * and volatile state to ParserSession.
  */
 export class ParserContext implements IParserHub {
   private readonly stream: TokenStream
@@ -37,7 +37,7 @@ export class ParserContext implements IParserHub {
     this.types = types
   }
 
-  // --- Delegación a TokenStream ---
+  // --- Delegation to TokenStream ---
 
   public peek(): Token {
     return this.stream.peek()
@@ -75,12 +75,12 @@ export class ParserContext implements IParserHub {
     return types.some((type) => this.check(type))
   }
 
-  // --- Lógica de coordinación (Facade Logic) ---
+  // --- Coordination Logic (Facade Logic) ---
 
   public match(...types: TokenType[]): boolean {
     for (const type of types) {
       if (this.check(type)) {
-        // Si el stream necesita dividir el token, lo hace y devuelve true
+        // If the stream needs to split the token, it does so and returns true
         if (this.stream.splitAndAdvance(type)) {
           return true
         }
@@ -94,7 +94,7 @@ export class ParserContext implements IParserHub {
   public consume(type: TokenType, message: string): Token {
     if (this.check(type)) {
       if (this.stream.splitAndAdvance(type)) {
-        return { ...this.stream.prev(), type, value: '>' } // Casos especiales de splitting
+        return { ...this.stream.prev(), type, value: '>' } // Special case for splitting
       }
       return this.advance()
     }
@@ -105,7 +105,7 @@ export class ParserContext implements IParserHub {
   public softConsume(type: TokenType, message: string): Token {
     if (this.check(type)) {
       if (this.stream.splitAndAdvance(type)) {
-        return { ...this.stream.prev(), type, value: '>' } // Casos especiales de splitting
+        return { ...this.stream.prev(), type, value: '>' } // Special case for splitting
       }
       return this.advance()
     }
@@ -121,8 +121,8 @@ export class ParserContext implements IParserHub {
   }
 
   /**
-   * Sincroniza el stream delegando en TokenStream.
-   * @param isPointOfNoReturn - Predicado que define si el token actual permite iniciar un nuevo parseo seguro.
+   * Synchronizes the stream by delegating to TokenStream.
+   * @param isPointOfNoReturn - Predicate defining if the current token allows starting a safe new parse.
    */
   public sync(isPointOfNoReturn: () => boolean): void {
     this.stream.sync(isPointOfNoReturn)
@@ -134,7 +134,7 @@ export class ParserContext implements IParserHub {
     this.session.clear()
   }
 
-  // --- Delegación a DiagnosticReporter ---
+  // --- Delegation to DiagnosticReporter ---
 
   public addError(message: string, token?: Token, code?: DiagnosticCode): void {
     this.errors.addError(message, token ?? this.peek(), code)
@@ -156,7 +156,7 @@ export class ParserContext implements IParserHub {
     return this.errors.hasErrors()
   }
 
-  // --- Delegación a ParserSession (Documentation) ---
+  // --- Delegation to ParserSession (Documentation) ---
 
   public setPendingDocs(docs: string): void {
     this.session.setPendingDocs(docs)

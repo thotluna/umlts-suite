@@ -5,7 +5,8 @@ import type { CompilerPhase } from '@engine/compiler/phases/types'
 
 export class ParserPhase implements CompilerPhase {
   public run(context: CompilerContext, artifacts: PipelineArtifacts): void {
-    const result = ParserFactory.create(context.plugin).parse(artifacts.tokens)
+    // We pass the language extension to the factory
+    const result = ParserFactory.create(context.registry.language).parse(artifacts.tokens)
     artifacts.ast = result
     if (result.diagnostics) {
       context.addDiagnostics(result.diagnostics)
