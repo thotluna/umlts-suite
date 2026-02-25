@@ -449,3 +449,6 @@
   - [x] Refactorizar `MemberInference`, `EntityAnalyzer` y `RelationshipAnalyzer` para usar el pipeline
   - [x] Corregir errores de importación y asegurar robustez en `UMLTypeResolver`
   - [x] Purificar `SymbolTable` eliminando primitivas hardcodeadas y usando registro dinámico
+- [x] **DOC**: Profundizar y ampliar el Plan de Implementación de Plugins (Fase 7)
+- [x] **PLUGIN-TS**: Estructura y Contrato (Fase 7.1)
+- [x] **LEXER**: Extensión del Léxico para TypeScript (Fase 7.2)

@@ -23,3 +23,9 @@ export * from '@engine/UMLEngine'
 // Plugin System exports
 export * from './plugin/plugin.types'
 export * from './plugin/language.types'
+
+// Lexer & Parser Infra for Plugins
+export type { TokenMatcher } from '@engine/lexer/matcher.types'
+export { LexerReader } from '@engine/lexer/lexer.reader'
+export { TokenType } from '@engine/syntax/token.types'
+export type { Token } from '@engine/syntax/token.types'

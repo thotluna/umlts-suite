@@ -16,7 +16,12 @@ export class LexerFactory {
   public static create(input: string, pluginMatchers: TokenMatcher[] = []): Lexer {
     const master = new MasterMatcher()
 
-    // 1. UML Pure Matchers (Priority)
+    // 1. Language Specialization Matchers (Plugins - High Priority)
+    if (pluginMatchers.length > 0) {
+      master.use(...pluginMatchers)
+    }
+
+    // 2. UML Pure Matchers (Standard)
     master.use(
       new WhitespaceMatcher(),
       new CommentMatcher(),
@@ -25,11 +30,6 @@ export class LexerFactory {
       new StringMatcher(),
       new SymbolMatcher(),
     )
-
-    // 2. Language Specialization Matchers (Plugins)
-    if (pluginMatchers.length > 0) {
-      master.use(...pluginMatchers)
-    }
 
     return new Lexer(input, master)
   }

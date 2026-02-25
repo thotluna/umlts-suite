@@ -2,6 +2,8 @@ import { CompilerContext } from '@engine/compiler/phases/context'
 import { PhasesFactory } from '@engine/compiler/phases/phases.factory'
 import { PipelineArtifacts } from '@engine/compiler/phases/pipeline-artifacts'
 import { ParseResult } from '@engine/generator/types'
+import { Token } from '@engine/syntax/token.types'
+import { LexerFactory } from '@engine/lexer/lexer.factory'
 import { IUMLPlugin } from './plugin/plugin.types'
 import { PluginRegistry } from './plugin/plugin.registry'
 
@@ -28,6 +30,14 @@ export class UMLEngine {
       diagnostics: context.getDiagnostics(),
       isValid: !context.hasErrors(),
     }
+  }
+
+  /**
+   * getTokens: Utility for testing and debugging. Returns the list of tokens for a given source.
+   */
+  public getTokens(source: string): Token[] {
+    const pluginMatchers = this.registry.language.getMatchers()
+    return LexerFactory.create(source, pluginMatchers).tokenize()
   }
 
   /**
