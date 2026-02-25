@@ -1,7 +1,7 @@
-import { SVGRenderer } from '@renderer/drawing/svg-renderer'
-import { type DiagramConfig, type LayoutResult } from '@renderer/core/types'
-import { type Theme } from '@renderer/core/theme'
-import { type IDrawingEngine } from '@renderer/core/contract'
+import { SVGRenderer } from '../../drawing/svg-renderer'
+import { type DiagramConfig, type LayoutResult } from '../types'
+import { type Theme } from '../theme'
+import { type IDrawingEngine } from '../contract'
 
 /**
  * Legacy wrapper for the existing SVG drawing logic.
