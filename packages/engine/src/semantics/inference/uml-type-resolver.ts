@@ -14,6 +14,8 @@ export class UMLTypeResolver implements ITypeResolutionStrategy {
     'String',
     'UnlimitedNatural',
     'Real',
+    'xor',
+    'Unknown',
   ])
 
   /**

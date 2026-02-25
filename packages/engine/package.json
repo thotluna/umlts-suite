@@ -18,7 +18,6 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsup src/index.ts --format cjs,esm --dts --sourcemap",
-    "generate": "tsx tools/cli/main.ts",
     "test": "vitest src",
     "test:run": "vitest run src",
     "lint": "eslint src --ext .ts"

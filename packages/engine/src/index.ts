@@ -57,6 +57,16 @@ export type {
 export type { IParserHub } from '@engine/parser/core/parser.hub'
 export type { StatementRule, Orchestrator } from '@engine/parser/rule.types'
 export { MemberRule } from '@engine/parser/rules/member.rule'
+export { TypeRule } from '@engine/parser/rules/type.rule'
+export { AttributeRule } from '@engine/parser/rules/attribute.rule'
+export { MethodRule } from '@engine/parser/rules/method.rule'
+export { ModifierRule } from '@engine/parser/rules/modifier.rule'
+export type {
+  ITypeStrategy,
+  IPrimaryTypeProvider,
+  ITypeModifierProvider,
+} from '@engine/parser/core/type-provider.interface'
+export type { IMemberProvider } from '@engine/parser/core/member-provider.interface'
 
 export type {
   ITypeResolutionStrategy,

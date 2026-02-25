@@ -4,6 +4,7 @@ import { ConfigStore } from '@engine/semantics/session/config-store'
 import { AnalysisSession } from '@engine/semantics/session/analysis-session'
 import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
 import { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
+import { RegisteredPrimitiveStrategy } from '@engine/semantics/inference/registered-primitive.strategy'
 
 /**
  * Factory responsible for creating fresh analysis sessions and their dependencies.
@@ -16,9 +17,13 @@ export class SessionFactory {
     const symbolTable = new SymbolTable()
     const constraintRegistry = new ConstraintRegistry()
     const configStore = new ConfigStore(symbolTable)
-    const typeResolver = new TypeResolutionPipeline(
-      context.registry?.language.getTypeResolutionStrategies() || [],
-    )
+    const customStrategies = context.registry?.language.getTypeResolutionStrategies() || []
+    const registeredPrimitives = context.registry?.language.getPrimitiveTypes() || []
+
+    const typeResolver = new TypeResolutionPipeline([
+      ...customStrategies,
+      new RegisteredPrimitiveStrategy(registeredPrimitives),
+    ])
 
     return new AnalysisSession(symbolTable, constraintRegistry, configStore, context, typeResolver)
   }

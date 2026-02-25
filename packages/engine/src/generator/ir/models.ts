@@ -81,6 +81,7 @@ export interface IRProperty {
   column?: number
   docs?: string
   constraints?: IRConstraint[]
+  stereotypes?: string[]
 }
 
 /**
@@ -102,6 +103,7 @@ export interface IROperation {
   column?: number
   docs?: string
   constraints?: IRConstraint[]
+  stereotypes?: string[]
 }
 
 /**
@@ -139,6 +141,7 @@ export interface IREntity {
 
   line?: number
   column?: number
+  stereotypes?: string[]
 }
 
 /**

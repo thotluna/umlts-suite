@@ -451,5 +451,15 @@
   - [x] Corregir errores de importación y asegurar robustez en `UMLTypeResolver`
   - [x] Purificar `SymbolTable` eliminando primitivas hardcodeadas y usando registro dinámico
 - [x] **DOC**: Profundizar y ampliar el Plan de Implementación de Plugins (Fase 7)
-- [x] **PLUGIN-TS**: Estructura y Contrato (Fase 7.1)
-- [x] **LEXER**: Extensión del Léxico para TypeScript (Fase 7.2)
+- [x] **SYNTAX**: Extensión de la Gramática TS (Fase 7.3)
+  - [x] Implementar `TSNamespaceRule` y `TSTypeAliasRule`
+  - [x] Implementar `TSUnionTypeModifier` para soporte de `|` (Unions)
+- [x] **SEMANTICS**: Dominio Semántico TS (Fase 7.4)
+  - [x] Implementar `TSGenericResolutionStrategy` y `TSMappedTypeStrategy`
+  - [x] Implementar `RegisteredPrimitiveStrategy` en el motor para reconocer primitivos de plugins
+- [x] **FIX**: Refinamiento de Inferencia de Miembros y Primitivos
+  - [x] Soporte recursivo para tipos genéricos (ej: `Array<User>`) en `MemberInference`
+  - [x] Mapeo automático de multiplicidad TS (`Array` -> `*`, `| null/undefined` -> `0..1`)
+  - [x] Corrección de `RegisteredPrimitiveStrategy` para no registrar primitivos como entidades implícitas
+  - [x] Creación del paquete `@umlts/cli` para desacoplar las herramientas de depuración del motor core
+  - [x] Soporte para tipos unión (`|`) en el `TypeValidator` del motor

@@ -1,2 +1,7 @@
-interface *A
-interface B >> A
+class A {
+  id: number
+}
+class B >> A >I C {
+  name: string
+
+}
