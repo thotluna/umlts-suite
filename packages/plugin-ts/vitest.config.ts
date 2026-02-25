@@ -5,6 +5,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@plugin-ts': resolve(__dirname, './src'),
+      '@umlts/engine': resolve(__dirname, '../engine/src/index.ts'),
+      '@engine': resolve(__dirname, '../engine/src'),
     },
   },
   test: {
