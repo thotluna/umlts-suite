@@ -103,6 +103,7 @@ export class UMLEdge {
     public readonly associationClassId?: string,
     public readonly isNavigable: boolean = true,
     public readonly constraints?: IRConstraint[],
+    public readonly notes?: string[],
   ) {}
 
   public updateLayout(

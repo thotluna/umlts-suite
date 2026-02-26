@@ -209,6 +209,14 @@ function renderProperty(
     label += ' {leaf}'
   }
 
+  if (p.constraints && p.constraints.length > 0) {
+    p.constraints.forEach((c) => (label += ` {${c.kind}}`))
+  }
+
+  if (p.notes && p.notes.length > 0) {
+    label += ` "${p.notes.join(', ')}"`
+  }
+
   return svg.text(
     {
       x,
@@ -248,6 +256,14 @@ function renderOperation(
 
   if (op.isLeaf) {
     label += ' {leaf}'
+  }
+
+  if (op.constraints && op.constraints.length > 0) {
+    op.constraints.forEach((c) => (label += ` {${c.kind}}`))
+  }
+
+  if (op.notes && op.notes.length > 0) {
+    label += ` "${op.notes.join(', ')}"`
   }
 
   return svg.text(

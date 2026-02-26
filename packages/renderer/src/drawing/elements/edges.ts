@@ -148,7 +148,11 @@ export function renderEdge(
   if (edge.label) {
     const showVisibility = options?.showVisibility !== false
     const visibility = showVisibility && edge.visibility ? `${edge.visibility} ` : ''
-    const displayText = `${visibility}${edge.label}`
+    let displayText = `${visibility}${edge.label}`
+
+    if (edge.constraints && edge.constraints.length > 0) {
+      edge.constraints.forEach((c) => (displayText += `\n{${c.kind}}`))
+    }
 
     let x: number, y: number
     let textAnchor = 'middle'

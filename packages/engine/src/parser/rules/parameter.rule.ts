@@ -5,7 +5,6 @@ import { MemberSuffixRule } from '@engine/parser/rules/member-suffix.rule'
 import { ASTFactory } from '@engine/parser/factory/ast.factory'
 
 export class ParameterRule {
-
   public parse(context: IParserHub): ParameterNode {
     const paramName = context.consume(TokenType.IDENTIFIER, 'Parameter name expected')
     const suffix = MemberSuffixRule.parse(context)

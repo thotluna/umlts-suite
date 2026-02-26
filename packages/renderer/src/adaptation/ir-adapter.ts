@@ -103,6 +103,7 @@ export class IRAdapter implements IDataProvider<IRDiagram> {
       rel.associationClassId,
       rel.isNavigable,
       rel.constraints,
+      rel.notes,
     )
   }
 
