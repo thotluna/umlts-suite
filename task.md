@@ -493,4 +493,5 @@
 - [ ] **BUG**: Duplicidad visual de notas en el renderizado (Deduplicación en IRAdapter requerida)
 - [ ] **BUG**: Líneas de anclaje duplicadas (N1 apunta 2 veces a cada clase)
 - [ ] **BUG**: Arco XOR mal posicionado o invisible (Detección de nodo común con FQN)
+- [x] **FIX**: Renderizado de paquetes estilo "folder" (UML estándar)
 - [ ] **FEAT**: Visualización de estereotipos en miembros y entidades (Async, Readonly)

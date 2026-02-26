@@ -28,3 +28,20 @@
   overflow: hidden;
   font-family: 'Fira Code', monospace;
 }
+
+.package rect {
+  transition: all 0.3s ease;
+}
+
+.package:hover rect {
+  stroke-width: 2px;
+  stroke: rgba(255, 255, 255, 0.4) !important;
+}
+
+.package text {
+  transition: opacity 0.3s ease;
+}
+
+.package:hover text {
+  opacity: 0.8;
+}

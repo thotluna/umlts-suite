@@ -117,26 +117,42 @@ export class SVGRenderer implements IDrawingEngine<string> {
   private renderPackage(pkg: UMLPackage, theme: Theme, config?: DiagramConfig['render']): string {
     const { x = 0, y = 0, width = 0, height = 0 } = pkg
 
-    // Package body
-    const rect = svg.rect({
+    const tabHeight = 25
+    const tabWidth = Math.min(width * 0.4, 120)
+
+    // 1. Tab (The small handle on top)
+    const tab = svg.rect({
       x,
       y,
+      width: tabWidth,
+      height: tabHeight + 10, // Slight overlap to avoid line gap
+      fill: theme.packageBackground,
+      stroke: theme.packageBorder,
+      'stroke-width': 1.2,
+      rx: 4,
+    })
+
+    // 2. Package body
+    const rect = svg.rect({
+      x,
+      y: y + tabHeight,
       width,
-      height,
+      height: height - tabHeight,
       fill: theme.packageBackground,
       stroke: theme.packageBorder,
       'stroke-width': 1.2,
       rx: 8,
     })
 
-    // Package label (tab style)
+    // 3. Package label (Centered at the top of the body)
     const label = svg.text(
       {
-        x: x + 10,
-        y: y + 20,
+        x: x + width / 2,
+        y: y + tabHeight + 20,
         fill: theme.packageLabelText,
         'font-weight': 'bold',
-        'font-size': '11px',
+        'font-size': '12px',
+        'text-anchor': 'middle',
         'text-transform': 'uppercase',
         'letter-spacing': '1px',
       },
@@ -156,7 +172,7 @@ export class SVGRenderer implements IDrawingEngine<string> {
       })
       .join('')
 
-    return svg.g({ class: 'package', 'data-name': pkg.name }, rect + label + childrenStr)
+    return svg.g({ class: 'package', 'data-name': pkg.name }, tab + rect + label + childrenStr)
   }
 
   /**

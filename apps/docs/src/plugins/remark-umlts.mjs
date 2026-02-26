@@ -1,10 +1,10 @@
 import { visit } from 'unist-util-visit'
 import { UMLEngine } from '@umlts/engine'
 import { render } from '@umlts/renderer'
-import { TSPlugin } from '@umlts/plugin-ts'
+import { TypeScriptPlugin } from '@umlts/plugin-ts'
 
 export function remarkUmlts() {
-  const engine = new UMLEngine([new TSPlugin()])
+  const engine = new UMLEngine([new TypeScriptPlugin()])
 
   return async (tree) => {
     const nodesToProcess = []
