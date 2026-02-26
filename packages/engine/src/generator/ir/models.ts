@@ -196,6 +196,7 @@ export interface IRRelationship {
   line?: number
   column?: number
   docs?: string
+  notes?: string[]
   constraints?: IRConstraint[]
 }
 

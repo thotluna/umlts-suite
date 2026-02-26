@@ -137,10 +137,10 @@ export interface ParameterNode extends ASTNode {
   relationshipKind?: string | undefined
   isNavigable?: boolean
   constraints?: ConstraintNode[]
-  notes?: NoteNode[]
   targetModifiers?: Modifiers
 
   multiplicity?: string
+  notes?: NoteNode[]
 }
 
 export interface RelationshipNode extends ASTNode {
