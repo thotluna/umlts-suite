@@ -36,8 +36,8 @@ package Test {
 
 
   class Hijo >> *Padre >I Madre{
-    +hermana: >< Hermana
-    +hermano: <> Hermano
+    +hermana: >< Hermana {principal}
+    +hermano: <> Hermano "secundario"
     -primos: >- Primo
 
     +async doSomething(): Promise<void>
