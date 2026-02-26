@@ -1,40 +1,39 @@
 ---
-title: Welcome to Starlight
-description: Get started building your docs site with Starlight.
-template: splash # Remove or comment out this line to display the site sidebar on this page.
+title: UMLTS Suite
+description: La suite definitiva para modelado UML con el poder de TypeScript.
+template: splash
 hero:
-  tagline: Congrats on setting up a new Starlight project!
+  tagline: Diseña arquitecturas robustas usando un DSL inspirado en TypeScript.
   image:
     file: ../../assets/houston.webp
   actions:
-    - text: Example Guide
-      link: /guides/example/
+    - text: Guía del Lenguaje
+      link: /dsl/introduction
       icon: right-arrow
-    - text: Read the Starlight docs
-      link: https://starlight.astro.build
-      icon: external
-      variant: minimal
+    - text: API Reference
+      link: /engine/api
+      icon: rocket
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Card, CardGrid } from '@astrojs/starlight/components'
 
-## Next steps
+## Pilares de UMLTS
 
 <CardGrid stagger>
-	<Card title="Update content" icon="pencil">
-		Edit `src/content/docs/index.mdx` to see this page change.
-	</Card>
-	<Card title="Change page layout" icon="document">
-		Delete `template: splash` in `src/content/docs/index.mdx` to display a
-		sidebar on this page.
-	</Card>
-	<Card title="Add new content" icon="add-document">
-		Add Markdown or MDX files to `src/content/docs` to create new pages.
-	</Card>
-	<Card title="Configure your site" icon="setting">
-		Edit your `sidebar` and other config in `astro.config.mjs`.
-	</Card>
-	<Card title="Read the docs" icon="open-book">
-		Learn more in [the Starlight Docs](https://starlight.astro.build/).
-	</Card>
+  <Card title="1. El Lenguaje (DSL)" icon="open-book">
+    Diseñado para el desarrollador. Texto plano, versionable y familiar. [¿Por qué
+    UMLTS?](/dsl/introduction)
+  </Card>
+  <Card title="2. Engine & Plugins" icon="setting">
+    Analizador semántico de UML 2.5.1 con soporte para tipos de TypeScript. [Motor API](/engine/api)
+  </Card>
+  <Card title="3. Renderer" icon="pencil">
+    Generación de diagramas SVG premium con layout automático. [Render API](/renderer/api)
+  </Card>
+  <Card title="4. Extension VS Code" icon="document">
+    Previsualización y autocompletado en tiempo real en tu editor. [Instalación](/ecosystem/vscode)
+  </Card>
+  <Card title="5. Blueprint (Reverse Eng)" icon="add-document">
+    Sincroniza tus diagramas con tu código TypeScript real. [Blueprint API](/ecosystem/blueprint)
+  </Card>
 </CardGrid>

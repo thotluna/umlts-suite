@@ -22,7 +22,9 @@
     "test:renderer": "pnpm --filter @umlts/renderer test:run",
     "test:vscode": "pnpm --filter umlts-vscode test:run",
     "dev": "pnpm --filter umlts-vscode watch",
-    "prepare": "husky"
+    "prepare": "husky",
+    "docs:dev": "pnpm --filter @umlts/docs dev",
+    "docs:build": "pnpm --filter @umlts/docs build"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.55.0",

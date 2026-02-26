@@ -56,12 +56,21 @@ importers:
       '@astrojs/starlight':
         specifier: ^0.37.6
         version: 0.37.6(astro@5.18.0(@types/node@25.2.3)(rollup@4.57.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2))
+      '@umlts/engine':
+        specifier: workspace:*
+        version: link:../../packages/engine
+      '@umlts/renderer':
+        specifier: workspace:*
+        version: link:../../packages/renderer
       astro:
         specifier: ^5.6.1
         version: 5.18.0(@types/node@25.2.3)(rollup@4.57.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
       sharp:
         specifier: ^0.34.2
         version: 0.34.5
+      unist-util-visit:
+        specifier: ^5.1.0
+        version: 5.1.0
 
   apps/vscode:
     dependencies:
