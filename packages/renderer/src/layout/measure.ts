@@ -65,16 +65,21 @@ export function measureNodeDimensions(node: UMLNode): NodeDimensions {
       const multStr = `${p.multiplicity.lower}..${p.multiplicity.upper}`
       memberChars += multStr.length + 2
     }
+    if (p.constraints) memberChars += p.constraints.length * 8
+    if (p.notes) memberChars += p.notes.join(', ').length + 4
     maxChars = Math.max(maxChars, memberChars)
   }
 
   // 2. Operations
   for (const op of node.operations) {
     const paramsChars = op.parameters.reduce(
-      (acc: number, p: IRParameter) => acc + p.name.length + (p.type?.length || 0) + 3,
+      (acc: number, p: IRParameter) =>
+        acc + p.name.length + (p.type?.length || 0) + 3 + (p.notes?.join(', ').length || 0),
       0,
     )
-    const memberChars = 2 + op.name.length + paramsChars + 2 + 3 + (op.returnType?.length || 0)
+    let memberChars = 2 + op.name.length + paramsChars + 2 + 3 + (op.returnType?.length || 0)
+    if (op.constraints) memberChars += op.constraints.length * 8
+    if (op.notes) memberChars += op.notes.join(', ').length + 4
     maxChars = Math.max(maxChars, memberChars)
   }
 

@@ -1,4 +1,4 @@
-import { type IRDiagram, type IREntity, type IRRelationship } from '@umlts/engine'
+import { type IRRelationshipType, type IREntity, type IRMultiplicity } from '@engine/generator/ir/models'
 import {
   UMLNode,
   UMLEdge,
@@ -52,7 +52,7 @@ export class IRAdapter implements IDataProvider<IRDiagram> {
     // Apply showDependencies filter if defined in config
     if (source.config?.showDependencies === false) {
       rawRelationships = rawRelationships.filter(
-        (rel: IRRelationship) => rel.type.toLowerCase() !== 'dependency',
+        (rel: IRRelationship) => (rel.type as string).toLowerCase() !== 'dependency',
       )
     }
 
@@ -69,7 +69,7 @@ export class IRAdapter implements IDataProvider<IRDiagram> {
       nodes,
       edges,
       packages,
-      constraints: source.constraints || [],
+      constraints: (source as any).constraints || [],
     }
   }
 
@@ -101,7 +101,9 @@ export class IRAdapter implements IDataProvider<IRDiagram> {
       rel.fromMultiplicity,
       rel.toMultiplicity,
       rel.associationClassId,
+      rel.isNavigable,
       rel.constraints,
+      rel.notes,
     )
   }
 
@@ -142,4 +144,12 @@ export class IRAdapter implements IDataProvider<IRDiagram> {
 
     return rootPackages
   }
+}
+
+// Temporal interface extension for the adapter to avoid lint errors on source.constraints
+interface IRDiagram {
+  entities: IREntity[]
+  relationships: any[]
+  constraints: any[]
+  config?: Record<string, any>
 }

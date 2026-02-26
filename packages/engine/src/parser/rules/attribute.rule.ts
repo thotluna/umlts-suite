@@ -30,6 +30,7 @@ export class AttributeRule {
         constraints: suffix.constraints,
         targetModifiers: suffix.targetModifiers,
         docs: context.consumePendingDocs(),
+        notes: suffix.notes,
       },
     )
   }

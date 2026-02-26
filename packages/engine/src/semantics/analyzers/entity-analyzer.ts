@@ -171,6 +171,7 @@ export class EntityAnalyzer {
             entity.literals.push({
               name: attr.name,
               docs: attr.docs,
+              notes: attr.notes?.map((n) => n.value),
             })
             return
           }
@@ -190,10 +191,13 @@ export class EntityAnalyzer {
             isOrdered: false,
             isUnique: true,
             aggregation: this.mapAggregation(attr.relationshipKind),
+            relationshipKind: attr.relationshipKind,
+            isNavigable: attr.isNavigable,
             label: attr.label,
             line: attr.line,
             column: attr.column,
             docs: attr.docs,
+            notes: attr.notes?.map((n) => n.value),
             constraints: attr.constraints?.map((c) => this.constraintAnalyzer.process(c)),
           })
         } else if (m.type === ASTNodeType.METHOD) {
@@ -215,6 +219,7 @@ export class EntityAnalyzer {
                 : undefined,
               direction: 'in' as const,
               relationshipKind: p.relationshipKind,
+              isNavigable: p.isNavigable,
               modifiers: p.targetModifiers
                 ? {
                     isAbstract: p.targetModifiers.isAbstract || false,
@@ -227,11 +232,13 @@ export class EntityAnalyzer {
                 : undefined,
               line: p.line,
               column: p.column,
+              notes: p.notes?.map((n) => n.value),
             })),
             returnType: this.processType(meth.returnType?.raw),
             line: meth.line,
             column: meth.column,
             docs: meth.docs,
+            notes: meth.notes?.map((n) => n.value),
             constraints: (meth.constraints || []).map((c) => this.constraintAnalyzer.process(c)),
           })
         }

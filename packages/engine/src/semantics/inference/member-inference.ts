@@ -29,8 +29,13 @@ export class MemberInference {
       ;(entity.properties || []).forEach((prop) => {
         if (prop.type) {
           let relType = IRRelationshipType.ASSOCIATION
-          if (prop.aggregation === 'shared') relType = IRRelationshipType.AGGREGATION
-          if (prop.aggregation === 'composite') relType = IRRelationshipType.COMPOSITION
+          if (prop.relationshipKind) {
+            relType = this.relationshipAnalyzer.mapRelationshipType(prop.relationshipKind)
+          } else if (prop.aggregation === 'shared') {
+            relType = IRRelationshipType.AGGREGATION
+          } else if (prop.aggregation === 'composite') {
+            relType = IRRelationshipType.COMPOSITION
+          }
 
           this.inferFromType(
             entity.id,
@@ -47,6 +52,7 @@ export class MemberInference {
             undefined,
             prop.constraints,
             prop.label,
+            prop.isNavigable,
           )
         }
       })
@@ -87,6 +93,8 @@ export class MemberInference {
               p.column || op.column,
               p.modifiers,
               undefined,
+              undefined,
+              p.isNavigable,
             )
           }
         })
@@ -109,6 +117,7 @@ export class MemberInference {
     targetModifiers?: Modifiers | IRModifiers,
     memberConstraints?: IRConstraint[],
     explicitLabel?: string,
+    isNavigable?: boolean,
   ): void {
     const { baseName, args, multiplicity } = TypeValidator.decomposeGeneric(typeName)
     const { values: enumValues } = TypeValidator.decomposeEnum(typeName)
@@ -181,6 +190,7 @@ export class MemberInference {
       visibility,
       associationClassId,
       constraints: memberConstraints,
+      isNavigable,
     })
   }
 }

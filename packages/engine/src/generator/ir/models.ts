@@ -55,9 +55,11 @@ export interface IRParameter {
   multiplicity?: IRMultiplicity
   direction?: 'in' | 'out' | 'inout' | 'return'
   relationshipKind?: string
+  isNavigable?: boolean
   modifiers?: IRModifiers
   line?: number
   column?: number
+  notes?: string[]
 }
 
 /**
@@ -74,12 +76,15 @@ export interface IRProperty {
   isOrdered: boolean
   isUnique: boolean
   aggregation: 'none' | 'shared' | 'composite' // Cláusula 11.5.3.2
+  relationshipKind?: string
+  isNavigable?: boolean
   label?: string
 
   // Metadata de soporte
   line?: number
   column?: number
   docs?: string
+  notes?: string[]
   constraints?: IRConstraint[]
   stereotypes?: string[]
 }
@@ -102,6 +107,7 @@ export interface IROperation {
   line?: number
   column?: number
   docs?: string
+  notes?: string[]
   constraints?: IRConstraint[]
   stereotypes?: string[]
 }
@@ -112,6 +118,7 @@ export interface IROperation {
 export interface IREnumerationLiteral {
   name: string
   docs?: string
+  notes?: string[]
 }
 
 /**
@@ -189,6 +196,7 @@ export interface IRRelationship {
   line?: number
   column?: number
   docs?: string
+  notes?: string[]
   constraints?: IRConstraint[]
 }
 

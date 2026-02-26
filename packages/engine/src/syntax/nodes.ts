@@ -111,6 +111,7 @@ export interface AttributeNode extends ASTNode {
   isNavigable?: boolean
   label?: string | undefined
   constraints?: ConstraintNode[]
+  notes?: NoteNode[]
   targetModifiers?: Modifiers
 }
 
@@ -125,6 +126,7 @@ export interface MethodNode extends ASTNode {
   returnRelationshipKind?: string | undefined
   isNavigable?: boolean
   constraints?: ConstraintNode[]
+  notes?: NoteNode[]
   returnTargetModifiers?: Modifiers
 }
 
@@ -138,6 +140,7 @@ export interface ParameterNode extends ASTNode {
   targetModifiers?: Modifiers
 
   multiplicity?: string
+  notes?: NoteNode[]
 }
 
 export interface RelationshipNode extends ASTNode {

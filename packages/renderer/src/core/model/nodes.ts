@@ -101,7 +101,9 @@ export class UMLEdge {
     public readonly fromMultiplicity?: IRMultiplicity | string,
     public readonly toMultiplicity?: IRMultiplicity | string,
     public readonly associationClassId?: string,
+    public readonly isNavigable: boolean = true,
     public readonly constraints?: IRConstraint[],
+    public readonly notes?: string[],
   ) {}
 
   public updateLayout(

@@ -49,6 +49,7 @@ export class MethodRule {
         constraints: suffix?.constraints,
         returnTargetModifiers: suffix?.targetModifiers ?? this.createDefaultModifiers(),
         docs: context.consumePendingDocs(),
+        notes: suffix?.notes,
       },
     )
   }

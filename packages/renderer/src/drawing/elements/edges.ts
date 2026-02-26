@@ -15,49 +15,29 @@ const LABEL_OFFSET = 12
  * sits fully outside the node border.
  */
 const END_CLEARANCE: Record<string, number> = {
-  Generalization: 13,
-  GENERALIZATION: 13,
-  Inheritance: 13,
-  INHERITANCE: 13,
-  InterfaceRealization: 13,
-  INTERFACE_REALIZATION: 13,
-  Implementation: 13,
-  IMPLEMENTATION: 13,
-  Association: 11,
-  ASSOCIATION: 11,
-  Dependency: 11,
-  DEPENDENCY: 11,
-  Usage: 11,
-  USAGE: 11,
-  Composition: 2,
-  COMPOSITION: 2,
-  Aggregation: 2,
-  AGGREGATION: 2,
-  Bidirectional: 2,
-  BIDIRECTIONAL: 2,
+  generalization: 13,
+  inheritance: 13,
+  interfacerealization: 13,
+  implementation: 13,
+  association: 11,
+  dependency: 11,
+  usage: 11,
+  composition: 2,
+  aggregation: 2,
+  bidirectional: 2,
 }
 
 const START_CLEARANCE: Record<string, number> = {
-  Composition: 20,
-  COMPOSITION: 20,
-  Aggregation: 20,
-  AGGREGATION: 20,
-  Generalization: 2,
-  GENERALIZATION: 2,
-  Inheritance: 2,
-  INHERITANCE: 2,
-  InterfaceRealization: 2,
-  INTERFACE_REALIZATION: 2,
-  Implementation: 2,
-  IMPLEMENTATION: 2,
-  Association: 2,
-  ASSOCIATION: 2,
-  Dependency: 2,
-  DEPENDENCY: 2,
-  Usage: 2,
-  USAGE: 2,
-  Bidirectional: 2,
-  BIDIRECTIONAL: 2,
+  composition: 20,
+  aggregation: 20,
+  generalization: 2,
+  inheritance: 2,
+  interfacerealization: 2,
+  implementation: 2,
+  association: 2,
+  dependency: 2,
+  usage: 2,
+  bidirectional: 2,
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -74,7 +54,7 @@ export function renderEdge(
   if (edge.waypoints == null || edge.waypoints.length < 2) return ''
 
   const wps = edge.waypoints
-  const type = edge.type as string
+  const type = (edge.type as string).toLowerCase()
 
   const endClear = END_CLEARANCE[type] ?? 13
   const startClear = START_CLEARANCE[type] ?? 2
@@ -84,23 +64,41 @@ export function renderEdge(
 
   const d = trimmed.map((wp, i) => `${i === 0 ? 'M' : 'L'} ${wp.x} ${wp.y}`).join(' ')
 
-  const isDashed =
-    type === 'Implementation' ||
-    type === 'IMPLEMENTATION' ||
-    type === 'InterfaceRealization' ||
-    type === 'INTERFACE_REALIZATION' ||
-    type === 'Dependency' ||
-    type === 'DEPENDENCY' ||
-    type === 'Usage' ||
-    type === 'USAGE'
+  const isDashed = [
+    'implementation',
+    'interfacerealization',
+    'dependency',
+    'usage',
+    'realization',
+  ].includes(type)
 
-  const isDiamond =
-    type === 'Composition' ||
-    type === 'COMPOSITION' ||
-    type === 'Aggregation' ||
-    type === 'AGGREGATION'
+  const isDiamond = ['composition', 'aggregation'].includes(type)
+  const isBidirectional = type === 'bidirectional'
 
-  const isBidirectional = type === 'Bidirectional' || type === 'BIDIRECTIONAL'
+  const markers: Record<string, string> = {}
+
+  if (isDiamond) {
+    markers['marker-start'] = `url(#marker-${type})`
+  }
+
+  // En UML, una asociación bidireccional se representa sin flechas (vacia).
+  // Solo las navegables tienen flecha al final.
+  if (edge.isNavigable && !isBidirectional) {
+    const isInheritance = [
+      'inheritance',
+      'generalization',
+      'implementation',
+      'interfacerealization',
+    ].includes(type)
+
+    if (isInheritance) {
+      markers['marker-end'] = `url(#marker-${type})`
+    } else {
+      const isDep = type === 'dependency' || type === 'usage'
+      const markerId = isDep ? 'marker-dependency' : 'marker-association'
+      markers['marker-end'] = `url(#marker-${markerId.replace('marker-', '')})`
+    }
+  }
 
   const pathEl = svg.path({
     d,
@@ -108,10 +106,7 @@ export function renderEdge(
     stroke: theme.edgeStroke,
     'stroke-width': theme.edgeStrokeWidth,
     ...(isDashed ? { 'stroke-dasharray': '6,4' } : {}),
-    ...(!isBidirectional &&
-      (isDiamond
-        ? { 'marker-start': `url(#marker-${type.toLowerCase()})` }
-        : { 'marker-end': `url(#marker-${type.toLowerCase()})` })),
+    ...markers,
   })
 
   // ── Multiplicity labels ──────────────────────────────────────────────────
@@ -153,7 +148,11 @@ export function renderEdge(
   if (edge.label) {
     const showVisibility = options?.showVisibility !== false
     const visibility = showVisibility && edge.visibility ? `${edge.visibility} ` : ''
-    const displayText = `${visibility}${edge.label}`
+    let displayText = `${visibility}${edge.label}`
+
+    if (edge.constraints && edge.constraints.length > 0) {
+      edge.constraints.forEach((c) => (displayText += `\n{${c.kind}}`))
+    }
 
     let x: number, y: number
     let textAnchor = 'middle'
