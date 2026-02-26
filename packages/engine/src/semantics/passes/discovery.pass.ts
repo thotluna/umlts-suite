@@ -7,6 +7,11 @@ import type {
   RelationshipNode,
   AssociationClassNode,
   ConstraintNode,
+  NoteNode,
+  AnchorNode,
+  AttributeNode,
+  MethodNode,
+  ParameterNode,
 } from '@engine/syntax/nodes'
 import { type ASTVisitor, walkAST } from '@engine/syntax/visitor'
 import type { EntityAnalyzer } from '@engine/semantics/analyzers/entity-analyzer'
@@ -115,4 +120,9 @@ export class DiscoveryPass implements ISemanticPass, ASTVisitor {
   }
 
   visitConstraint(_node: ConstraintNode): void {}
+  visitNote(_node: NoteNode): void {}
+  visitAnchor(_node: AnchorNode): void {}
+  visitAttribute(_node: AttributeNode): void {}
+  visitMethod(_node: MethodNode): void {}
+  visitParameter(_node: ParameterNode): void {}
 }

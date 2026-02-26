@@ -58,6 +58,8 @@ export interface IRParameter {
   modifiers?: IRModifiers
   line?: number
   column?: number
+  defaultValue?: string
+  constraints?: IRConstraint[]
 }
 
 /**
@@ -75,6 +77,7 @@ export interface IRProperty {
   isUnique: boolean
   aggregation: 'none' | 'shared' | 'composite' // Cláusula 11.5.3.2
   label?: string
+  defaultValue?: string
 
   // Metadata de soporte
   line?: number
@@ -202,11 +205,34 @@ export interface IRConstraint {
 }
 
 /**
+ * Categoría: Detalles - Nota (Cláusula 7.11)
+ */
+export interface IRNote {
+  id: string
+  text: string
+  namespace?: string
+  line?: number
+  column?: number
+}
+
+/**
+ * Categoría: Detalles - Anclaje (Relación de Nota)
+ */
+export interface IRAnchor {
+  from: string
+  to: string[]
+  line?: number
+  column?: number
+}
+
+/**
  * Representación Intermedia FINAL para el Renderer.
  */
 export interface IRDiagram {
   entities: IREntity[]
   relationships: IRRelationship[]
   constraints: IRConstraint[]
+  notes: IRNote[]
+  anchors: IRAnchor[]
   config?: Record<string, unknown>
 }

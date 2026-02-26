@@ -64,7 +64,7 @@ Cada entidad puede tener atributos y métodos. La visibilidad por defecto es **P
 
 ### Atributos
 
-- **Sintaxis:** `[visibilidad] nombre: [relación] Tipo [multiplicidad]`
+- **Sintaxis:** `[visibilidad] nombre: [relación] Tipo [multiplicidad] [= valorDefecto] [{restricciones}] ["nota"]`
 
 ```text
 class User {

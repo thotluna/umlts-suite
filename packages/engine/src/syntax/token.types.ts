@@ -25,6 +25,7 @@ export enum TokenType {
   KW_NOTE = 'KW_NOTE',
   KW_DERIVED = 'KW_DERIVED',
   KW_READONLY = 'KW_READONLY',
+  KW_ASYNC = 'KW_ASYNC',
   KW_TYPE = 'KW_TYPE',
   KW_NAMESPACE = 'KW_NAMESPACE',
   AT = 'AT', // @
@@ -67,7 +68,8 @@ export enum TokenType {
   MOD_ABSTRACT = 'MOD_ABSTRACT', // *
   MOD_ACTIVE = 'MOD_ACTIVE', // &
   MOD_LEAF = 'MOD_LEAF', // !
-  MOD_ROOT = 'MOD_ROOT', // ^ (or maybe ~ but ~ is internal. let's use ^ for root)
+  MOD_ROOT = 'MOD_ROOT', // ^
+  MOD_ASYNC = 'MOD_ASYNC', // ~ or some token, but for now just from keyword
 
   // Identifiers and Literals
   IDENTIFIER = 'IDENTIFIER',

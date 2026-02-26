@@ -26,6 +26,7 @@ export class GeneralIdentifierMatcher extends BaseAlphaMatcher {
     xor: TokenType.KW_XOR,
     note: TokenType.KW_NOTE,
     derived: TokenType.KW_DERIVED,
+    async: TokenType.KW_ASYNC,
   }
 
   public match(reader: LexerReader): Token | null {

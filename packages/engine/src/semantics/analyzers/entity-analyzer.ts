@@ -195,6 +195,7 @@ export class EntityAnalyzer {
             column: attr.column,
             docs: attr.docs,
             constraints: attr.constraints?.map((c) => this.constraintAnalyzer.process(c)),
+            defaultValue: attr.defaultValue !== undefined ? String(attr.defaultValue) : undefined,
           })
         } else if (m.type === ASTNodeType.METHOD) {
           const meth = m as MethodNode
@@ -227,6 +228,8 @@ export class EntityAnalyzer {
                 : undefined,
               line: p.line,
               column: p.column,
+              defaultValue: p.defaultValue !== undefined ? String(p.defaultValue) : undefined,
+              constraints: p.constraints?.map((c) => this.constraintAnalyzer.process(c)),
             })),
             returnType: this.processType(meth.returnType?.raw),
             line: meth.line,

@@ -13,6 +13,8 @@ export type {
   IRParameter,
   IRConstraint,
   IRMultiplicity,
+  IRNote,
+  IRAnchor,
 } from '@engine/generator/ir/models'
 
 // Diagnostics exports

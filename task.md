@@ -319,7 +319,13 @@
 - [x] **FEAT**: Implementar `XOR Type` (Unión Discriminada) en la IR and Semántica (Mapping a xor_member)
 - [x] **FEAT**: Soporte de propiedades derivadas (`/` via `{derived}`) y notas de miembros help
 - [x] **FEAT**: Reparación de SemanticAnalyzer (Pases 1-3, Bloques XOR, Modificadores de métodos)
-- [ ] **FEAT**: Actualizar Renderer para dibujar Notas y líneas de anclaje (dashed)
+- [x] **FEAT**: Actualizar Renderer para dibujar Notas y líneas de anclaje (dashed)
+  - [x] Extender IR en el motor para capturar `IRNote` e `IRAnchor`
+  - [x] Actualizar pases semánticos para recolectar notas y anclajes
+  - [x] Implementar `UMLNote` y `UMLAnchor` en el modelo del renderer
+  - [x] Integrar notas en la estrategia de layout (ELK) y cálculo de dimensiones
+  - [x] Implementar renderizado SVG para notas (efecto dog-ear) y anclajes (líneas punteadas)
+  - [x] Visualizar restricciones in-line en miembros de entidades
 
 ## Sistema de Estereotipos y Perfiles (ALTA PRIORIDAD)
 
@@ -474,3 +480,15 @@
 - [x] **Fase 3**: Nuevo Orquestador `DiagramRenderer` con DI
 - [ ] **Fase 4**: Refactorización atómica de componentes (Limpieza de Layout y Providers)
 - [ ] **Fase 5**: Implementación de metadatos para interactividad
+
+## Soporte de Renderizado para Notas y Restricciones (UML 2.5.1)
+
+- [x] **FEAT**: Implementación de `UMLNote` y `UMLAnchor` en el modelo visual
+- [x] **FEAT**: Soporte de Word Wrap para notas largas en cálculo de dimensiones y SVG
+- [x] **FEAT**: Generación de IDs únicos para notas para evitar apilamiento en (0,0)
+- [x] **IMPROVEMENT**: Resolución flexible de targets (FQN vs Simple Name) en anclajes
+- [x] **IMPROVEMENT**: Inferencia inteligente de Namespace para posicionamiento de notas
+- [ ] **BUG**: Duplicidad visual de notas en el renderizado (Deduplicación en IRAdapter requerida)
+- [ ] **BUG**: Líneas de anclaje duplicadas (N1 apunta 2 veces a cada clase)
+- [ ] **BUG**: Arco XOR mal posicionado o invisible (Detección de nodo común con FQN)
+- [ ] **FEAT**: Visualización de estereotipos en miembros y entidades (Async, Readonly)

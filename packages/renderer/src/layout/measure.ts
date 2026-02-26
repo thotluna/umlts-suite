@@ -103,3 +103,43 @@ export function measureText(text: string, fontSize = 12): TextDimensions {
     height: Math.ceil(LINE_HEIGHT * scale),
   }
 }
+
+/**
+ * Internal helper to wrap text for notes.
+ */
+function wrapNoteText(text: string, maxChars: number): string[] {
+  const rawLines = text.split('\n')
+  const wrappedLines: string[] = []
+
+  for (const line of rawLines) {
+    if (line.length <= maxChars) {
+      wrappedLines.push(line)
+      continue
+    }
+
+    const words = line.split(/\s+/)
+    let currentLine = ''
+    for (const word of words) {
+      if ((currentLine + ' ' + word).length <= maxChars) {
+        currentLine += (currentLine ? ' ' : '') + word
+      } else {
+        if (currentLine) wrappedLines.push(currentLine)
+        currentLine = word
+      }
+    }
+    if (currentLine) wrappedLines.push(currentLine)
+  }
+  return wrappedLines
+}
+
+/**
+ * Approximate dimensions for a Note with word wrap support.
+ */
+export function measureNoteDimensions(note: { text: string }): NodeDimensions {
+  const MAX_CHARS = 40
+  const lines = wrapNoteText(note.text, MAX_CHARS)
+  const maxLineChars = Math.max(...lines.map((l) => l.length), 15)
+  const width = Math.ceil(maxLineChars * CHAR_WIDTH * 0.75 + 30) // Adjusted factor
+  const height = Math.ceil(lines.length * 20 + 30)
+  return { width: Math.max(140, width), height: Math.max(60, height) }
+}

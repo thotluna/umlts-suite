@@ -14,6 +14,7 @@ export class ModifierRule {
       isLeaf: false,
       isFinal: false,
       isRoot: false,
+      isAsync: false,
       ...(modifiersOR ?? {}),
     }
 
@@ -50,6 +51,10 @@ export class ModifierRule {
         modifiers.isRoot = true
         found = true
       }
+      if (context.match(TokenType.MOD_ASYNC, TokenType.KW_ASYNC)) {
+        modifiers.isAsync = true
+        found = true
+      }
     }
     return modifiers
   }
@@ -70,6 +75,8 @@ export class ModifierRule {
       TokenType.KW_FINAL,
       TokenType.MOD_ROOT,
       TokenType.KW_ROOT,
+      TokenType.MOD_ASYNC,
+      TokenType.KW_ASYNC,
     ].includes(type)
   }
 

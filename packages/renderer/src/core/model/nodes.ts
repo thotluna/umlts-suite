@@ -5,10 +5,24 @@ import {
   type IRMultiplicity,
   type IRRelationshipType,
 } from '@umlts/engine'
-import { measureNodeDimensions } from '../../layout/measure'
+import { measureNodeDimensions, measureNoteDimensions } from '../../layout/measure'
 import type { DiagramConfig } from '../types'
 
 export type IRRelType = IRRelationshipType | string
+
+/**
+ * Extended IRProperty with rendering flags.
+ */
+export interface UMLProperty extends IRProperty {
+  hideConstraints?: boolean
+}
+
+/**
+ * Extended IROperation with rendering flags.
+ */
+export interface UMLOperation extends IROperation {
+  hideConstraints?: boolean
+}
 
 /**
  * Port side definition for ELK.
@@ -39,6 +53,7 @@ export abstract class UMLHierarchyItem {
   constructor(
     public readonly id: string,
     public readonly name: string,
+    public readonly namespace?: string,
   ) {}
 
   public updateLayout(x: number, y: number, width: number, height: number): void {
@@ -61,8 +76,8 @@ export class UMLNode extends UMLHierarchyItem {
     id: string,
     name: string,
     public readonly type: string,
-    public readonly properties: IRProperty[],
-    public readonly operations: IROperation[],
+    public readonly properties: UMLProperty[],
+    public readonly operations: UMLOperation[],
     public readonly isImplicit: boolean,
     public readonly isAbstract: boolean,
     public readonly isStatic: boolean,
@@ -72,7 +87,7 @@ export class UMLNode extends UMLHierarchyItem {
     public readonly namespace?: string,
     public readonly docs?: string,
   ) {
-    super(id, name)
+    super(id, name, namespace)
   }
 
   /**
@@ -102,6 +117,7 @@ export class UMLEdge {
     public readonly toMultiplicity?: IRMultiplicity | string,
     public readonly associationClassId?: string,
     public readonly constraints?: IRConstraint[],
+    public readonly id?: string,
   ) {}
 
   public updateLayout(
@@ -120,6 +136,9 @@ export class UMLEdge {
 /**
  * Rich Domain Model for Packages.
  */
+/**
+ * Rich Domain Model for Packages.
+ */
 export class UMLPackage extends UMLHierarchyItem {
   constructor(
     name: string,
@@ -129,11 +148,42 @@ export class UMLPackage extends UMLHierarchyItem {
     super(path || name, name)
   }
 }
+export class UMLNote extends UMLHierarchyItem {
+  constructor(
+    id: string,
+    public readonly text: string,
+    public readonly namespace?: string,
+  ) {
+    super(id, '', namespace)
+  }
+
+  public getDimensions(): { width: number; height: number } {
+    return measureNoteDimensions(this)
+  }
+}
+
+/**
+ * Rich Domain Model for Anchors (connections between notes and elements).
+ */
+export class UMLAnchor {
+  public waypoints: Map<string, Array<{ x: number; y: number }>> = new Map()
+
+  constructor(
+    public readonly from: string,
+    public readonly to: string[],
+  ) {}
+
+  public updateLayout(targetId: string, waypoints: Array<{ x: number; y: number }>): void {
+    this.waypoints.set(targetId, waypoints)
+  }
+}
 
 export interface DiagramModel {
   nodes: UMLNode[]
   edges: UMLEdge[]
   packages: UMLPackage[]
   constraints: IRConstraint[]
+  notes: UMLNote[]
+  anchors: UMLAnchor[]
   config?: DiagramConfig
 }

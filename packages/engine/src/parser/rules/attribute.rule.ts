@@ -28,7 +28,9 @@ export class AttributeRule {
         isNavigable: suffix.isNavigable,
         label: suffix.label,
         constraints: suffix.constraints,
+        notes: suffix.notes,
         targetModifiers: suffix.targetModifiers,
+        defaultValue: suffix.defaultValue,
         docs: context.consumePendingDocs(),
       },
     )
