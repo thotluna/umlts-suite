@@ -39,6 +39,12 @@ package Test {
     +hermana: >< Hermana
     +hermano: <> Hermano
     -primos: >- Primo
+    -primas: >+ Prima
+    -tios: >*Tio
+
+    -profesion: >*| Profesion
+    -trabajo: >+| Trabajo
+    
 
     +async doSomething(): Promise<void>
 

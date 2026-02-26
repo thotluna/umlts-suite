@@ -101,6 +101,7 @@ export class IRAdapter implements IDataProvider<IRDiagram> {
       rel.fromMultiplicity,
       rel.toMultiplicity,
       rel.associationClassId,
+      rel.isNavigable,
       rel.constraints,
     )
   }

@@ -364,8 +364,13 @@ export class RelationshipAnalyzer {
       return IRRelationshipType.AGGREGATION
     }
 
-    // Association (><)
-    if (['><', 'assoc', 'association'].includes(k)) {
+    // Bidirectional/Undirected Association (<>, bidir)
+    if (['<>', 'bidir', 'bidirectional'].includes(k)) {
+      return IRRelationshipType.BIDIRECTIONAL
+    }
+
+    // Association (>, ><, assoc, association)
+    if (['>', '><', 'assoc', 'association'].includes(k)) {
       return IRRelationshipType.ASSOCIATION
     }
 
@@ -377,11 +382,6 @@ export class RelationshipAnalyzer {
     // Realization (Internal concept, typically mapped from Implements but kept for safety)
     if (['realize', 'realizes'].includes(k)) {
       return IRRelationshipType.REALIZATION
-    }
-
-    // Bidirectional/Undirected Association (>)
-    if (['>', '<>', 'bidir', 'bidirectional'].includes(k)) {
-      return IRRelationshipType.BIDIRECTIONAL
     }
 
     // Default fallback

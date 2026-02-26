@@ -153,13 +153,13 @@ export class EntityAnalyzer {
       )
       .forEach((m) => {
         const namedMember = m as AttributeNode | MethodNode
-        if (seenNames.has(namedMember.name)) {
+        if (namedMember.name && seenNames.has(namedMember.name)) {
           this.context.addError(
             `Duplicate member: '${namedMember.name}' is already defined in this entity.`,
             { line: m.line, column: m.column, type: TokenType.UNKNOWN, value: '' } as Token,
             DiagnosticCode.SEMANTIC_DUPLICATE_MEMBER,
           )
-        } else {
+        } else if (namedMember.name) {
           seenNames.add(namedMember.name)
         }
 
@@ -190,6 +190,8 @@ export class EntityAnalyzer {
             isOrdered: false,
             isUnique: true,
             aggregation: this.mapAggregation(attr.relationshipKind),
+            relationshipKind: attr.relationshipKind,
+            isNavigable: attr.isNavigable,
             label: attr.label,
             line: attr.line,
             column: attr.column,
@@ -215,6 +217,7 @@ export class EntityAnalyzer {
                 : undefined,
               direction: 'in' as const,
               relationshipKind: p.relationshipKind,
+              isNavigable: p.isNavigable,
               modifiers: p.targetModifiers
                 ? {
                     isAbstract: p.targetModifiers.isAbstract || false,

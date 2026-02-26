@@ -55,6 +55,7 @@ export interface IRParameter {
   multiplicity?: IRMultiplicity
   direction?: 'in' | 'out' | 'inout' | 'return'
   relationshipKind?: string
+  isNavigable?: boolean
   modifiers?: IRModifiers
   line?: number
   column?: number
@@ -74,6 +75,8 @@ export interface IRProperty {
   isOrdered: boolean
   isUnique: boolean
   aggregation: 'none' | 'shared' | 'composite' // Cláusula 11.5.3.2
+  relationshipKind?: string
+  isNavigable?: boolean
   label?: string
 
   // Metadata de soporte
