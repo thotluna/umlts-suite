@@ -20,6 +20,7 @@ export interface MemberSuffix {
   constraints?: ConstraintNode[]
   notes?: NoteNode[]
   targetModifiers: Modifiers
+  defaultValue?: string | number | boolean
 }
 
 /**
@@ -56,6 +57,22 @@ export class MemberSuffixRule {
       multiplicity = rawMultiplicity || '[]' // Normalizado para el validador
     }
 
+    let defaultValue: string | number | boolean | undefined
+    if (context.match(TokenType.EQUALS)) {
+      const valueToken = context.peek()
+      if (context.match(TokenType.NUMBER)) {
+        defaultValue = Number(valueToken.value)
+      } else if (context.match(TokenType.STRING)) {
+        defaultValue = valueToken.value.replace(/['"]/g, '')
+      } else if (context.match(TokenType.IDENTIFIER)) {
+        if (valueToken.value === 'true') defaultValue = true
+        else if (valueToken.value === 'false') defaultValue = false
+        else defaultValue = valueToken.value
+      } else {
+        defaultValue = context.advance().value
+      }
+    }
+
     // 3. Relación Post-Tipo (opcional): Type >+ "label"
     if (!relationshipKind && this.isRelationshipOperator(context)) {
       const kindToken = context.advance()
@@ -63,27 +80,24 @@ export class MemberSuffixRule {
       isNavigable = this.isNavigable(kindToken.type)
     }
 
-    // 4. Label o Notas (Strings)
+    // 4 & 5. Label, Notas (Strings) and Restricciones {...}
     let label: string | undefined
     const notes: NoteNode[] = []
-
-    while (context.match(TokenType.STRING)) {
-      const stringToken = context.prev()
-      const value = stringToken.value.replace(/['"]/g, '')
-
-      // Heurística: Si hay relación y no hay label, el primer string es el label.
-      // Si no, es una nota.
-      if (relationshipKind && !label) {
-        label = value
-      } else {
-        notes.push(ASTFactory.createNote(value, stringToken.line, stringToken.column))
-      }
-    }
-
-    // 5. Restricciones {...}
     const constraints: ConstraintNode[] = []
-    if (context.check(TokenType.LBRACE)) {
-      constraints.push(ConstraintRule.parseInline(context))
+
+    while (context.check(TokenType.STRING) || context.check(TokenType.LBRACE)) {
+      if (context.match(TokenType.STRING)) {
+        const stringToken = context.prev()
+        const value = stringToken.value.replace(/['"]/g, '')
+
+        if (relationshipKind && !label) {
+          label = value
+        }
+
+        notes.push(ASTFactory.createNote(value, stringToken.line, stringToken.column))
+      } else if (context.check(TokenType.LBRACE)) {
+        constraints.push(ConstraintRule.parseInline(context))
+      }
     }
 
     return {
@@ -95,6 +109,7 @@ export class MemberSuffixRule {
       constraints: constraints.length > 0 ? constraints : undefined,
       notes: notes.length > 0 ? notes : undefined,
       targetModifiers,
+      defaultValue,
     }
   }
 

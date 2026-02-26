@@ -192,6 +192,35 @@ export function renderEdge(
     )
   }
 
+  // ── Constraints ──────────────────────────────────────────────────────────
+  if (edge.constraints && edge.constraints.length > 0) {
+    const visibleConstraints = edge.constraints.filter((c) => c.kind !== 'xor_member')
+    if (visibleConstraints.length === 0) return ''
+
+    const expressions = visibleConstraints.map((c) =>
+      c.expression && c.expression !== c.kind ? `${c.kind}: ${c.expression}` : c.kind,
+    )
+    const constraintText = `{${expressions.join(', ')}}`
+
+    const mid = midpoint(wps)
+    // Offset slightly from the label if it exists
+    const offsetY = edge.label ? 15 : 0
+
+    labels.push(
+      svg.text(
+        {
+          x: mid.x + 4,
+          y: mid.y - 4 + offsetY,
+          fill: theme.edgeStroke,
+          'font-size': theme.fontSizeSmall,
+          'text-anchor': 'start',
+          'dominant-baseline': 'central',
+        },
+        svg.escape(constraintText),
+      ),
+    )
+  }
+
   const extraElements: string[] = []
   const renderOptions = options as DiagramConfig['render']
 
@@ -310,7 +339,8 @@ function labelPos(
   return { x, y, anchor: px >= 0 ? 'start' : 'end' }
 }
 
-export function midpoint(wps: Point[]): Point {
+export function midpoint(wps: Point[] | undefined): Point {
+  if (!wps || wps.length === 0) return { x: 0, y: 0 }
   const mid = Math.floor(wps.length / 2)
   if (wps.length % 2 === 1) return wps[mid]
   const a = wps[mid - 1]

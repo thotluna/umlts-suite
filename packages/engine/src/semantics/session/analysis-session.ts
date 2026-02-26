@@ -1,4 +1,10 @@
-import type { IRDiagram, IRRelationship, IREntity } from '@engine/generator/ir/models'
+import type {
+  IRDiagram,
+  IRRelationship,
+  IREntity,
+  IRNote,
+  IRAnchor,
+} from '@engine/generator/ir/models'
 import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
 import type { SymbolTable } from '@engine/semantics/symbol-table'
 import type { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
@@ -12,6 +18,8 @@ import type { TypeResolutionPipeline } from '@engine/semantics/inference/type-re
  */
 export class AnalysisSession implements ISemanticState {
   public readonly relationships: IRRelationship[] = []
+  public readonly notes: IRNote[] = []
+  public readonly anchors: IRAnchor[] = []
 
   constructor(
     public readonly symbolTable: SymbolTable,
@@ -23,6 +31,14 @@ export class AnalysisSession implements ISemanticState {
 
   public recordRelationship(relationship: IRRelationship): void {
     this.relationships.push(relationship)
+  }
+
+  public recordNote(note: IRNote): void {
+    this.notes.push(note)
+  }
+
+  public recordAnchor(anchor: IRAnchor): void {
+    this.anchors.push(anchor)
   }
 
   public getEntity(id: string): IREntity | undefined {
@@ -37,6 +53,8 @@ export class AnalysisSession implements ISemanticState {
       entities: this.symbolTable.getAllEntities(),
       relationships: this.relationships,
       constraints: this.constraintRegistry.getAll(),
+      notes: this.notes,
+      anchors: this.anchors,
       config: this.configStore.get(),
     }
   }

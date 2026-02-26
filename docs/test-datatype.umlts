@@ -1,46 +1,92 @@
 config {
   language: "typescript"
+  direction: DOWN
 }
 
-package Test {
-  /**
-   * Esta clase no tiene métodos, debería ser un «dataType»
-   */
-  class DataOnly {
-    id: string
-    value: number
-  }
+package TestGroup {
+  // ============================================
+  // 1. ANOTACIONES Y RESTRICCIONES EN CLASES
+  // ============================================
 
   /**
-   * Esta clase TIENE métodos, debería ser una «class» normal
+   * Esta es la clase principal del sistema
+   * Maneja toda la lógica core.
    */
-  class BehaviorObject {
-    +doSomething(): void
+  abstract class CoreSystem {
+    // Restricciones en atributos
+    - id: string {id}
+    - createdAt: Date {readonly} "Fecha inmutable de creacion"
+    + maxInstances: number = 10 {static}
+    + isActive: boolean {derived} 
+    
+    // Multiples constraints y notas
+    + status: string {enum: ['active', 'inactive']} "Estado actual del sistema" "No puede ser null"
+    
+    // Restricciones en parámetros y retorno
+    + async startProcess(
+      pid: number {unique, required} "Identificador del proceso",
+      force: boolean {optional}
+    ): Promise<boolean> {async} "Devuelve true si arranca"
+
+    + abstract stopProcess(): void
   }
 
-  class RecordOwner {
-    createdAt: Date
-    metadata: URL
+  // ============================================
+  // 2. HERENCIA, INTERFACES Y RELACIONES
+  // ============================================
+
+  interface ISystemNode {
+    + endpoint: string {format: uri}
   }
 
-  active class EventHandler {
-    // No tiene métodos, pero es 'active', por lo que debe ser una Class
-    priority: number
+  // Clase que hereda e implementa
+  class PrimaryNode >> CoreSystem >I ISystemNode {
+    // Relación de agregación con constraint
+    - buffer: >* BufferNode {capacity: 500} "Buffer circular interno"
+    
+    // Relación de asociación (uso)
+    + helper: >- Utils "Funciones comunes"
+    
+    // Dependencias
+    - onfig: >- ConfigModule "Usa para lectura"
   }
 
-  interface DataContract {
-    // Solo propiedades en TS -> DataType
-    id: string
-    version: number
+  class BufferNode {
+    + size: number
   }
 
-
-  class Hijo >> *Padre >I Madre{
-    +hermana: >< Hermana {principal}
-    +hermano: <> Hermano "secundario"
-    -primos: >- Primo
-
-    +async doSomething(): Promise<void>
-
+  class Utils {
+    + static log(msg: string): void
   }
+
+  class ConfigModule {
+    + path: string {readonly}
+  }
+
+  // ============================================
+  // 3. RESTRICCIONES XOR (MUTUAMENTE EXCLUYENTES)
+  // ============================================
+
+  class MessageHandler >> CoreSystem {
+    + handleEvents(): void
+  }
+
+  class SmsProtocol { }
+  class EmailProtocol { }
+
+  // Un Handler puede usar Sms o Email, pero NO ambos
+  xor{
+    MessageHandler >- SmsProtocol
+    MessageHandler >- EmailProtocol
+  }
+
+  // ============================================
+  // 4. NOTAS LIBRES Y ANCLAJES (GLOBALES)
+  // ============================================
+
+  note "Este es un sistema altamente acoplado por diseño" as N1
+  N1 .. PrimaryNode
+  N1 .. MessageHandler
+
+  "El bloque de la izquierda se encarga de I/O"
 }

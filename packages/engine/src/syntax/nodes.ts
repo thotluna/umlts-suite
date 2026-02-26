@@ -79,6 +79,7 @@ export interface Modifiers {
   isLeaf?: boolean
   isFinal?: boolean
   isRoot?: boolean
+  isAsync?: boolean
 }
 
 export interface EntityNode extends ASTNode {
@@ -111,7 +112,9 @@ export interface AttributeNode extends ASTNode {
   isNavigable?: boolean
   label?: string | undefined
   constraints?: ConstraintNode[]
+  notes?: NoteNode[]
   targetModifiers?: Modifiers
+  defaultValue?: string | number | boolean
 }
 
 export interface MethodNode extends ASTNode {
@@ -125,6 +128,7 @@ export interface MethodNode extends ASTNode {
   returnRelationshipKind?: string | undefined
   isNavigable?: boolean
   constraints?: ConstraintNode[]
+  notes?: NoteNode[]
   returnTargetModifiers?: Modifiers
 }
 
@@ -135,8 +139,9 @@ export interface ParameterNode extends ASTNode {
   relationshipKind?: string | undefined
   isNavigable?: boolean
   constraints?: ConstraintNode[]
+  notes?: NoteNode[]
   targetModifiers?: Modifiers
-
+  defaultValue?: string | number | boolean
   multiplicity?: string
 }
 

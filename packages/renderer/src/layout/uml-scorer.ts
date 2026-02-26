@@ -56,6 +56,7 @@ export class UMLScorer {
     if (type.includes('composition')) return 7
     if (type.includes('aggregation')) return 5
     if (type.includes('association')) return 3
+    if (type.includes('anchor')) return 1
     return 1
   }
 

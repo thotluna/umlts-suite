@@ -47,6 +47,7 @@ export class MethodRule {
         returnRelationshipKind: suffix?.relationshipKind,
         isNavigable: suffix?.isNavigable,
         constraints: suffix?.constraints,
+        notes: suffix?.notes,
         returnTargetModifiers: suffix?.targetModifiers ?? this.createDefaultModifiers(),
         docs: context.consumePendingDocs(),
       },

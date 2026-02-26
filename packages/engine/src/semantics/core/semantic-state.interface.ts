@@ -1,4 +1,4 @@
-import type { IRRelationship, IREntity } from '@engine/generator/ir/models'
+import type { IRRelationship, IREntity, IRNote, IRAnchor } from '@engine/generator/ir/models'
 import type { ISemanticContext } from './semantic-context.interface'
 import type { SymbolTable } from '@engine/semantics/symbol-table'
 import type { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
@@ -14,7 +14,19 @@ export interface ISemanticState {
   readonly constraintRegistry: ConstraintRegistry
   readonly configStore: ConfigStore
   readonly context: ISemanticContext
+  readonly notes: IRNote[]
+  readonly anchors: IRAnchor[]
   readonly typeResolver: import('@engine/semantics/inference/type-resolution.pipeline').TypeResolutionPipeline
+
+  /**
+   * Records a new note in the state.
+   */
+  recordNote(note: IRNote): void
+
+  /**
+   * Records a new anchor in the state.
+   */
+  recordAnchor(anchor: IRAnchor): void
 
   /**
    * Records a new relationship in the state.

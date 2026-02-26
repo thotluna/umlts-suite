@@ -8,6 +8,11 @@ import {
   type ConfigNode,
   type AssociationClassNode,
   type ConstraintNode,
+  type NoteNode,
+  type AnchorNode,
+  type AttributeNode,
+  type MethodNode,
+  type ParameterNode,
 } from '@engine/syntax/nodes'
 import type { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
 import type { ConstraintAnalyzer } from '@engine/semantics/analyzers/constraint-analyzer'
@@ -23,6 +28,7 @@ export class ResolutionPass implements ISemanticPass, ASTVisitor {
   public readonly name = 'Resolution'
   private currentNamespace: string[] = []
   private currentConstraintGroupId?: string
+  private currentEntityFQN?: string
   private state!: ISemanticState
 
   constructor(
@@ -75,6 +81,11 @@ export class ResolutionPass implements ISemanticPass, ASTVisitor {
         this.currentConstraintGroupId,
       )
     })
+
+    const oldEntity = this.currentEntityFQN
+    this.currentEntityFQN = fromFQN
+    ;(node.body || []).forEach((m) => walkAST(m, this))
+    this.currentEntityFQN = oldEntity
   }
 
   visitRelationship(node: RelationshipNode): void {
@@ -137,5 +148,55 @@ export class ResolutionPass implements ISemanticPass, ASTVisitor {
       ;(node.body || []).forEach((stmt) => walkAST(stmt, this))
       this.currentConstraintGroupId = oldGroupId
     }
+  }
+
+  visitNote(node: NoteNode): void {
+    const noteId = node.id || `note_${node.line}_${node.column}`
+    this.state.recordNote({
+      id: noteId,
+      text: node.value,
+      line: node.line,
+      column: node.column,
+    })
+
+    if (this.currentEntityFQN) {
+      this.state.recordAnchor({
+        from: noteId,
+        to: [this.currentEntityFQN],
+        line: node.line,
+        column: node.column,
+      })
+    }
+  }
+
+  visitAnchor(node: AnchorNode): void {
+    const ns = this.currentNamespace.join('.')
+    // Note: 'from' is the Note ID, 'to' are the target entities
+    // But since Note IDs are also in the namespace scope (conceptually), we try to resolve
+    // However, usually Note IDs are simple.
+    const toFQNs = node.to.map((t) => this.state.symbolTable.resolveFQN(t, ns).fqn)
+
+    this.state.recordAnchor({
+      from: node.from,
+      to: toFQNs,
+      line: node.line,
+      column: node.column,
+    })
+  }
+
+  visitAttribute(node: AttributeNode): void {
+    ;(node.notes || []).forEach((n) => walkAST(n, this))
+    ;(node.constraints || []).forEach((c) => walkAST(c, this))
+  }
+
+  visitMethod(node: MethodNode): void {
+    ;(node.notes || []).forEach((n) => walkAST(n, this))
+    ;(node.constraints || []).forEach((c) => walkAST(c, this))
+    ;(node.parameters || []).forEach((p) => walkAST(p, this))
+  }
+
+  visitParameter(node: ParameterNode): void {
+    ;(node.notes || []).forEach((n) => walkAST(n, this))
+    ;(node.constraints || []).forEach((c) => walkAST(c, this))
   }
 }

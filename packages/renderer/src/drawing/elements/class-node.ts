@@ -1,10 +1,5 @@
-import {
-  type IRProperty,
-  type IROperation,
-  type IRParameter,
-  type IRMultiplicity,
-} from '@umlts/engine'
-import { type UMLNode } from '../../core/model/nodes'
+import { type IRMultiplicity, type IRParameter } from '@umlts/engine'
+import { type UMLNode, type UMLProperty, type UMLOperation } from '../../core/model/nodes'
 import { type DiagramConfig } from '../../core/types'
 import { type Theme } from '../../core/theme'
 import { SVGBuilder as svg } from '../svg-helpers'
@@ -188,7 +183,7 @@ function formatMultiplicity(m?: IRMultiplicity): string {
 }
 
 function renderProperty(
-  p: IRProperty,
+  p: UMLProperty,
   x: number,
   y: number,
   theme: Theme,
@@ -209,6 +204,13 @@ function renderProperty(
     label += ' {leaf}'
   }
 
+  if (p.constraints && p.constraints.length > 0 && !p.hideConstraints) {
+    const expressions = p.constraints.map((c) =>
+      c.expression && c.expression !== c.kind ? `${c.kind}: ${c.expression}` : c.kind,
+    )
+    label += ` {${expressions.join(', ')}}`
+  }
+
   return svg.text(
     {
       x,
@@ -222,7 +224,7 @@ function renderProperty(
 }
 
 function renderOperation(
-  op: IROperation,
+  op: UMLOperation,
   x: number,
   y: number,
   theme: Theme,
@@ -248,6 +250,13 @@ function renderOperation(
 
   if (op.isLeaf) {
     label += ' {leaf}'
+  }
+
+  if (op.constraints && op.constraints.length > 0 && !op.hideConstraints) {
+    const expressions = op.constraints.map((c) =>
+      c.expression && c.expression !== c.kind ? `${c.kind}: ${c.expression}` : c.kind,
+    )
+    label += ` {${expressions.join(', ')}}`
   }
 
   return svg.text(

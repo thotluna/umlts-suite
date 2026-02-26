@@ -8,8 +8,12 @@ import type {
   ConfigNode,
   AssociationClassNode,
   ConstraintNode,
+  NoteNode,
+  AnchorNode,
+  AttributeNode,
+  MethodNode,
+  ParameterNode,
 } from '@engine/syntax/nodes'
-import type { IRConstraint } from '@engine/generator/ir/models'
 import type { EntityAnalyzer } from '@engine/semantics/analyzers/entity-analyzer'
 import type { ISemanticPass } from '@engine/semantics/passes/semantic-pass.interface'
 import type { ISemanticState } from '@engine/semantics/core/semantic-state.interface'
@@ -47,19 +51,6 @@ export class DefinitionPass implements ISemanticPass, ASTVisitor {
 
     if (entity) {
       this.entityAnalyzer.processMembers(entity, node)
-
-      const allMembers: { constraints?: IRConstraint[] }[] = [
-        ...(entity.properties || []),
-        ...(entity.operations || []),
-      ]
-
-      allMembers.forEach((member) => {
-        member.constraints?.forEach((c) => {
-          if (c.kind === 'xor') {
-            this.state.constraintRegistry.add(c)
-          }
-        })
-      })
     }
   }
 
@@ -86,4 +77,27 @@ export class DefinitionPass implements ISemanticPass, ASTVisitor {
   }
 
   visitConstraint(_node: ConstraintNode): void {}
+
+  visitNote(node: NoteNode): void {
+    this.state.recordNote({
+      id: node.id || `note_${node.line}_${node.column}`,
+      text: node.value,
+      namespace: this.currentNamespace.join('.'),
+      line: node.line,
+      column: node.column,
+    })
+  }
+
+  visitAnchor(node: AnchorNode): void {
+    this.state.recordAnchor({
+      from: node.from,
+      to: node.to,
+      line: node.line,
+      column: node.column,
+    })
+  }
+
+  visitAttribute(_node: AttributeNode): void {}
+  visitMethod(_node: MethodNode): void {}
+  visitParameter(_node: ParameterNode): void {}
 }

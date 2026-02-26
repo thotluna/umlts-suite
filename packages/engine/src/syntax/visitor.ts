@@ -8,6 +8,11 @@ import type {
   ConfigNode,
   AssociationClassNode,
   ConstraintNode,
+  NoteNode,
+  AnchorNode,
+  AttributeNode,
+  MethodNode,
+  ParameterNode,
 } from '@engine/syntax/nodes'
 import { ASTNodeType } from '@engine/syntax/nodes'
 
@@ -23,6 +28,11 @@ export interface ASTVisitor<T = void> {
   visitConfig: (node: ConfigNode) => T
   visitAssociationClass: (node: AssociationClassNode) => T
   visitConstraint: (node: ConstraintNode) => T
+  visitNote: (node: NoteNode) => T
+  visitAnchor: (node: AnchorNode) => T
+  visitAttribute: (node: AttributeNode) => T
+  visitMethod: (node: MethodNode) => T
+  visitParameter: (node: ParameterNode) => T
 }
 
 /**
@@ -49,6 +59,16 @@ export function walkAST<T>(node: ASTNode, visitor: ASTVisitor<T>): T {
       return visitor.visitAssociationClass(node as AssociationClassNode)
     case ASTNodeType.CONSTRAINT:
       return visitor.visitConstraint(node as ConstraintNode)
+    case ASTNodeType.NOTE:
+      return visitor.visitNote(node as NoteNode)
+    case ASTNodeType.ANCHOR:
+      return visitor.visitAnchor(node as AnchorNode)
+    case ASTNodeType.ATTRIBUTE:
+      return visitor.visitAttribute(node as AttributeNode)
+    case ASTNodeType.METHOD:
+      return visitor.visitMethod(node as MethodNode)
+    case ASTNodeType.PARAMETER:
+      return visitor.visitParameter(node as ParameterNode)
     default:
       throw new Error(`Tipo de nodo no visitable: ${node.type}`)
   }

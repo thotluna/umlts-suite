@@ -47,6 +47,8 @@ describe('Renderer V3 Parity Test', () => {
       },
     ],
     constraints: [],
+    notes: [],
+    anchors: [],
     config: {
       direction: 'RIGHT',
       spacing: 50,
