@@ -59,6 +59,7 @@ export interface IRParameter {
   modifiers?: IRModifiers
   line?: number
   column?: number
+  notes?: string[]
 }
 
 /**
@@ -83,6 +84,7 @@ export interface IRProperty {
   line?: number
   column?: number
   docs?: string
+  notes?: string[]
   constraints?: IRConstraint[]
   stereotypes?: string[]
 }
@@ -105,6 +107,7 @@ export interface IROperation {
   line?: number
   column?: number
   docs?: string
+  notes?: string[]
   constraints?: IRConstraint[]
   stereotypes?: string[]
 }
@@ -115,6 +118,7 @@ export interface IROperation {
 export interface IREnumerationLiteral {
   name: string
   docs?: string
+  notes?: string[]
 }
 
 /**
