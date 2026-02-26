@@ -1,5 +1,5 @@
 import {
-  IRRelationshipType,
+  type IRRelationshipType,
   IREntityType,
   IRVisibility,
   type IRRelationship,
@@ -26,6 +26,7 @@ import type {
 import { MultiplicityValidator } from '@engine/semantics/utils/multiplicity-validator'
 import { TokenType } from '@engine/syntax/token.types'
 import type { Token } from '@engine/syntax/token.types'
+
 /**
  * Handles creation and validation of relationships.
  */
