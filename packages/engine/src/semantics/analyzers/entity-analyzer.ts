@@ -153,13 +153,13 @@ export class EntityAnalyzer {
       )
       .forEach((m) => {
         const namedMember = m as AttributeNode | MethodNode
-        if (namedMember.name && seenNames.has(namedMember.name)) {
+        if (seenNames.has(namedMember.name)) {
           this.context.addError(
             `Duplicate member: '${namedMember.name}' is already defined in this entity.`,
             { line: m.line, column: m.column, type: TokenType.UNKNOWN, value: '' } as Token,
             DiagnosticCode.SEMANTIC_DUPLICATE_MEMBER,
           )
-        } else if (namedMember.name) {
+        } else {
           seenNames.add(namedMember.name)
         }
 
@@ -171,6 +171,7 @@ export class EntityAnalyzer {
             entity.literals.push({
               name: attr.name,
               docs: attr.docs,
+              notes: attr.notes?.map((n) => n.value),
             })
             return
           }
@@ -196,6 +197,7 @@ export class EntityAnalyzer {
             line: attr.line,
             column: attr.column,
             docs: attr.docs,
+            notes: attr.notes?.map((n) => n.value),
             constraints: attr.constraints?.map((c) => this.constraintAnalyzer.process(c)),
           })
         } else if (m.type === ASTNodeType.METHOD) {
@@ -230,11 +232,13 @@ export class EntityAnalyzer {
                 : undefined,
               line: p.line,
               column: p.column,
+              notes: p.notes?.map((n) => n.value),
             })),
             returnType: this.processType(meth.returnType?.raw),
             line: meth.line,
             column: meth.column,
             docs: meth.docs,
+            notes: meth.notes?.map((n) => n.value),
             constraints: (meth.constraints || []).map((c) => this.constraintAnalyzer.process(c)),
           })
         }
