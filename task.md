@@ -235,7 +235,7 @@
 ## Próximos Pasos (V3)
 
 - [x] Implementar documentación técnica avanzada con Astro + Starlight
-- [ ] Refinar contenido y añadir guías de arquitectura detalladas
+- [x] Reorganizar contenido por pilares de desarrollador y añadir renderizado dinámico de UMLTS
 - [x] Implementar autocompletado avanzado basado en la nueva resolución FQN
 
 ## Ingeniería Inversa Blueprint (Extractor v1.0)
