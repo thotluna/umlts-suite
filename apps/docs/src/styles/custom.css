@@ -29,10 +29,12 @@
   font-family: 'Fira Code', monospace;
 }
 
+.package path,
 .package rect {
   transition: all 0.3s ease;
 }
 
+.package:hover path,
 .package:hover rect {
   stroke-width: 2px;
   stroke: rgba(255, 255, 255, 0.4) !important;

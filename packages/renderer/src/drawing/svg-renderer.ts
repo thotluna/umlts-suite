@@ -118,41 +118,47 @@ export class SVGRenderer implements IDrawingEngine<string> {
     const { x = 0, y = 0, width = 0, height = 0 } = pkg
 
     const tabHeight = 25
-    const tabWidth = Math.min(width * 0.4, 120)
+    const tabWidth = Math.max(width * 0.3, 110)
+    const r = 8
 
-    // 1. Tab (The small handle on top)
-    const tab = svg.rect({
-      x,
-      y,
-      width: tabWidth,
-      height: tabHeight + 10, // Slight overlap to avoid line gap
+    // Drawing a unified "folder" shape
+    const d = `
+      M ${x}, ${y + tabHeight}
+      L ${x}, ${y + 6}
+      A 6,6 0 0 1 ${x + 6}, ${y}
+      L ${x + tabWidth - 6}, ${y}
+      A 6,6 0 0 1 ${x + tabWidth}, ${y + 6}
+      L ${x + tabWidth}, ${y + tabHeight}
+      L ${x + width - r}, ${y + tabHeight}
+      A r,r 0 0 1 ${x + width}, ${y + tabHeight + r}
+      L ${x + width}, ${y + height - r}
+      A r,r 0 0 1 ${x + width - r}, ${y + height}
+      L ${x + r}, ${y + height}
+      A r,r 0 0 1 ${x}, ${y + height - r}
+      Z
+    `
+      .replace(/r,r/g, `${r},${r}`)
+      .replace(/\s+/g, ' ')
+      .trim()
+
+    const body = svg.path({
+      d,
       fill: theme.packageBackground,
       stroke: theme.packageBorder,
       'stroke-width': 1.2,
-      rx: 4,
+      rx: 2, // Hint for some consumers
     })
 
-    // 2. Package body
-    const rect = svg.rect({
-      x,
-      y: y + tabHeight,
-      width,
-      height: height - tabHeight,
-      fill: theme.packageBackground,
-      stroke: theme.packageBorder,
-      'stroke-width': 1.2,
-      rx: 8,
-    })
-
-    // 3. Package label (Centered at the top of the body)
+    // 3. Package label (Centered in the tab)
     const label = svg.text(
       {
-        x: x + width / 2,
-        y: y + tabHeight + 20,
+        x: x + tabWidth / 2,
+        y: y + tabHeight / 2,
         fill: theme.packageLabelText,
         'font-weight': 'bold',
-        'font-size': '12px',
+        'font-size': '11px',
         'text-anchor': 'middle',
+        'dominant-baseline': 'central',
         'text-transform': 'uppercase',
         'letter-spacing': '1px',
       },
@@ -172,7 +178,7 @@ export class SVGRenderer implements IDrawingEngine<string> {
       })
       .join('')
 
-    return svg.g({ class: 'package', 'data-name': pkg.name }, tab + rect + label + childrenStr)
+    return svg.g({ class: 'package', 'data-name': pkg.name }, body + label + childrenStr)
   }
 
   /**
