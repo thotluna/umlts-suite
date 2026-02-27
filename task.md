@@ -234,7 +234,9 @@
 
 ## Próximos Pasos (V3)
 
-- [ ] Implementar autocompletado avanzado basado en la nueva resolución FQN
+- [x] Implementar documentación técnica avanzada con Astro + Starlight
+- [ ] Refinar contenido y añadir guías de arquitectura detalladas
+- [x] Implementar autocompletado avanzado basado en la nueva resolución FQN
 
 ## Ingeniería Inversa Blueprint (Extractor v1.0)
 

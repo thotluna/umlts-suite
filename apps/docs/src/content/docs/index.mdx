@@ -1,0 +1,39 @@
+---
+title: UMLTS Suite
+description: La suite definitiva para modelado UML con el poder de TypeScript.
+template: splash
+hero:
+  tagline: Diseña arquitecturas robustas usando un DSL inspirado en TypeScript.
+  image:
+    file: ../../assets/houston.webp
+  actions:
+    - text: Guía del Lenguaje
+      link: /dsl/introduction
+      icon: right-arrow
+    - text: API Reference
+      link: /engine/api
+      icon: rocket
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components'
+
+## Pilares de UMLTS
+
+<CardGrid stagger>
+  <Card title="1. El Lenguaje (DSL)" icon="open-book">
+    Diseñado para el desarrollador. Texto plano, versionable y familiar. [¿Por qué
+    UMLTS?](/dsl/introduction)
+  </Card>
+  <Card title="2. Engine & Plugins" icon="setting">
+    Analizador semántico de UML 2.5.1 con soporte para tipos de TypeScript. [Motor API](/engine/api)
+  </Card>
+  <Card title="3. Renderer" icon="pencil">
+    Generación de diagramas SVG premium con layout automático. [Render API](/renderer/api)
+  </Card>
+  <Card title="4. Extension VS Code" icon="document">
+    Previsualización y autocompletado en tiempo real en tu editor. [Instalación](/ecosystem/vscode)
+  </Card>
+  <Card title="5. Blueprint (Reverse Eng)" icon="add-document">
+    Sincroniza tus diagramas con tu código TypeScript real. [Blueprint API](/ecosystem/blueprint)
+  </Card>
+</CardGrid>
