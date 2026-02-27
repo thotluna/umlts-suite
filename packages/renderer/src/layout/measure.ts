@@ -17,6 +17,7 @@ const {
   LINE_HEIGHT,
   HEADER_HEIGHT_NORMAL,
   PADDING_BOTTOM,
+  PADDING_X,
   MIN_WIDTH,
   SECTION_DIVIDER_HEIGHT,
 } = MEASURE_CONFIG
@@ -75,7 +76,6 @@ export function measureNodeDimensions(node: UMLSpatialNode): NodeDimensions {
     }
   }
 
-  const PADDING_X = 50 // Premium horizontal breathing room
   const width = Math.max(MIN_WIDTH, Math.ceil(maxChars * CHAR_WIDTH + PADDING_X + genericOverhead))
 
   // 2. Calculate height
