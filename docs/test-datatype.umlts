@@ -90,3 +90,6 @@ package TestGroup {
 
   "El bloque de la izquierda se encarga de I/O"
 }
+
+
+class core.System >> TestGroup.CoreSystem
