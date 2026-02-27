@@ -1,15 +1,25 @@
-import { type IRParameter } from '@umlts/engine'
-import { type UMLNode } from '../core/model/nodes'
+import {
+  UMLSpatialNode,
+  UMLCompartmentNode,
+  UMLGenericClass,
+  UMLGenericInterface,
+  UMLEnum,
+  UMLHeaderShape,
+} from '../core/model/index'
 
 /**
  * Approximate constants for text measurement without a real DOM.
- * These values are calibrated for a standard monospace font at 13px.
  */
-const CHAR_WIDTH = 11.5 // More conservative to avoid clipping
-const LINE_HEIGHT = 26 // More compact but safe
-const HEADER_HEIGHT_NORMAL = 40
-const PADDING_BOTTOM = 8
-const MIN_WIDTH = 160
+import { MEASURE_CONFIG } from '../core/model/base/measure-constants'
+
+const {
+  CHAR_WIDTH,
+  LINE_HEIGHT,
+  HEADER_HEIGHT_NORMAL,
+  PADDING_BOTTOM,
+  MIN_WIDTH,
+  SECTION_DIVIDER_HEIGHT,
+} = MEASURE_CONFIG
 
 export interface NodeDimensions {
   width: number
@@ -21,74 +31,73 @@ export interface TextDimensions {
   height: number
 }
 
-/**
- * Internal helper to calculate node dimensions.
- * Migrated to UMLNode.getDimensions()
- */
-export function measureNodeDimensions(node: UMLNode): NodeDimensions {
-  // 1. Calculate max width based on the longest string
+export function measureNodeDimensions(node: UMLSpatialNode): NodeDimensions {
+  // 1. Calculate max width by checking all possible content
   let maxChars = node.name.length
-
-  // Stereotypes like «interface», «enum», «abstract», «static», leaf, final, root add to width and height
-  let stereotypeCount = 0
-  if (node.type !== 'Class') {
-    maxChars = Math.max(maxChars, node.type.length + 4)
-    stereotypeCount++
+  if (node instanceof UMLHeaderShape && node.nameContent?.isItalic) {
+    maxChars *= 1.1
   }
+
+  // Stereotypes width
+  if (node instanceof UMLHeaderShape) {
+    node.stereotypes.forEach((st) => {
+      maxChars = Math.max(maxChars, st.text.length + 4)
+    })
+  }
+
   if (node.isAbstract) {
-    maxChars = Math.max(maxChars, 12) // «abstract»
-    stereotypeCount++
-  }
-  if (node.isStatic) {
-    maxChars = Math.max(maxChars, 10) // «static»
-    stereotypeCount++
-  }
-  if (node.isLeaf) {
-    maxChars = Math.max(maxChars, 6) // {leaf}
-    stereotypeCount++
+    maxChars = Math.max(maxChars, 12) // <<abstract>>
   }
 
-  // Generics like <T, K> (UML Standard: Template Parameter Box)
+  // Template/Generic params width
   let genericOverhead = 0
-  if (node.typeParameters && node.typeParameters.length > 0) {
-    const genericsStr = node.typeParameters.join(', ')
-    // The box hangs out by half its width on the right
-    const boxWidth = Math.max(30, genericsStr.length * 8 + 10)
-    genericOverhead = boxWidth / 2
-    maxChars = Math.max(maxChars, node.name.length) // Name doesn't need to fit <T> in title anymore
-  }
-
-  // 1. Properties
-  for (const p of node.properties) {
-    let memberChars = 2 + p.name.length + 3 + (p.type?.length || 0)
-    if (p.multiplicity) {
-      const multStr = `${p.multiplicity.lower}..${p.multiplicity.upper}`
-      memberChars += multStr.length + 2
+  if (node instanceof UMLGenericClass || node instanceof UMLGenericInterface) {
+    if (node.templateBox) {
+      const dim = node.templateBox.getDimensions()
+      genericOverhead = dim.width / 2 // Box sticks out halfway
     }
-    maxChars = Math.max(maxChars, memberChars)
   }
 
-  // 2. Operations
-  for (const op of node.operations) {
-    const paramsChars = op.parameters.reduce(
-      (acc: number, p: IRParameter) => acc + p.name.length + (p.type?.length || 0) + 3,
-      0,
-    )
-    const memberChars = 2 + op.name.length + paramsChars + 2 + 3 + (op.returnType?.length || 0)
-    maxChars = Math.max(maxChars, memberChars)
+  // Compartment members width
+  if (node instanceof UMLCompartmentNode) {
+    for (const p of node.properties) {
+      maxChars = Math.max(maxChars, p.getFullText().length)
+    }
+    for (const op of node.operations) {
+      maxChars = Math.max(maxChars, op.getFullText().length)
+    }
   }
 
-  const width = Math.max(MIN_WIDTH, Math.ceil(maxChars * CHAR_WIDTH + 20 + genericOverhead)) // +20 for padding + overhead
+  // Enum literals width
+  if (node instanceof UMLEnum) {
+    for (const lit of node.literals) {
+      maxChars = Math.max(maxChars, lit.text.length + 4)
+    }
+  }
+
+  const PADDING_X = 50 // Premium horizontal breathing room
+  const width = Math.max(MIN_WIDTH, Math.ceil(maxChars * CHAR_WIDTH + PADDING_X + genericOverhead))
 
   // 2. Calculate height
-  // Header + Properties Section + Operations Section
-  const memberCount = node.properties.length + node.operations.length
-  // We add some extra height if we have both properties and operations for the divider
-  const sectionDividerHeight = node.properties.length > 0 && node.operations.length > 0 ? 8 : 0
+  let memberCount = 0
+  let dividerHeight = 0
 
-  const currentHeaderHeight = HEADER_HEIGHT_NORMAL + stereotypeCount * 14
-  const height =
-    currentHeaderHeight + memberCount * LINE_HEIGHT + sectionDividerHeight + PADDING_BOTTOM
+  if (node instanceof UMLCompartmentNode) {
+    memberCount = node.properties.length + node.operations.length
+    if (node.properties.length > 0 && node.operations.length > 0) {
+      dividerHeight = SECTION_DIVIDER_HEIGHT
+    }
+  } else if (node instanceof UMLEnum) {
+    memberCount = node.literals.length
+  }
+
+  // Real height calculation
+  let currentHeaderHeight: number = HEADER_HEIGHT_NORMAL
+  if (node instanceof UMLHeaderShape) {
+    currentHeaderHeight = node.getHeaderHeight()
+  }
+
+  const height = currentHeaderHeight + memberCount * LINE_HEIGHT + dividerHeight + PADDING_BOTTOM
 
   return { width, height }
 }
@@ -97,7 +106,7 @@ export function measureNodeDimensions(node: UMLNode): NodeDimensions {
  * Approximates the dimensions of a single line of text.
  */
 export function measureText(text: string, fontSize = 12): TextDimensions {
-  const scale = fontSize / 13 // CHAR_WIDTH is calibrated for 13px
+  const scale = fontSize / 13
   return {
     width: Math.ceil(text.length * CHAR_WIDTH * scale),
     height: Math.ceil(LINE_HEIGHT * scale),
@@ -139,7 +148,7 @@ export function measureNoteDimensions(note: { text: string }): NodeDimensions {
   const MAX_CHARS = 40
   const lines = wrapNoteText(note.text, MAX_CHARS)
   const maxLineChars = Math.max(...lines.map((l) => l.length), 15)
-  const width = Math.ceil(maxLineChars * CHAR_WIDTH * 0.75 + 30) // Adjusted factor
+  const width = Math.ceil(maxLineChars * CHAR_WIDTH * 0.75 + 30)
   const height = Math.ceil(lines.length * 20 + 30)
   return { width: Math.max(140, width), height: Math.max(60, height) }
 }

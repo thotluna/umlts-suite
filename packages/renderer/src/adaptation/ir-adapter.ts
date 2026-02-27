@@ -1,22 +1,12 @@
+import { type IRDiagram, type IREntity } from '@umlts/engine'
 import {
-  type IRDiagram,
-  type IREntity,
-  type IRRelationship,
-  type IRNote,
-  type IRAnchor,
-} from '@umlts/engine'
-import {
-  UMLNode,
-  UMLEdge,
   UMLPackage,
-  UMLNote,
-  UMLAnchor,
-  UMLProperty,
-  UMLOperation,
-  type UMLHierarchyItem,
+  UMLConstraintArc,
+  UMLSpatialNode,
   type DiagramModel,
-  type IRRelType,
-} from '../core/model/nodes'
+} from '../core/model/index'
+import { IModelFactory } from '../core/model/factory/factory.interface'
+import { ModelFactory } from '../core/model/factory'
 import { type IDataProvider } from '../core/contract'
 import { ConfigProcessor } from '../core/config-processor'
 
@@ -25,9 +15,8 @@ import { ConfigProcessor } from '../core/config-processor'
  * into a DiagramModel suitable for layout and rendering.
  */
 export class IRAdapter implements IDataProvider<IRDiagram> {
-  /**
-   * Transforms the IR source into a DiagramModel.
-   */
+  constructor(private readonly factory: IModelFactory = new ModelFactory()) {}
+
   public provide(source: IRDiagram): DiagramModel {
     const model = this.transform(source)
     return {
@@ -36,9 +25,6 @@ export class IRAdapter implements IDataProvider<IRDiagram> {
     }
   }
 
-  /**
-   * Transforms the entire diagram IR into a hierarchical model.
-   */
   public transform(source: IRDiagram): DiagramModel {
     const hidden = new Set((source.config?.hiddenEntities as string[]) || [])
     const nodesWithEdges = new Set<string>()
@@ -53,203 +39,79 @@ export class IRAdapter implements IDataProvider<IRDiagram> {
       }
     }
 
-    // Find all nodes that participate in relationships or anchors
-    source.relationships.forEach((rel: IRRelationship) => {
+    source.relationships.forEach((rel) => {
       trackVisible(rel.from)
       trackVisible(rel.to)
     })
 
-    source.anchors?.forEach((anchor: IRAnchor) => {
+    source.anchors?.forEach((anchor) => {
       trackVisible(anchor.from)
       anchor.to.forEach((targetId) => trackVisible(targetId))
     })
 
-    // Filter entities: keep if not hidden OR if they have relationships
     const visibleEntities = source.entities.filter(
       (e: IREntity) => !hidden.has(e.id) || nodesWithEdges.has(e.id),
     )
-    const visibleEntityIds = new Set(visibleEntities.map((e: IREntity) => e.id))
+    const visibleEntityIds = new Set(visibleEntities.map((e) => e.id))
 
-    const nodes: UMLNode[] = visibleEntities.map((entity: IREntity) =>
-      this.transformEntity(entity, source),
-    )
+    const nodes = visibleEntities.map((entity) => this.factory.createNode(entity))
 
-    // 2. Relationship Transformation & Filtering
     let rawRelationships = source.relationships
-
-    // Apply showDependencies filter if defined in config
     if (source.config?.showDependencies === false) {
-      rawRelationships = rawRelationships.filter(
-        (rel: IRRelationship) => rel.type.toLowerCase() !== 'dependency',
-      )
+      rawRelationships = rawRelationships.filter((rel) => rel.type.toLowerCase() !== 'dependency')
     }
 
-    const edges: UMLEdge[] = rawRelationships
-      .filter(
-        (rel: IRRelationship) => visibleEntityIds.has(rel.from) && visibleEntityIds.has(rel.to),
-      )
-      .map((rel: IRRelationship) => this.transformRelationship(rel))
+    const edgeOccurrenceMap = new Map<string, number>()
 
-    // Deduplicate notes by ID or text to prevent multiple renderings
-    const uniqueSourceNotes = (source.notes || []).filter(
-      (note, index, self) =>
-        index ===
-        self.findIndex((n) => (n.id && n.id === note.id) || (!n.id && n.text === note.text)),
-    )
+    const edges = rawRelationships
+      .filter((rel) => visibleEntityIds.has(rel.from) && visibleEntityIds.has(rel.to))
+      .map((rel) => {
+        const semanticKey = `${rel.from}_${rel.to}_${rel.type}`
+        const occurrence = (edgeOccurrenceMap.get(semanticKey) || 0) + 1
+        edgeOccurrenceMap.set(semanticKey, occurrence)
 
-    const noteIdMap = new Map<string, string>()
-    const usedIds = new Set<string>()
-
-    const notes: UMLNote[] = uniqueSourceNotes.map((note: IRNote, index: number) => {
-      let uniqueId = note.id || `note_${index}`
-      if (usedIds.has(uniqueId)) {
-        uniqueId = `${uniqueId}_${index}`
-      }
-      usedIds.add(uniqueId)
-      if (note.id) noteIdMap.set(note.id, uniqueId)
-      noteIdMap.set(`anon_${index}`, uniqueId)
-
-      let ns = note.namespace
-      if (!ns) {
-        const anchors = (source.anchors || []).filter(
-          (a) => a.from === (note.id || `anon_${index}`),
-        )
-        const targets = anchors.flatMap((a) => a.to)
-        if (targets.length > 0) {
-          const targetNamespaces = targets
-            .map((t) => {
-              const entity = source.entities.find((e) => t === e.id || t.startsWith(e.id + '.'))
-              return entity?.namespace
-            })
-            .filter((n): n is string => !!n)
-
-          if (
-            targetNamespaces.length > 0 &&
-            targetNamespaces.length === targets.length &&
-            targetNamespaces.every((n) => n === targetNamespaces[0])
-          ) {
-            ns = targetNamespaces[0]
-          }
-        }
-      }
-      return this.transformNote({ ...note, id: uniqueId, namespace: ns })
-    })
-
-    const anchors: UMLAnchor[] = (source.anchors || [])
-      .filter(
-        (a, i, self) =>
-          i ===
-          self.findIndex((x) => x.from === a.from && JSON.stringify(x.to) === JSON.stringify(a.to)),
-      )
-      .map((anchor: IRAnchor) => {
-        const newFrom = noteIdMap.get(anchor.from) || anchor.from
-        return new UMLAnchor(newFrom, anchor.to)
+        const stableId = `rel_${semanticKey}_${occurrence}`
+        return this.factory.createEdge(rel, stableId)
       })
 
-    // Build the package/namespace hierarchy with both nodes and notes
+    const noteIdMap = new Map<string, string>()
+
+    const notes = (source.notes || []).map((note, index) => {
+      const uNote = this.factory.createNote(note)
+      if (note.id) noteIdMap.set(note.id, uNote.id)
+      else noteIdMap.set(`anon_${index}`, uNote.id)
+      return uNote
+    })
+
+    const anchors = (source.anchors || []).map((anchor, index) => {
+      const newFrom = noteIdMap.get(anchor.from) || anchor.from
+      return this.factory.createAnchor(`anchor_${index}`, newFrom, anchor.to)
+    })
+
+    const constraints = (source.constraints || []).map((c) => {
+      const arc = new UMLConstraintArc(`${c.kind}_${c.targets.join('_')}`, c.kind)
+      arc.targets = [...c.targets]
+      return arc
+    })
+
     const packages = this.buildHierarchy([...nodes, ...notes])
 
     return {
+      components: [...nodes, ...edges, ...packages, ...notes, ...anchors, ...constraints],
       nodes,
       edges,
       packages,
       notes,
       anchors,
-      constraints: source.constraints || [],
+      constraints,
+      config: source.config ? ConfigProcessor.normalize(source.config) : {},
     }
   }
 
-  private transformEntity(entity: IREntity, source: IRDiagram): UMLNode {
-    const properties: UMLProperty[] = entity.properties.map((prop) => {
-      // Check if this property is also represented as a relationship edge
-      const hasRelationship = source.relationships.some(
-        (rel) =>
-          rel.from === entity.id &&
-          (rel.label === prop.name || (rel.to === prop.type && !rel.label)),
-      )
-
-      if (hasRelationship || prop.aggregation !== 'none') {
-        return { ...prop, hideConstraints: true }
-      }
-      return prop
-    })
-
-    const operations: UMLOperation[] = entity.operations.map((op) => {
-      const hasRelationship = source.relationships.some(
-        (rel) => rel.from === entity.id && rel.label === op.name,
-      )
-
-      if (hasRelationship) {
-        return { ...op, hideConstraints: true }
-      }
-      return op
-    })
-
-    return new UMLNode(
-      entity.id,
-      entity.name,
-      entity.type,
-      properties.map((p) => {
-        const hasMatchingNote = (source.notes || []).some((n) => {
-          const isAnchored = source.anchors?.some(
-            (a) => a.from === n.id && a.to.includes(`${entity.id}.${p.name}`),
-          )
-          return isAnchored && p.constraints?.some((c) => n.text.includes(c.kind))
-        })
-        return hasMatchingNote ? { ...p, hideConstraints: true } : p
-      }),
-      operations.map((o) => {
-        const hasMatchingNote = (source.notes || []).some((n) => {
-          const isAnchored = source.anchors?.some(
-            (a) => a.from === n.id && a.to.includes(`${entity.id}.${o.name}`),
-          )
-          return isAnchored && o.constraints?.some((c) => n.text.includes(c.kind))
-        })
-        return hasMatchingNote ? { ...o, hideConstraints: true } : o
-      }),
-      entity.isImplicit,
-      entity.isAbstract,
-      entity.isStatic,
-      entity.isActive,
-      entity.isLeaf,
-      entity.typeParameters || [],
-      entity.namespace,
-      entity.docs,
-    )
-  }
-
-  private transformRelationship(rel: IRRelationship): UMLEdge {
-    const id = `${rel.from}-${rel.to}-${rel.type}`
-    return new UMLEdge(
-      rel.from,
-      rel.to,
-      rel.type as IRRelType,
-      rel.label,
-      rel.visibility,
-      rel.fromMultiplicity,
-      rel.toMultiplicity,
-      rel.associationClassId,
-      rel.constraints,
-      id,
-    )
-  }
-
-  private transformNote(note: IRNote): UMLNote {
-    return new UMLNote(note.id, note.text, note.namespace)
-  }
-
-  private transformAnchor(anchor: IRAnchor): UMLAnchor {
-    return new UMLAnchor(anchor.from, anchor.to)
-  }
-
-  /**
-   * Groups items into their respective packages based on the 'namespace' field (FQN).
-   */
-  private buildHierarchy(items: UMLHierarchyItem[]): UMLPackage[] {
+  private buildHierarchy(items: UMLSpatialNode[]): UMLPackage[] {
     const pkgMap = new Map<string, UMLPackage>()
     const rootPackages: UMLPackage[] = []
 
-    // 1. Create all packages mentioned in namespaces
     for (const item of items) {
       const namespace = item.namespace
       if (!namespace) continue
@@ -263,7 +125,7 @@ export class IRAdapter implements IDataProvider<IRDiagram> {
         currentPath = currentPath ? `${currentPath}.${part}` : part
 
         if (!pkgMap.has(currentPath)) {
-          const pkg = new UMLPackage(part, [], currentPath)
+          const pkg = this.factory.createPackage(currentPath, part)
           pkgMap.set(currentPath, pkg)
 
           if (parentPath && pkgMap.has(parentPath)) {
@@ -274,8 +136,10 @@ export class IRAdapter implements IDataProvider<IRDiagram> {
         }
       }
 
-      // Add item to its final package
-      pkgMap.get(namespace)!.children.push(item)
+      const leafPkg = pkgMap.get(namespace)
+      if (leafPkg) {
+        leafPkg.children.push(item)
+      }
     }
 
     return rootPackages

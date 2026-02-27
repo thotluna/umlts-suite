@@ -1,6 +1,6 @@
 import { defineConfig } from 'astro/config'
 import starlight from '@astrojs/starlight'
-import { remarkUmlts } from './src/plugins/remark-umlts.mjs'
+import { remarkUmlts } from './src/plugins/remark-umlts.ts'
 
 // https://astro.build/config
 export default defineConfig({

@@ -13,20 +13,8 @@ UMLTS está diseñado para ser expresivo y flexible. Esta guía te enseñará no
 
 Los paquetes son contenedores lógicos que agrupan entidades. En UMLTS, existen dos formas de trabajar con la organización.
 
-#### Declaración Estructural (Bloque)
-
-Es la forma recomendada para definir el contenido de un módulo de forma clara.
-
 ```typescript
-package "Facturación" {
-  class Factura {
-    id: string
-  }
-}
-```
-
-```umlts
-package Facturacion {
+package facturacion {
   class Factura {
     id: String
   }
@@ -38,15 +26,9 @@ package Facturacion {
 No siempre necesitas envolver todo en bloques. Puedes declarar o referenciar entidades usando su nombre cualificado (Fully Qualified Name).
 
 ```typescript
-// Referencia corta a una clase en otro paquete
-facturacion.Factura <> Cliente
-```
-
-```umlts
 class facturacion.Factura {
   id: String
 }
-
 ```
 
 > [!TIP]
@@ -65,30 +47,14 @@ Ideal para diagramas de visión general o cuando quieres separar la estructura d
 #### Resultado Visual
 
 ```umlts
-class Motor
-class Coche
-Coche >+ Motor
+class Coche >+ Motor
+
 ```
-
-### Estilo "In-line" (Dentro de la entidad)
-
-Inspirado en cómo definimos tipos en TypeScript. Es mucho más rápido para bocetar arquitecturas mientras defines los miembros.
 
 ```typescript
-class Coche {
-  modelo: string
-
-  // Declaración corta: 'Coche' es el origen automático
-  >+ Motor
-}
-```
-
-#### Resultado Visual
-
-```umlts
-class Coche {
-  modelo: string
-  >+ Motor
+- class Coche {
+  - modelo: string
+  - motor: >+ Motor
 }
 ```
 
@@ -125,18 +91,18 @@ Supongamos que queremos modelar un sistema de pagos:
 
 ```umlts
 package Pagos {
-  abstract class MetodoPago {
-    + procesar(): void
+  class *MetodoPago {
+    + procesar()
   }
 
   class Tarjeta >> MetodoPago {
-    - numero: string
+    - numero: String
   }
 }
 
 class Usuario {
-  - email: string
-  -> "1..*" Pagos.MetodoPago
+  - email: String
+  - metodo: >- Pagos.MetodoPago[1..*]
 }
 ```
 

@@ -1,12 +1,10 @@
 import {
-  type UMLNode,
   UMLPackage,
   UMLNote,
-  type UMLHierarchyItem,
   type DiagramModel,
   type UMLEdge,
-} from '../core/model/nodes'
-import { type IRConstraint } from '@umlts/engine'
+  type UMLNode,
+} from '../core/model/index'
 import { type LayoutResult, type DiagramConfig } from '../core/types'
 import { type Theme } from '../core/theme'
 import { SVGBuilder as svg } from './svg-helpers'
@@ -33,42 +31,30 @@ export class SVGRenderer implements IDrawingEngine<string> {
     // 1. Defs (Markers)
     const defs = renderMarkers(theme)
 
-    // 2. Packages (Backgrounds)
+    // 2. Render Hierarchy (Backgrounds only)
     const packagesStr = model.packages
-      .map((pkg: UMLPackage) => this.renderPackage(pkg, theme))
+      .map((pkg: UMLPackage) => this.renderPackageBackground(pkg, theme))
       .join('')
 
-    const nodesStr = model.nodes
-      .filter((n: UMLNode) => !n.namespace)
-      .map((node: UMLNode) => DrawingRegistry.render('Node', node, theme, config))
-      .join('')
-
-    // 3.1 Render Top-level Notes
-    const notesStr = (model.notes || [])
-      .filter((n: UMLNote) => !n.namespace)
-      .map((note: UMLNote) => DrawingRegistry.render('Note', note, theme, config))
-      .join('')
-
-    // 4. Render Edges
-    const nodesMap = new Map((model.nodes || []).map((n: UMLNode) => [n.id, n]))
-    const edgesStr = model.edges
-      .map((edge: UMLEdge) =>
-        DrawingRegistry.render('Edge', edge, theme, { ...config, nodes: nodesMap }),
-      )
-      .join('')
-
-    const constraintsStr = this.renderConstraints(model, theme)
+    // 3. Render Content (Nodes and Edges separated by layers)
+    // Layer 1: Edges (behind nodes)
+    const edgesStr = this.renderEdges(model, theme, config)
     const anchorsStr = this.renderAnchors(model, theme)
+    const constraintsStr = this.renderConstraints(model, theme)
 
-    // Combine everything with proper grouping
+    // Layer 2: All Nodes (on top of edges)
+    const nodesStr = this.renderAllNodes(model, theme, config)
+    const notesStr = this.renderAllNotes(model, theme, config)
+
+    // Combine everything with proper z-index layers
     const content =
       defs +
-      svg.g({ class: 'packages' }, packagesStr) +
-      svg.g({ class: 'edges' }, edgesStr) +
-      svg.g({ class: 'anchors' }, anchorsStr) +
-      svg.g({ class: 'nodes' }, nodesStr) +
-      svg.g({ class: 'notes' }, notesStr) +
-      svg.g({ class: 'constraints' }, constraintsStr)
+      svg.g({ class: 'packages-layer' }, packagesStr) +
+      svg.g({ class: 'edges-layer' }, edgesStr) +
+      svg.g({ class: 'anchors-layer' }, anchorsStr) +
+      svg.g({ class: 'nodes-layer' }, nodesStr) +
+      svg.g({ class: 'notes-layer' }, notesStr) +
+      svg.g({ class: 'constraints-layer' }, constraintsStr)
 
     const viewBoxX = layoutResult.bbox?.x ?? 0
     const viewBoxY = layoutResult.bbox?.y ?? 0
@@ -112,51 +98,107 @@ export class SVGRenderer implements IDrawingEngine<string> {
   }
 
   /**
-   * Renders a UML package and its nested elements recursively.
+   * Renders relationship edges.
    */
-  private renderPackage(pkg: UMLPackage, theme: Theme, config?: DiagramConfig['render']): string {
+  private renderEdges(model: DiagramModel, theme: Theme, config?: DiagramConfig['render']): string {
+    const nodesMap = new Map((model.nodes || []).map((n: UMLNode) => [n.id, n]))
+    return model.edges
+      .map((edge: UMLEdge) =>
+        DrawingRegistry.render('Edge', edge, theme, { ...config, nodes: nodesMap }),
+      )
+      .join('')
+  }
+
+  /**
+   * Renders all nodes (flat).
+   */
+  private renderAllNodes(
+    model: DiagramModel,
+    theme: Theme,
+    config?: DiagramConfig['render'],
+  ): string {
+    return model.nodes
+      .map((node: UMLNode) => DrawingRegistry.render('Node', node, theme, config))
+      .join('')
+  }
+
+  /**
+   * Renders all notes (flat).
+   */
+  private renderAllNotes(
+    model: DiagramModel,
+    theme: Theme,
+    config?: DiagramConfig['render'],
+  ): string {
+    return (model.notes || [])
+      .map((note: UMLNote) => DrawingRegistry.render('Note', note, theme, config))
+      .join('')
+  }
+
+  /**
+   * Renders a UML package background and its tab recursively.
+   */
+  private renderPackageBackground(
+    pkg: UMLPackage,
+    theme: Theme,
+    config?: DiagramConfig['render'],
+  ): string {
     const { x = 0, y = 0, width = 0, height = 0 } = pkg
 
-    // Package body
-    const rect = svg.rect({
-      x,
-      y,
-      width,
-      height,
+    const tabHeight = 25
+    const tabWidth = Math.max(width * 0.3, 110)
+    const r = 8
+
+    // Drawing a unified "folder" shape
+    const d = `
+      M ${x}, ${y + tabHeight}
+      L ${x}, ${y + 6}
+      A 6,6 0 0 1 ${x + 6}, ${y}
+      L ${x + tabWidth - 6}, ${y}
+      A 6,6 0 0 1 ${x + tabWidth}, ${y + 6}
+      L ${x + tabWidth}, ${y + tabHeight}
+      L ${x + width - r}, ${y + tabHeight}
+      A r,r 0 0 1 ${x + width}, ${y + tabHeight + r}
+      L ${x + width}, ${y + height - r}
+      A r,r 0 0 1 ${x + width - r}, ${y + height}
+      L ${x + r}, ${y + height}
+      A r,r 0 0 1 ${x}, ${y + height - r}
+      Z
+    `
+      .replace(/r,r/g, `${r},${r}`)
+      .replace(/\s+/g, ' ')
+      .trim()
+
+    const body = svg.path({
+      d,
       fill: theme.packageBackground,
       stroke: theme.packageBorder,
       'stroke-width': 1.2,
-      rx: 8,
+      rx: 2,
     })
 
-    // Package label (tab style)
     const label = svg.text(
       {
-        x: x + 10,
-        y: y + 20,
+        x: x + tabWidth / 2,
+        y: y + tabHeight / 2,
         fill: theme.packageLabelText,
         'font-weight': 'bold',
         'font-size': '11px',
+        'text-anchor': 'middle',
+        'dominant-baseline': 'central',
         'text-transform': 'uppercase',
         'letter-spacing': '1px',
       },
       pkg.name,
     )
 
-    // 2. Render children (nested packages, nodes, or notes)
-    const childrenStr = pkg.children
-      .map((c: UMLHierarchyItem) => {
-        if (c instanceof UMLPackage) {
-          return this.renderPackage(c, theme, config)
-        }
-        if (c instanceof UMLNote) {
-          return DrawingRegistry.render('Note', c, theme, config)
-        }
-        return DrawingRegistry.render('Node', c, theme, config)
-      })
+    // Only recursive package backgrounds
+    const nestedBackgrounds = pkg.children
+      .filter((c): c is UMLPackage => c instanceof UMLPackage)
+      .map((p) => this.renderPackageBackground(p, theme, config))
       .join('')
 
-    return svg.g({ class: 'package', 'data-name': pkg.name }, rect + label + childrenStr)
+    return svg.g({ class: 'package-bg', 'data-name': pkg.name }, body + label + nestedBackgrounds)
   }
 
   /**
@@ -165,15 +207,15 @@ export class SVGRenderer implements IDrawingEngine<string> {
   private renderAnchors(model: DiagramModel, theme: Theme): string {
     return (model.anchors || [])
       .flatMap((anchor) => {
-        const from = this.findElementById(anchor.from, model)
-        if (!from) return []
+        const fromNode = this.findElementById(anchor.fromId, model)
+        if (!fromNode) return []
 
-        return anchor.to.map((targetId) => {
-          const to = this.findElementById(targetId, model)
-          if (!to) return ''
+        return anchor.toIds.map((targetId: string) => {
+          const toNode = this.findElementById(targetId, model)
+          if (!toNode) return ''
 
-          const c1 = { x: from.x + from.width / 2, y: from.y + from.height / 2 }
-          const c2 = { x: to.x + to.width / 2, y: to.y + to.height / 2 }
+          const c1 = { x: fromNode.x + fromNode.width / 2, y: fromNode.y + fromNode.height / 2 }
+          const c2 = { x: toNode.x + toNode.width / 2, y: toNode.y + toNode.height / 2 }
 
           const dx = c2.x - c1.x
           const dy = c2.y - c1.y
@@ -184,24 +226,23 @@ export class SVGRenderer implements IDrawingEngine<string> {
           if (dx !== 0 || dy !== 0) {
             // Intersection with 'from' rect
             const s1 = Math.min(
-              from.width > 0 ? Math.abs(from.width / 2 / dx) : 0,
-              from.height > 0 ? Math.abs(from.height / 2 / dy) : 0,
+              fromNode.width > 0 ? Math.abs(fromNode.width / 2 / dx) : 0,
+              fromNode.height > 0 ? Math.abs(fromNode.height / 2 / dy) : 0,
             )
             p1 = { x: c1.x + dx * s1, y: c1.y + dy * s1 }
 
             // Intersection with 'to' rect
             const s2 = Math.min(
-              to.width > 0 ? Math.abs(to.width / 2 / dx) : 0,
-              to.height > 0 ? Math.abs(to.height / 2 / dy) : 0,
+              toNode.width > 0 ? Math.abs(toNode.width / 2 / dx) : 0,
+              toNode.height > 0 ? Math.abs(toNode.height / 2 / dy) : 0,
             )
             p2 = { x: c2.x - dx * s2, y: c2.y - dy * s2 }
           }
 
           let d = `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`
 
-          const specificWaypoints = anchor.waypoints.get(targetId)
-          if (specificWaypoints && specificWaypoints.length > 0) {
-            d = specificWaypoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+          if (anchor.waypoints && anchor.waypoints.length > 0) {
+            d = anchor.waypoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
           }
 
           return svg.path({
@@ -220,17 +261,19 @@ export class SVGRenderer implements IDrawingEngine<string> {
    * Renders relationship constraints (like XOR).
    */
   private renderConstraints(model: DiagramModel, theme: Theme): string {
-    const xorConstraints = (model.constraints || []).filter((c: IRConstraint) => c.kind === 'xor')
+    const xorConstraints = (model.constraints || []).filter((c) => c.kind === 'xor')
     if (xorConstraints.length === 0) return ''
 
     return xorConstraints
-      .map((constraint: IRConstraint) => {
-        const groupId = (constraint.targets as string[])[0]
-        const groupEdges = model.edges.filter((e: UMLEdge) =>
-          e.constraints?.some(
-            (ec: IRConstraint) => ec.kind === 'xor_member' && ec.targets.includes(groupId),
-          ),
-        )
+      .map((constraint) => {
+        const groupId = constraint.targets[0]
+        if (!groupId) return ''
+
+        // Find edges that belong to this XOR group
+        const groupEdges = model.edges.filter((e) => {
+          const groups = e.metadata.get('groups') as string[] | undefined
+          return groups?.includes(groupId)
+        })
 
         if (groupEdges.length < 2) return ''
 
@@ -353,7 +396,7 @@ export class SVGRenderer implements IDrawingEngine<string> {
   /**
    * Finds a node or note by ID, supporting both exact FQN matches and simple name matches.
    */
-  private findElementById(id: string, model: DiagramModel): UMLHierarchyItem | undefined {
+  private findElementById(id: string, model: DiagramModel): (UMLNode | UMLNote) | undefined {
     const all = [...model.nodes, ...model.notes]
 
     // 1. Exact match

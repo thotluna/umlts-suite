@@ -1,5 +1,5 @@
 import type { LayoutConfig } from '../graph-orchestrator/types'
-import type { DiagramModel, UMLNode } from './model/nodes'
+import type { DiagramModel, UMLNode } from './model/index'
 
 /**
  * Resultado del proceso de layout.

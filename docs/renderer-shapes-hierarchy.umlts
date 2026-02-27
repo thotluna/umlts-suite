@@ -1,0 +1,192 @@
+
+class Size {
+  + width: Integer
+  + height: Integer
+}
+
+class Point {
+  + x: Integer
+  + y: Integer
+}
+
+package model {
+  /**
+   * INTERFAZ DE DIBUJO
+   * Unifica cómo cualquier componente se pinta en el SVG.
+   */
+  interface IDrawable {
+    + draw(ctx: DrawingContext): String
+  }
+
+  /**
+   * RAÍZ DE IDENTIDAD
+   * Todo elemento en el diagrama tiene ID y metadatos para interacción.
+   */
+  abstract class UMLComponent >i IDrawable {
+    + id: String
+    + metadata: Map<String, Any>
+    + isSelected: Boolean
+    + isHovered: Boolean
+  }
+
+  /**
+   * 1. NODOS ESPACIALES (Bounding Boxes)
+   * Elementos que ELK posiciona globalmente.
+   */
+  abstract class UMLSpatialNode >> UMLComponent {
+    + x: Integer
+    + y: Integer
+    + width: Integer
+    + height: Integer
+    + ports: UMLPort[0..*]
+    + *getDimensions(): Size
+    + updateLayout(x: Integer, y: Integer, w: Integer, h: Integer)
+    + updatePorts(ports: UMLPort[0..*])
+    + toLayoutNode(): Object
+  }
+
+  /**
+   * 2. CONECTORES (Path-based)
+   * Elementos que ELK rutea entre nodos.
+   */
+  abstract class UMLPathNode >> UMLComponent {
+    + waypoints: Point[2..*]
+    + strokeStyle: String
+  }
+
+  /**
+   * 3. CONTENIDO RELATIVO (Atoms)
+   * Viven dentro de SpatialNodes. Coordenadas relativas.
+   */
+  abstract class UMLContentNode >> UMLComponent {
+    + relX: Integer
+    + relY: Integer
+    + *getDimensions(): Size
+  }
+
+  // --- Implementaciones de Contenido ---
+  abstract class UMLText >> UMLContentNode {
+    + text: String
+    + fontSize: Integer
+    + fontWeight: String
+    + isItalic: Boolean    // Para elementos abstractos
+    + isUnderline: Boolean // Para elementos estáticos
+  }
+
+  class UMLName >> UMLText
+  class UMLStereotype >> UMLText
+  class UMLMember >> UMLText {
+    + visibility: String
+    + isDerived: Boolean   // Prefijo "/"
+  }
+
+  /**
+   * Caja de Genéricos (Template Parameters)
+   * Se posiciona en la esquina superior derecha del nodo.
+   */
+  class UMLTemplateBox >> UMLContentNode {
+    + parameters: >* UMLText[1..*]
+  }
+
+  // --- Implementaciones Espaciales ---
+  class UMLPackage >> UMLSpatialNode {
+    + children: UMLComponent[0..*] // Mix of Shapes and Edges
+  }
+
+  abstract class UMLShape >> UMLSpatialNode {
+    + nameSpace: String[0..1]
+  }
+
+  abstract class UMLHeaderShape >> UMLShape {
+    # name: >* UMLName
+    + stereotypes: >* UMLStereotype [0..*]
+  }
+
+  /**
+   * Formas con compartimentos para miembros
+   */
+  abstract class UMLCompartmentNode >> UMLHeaderShape {
+    + properties: >* UMLMember[0..*]
+    + operations: >* UMLMember[0..*]
+  }
+
+  // --- Especialización de Clases ---
+  class UMLClass >> UMLCompartmentNode
+  
+  class UMLActiveClass >> UMLClass {
+    // Renderer: Dibuja doble línea lateral
+  }
+
+  class UMLStaticClass >> UMLClass {
+    // Stereotype: «static» / Renderer: Borde específico
+  }
+
+  class UMLGenericClass >> UMLClass {
+    + templateBox: >* UMLTemplateBox
+  }
+
+  // --- Especialización de Interfaces ---
+  class UMLInterface >> UMLCompartmentNode
+
+  class UMLGenericInterface >> UMLInterface {
+    + templateBox: >* UMLTemplateBox
+  }
+
+  class UMLEnum >> UMLHeaderShape {
+    + literals: >* UMLMember[0..*]
+  }
+
+  class UMLDataType >> UMLCompartmentNode
+
+  class UMLNote >> UMLShape {
+    + text: >* UMLText
+  }
+
+  /**
+   * 4. ARCOS DE RESTRICCIÓN
+   * Decoración visual de relaciones.
+   */
+  class UMLConstraintArc >> UMLPathNode {
+    + kind: String // xor, or, etc
+    + label: >* UMLText
+  }
+
+  // --- Implementaciones de Conexión (Jerarquía de Dependencias) ---
+  /**
+   * Clase base para relaciones semánticas entre entidades.
+   */
+  abstract class UMLEdge >> UMLPathNode {
+    + sourceId: String
+    + targetId: String
+    + labels: >* UMLText[0..*]
+    + associationClassId: String[0..1]
+  }
+
+  class UMLGeneralization >> UMLEdge // >> (Herencia)
+  class UMLRealization >> UMLEdge    // >I (Implementación)
+  class UMLDependency >> UMLEdge     // >- (Uso/Dependencia)
+  
+  /**
+   * Relaciones estructurales con rombos
+   */
+  class UMLAssociation >> UMLEdge {
+    + isBidirectional: Boolean
+  }
+
+  class UMLAggregation >> UMLAssociation // >+ (Agregación)
+  class UMLComposition >> UMLAssociation // >* (Composición)
+
+  class UMLAnchor >> UMLPathNode {
+    + fromId: String
+    + toId: String
+  }
+}
+
+package renderer.drawing {
+  class UMLClassRenderer >i IDrawable
+  class UMLEdgeRenderer >i IDrawable
+  class UMLPackageRenderer >i IDrawable
+}
+
+
+

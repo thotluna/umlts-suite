@@ -1,4 +1,4 @@
-import { type UMLNote } from '../../core/model/nodes'
+import { type UMLNote } from '../../core/model/index'
 import { type Theme } from '../../core/theme'
 import { SVGBuilder as svg } from '../svg-helpers'
 import { DrawingRegistry } from '../drawable'
@@ -38,7 +38,8 @@ export function renderNote(note: UMLNote, theme: Theme): string {
 
   // Multi-line text handling with wrapping
   const MAX_CHARS = 40
-  const rawLines = note.text.split('\n')
+  const textBody = note.content?.text || ''
+  const rawLines = textBody.split('\n')
   const lines: string[] = []
 
   for (const line of rawLines) {
