@@ -1,4 +1,4 @@
-import { type UMLEdge } from '../../core/model/nodes'
+import { type UMLEdge } from '../../core/model/index'
 import { type DiagramConfig } from '../../core/types'
 import { type Theme } from '../../core/theme'
 import { SVGBuilder as svg } from '../svg-helpers'
@@ -348,6 +348,19 @@ export function midpoint(wps: Point[] | undefined): Point {
   return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
 }
 
-DrawingRegistry.register('Edge', (edge: unknown, theme: Theme, options?: unknown) =>
-  renderEdge(edge as UMLEdge, 0, theme, options as DiagramConfig['render']),
-)
+// Register as Edge renderer for all concrete relationship types
+const edgeTypes = [
+  'Edge',
+  'Association',
+  'Aggregation',
+  'Composition',
+  'Generalization',
+  'Realization',
+  'Dependency',
+]
+
+edgeTypes.forEach((type) => {
+  DrawingRegistry.register(type, (edge: unknown, theme: Theme, options?: unknown) =>
+    renderEdge(edge as UMLEdge, 0, theme, options as DiagramConfig['render']),
+  )
+})

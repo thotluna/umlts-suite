@@ -3,7 +3,7 @@ import { UMLRenderer, type RenderOptions } from './renderer'
 
 export * from './core/types'
 export * from './core/theme'
-export * from './core/model/nodes'
+export * from './core/model/index'
 
 export { UMLRenderer, type RenderOptions } from './renderer'
 

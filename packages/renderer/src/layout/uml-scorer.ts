@@ -1,4 +1,10 @@
-import { type DiagramModel, type UMLNode, type UMLEdge } from '../core/model/nodes'
+import {
+  type DiagramModel,
+  UMLSpatialNode,
+  UMLEdge,
+  UMLInterface,
+  UMLGenericInterface,
+} from '../core/model/index'
 
 export interface NodeStats {
   score: number
@@ -11,15 +17,13 @@ export interface NodeStats {
 export class UMLScorer {
   /**
    * Calculates scores for nodes based on their type and relationships.
-   * Interfaces and abstract classes get higher scores to be placed more prominently.
-   * Incoming generalization/realization edges also increase the score.
    */
   public static calculateNodeStats(model: DiagramModel): Map<string, NodeStats> {
     const stats = new Map<string, NodeStats>()
 
-    model.nodes.forEach((n: UMLNode) => {
+    model.nodes.forEach((n: UMLSpatialNode) => {
       let baseScore = 0
-      if (n.type === 'Interface') baseScore = 5
+      if (n instanceof UMLInterface || n instanceof UMLGenericInterface) baseScore = 5
       if (n.isAbstract) baseScore += 2
       stats.set(n.id, { score: baseScore })
     })
@@ -32,7 +36,11 @@ export class UMLScorer {
       const type = edge.type.toLowerCase()
 
       // Hierarchy (Inheritance/Implementation) - Targets should be higher
-      if (type.includes('inheritance') || type.includes('implementation')) {
+      if (
+        type.includes('inheritance') ||
+        type.includes('generalization') ||
+        type.includes('realization')
+      ) {
         t.score += 20
         s.score -= 10
       } else if (type.includes('composition') || type.includes('aggregation')) {
@@ -52,7 +60,12 @@ export class UMLScorer {
    */
   public static getEdgeWeight(edgeType: string): number {
     const type = edgeType.toLowerCase()
-    if (type.includes('inheritance') || type.includes('implementation')) return 10
+    if (
+      type.includes('inheritance') ||
+      type.includes('generalization') ||
+      type.includes('realization')
+    )
+      return 10
     if (type.includes('composition')) return 7
     if (type.includes('aggregation')) return 5
     if (type.includes('association')) return 3
@@ -62,11 +75,13 @@ export class UMLScorer {
 
   /**
    * Determines if an edge represents a hierarchy relationship.
-   * These edges often need to be reversed for ELK if we want
-   * a bottom-up or top-down flow where the base class is "above".
    */
   public static isHierarchyEdge(edgeType: string): boolean {
     const type = edgeType.toLowerCase()
-    return type.includes('inheritance') || type.includes('implementation')
+    return (
+      type.includes('inheritance') ||
+      type.includes('generalization') ||
+      type.includes('realization')
+    )
   }
 }

@@ -1,4 +1,4 @@
-import { type DiagramModel } from './model/nodes'
+import { type DiagramModel } from './model/index'
 import { type DiagramConfig, type LayoutResult } from './types'
 import { type Theme } from './theme'
 

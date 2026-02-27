@@ -104,6 +104,7 @@
 - [x] Formalización del Orquestador de Pipeline (`UMLRenderer`)
 - [x] Abstracción de Jerarquía (`UMLHierarchyItem`) para soporte agnóstico de contenedores
 - [x] Corrección de Bug de Layout Hierárquico (Offsets de aristas y proporciones)
+- [ ] **TASK**: Unificar y normalizar términos de relaciones (Inheritance vs Generalization, Case-sensitivity) y eliminar redundancia en diccionarios de `edges.ts`.
 
 ## Publicación y Despliegue
 
@@ -480,7 +481,11 @@
 - [x] **Fase 1**: Definición de Contratos e Infraestructura (`core/contract.ts`)
 - [x] **Fase 2**: Creación de Wrappers (Legacy Adapters)
 - [x] **Fase 3**: Nuevo Orquestador `DiagramRenderer` con DI
-- [ ] **Fase 4**: Refactorización atómica de componentes (Limpieza de Layout y Providers)
+- [x] **Fase 4**: Refactorización atómica de componentes (Limpieza de Layout y Providers)
+  - [x] Eliminar todos los usos de `any` en los modelos del renderer
+  - [x] Implementar Getters polimórficos (`type`, `isAbstract`, `name`) en toda la jerarquía
+  - [x] Sincronizar ModelFactory con el contrato IR de `@umlts/engine`
+  - [x] Corregir firmas de `updateLayout` para propagación de coordenadas ELK
 - [ ] **Fase 5**: Implementación de metadatos para interactividad
 
 ## Soporte de Renderizado para Notas y Restricciones (UML 2.5.1)
@@ -494,4 +499,11 @@
 - [ ] **BUG**: Líneas de anclaje duplicadas (N1 apunta 2 veces a cada clase)
 - [ ] **BUG**: Arco XOR mal posicionado o invisible (Detección de nodo común con FQN)
 - [x] **FIX**: Renderizado de paquetes estilo "folder" (UML estándar)
-- [ ] **FEAT**: Visualización de estereotipos en miembros y entidades (Async, Readonly)
+- [x] **FEAT**: Visualización de estereotipos en miembros y entidades (Async, Readonly)
+- [x] **IMPROVEMENT**: Refinamiento de Layout y Dimensiones (Breathing Room)
+  - [x] Implementar IDs determinísticos para aristas (`rel_A_B_Type_N`) para estabilidad de layout.
+  - [x] Implementar medición precisa basada en firmas completas de miembros (visibilidad, tipos, params).
+  - [x] Sincronizar constantes de medición entre Modelo y Layout (`MEASURE_CONFIG`).
+  - [x] Implementar renderizado por capas (Packages -> Edges -> Nodes) para Z-order correcto.
+  - [x] Aumentar padding horizontal (50px) y espaciado global para estética "premium".
+  - [x] Solucionar bug de truncado de texto en miembros largos (ajuste dinámico de paralelepípedo).
