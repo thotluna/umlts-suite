@@ -25,9 +25,6 @@ export abstract class UMLCompartmentNode extends UMLHeaderShape {
       return { width: this.width, height: this.height }
     }
 
-    const { CHAR_WIDTH, LINE_HEIGHT, MIN_WIDTH, PADDING_BOTTOM, SECTION_DIVIDER_HEIGHT } =
-      MEASURE_CONFIG
-
     // Calculate max width
     let maxChars = this.name.length
     this.stereotypes.forEach((st) => {
@@ -41,7 +38,14 @@ export abstract class UMLCompartmentNode extends UMLHeaderShape {
       maxChars = Math.max(maxChars, op.getFullText().length)
     }
 
-    const PADDING_X = 50
+    const {
+      CHAR_WIDTH,
+      PADDING_X,
+      MIN_WIDTH,
+      LINE_HEIGHT,
+      PADDING_BOTTOM,
+      SECTION_DIVIDER_HEIGHT,
+    } = MEASURE_CONFIG
     const calculatedWidth = Math.max(MIN_WIDTH, Math.ceil(maxChars * CHAR_WIDTH + PADDING_X))
 
     // Calculate height

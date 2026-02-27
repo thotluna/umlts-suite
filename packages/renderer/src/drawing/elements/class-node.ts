@@ -1,13 +1,12 @@
-import { type IRMultiplicity, type IRParameter } from '@umlts/engine'
 import {
   type UMLNode,
-  UMLMember,
   UMLCompartmentNode,
   UMLGenericClass,
   UMLGenericInterface,
   UMLClass,
   UMLEnum,
 } from '../../core/model/index'
+import { MEASURE_CONFIG } from '../../core/model/base/measure-constants'
 import { type DiagramConfig } from '../../core/types'
 import { type Theme } from '../../core/theme'
 import { SVGBuilder as svg } from '../svg-helpers'
@@ -19,11 +18,10 @@ import { DrawingRegistry } from '../drawable'
 export function renderClassNode(
   node: UMLNode,
   theme: Theme,
-  options?: DiagramConfig['render'],
+  _options?: DiagramConfig['render'],
 ): string {
-  const { x = 0, y = 0, width = 160, height = 40 } = node
+  const { x = 0, y = 0, width = 140, height = 40 } = node
 
-  const LINE_HEIGHT = 24
   const HEADER_LINE_HEIGHT = 16
 
   // Background and border
@@ -120,11 +118,23 @@ export function renderClassNode(
   let membersContent = ''
   let memberY = y + headerHeight + 20 // Start after header with padding
 
+  const { PADDING_X, LINE_HEIGHT: CFG_LINE_HEIGHT } = MEASURE_CONFIG
+  const MARGIN_X = PADDING_X / 2
+
   if (node instanceof UMLCompartmentNode) {
     // 1. Properties
     for (const prop of node.properties) {
-      membersContent += renderProperty(prop, x + 10, memberY, theme, options)
-      memberY += LINE_HEIGHT
+      membersContent += svg.text(
+        {
+          x: x + MARGIN_X,
+          y: memberY,
+          fill: theme.nodeMemberText,
+          'font-size': theme.fontSizeBase,
+          'text-decoration': prop.isStatic ? 'underline' : 'none',
+        },
+        svg.escape(prop.getFullText()),
+      )
+      memberY += CFG_LINE_HEIGHT
     }
 
     // Section divider if needed
@@ -138,8 +148,18 @@ export function renderClassNode(
 
     // 2. Operations
     for (const op of node.operations) {
-      membersContent += renderOperation(op, x + 10, memberY, theme, options)
-      memberY += LINE_HEIGHT
+      membersContent += svg.text(
+        {
+          x: x + MARGIN_X,
+          y: memberY,
+          fill: theme.nodeMemberText,
+          'font-size': theme.fontSizeBase,
+          'font-style': op.isAbstract ? 'italic' : 'normal',
+          'text-decoration': op.isStatic ? 'underline' : 'none',
+        },
+        svg.escape(op.getFullText()),
+      )
+      memberY += CFG_LINE_HEIGHT
     }
   }
 
@@ -148,14 +168,14 @@ export function renderClassNode(
     for (const literal of node.literals) {
       membersContent += svg.text(
         {
-          x: x + 10,
+          x: x + MARGIN_X,
           y: memberY,
           fill: theme.nodeMemberText,
           'font-size': theme.fontSizeBase,
         },
         svg.escape(literal.text),
       )
-      memberY += LINE_HEIGHT
+      memberY += CFG_LINE_HEIGHT
     }
   }
 
@@ -165,8 +185,9 @@ export function renderClassNode(
     (node instanceof UMLGenericClass || node instanceof UMLGenericInterface) &&
     node.templateBox
   ) {
+    const { CHAR_WIDTH: CFG_CHAR_WIDTH } = MEASURE_CONFIG
     const paramsText = node.templateBox.parameters.map((p) => p.text).join(', ')
-    const boxWidth = Math.max(30, paramsText.length * 8 + 10)
+    const boxWidth = Math.max(30, paramsText.length * CFG_CHAR_WIDTH + 10)
     const boxHeight = 20
     const boxX = x + width - boxWidth / 2
     const boxY = y - boxHeight / 2
@@ -204,103 +225,6 @@ export function renderClassNode(
       cursor: 'pointer',
     },
     bg + activeLines + headerSep + headerContent + membersContent + templateBoxStr,
-  )
-}
-
-function formatMultiplicity(m?: IRMultiplicity | string): string {
-  if (!m) return ''
-  if (typeof m === 'string') return m
-  if (m.lower === m.upper) return `[${m.lower}]`
-  return `[${m.lower}..${m.upper}]`
-}
-
-function renderProperty(
-  p: UMLMember,
-  x: number,
-  y: number,
-  theme: Theme,
-  options?: DiagramConfig['render'],
-): string {
-  const showVisibility = options?.showVisibility !== false
-  let label = showVisibility ? `${p.visibility} ${p.text}` : p.text
-
-  if (p.type) {
-    label += `: ${p.type}`
-  }
-
-  if (p.multiplicity) {
-    label += ` ${formatMultiplicity(p.multiplicity)}`
-  }
-
-  if (p.isLeaf) {
-    label += ' {leaf}'
-  }
-
-  if (p.constraints && p.constraints.length > 0 && !p.hideConstraints) {
-    const expressions = p.constraints.map((c) =>
-      c.expression && c.expression !== c.kind ? `${c.kind}: ${c.expression}` : c.kind,
-    )
-    label += ` {${expressions.join(', ')}}`
-  }
-
-  return svg.text(
-    {
-      x,
-      y,
-      fill: theme.nodeMemberText,
-      'font-size': theme.fontSizeBase,
-      'text-decoration': p.isStatic ? 'underline' : 'none',
-    },
-    svg.escape(label),
-  )
-}
-
-function renderOperation(
-  op: UMLMember,
-  x: number,
-  y: number,
-  theme: Theme,
-  options?: DiagramConfig['render'],
-): string {
-  const showVisibility = options?.showVisibility !== false
-  let label = showVisibility ? `${op.visibility} ${op.text}` : op.text
-
-  const params = op.parameters
-    .map((p: IRParameter) => {
-      let pLabel = p.type ? `${p.name}: ${p.type}` : p.name
-      if (p.multiplicity) pLabel += formatMultiplicity(p.multiplicity)
-      return pLabel
-    })
-    .join(', ')
-
-  label += `(${params})`
-
-  if (op.returnType) {
-    label += `: ${op.returnType}`
-    if (op.returnMultiplicity) label += ` ${formatMultiplicity(op.returnMultiplicity)}`
-  }
-
-  if (op.isLeaf) {
-    label += ' {leaf}'
-  }
-
-  if (op.constraints && op.constraints.length > 0 && !op.hideConstraints) {
-    const expressions = op.constraints.map((c) =>
-      c.expression && c.expression !== c.kind ? `${c.kind}: ${c.expression}` : c.kind,
-    )
-    label += ` {${expressions.join(', ')}}`
-  }
-
-  return svg.text(
-    {
-      x,
-      y,
-      fill: theme.nodeMemberText,
-      'font-size': theme.fontSizeBase,
-      'font-style': op.isAbstract ? 'italic' : 'normal',
-      'text-decoration': op.isStatic ? 'underline' : 'none',
-    },
-    svg.escape(label),
   )
 }
 
