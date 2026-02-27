@@ -17,5 +17,9 @@
     "astro": "^5.6.1",
     "sharp": "^0.34.2",
     "unist-util-visit": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/mdast": "^4.0.4",
+    "unified": "^11.0.5"
   }
 }
