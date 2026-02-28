@@ -1,4 +1,5 @@
 import type { Diagnostic } from '@engine/syntax/diagnostic.types'
+import { UMLMetaclass } from '@engine/core/metamodel'
 
 export enum ASTNodeType {
   PROGRAM = 'Program',
@@ -30,9 +31,11 @@ export interface TypeNode extends ASTNode {
 
 export interface ASTNode {
   type: ASTNodeType
+  metaclass: UMLMetaclass // El origen de todo: la metaclase UML correspondiente
   line: number
   column: number
   docs?: string | undefined
+  stereotypes?: string[] // Soporte para aplicaciones de estereotipos
 }
 
 export interface ProgramNode extends ASTNode {

@@ -3,6 +3,7 @@ import type { ISemanticContext } from './semantic-context.interface'
 import type { SymbolTable } from '@engine/semantics/symbol-table'
 import type { ConstraintRegistry } from '@engine/semantics/session/constraint-registry'
 import type { ConfigStore } from '@engine/semantics/session/config-store'
+import type { ProfileRegistry } from '@engine/semantics/profiles/profile.registry'
 
 /**
  * Interface representing the state of a semantic analysis.
@@ -13,6 +14,7 @@ export interface ISemanticState {
   readonly symbolTable: SymbolTable
   readonly constraintRegistry: ConstraintRegistry
   readonly configStore: ConfigStore
+  readonly profileRegistry: ProfileRegistry
   readonly context: ISemanticContext
   readonly notes: IRNote[]
   readonly anchors: IRAnchor[]
