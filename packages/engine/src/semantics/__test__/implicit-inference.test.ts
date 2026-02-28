@@ -100,7 +100,7 @@ describe('Implicit Entity Type Inference', () => {
 
     const error = reporter
       .getDiagnostics()
-      .find((d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_REALIZATION_INVALID)
+      .find((d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_INTERFACE_REALIZATION_INVALID)
     expect(error).toBeDefined()
     expect(error?.message).toContain('Invalid implementation')
 

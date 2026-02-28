@@ -32,7 +32,7 @@ export class HierarchyValidator {
       this.context.addError(
         `Invalid declaration: Entity '${entity.name}' cannot be both 'abstract' and '${modifier}'. Abstract entities must be extensible.`,
         errorToken,
-        DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
+        DiagnosticCode.SEMANTIC_GENERALIZATION_MISMATCH,
       )
     }
   }
@@ -45,7 +45,7 @@ export class HierarchyValidator {
 
     // 1. Build graph with inheritance only
     relationships.forEach((rel) => {
-      if (rel.type === IRRelationshipType.INHERITANCE) {
+      if (rel.type === IRRelationshipType.GENERALIZATION) {
         if (!inheritanceGraph.has(rel.from)) {
           inheritanceGraph.set(rel.from, [])
         }
@@ -102,7 +102,7 @@ export class HierarchyValidator {
     }
 
     // 1. RULE: Inheritance (>>) rules
-    if (type === IRRelationshipType.INHERITANCE) {
+    if (type === IRRelationshipType.GENERALIZATION) {
       // General match check
       if (from.type !== to.type) {
         // Leniency for DataType: In TS mode, many entities start as DataType
@@ -123,7 +123,7 @@ export class HierarchyValidator {
           this.context.addError(
             `Invalid inheritance: ${from.type} '${from.name}' cannot extend ${to.type} '${to.name}'. Both must be of the same type.`,
             errorToken,
-            DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
+            DiagnosticCode.SEMANTIC_GENERALIZATION_MISMATCH,
           )
           return
         }
@@ -135,7 +135,7 @@ export class HierarchyValidator {
         this.context.addError(
           `Invalid inheritance: Entity '${from.name}' cannot extend '${to.name}' because it is marked as ${modifier}.`,
           errorToken,
-          DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
+          DiagnosticCode.SEMANTIC_GENERALIZATION_MISMATCH,
         )
         return
       }
@@ -146,7 +146,7 @@ export class HierarchyValidator {
         this.context.addError(
           `Invalid declaration: Entity '${from.name}' cannot be both 'abstract' and '${modifier}'. Abstract entities must be extensible.`,
           errorToken,
-          DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
+          DiagnosticCode.SEMANTIC_GENERALIZATION_MISMATCH,
         )
       }
 
@@ -155,7 +155,7 @@ export class HierarchyValidator {
         this.context.addError(
           `Invalid inheritance: Entity '${from.name}' is marked as {root} and cannot extend '${to.name}'.`,
           errorToken,
-          DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
+          DiagnosticCode.SEMANTIC_GENERALIZATION_MISMATCH,
         )
       }
 
@@ -164,13 +164,13 @@ export class HierarchyValidator {
         this.context.addError(
           `Invalid inheritance: Enums cannot participate in inheritance hierarchies ('${from.name}').`,
           errorToken,
-          DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
+          DiagnosticCode.SEMANTIC_GENERALIZATION_MISMATCH,
         )
       }
     }
 
     // 2. RULE: Implementation (>I) rules
-    if (type === IRRelationshipType.IMPLEMENTATION) {
+    if (type === IRRelationshipType.INTERFACE_REALIZATION) {
       // Target must be an Interface
       // In TS mode, interfaces with only properties are promoted to DataType.
       // We allow implementing them as well.
@@ -182,7 +182,7 @@ export class HierarchyValidator {
         this.context.addError(
           `Invalid implementation: '${from.name}' cannot implement ${to.type} '${to.name}'. Only interfaces can be implemented. ${reco}`,
           errorToken,
-          DiagnosticCode.SEMANTIC_REALIZATION_INVALID,
+          DiagnosticCode.SEMANTIC_INTERFACE_REALIZATION_INVALID,
         )
         return
       }
@@ -192,7 +192,7 @@ export class HierarchyValidator {
         this.context.addError(
           `Invalid implementation: An ${from.type} ('${from.name}') cannot implement an interface. Only classes can satisfy interface contracts.`,
           errorToken,
-          DiagnosticCode.SEMANTIC_REALIZATION_INVALID,
+          DiagnosticCode.SEMANTIC_INTERFACE_REALIZATION_INVALID,
         )
       }
     }

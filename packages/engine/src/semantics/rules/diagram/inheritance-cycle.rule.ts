@@ -22,7 +22,7 @@ export class InheritanceCycleRule implements ISemanticRule<SemanticTargetType.DI
 
     // 1. Build graph with inheritance only
     diagram.relationships.forEach((rel) => {
-      if (rel.type === IRRelationshipType.INHERITANCE) {
+      if (rel.type === IRRelationshipType.GENERALIZATION) {
         if (!inheritanceGraph.has(rel.from)) {
           inheritanceGraph.set(rel.from, [])
         }
