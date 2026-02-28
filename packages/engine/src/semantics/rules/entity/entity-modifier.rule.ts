@@ -28,7 +28,7 @@ export class EntityModifierRule implements ISemanticRule<SemanticTargetType.ENTI
       context.addError(
         `Invalid declaration: Entity '${entity.name}' cannot be both 'abstract' and '${modifier}'. Abstract entities must be extensible.`,
         errorToken,
-        DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
+        DiagnosticCode.SEMANTIC_GENERALIZATION_MISMATCH,
       )
     }
   }

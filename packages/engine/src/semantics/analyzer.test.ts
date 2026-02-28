@@ -32,7 +32,7 @@ describe('SemanticAnalyzer', () => {
     expect(ir.relationships).toHaveLength(1)
     expect(ir.relationships[0].from).toBe('Hero')
     expect(ir.relationships[0].to).toBe('Person')
-    expect(ir.relationships[0].type).toBe(IRRelationshipType.INHERITANCE)
+    expect(ir.relationships[0].type).toBe(IRRelationshipType.GENERALIZATION)
   })
 
   it('should resolve FQNs correctly in nested packages', () => {
