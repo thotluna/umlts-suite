@@ -162,7 +162,7 @@
 - [x] **FEAT**: Sincronizar autocompletado y ayuda contextual en `extension.ts`
 - [x] **IMPROVEMENT**: Soporte para propiedades de `config` contextuales
 - [x] **FIX**: Mapeo correcto de severidad de diagnósticos (Warnings vs Errors)
-- [x] **FEAT**: Añadir botón para visualizar el AST del diagrama en formato JSON en una pestaña contigua
+- [x] **FEAT**: Añadir botones para visualizar AST nativo completo e IR (Intermediate Representation) en formato JSON
 - [x] **VERIFY**: Verificación de compilación exitosa de la extensión
 
 ## Mantenimiento y Rendimiento (Pnpm & Workspace)

@@ -83,15 +83,30 @@ export class UMLPreviewPanel {
             return
           }
           case 'showAst': {
-            if (this._lastResult == null) {
+            if (this._lastResult == null || this._lastResult.ast == null) {
               vscode.window.showErrorMessage('No hay un AST disponible.')
               return
             }
 
-            const astJson = JSON.stringify(this._lastResult, null, 2)
+            const astJson = JSON.stringify(this._lastResult.ast, null, 2)
 
             const doc = await vscode.workspace.openTextDocument({
               content: astJson,
+              language: 'json',
+            })
+            await vscode.window.showTextDocument(doc, { viewColumn: vscode.ViewColumn.Beside })
+            return
+          }
+          case 'showIr': {
+            if (this._lastResult == null || this._lastResult.diagram == null) {
+              vscode.window.showErrorMessage('No hay un IR disponible.')
+              return
+            }
+
+            const irJson = JSON.stringify(this._lastResult.diagram, null, 2)
+
+            const doc = await vscode.workspace.openTextDocument({
+              content: irJson,
               language: 'json',
             })
             await vscode.window.showTextDocument(doc, { viewColumn: vscode.ViewColumn.Beside })
@@ -307,6 +322,14 @@ export class UMLPreviewPanel {
                         </svg>
                         AST
                     </button>
+                    <button onclick="showIr()" title="Ver IR">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                            <polyline points="2 17 12 22 22 17"></polyline>
+                            <polyline points="2 12 12 17 22 12"></polyline>
+                        </svg>
+                        IR
+                    </button>
                     <div class="divider"></div>
                     <button onclick="zoomIn()" title="Aumentar Zoom">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -422,6 +445,10 @@ export class UMLPreviewPanel {
 
                     function showAst() {
                         vscode.postMessage({ command: 'showAst' });
+                    }
+
+                    function showIr() {
+                        vscode.postMessage({ command: 'showIr' });
                     }
 
                     // Zoom logic
