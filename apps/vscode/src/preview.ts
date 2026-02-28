@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import { UMLEngine } from '@umlts/engine'
+import { UMLEngine, type ParseResult } from '@umlts/engine'
 import { render, darkTheme, lightTheme } from '@umlts/renderer'
 import { TypeScriptPlugin } from '@umlts/plugin-ts'
 
@@ -8,6 +8,7 @@ export class UMLPreviewPanel {
   private readonly _panel: vscode.WebviewPanel
   private readonly _engine: UMLEngine
   private _documentUri: vscode.Uri | undefined
+  private _lastResult: ParseResult | undefined
   private readonly _disposables: vscode.Disposable[] = []
 
   public static createOrShow(extensionUri: vscode.Uri) {
@@ -81,6 +82,36 @@ export class UMLPreviewPanel {
             }
             return
           }
+          case 'showAst': {
+            if (this._lastResult == null || this._lastResult.ast == null) {
+              vscode.window.showErrorMessage('No hay un AST disponible.')
+              return
+            }
+
+            const astJson = JSON.stringify(this._lastResult.ast, null, 2)
+
+            const doc = await vscode.workspace.openTextDocument({
+              content: astJson,
+              language: 'json',
+            })
+            await vscode.window.showTextDocument(doc, { viewColumn: vscode.ViewColumn.Beside })
+            return
+          }
+          case 'showIr': {
+            if (this._lastResult == null || this._lastResult.diagram == null) {
+              vscode.window.showErrorMessage('No hay un IR disponible.')
+              return
+            }
+
+            const irJson = JSON.stringify(this._lastResult.diagram, null, 2)
+
+            const doc = await vscode.workspace.openTextDocument({
+              content: irJson,
+              language: 'json',
+            })
+            await vscode.window.showTextDocument(doc, { viewColumn: vscode.ViewColumn.Beside })
+            return
+          }
           case 'alert':
             vscode.window.showErrorMessage(message.text)
         }
@@ -140,6 +171,7 @@ export class UMLPreviewPanel {
     try {
       const text = editor.document.getText()
       const result = await this._engine.parse(text)
+      this._lastResult = result
 
       const config = vscode.workspace.getConfiguration('umlts')
       const preferredTheme = config.get<'auto' | 'light' | 'dark'>('preview.theme', 'auto')
@@ -280,6 +312,24 @@ export class UMLPreviewPanel {
                         </svg>
                         Export
                     </button>
+                    <button onclick="showAst()" title="Ver AST">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        AST
+                    </button>
+                    <button onclick="showIr()" title="Ver IR">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                            <polyline points="2 17 12 22 22 17"></polyline>
+                            <polyline points="2 12 12 17 22 12"></polyline>
+                        </svg>
+                        IR
+                    </button>
                     <div class="divider"></div>
                     <button onclick="zoomIn()" title="Aumentar Zoom">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -391,6 +441,14 @@ export class UMLPreviewPanel {
                             command: 'exportSvg',
                             svg: svgData
                         });
+                    }
+
+                    function showAst() {
+                        vscode.postMessage({ command: 'showAst' });
+                    }
+
+                    function showIr() {
+                        vscode.postMessage({ command: 'showIr' });
                     }
 
                     // Zoom logic
