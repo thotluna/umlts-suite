@@ -520,6 +520,18 @@
 - [ ] **FEAT**: Representar Clases Activas (Active Classes / Threads) estandarizadas mediante un flag activo dibujando bordes verticales con dobles líneas paralelas.
 - [ ] **FEAT**: Visualización de Instancias / Objetos en tiempo de ejecución (`anObject : Class`) con el nombre subrayado obligatoriamente por diseño gráfico.
 
+## UML Profiles & Stereotypes (UML 2.5.1)
+
+- [x] **DOC**: Definir arquitectura y consenso de sintaxis (`docs/PROFILES_LOG.md`)
+- [x] **DOC**: Crear guías de implementación detalladas para capas Léxica, Sintáctica y Semántica
+- [x] **FEAT**: Implementar base del Metamodelo (`UMLMetaclass`) y anclaje en AST
+- [x] **FEAT**: Implementar `ProfileRegistry` con soporte para `UMLStandardProfile` (Built-in)
+- [x] **CORE**: Inyectar metaclases en `ASTFactory` para todas las entidades y relaciones
+- [ ] **PHASE 3: LEXICAL**: Actualizar Lexer con tokens `@`, `[]`, `profile`, `stereotype`, `extends`
+- [ ] **PHASE 3: SYNTAX**: Implementar `ProfileRule`, `StereotypeRule` y soporte para segmento `[ ]` en entidades
+- [ ] **PHASE 4: SEMANTICS**: Implementar validación de Unicidad, Extensión y Esquema de Datos
+- [ ] **PHASE 5: RENDERER**: Visualizar estereotipos `« »` y compartimento de metadatos `{ }`
+
 ## Backlog de Interoperabilidad (Migración y Exportación)
 
 - [ ] **FEAT**: Diseñar el `XMISerializer` para transformar nuestra estructura de `IRDiagram` en XML compatible con el estándar XMI de MOF/OMG.
