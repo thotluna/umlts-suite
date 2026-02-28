@@ -28,6 +28,8 @@ export enum TokenType {
   KW_ASYNC = 'KW_ASYNC',
   KW_TYPE = 'KW_TYPE',
   KW_NAMESPACE = 'KW_NAMESPACE',
+  KW_PROFILE = 'KW_PROFILE',
+  KW_STEREOTYPE = 'KW_STEREOTYPE',
   AT = 'AT', // @
 
   // Operators and Symbols

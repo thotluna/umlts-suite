@@ -60,7 +60,7 @@ active class BackgroundTask {
  * Leaf/Final sin métodos: DEBE ser Class.
  */
 leaf class SchemaDefinition {
-  type: string
+  types: string
 }
 
 // --- CASO 3: PROTECCIÓN DE IDENTIDAD POR MÉTODOS ---

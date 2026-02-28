@@ -527,7 +527,7 @@
 - [x] **FEAT**: Implementar base del Metamodelo (`UMLMetaclass`) y anclaje en AST
 - [x] **FEAT**: Implementar `ProfileRegistry` con soporte para `UMLStandardProfile` (Built-in)
 - [x] **CORE**: Inyectar metaclases en `ASTFactory` para todas las entidades y relaciones
-- [ ] **PHASE 3: LEXICAL**: Actualizar Lexer con tokens `@`, `[]`, `profile`, `stereotype`, `extends`
+- [x] **PHASE 3: LEXICAL**: Actualizar Lexer con tokens `@`, `[]`, `profile`, `stereotype`, `extends`
 - [ ] **PHASE 3: SYNTAX**: Implementar `ProfileRule`, `StereotypeRule` y soporte para segmento `[ ]` en entidades
 - [ ] **PHASE 4: SEMANTICS**: Implementar validación de Unicidad, Extensión y Esquema de Datos
 - [ ] **PHASE 5: RENDERER**: Visualizar estereotipos `« »` y compartimento de metadatos `{ }`
