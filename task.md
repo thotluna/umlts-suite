@@ -39,9 +39,9 @@
   - Causa: `SymbolTable` no resolvía nombres con puntos de forma relativa.
   - Solución: Corregida lógica de `resolveFQN` y actualizado script de arquitectura.
 - [x] **BUG**: Interfaces en relaciones de atributos se renderizan como clases
-  - Problema: En `arquitectura_motor.umlts` línea 135, `- relationships: >+ IRRelationship[]` muestra `IRRelationship` como clase en el diagrama, pero es una interfaz.
-  - Causa: El SemanticAnalyzer no propaga el tipo de entidad (interface vs class) cuando crea relaciones implícitas desde atributos.
-  - Solución propuesta: Extender la lógica de `resolveOrRegisterImplicit` para consultar el tipo real de la entidad referenciada y preservarlo en la entidad implícita.
+  - Problema: En `arquitectuer no propaga el tipo de entidad (interface vs class) cuando crea relaciones implícitas desde atributos.
+  - Solución propuesta: Extenra_motor.umlts`línea 135,`- relationships: >+ IRRelationship[]`muestra`IRRelationship` como clase en el diagrama, pero es una interfaz.
+  - Causa: El SemanticAnalyzder la lógica de `resolveOrRegisterImplicit` para consultar el tipo real de la entidad referenciada y preservarlo en la entidad implícita.
 - [x] **BUG**: Múltiples relaciones al mismo tipo con roles diferentes solo renderiza una
   - Problema: En `DiagramNode` hay dos atributos (`attributes: >* IRMember` y `methods: >* IRMember`) que apuntan al mismo tipo con roles differentes, pero el diagrama solo muestra la relación "attributes".
   - Causa: El motor de renderizado no maneja correctamente múltiples asociaciones desde la misma clase hacia el mismo tipo destino.
@@ -162,6 +162,7 @@
 - [x] **FEAT**: Sincronizar autocompletado y ayuda contextual en `extension.ts`
 - [x] **IMPROVEMENT**: Soporte para propiedades de `config` contextuales
 - [x] **FIX**: Mapeo correcto de severidad de diagnósticos (Warnings vs Errors)
+- [x] **FEAT**: Añadir botón para visualizar el AST del diagrama en formato JSON en una pestaña contigua
 - [x] **VERIFY**: Verificación de compilación exitosa de la extensión
 
 ## Mantenimiento y Rendimiento (Pnpm & Workspace)
@@ -330,13 +331,6 @@
   - [x] Implementar renderizado SVG para notas (efecto dog-ear) y anclajes (líneas punteadas)
   - [x] Visualizar restricciones in-line en miembros de entidades
 
-## Sistema de Estereotipos y Perfiles (ALTA PRIORIDAD)
-
-- [ ] **RESEARCH**: Análisis del estándar UML 2.5.1 sobre Profiles y Stereotypes.
-- [ ] **DESIGN**: Definir cómo los estereotipos extienden la semántica de la IR (Intermediate Representation).
-- [ ] **FEAT**: Implementar distinción visual y semántica entre `«stereotypes»` (extensión de tipo) y `{constraints}` (reglas lógicas). (Anteriormente RQ 9.3)
-- [ ] **FEAT**: Implementar soporte para Notas como Contenedores de Restricciones mediante el estereotipo `«constraint»`. (Anteriormente RQ 11.2)
-
 ## Refactorización de Estado y Pipeline (Sync)
 
 - [x] Desacoplar resultados de fase del `CompilerContext` hacia `PipelineArtifacts`
@@ -486,7 +480,6 @@
   - [x] Implementar Getters polimórficos (`type`, `isAbstract`, `name`) en toda la jerarquía
   - [x] Sincronizar ModelFactory con el contrato IR de `@umlts/engine`
   - [x] Corregir firmas de `updateLayout` para propagación de coordenadas ELK
-- [ ] **Fase 5**: Implementación de metadatos para interactividad
 
 ## Soporte de Renderizado para Notas y Restricciones (UML 2.5.1)
 
@@ -507,3 +500,29 @@
   - [x] Implementar renderizado por capas (Packages -> Edges -> Nodes) para Z-order correcto.
   - [x] Aumentar padding horizontal (50px) y espaciado global para estética "premium".
   - [x] Solucionar bug de truncado de texto en miembros largos (ajuste dinámico de paralelepípedo).
+
+## Backlog para Cumplimiento Estricto UML 2.x (Arquitectura y Parsers)
+
+- [ ] **TASK**: Unificar y normalizar términos de relaciones (Inheritance vs Generalization, Case-sensitivity) y eliminar redundancia en diccionarios de `edges.ts`.
+- [ ] **Fase 5**: Implementación de metadatos para interactividad
+- [ ] **RESEARCH**: Análisis del estándar UML 2.5.1 sobre Profiles y Stereotypes.
+- [ ] **DESIGN**: Definir cómo los estereotipos extienden la semántica de la IR (Intermediate Representation).
+- [ ] **FEAT**: Implementar distinción visual y semántica entre `«stereotypes»` (extensión de tipo) y `{constraints}` (reglas lógicas). (Anteriormente RQ 9.3)
+- [ ] **FEAT**: Implementar soporte para Notas como Contenedores de Restricciones mediante el estereotipo `«constraint»`. (Anteriormente RQ 11.2)
+
+- [ ] **FEAT**: Soportar Compartimento de Recepciones (`«signal»`) para clases que manejan eventos asíncronos en `IREntity`.
+- [ ] **FEAT**: Soportar Compartimentos Dinámicos / Personalizados (ej. Excepciones, Reglas de negocio, Responsabilidades en un bloque extra en la clase).
+- [ ] **FEAT**: Soporte a _Tagged Values_ o Propiedades Generales del encabezado de la Clase (ej. `{autor=thot, status=draft}`) en `models.ts` y visualización debajo de los estereotipos.
+- [ ] **FEAT**: Soportar Diagramas de Estructura Compuesta (Composite Structure) dentro de Clases Complejas (Ports, Parts, Connectors dentro de los rectángulos).
+- [ ] **FEAT**: Variables Derivadas. Soportar el renderizado y parsing del prefijo `/` en propiedades cuyo valor es inferido de otros campos.
+- [ ] **FEAT**: Relaciones N-arias (Rombos con múltiple aristas hacia 3+ clases simultáneamente).
+- [ ] **FEAT**: Calificadores (Qualifiers) de Asociación. Elementos de matriz integrados al inicio de una arista de relación.
+- [ ] **FEAT**: Representar Clases Activas (Active Classes / Threads) estandarizadas mediante un flag activo dibujando bordes verticales con dobles líneas paralelas.
+- [ ] **FEAT**: Visualización de Instancias / Objetos en tiempo de ejecución (`anObject : Class`) con el nombre subrayado obligatoriamente por diseño gráfico.
+
+## Backlog de Interoperabilidad (Migración y Exportación)
+
+- [ ] **FEAT**: Diseñar el `XMISerializer` para transformar nuestra estructura de `IRDiagram` en XML compatible con el estándar XMI de MOF/OMG.
+- [ ] **FEAT**: Implementación de un generador de IDs determinísticos robustos para el atributo `xmi:id` de todos los componentes mapeados.
+- [ ] **FEAT**: Mapeo completo de `IREntity` a elementos `<packagedElement xmi:type="uml:Class">`, y traducción de `IRProperty` y `IROperation` a los bloques contenedores orgánicos de `<ownedAttribute>` y `<ownedOperation>`.
+- [ ] **TEST**: Pruebas de integración E2E inyectando el XML generado por UMLTS a herramientas compatibles de mercado para certificar que cargue la topología sin alertar falsos negativos de esquema genérico.
