@@ -46,7 +46,7 @@ Establecer un mecanismo robusto y ágil para el uso de Perfiles y Estereotipos e
 ### 3. El Bloque `profile` (Definición de Perfiles)
 
 - **Namespace**: El bloque `profile Nombre { ... }` actúa como un espacio de nombres para evitar colisiones. Permite desambiguar si existen estereotipos iguales en perfiles diferentes (`@Java::service` vs `@UML::service`).
-- **Vínculo con Metaclases**: Todo estereotipo debe declarar obligatoriamente qué Metaclase UML extiende mediante la cláusula `extends` (ej. `stereotype table extends Class`).
+- **Vínculo con Metaclases**: Todo estereotipo debe declarar obligatoriamente qué Metaclase UML extiende mediante el operador `>>` (ej. `stereotype table >> class`).
 
 ---
 
@@ -65,6 +65,6 @@ Establecer un mecanismo robusto y ágil para el uso de Perfiles y Estereotipos e
 
 1. **Fase 1: Cimiento del Metamodelo**: (Completado) Definición de `UMLMetaclass` y anclaje en los nodos del AST.
 2. **Fase 2: Infraestructura de Perfiles**: (Completado) Implementación del `ProfileRegistry` y carga del Perfil Estándar.
-3. **Fase 3: Gramática y Parser**: Actualizar el Lexer para `@` y corchetes `[ ]`. Implementar las reglas para el bloque `profile` y la aplicación de estereotipos.
-4. **Fase 4: Semántica y Metadata**: Implementar el pase de validación que conecta las aplicaciones con las definiciones y extrae los _Tagged Values_.
-5. **Fase 5: Renderizado**: Visualización de `«estereotipo»` y el compartimento de metadatos `{key=value}` en el diagrama SVG.
+3. **Fase 3: Gramática y Parser**: (Completado) Implementación de `ProfileRule`, `StereotypeRule`, `StereotypeApplicationRule` y soporte en entidades. Ver [impl_lexical.md](./impl_lexical.md) e [impl_syntax.md](./impl_syntax.md).
+4. **Fase 4: Semántica y Metadata**: (En curso) Definición de reglas de validación y chequeo de tipos para Tagged Values. Ver [impl_semantic.md](./impl_semantic.md).
+5. **Fase 5: Renderizado**: (Pendiente) Visualización de `«estereotipo»` y el compartimento de metadatos `{key=value}` en el diagrama SVG.

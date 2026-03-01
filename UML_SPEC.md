@@ -14,15 +14,15 @@ Este documento detalla el estado de implementación de las reglas semánticas de
 
 ## 2. Reglas de Generalización y Herencia
 
-| Regla                                                            | Estado | Notas                                         |
-| :--------------------------------------------------------------- | :----: | :-------------------------------------------- |
-| Jerarquías de generalización acíclicas.                          |   ✅   | Validado en `HierarchyValidator`.             |
-| No especializar clasificadores marcados como "hoja" (IsLeaf).    |   ❌   | Pendiente: Añadir modificador `leaf` al DSL.  |
-| Padres no pueden ser "finales" (IsFinalSpecialization).          |   ❌   | Pendiente: Añadir modificador `final` al DSL. |
-| El elemento raíz (IsRoot) no puede tener padres.                 |   ❌   | Pendiente: Añadir modificador `root` al DSL.  |
-| Conjunto "disjunto": No permite múltiples subtipos a la vez.     |   ❌   | Pendiente: Soporte para Generalization Sets.  |
-| Conjunto "completo": Instancia del padre debe ser de algún hijo. |   ❌   | Pendiente: Soporte para Generalization Sets.  |
-| El powertype no puede ser padre ni hijo en el mismo conjunto.    |   ❌   | Pendiente: Soporte para powertypes.           |
+| Regla                                                            | Estado | Notas                                        |
+| :--------------------------------------------------------------- | :----: | :------------------------------------------- |
+| Jerarquías de generalización acíclicas.                          |   ✅   | Validado en `HierarchyValidator`.            |
+| No especializar clasificadores marcados como "hoja" (IsLeaf).    |   ✅   | Soportado mediante el símbolo `!`.           |
+| Padres no pueden ser "finales" (IsFinalSpecialization).          |   ✅   | Soportado mediante el símbolo `!`.           |
+| El elemento raíz (IsRoot) no puede tener padres.                 |   ✅   | Soportado mediante el símbolo `^`.           |
+| Conjunto "disjunto": No permite múltiples subtipos a la vez.     |   ❌   | Pendiente: Soporte para Generalization Sets. |
+| Conjunto "completo": Instancia del padre debe ser de algún hijo. |   ❌   | Pendiente: Soporte para Generalization Sets. |
+| El powertype no puede ser padre ni hijo en el mismo conjunto.    |   ❌   | Pendiente: Soporte para powertypes.          |
 
 ## 3. Reglas de Asociaciones y Agregación
 

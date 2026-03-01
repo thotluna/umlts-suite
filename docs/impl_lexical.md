@@ -1,47 +1,57 @@
-# 🧪 Implementación: Capa Léxica (Lexer)
+# 🧪 Implementación: Capa Léxica (Lexer) - Profiles & Stereotypes
 
-Este documento detalla los cambios exactos para habilitar los tokens de Perfiles, Estereotipos y Tagged Values.
+Este documento detalla los cambios realizados en el Lexer para soportar la sintaxis de Perfiles y Estereotipos.
 
 ## 1. Definición de Tokens (`packages/engine/src/syntax/token.types.ts`)
 
-Añadir los nuevos tipos de tokens al enum `TokenType`:
+Se han añadido los siguientes tipos de tokens:
 
 ```typescript
 export enum TokenType {
-  // ... existentes
-  AT = 'AT', // @
-  LBRACKET = 'LBRACKET', // [
-  RBRACKET = 'RBRACKET', // ]
-
-  // Keywords de Perfiles
-  PROFILE = 'PROFILE', // profile
-  STEREOTYPE = 'STEREOTYPE', // stereotype
-  EXTENDS = 'EXTENDS', // extends
-
-  // Tipos de datos para Tagged Values
-  NUMBER = 'NUMBER', // Para Integer/Float
   // ...
+  AT = 'AT', // @ (Uso: @entity)
+  LBRACKET = 'LBRACKET', // [ (Uso: [ table="users" ])
+  RBRACKET = 'RBRACKET', // ]
+  EQUALS = 'EQUALS', // = (Uso: key="value")
+
+  // Keywords de Perfiles y Estereotipos
+  KW_PROFILE = 'KW_PROFILE', // profile
+  KW_STEREOTYPE = 'KW_STEREOTYPE', // stereotype
 }
 ```
 
-## 2. Configuración de Matchers (`packages/engine/src/lexer/lexer.factory.ts`)
+## 2. Reconocimiento de Palabras Clave (`packages/engine/src/lexer/matchers/general.identifier.matcher.ts`)
 
-Registrar los patrones para que el Lexer reconozca los nuevos símbolos y palabras clave:
+Las palabras clave se han registrado en el `GeneralIdentifierMatcher` para asegurar que se identifiquen antes que los identificadores genéricos.
 
 ```typescript
-// Símbolos unitarios
-{ pattern: /^@/, type: TokenType.AT },
-{ pattern: /^\[/, type: TokenType.LBRACKET },
-{ pattern: /^\]/, type: TokenType.RBRACKET },
-
-// Palabras clave (asegurar que se evalúen antes que IDENTIFIER)
-{ pattern: /^profile\b/, type: TokenType.PROFILE },
-{ pattern: /^stereotype\b/, type: TokenType.STEREOTYPE },
-{ pattern: /^extends\b/, type: TokenType.EXTENDS },
+private readonly KEYWORDS: Record<string, TokenType> = {
+  // ... existentes
+  profile: TokenType.KW_PROFILE,
+  stereotype: TokenType.KW_STEREOTYPE,
+}
 ```
 
-## 3. Guía de Acción
+## 3. Reconocimiento de Símbolos (`packages/engine/src/lexer/matchers/simple.symbol.matcher.ts`)
 
-1. **Actualizar `token.types.ts`**: Insertar los nuevos enums.
-2. **Actualizar `lexer.factory.ts`**: Añadir los matchers en el orden de prioridad correcto (keywords antes que identificadores genéricos).
-3. **Verificación**: Ejecutar el lexer con el input `@entity [ table="users" ]` y verificar que genera la secuencia: `AT`, `IDENTIFIER`, `LBRACKET`, `IDENTIFIER`, `EQUALS`, `STRING`, `RBRACKET`.
+Se han registrado los símbolos unitarios:
+
+```typescript
+private readonly SYMBOLS: Record<string, TokenType> = {
+  // ...
+  '[': TokenType.LBRACKET,
+  ']': TokenType.RBRACKET,
+  '@': TokenType.AT,
+  '=': TokenType.EQUALS,
+}
+```
+
+## 4. Verificación y Orden de Prioridad
+
+Es CRÍTICO que los matchers de símbolos y palabras clave se ejecuten antes que el matcher de identificadores. En el sistema actual, el `SymbolMatcher` y el `GeneralIdentifierMatcher` se encargan de esto de forma jerárquica.
+
+### Pruebas de Verificación:
+
+- `@trace` -> `AT`, `IDENTIFIER("trace")`
+- `[ table="users" ]` -> `LBRACKET`, `IDENTIFIER("table")`, `EQUALS`, `STRING("users")`, `RBRACKET`
+- `profile MyProfile` -> `KW_PROFILE`, `IDENTIFIER("MyProfile")`

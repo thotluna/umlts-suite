@@ -1,6 +1,6 @@
-# 🏗️ Implementación: Capa Sintáctica (Parser)
+# 🏗️ Implementación: Capa Sintáctica (Parser) - Profiles & Stereotypes
 
-Este documento detalla la estructura del AST y las reglas del Parser para Perfiles, Estereotipos y Tagged Values.
+Este documento detalla la estructura del AST y las reglas del Parser para Perfiles, Estereotipos y Metadatos.
 
 ## 1. Nodos del AST (`packages/engine/src/syntax/nodes.ts`)
 
@@ -9,67 +9,82 @@ Definir las interfaces para representar las nuevas estructuras en el árbol sint
 ```typescript
 export enum ASTNodeType {
   // ... existentes
-  PROFILE = 'PROFILE',
-  STEREOTYPE_DEFINITION = 'STEREOTYPE_DEFINITION',
-  TAGGED_VALUE_SEGMENT = 'TAGGED_VALUE_SEGMENT',
-  TAG_PROPERTY = 'TAG_PROPERTY',
+  PROFILE = 'Profile',
+  STEREOTYPE = 'Stereotype',
+  TAGGED_VALUE_DEFINITION = 'TaggedValueDefinition',
+  STEREOTYPE_APPLICATION = 'StereotypeApplication',
+  METADATA = 'Metadata', // [ table="users" ]
 }
 
-/** Bloque profile { ... } */
-export interface ProfileNode extends ProgramItemNode {
+/** Perfil que agrupa definiciones de estereotipos */
+export interface ProfileNode extends BaseNode {
   type: ASTNodeType.PROFILE
   name: string
-  stereotypes: StereotypeDefinitionNode[]
+  stereotypes: StereotypeNode[]
 }
 
-/** Declaración stereotype Nombre extends Metaclase { ... } */
-export interface StereotypeDefinitionNode extends ASTNode {
-  type: ASTNodeType.STEREOTYPE_DEFINITION
+/** Definición de un estereotipo dentro de un perfil */
+export interface StereotypeNode extends ASTNode {
+  type: ASTNodeType.STEREOTYPE
   name: string
-  extends: string // ID de la metaclase (Class, Interface, etc)
-  properties: TagPropertyNode[]
+  extends: UMLMetaclass[]
+  properties: TaggedValueDefinitionNode[]
 }
 
-/** Segmento de metadatos dentro de una entidad: [ table="users" ] */
-export interface TaggedValueSegmentNode extends ASTNode {
-  type: ASTNodeType.TAGGED_VALUE_SEGMENT
-  values: Record<string, any> // [ key = value ]
+/** Aplicación de un estereotipo: @entity o @async */
+export interface StereotypeApplicationNode extends ASTNode {
+  type: ASTNodeType.STEREOTYPE_APPLICATION
+  name: string
+}
+
+/** Segmento de metadatos genérico en cuerpo de entidad: [ key=value ] */
+export interface MetadataNode extends MemberNode {
+  type: ASTNodeType.METADATA
+  values: Record<string, string | number | boolean>
 }
 ```
 
 ## 2. Definición de Gramática (Parser Rules)
 
-Crear y registrar las nuevas reglas en `packages/engine/src/parser/rules/*`:
-
 ### **ProfileRule.ts**
 
 ```typescript
 // Gramática: profile <ID> { <StereotypeRule>* }
-const profileName = this.consume(TokenType.IDENTIFIER)
-this.consume(TokenType.LBRACE)
-const stereotypes = this.parseMany(this.stereotypeRule)
-this.consume(TokenType.RBRACE)
+const startToken = context.consume(TokenType.KW_PROFILE)
+const name = context.softConsume(TokenType.IDENTIFIER).value
+// Parseo de cuerpo con llaves opcionales
 ```
 
-### **StereotypeDefinitionRule.ts**
+### **StereotypeRule.ts**
 
 ```typescript
-// Gramática: stereotype <ID> extends <Metaclass> { <Prop>* }
-const name = this.consume(TokenType.IDENTIFIER)
-this.consume(TokenType.EXTENDS)
-const metaclass = this.consume(TokenType.IDENTIFIER) // ej: Class
-// ... parseo de propiedades de metadatos
+// Gramática: stereotype <ID> extends <Metaclass|Keyword> { <Prop>* }
+// Soporta: stereotype Entity extends class, stereotype Service extends interface
 ```
 
 ### **StereotypeApplicationRule.ts**
 
 ```typescript
-// Gramática: @<ID> [ <Entity> | <Relationship> ]
-this.consume(TokenType.AT)
-const name = this.consume(TokenType.IDENTIFIER)
-// Este "Name" se inyecta en el campo stereotypes[] del siguiente nodo
+// Gramática: @<ID>
+// Este componente se inyecta en ClassRule, InterfaceRule, RelationshipRule, etc.
 ```
 
-## 3. Integración en `ASTFactory`
+### **Manejo de Prefijos (`skipPrefixes`)**
 
-Asegurar que el Factory soporte la creación de estos nuevos tipos mediante métodos como `createProfile` y `createStereotypeDefinition`.
+Para permitir que el `Parser` identifique una entidad precedida por estereotipos (ej: `@Entity class User`), se implementó una técnica de _lookahead_ dinámico en `StereotypeApplicationRule.skipPrefixes`.
+
+```typescript
+public static skipPrefixes(context: IParserHub): number {
+  let offset = 0;
+  // Salta todos los @Name secuenciales
+  return offset;
+}
+```
+
+## 3. Resolución de Colisiones: Config vs Stereotypes
+
+Se ha actualizado el `ConfigRule` para que NO capture estereotipos. Ahora solo maneja `@` si va seguido de `IDENTIFIER` y `COLON` (`@key: value`), dejando el resto para la lógica de estereotipos.
+
+## 4. Integración en `ASTFactory`
+
+El factor encargado de centralizar la creación de nodos se actualizó para soportar todas las nuevas estructuras, garantizando que el `metaclass` de UML se asigne correctamente según el tipo de nodo.

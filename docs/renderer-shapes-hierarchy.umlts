@@ -85,7 +85,7 @@ package model {
    * Se posiciona en la esquina superior derecha del nodo.
    */
   class UMLTemplateBox >> UMLContentNode {
-    + parameters: >* UMLText[1..*]
+    + parameters: >* UMLText[1..*] : ""
   }
 
   // --- Implementaciones Espaciales ---
@@ -188,5 +188,6 @@ package renderer.drawing {
   class UMLPackageRenderer >i IDrawable
 }
 
+User [1] >< Group [*] : "pertenece a"
 
 
