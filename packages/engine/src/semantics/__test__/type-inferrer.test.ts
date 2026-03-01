@@ -12,17 +12,17 @@ describe('TypeInferrer', () => {
   })
 
   it('should infer INTERFACE when a CLASS IMPLEMENTS something', () => {
-    const result = inferrer.infer(IREntityType.CLASS, IRRelationshipType.IMPLEMENTATION)
+    const result = inferrer.infer(IREntityType.CLASS, IRRelationshipType.INTERFACE_REALIZATION)
     expect(result).toBe(IREntityType.INTERFACE)
   })
 
   it('should infer INTERFACE when an INTERFACE INHERITS (extends) something', () => {
-    const result = inferrer.infer(IREntityType.INTERFACE, IRRelationshipType.INHERITANCE)
+    const result = inferrer.infer(IREntityType.INTERFACE, IRRelationshipType.GENERALIZATION)
     expect(result).toBe(IREntityType.INTERFACE)
   })
 
   it('should infer CLASS when a CLASS INHERITS something', () => {
-    const result = inferrer.infer(IREntityType.CLASS, IRRelationshipType.INHERITANCE)
+    const result = inferrer.infer(IREntityType.CLASS, IRRelationshipType.GENERALIZATION)
     expect(result).toBe(IREntityType.CLASS)
   })
 

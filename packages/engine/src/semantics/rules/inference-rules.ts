@@ -11,13 +11,21 @@ import type { TypeInferrer } from '@engine/semantics/analyzers/type-inferrer'
  */
 export function registerDefaultInferenceRules(inferrer: TypeInferrer): void {
   // Rule: Class implements Interface
-  inferrer.register(IREntityType.CLASS, IRRelationshipType.IMPLEMENTATION, IREntityType.INTERFACE)
+  inferrer.register(
+    IREntityType.CLASS,
+    IRRelationshipType.INTERFACE_REALIZATION,
+    IREntityType.INTERFACE,
+  )
 
   // Rule: Interface inherits Interface
-  inferrer.register(IREntityType.INTERFACE, IRRelationshipType.INHERITANCE, IREntityType.INTERFACE)
+  inferrer.register(
+    IREntityType.INTERFACE,
+    IRRelationshipType.GENERALIZATION,
+    IREntityType.INTERFACE,
+  )
 
   // Rule: Class inherits Class
-  inferrer.register(IREntityType.CLASS, IRRelationshipType.INHERITANCE, IREntityType.CLASS)
+  inferrer.register(IREntityType.CLASS, IRRelationshipType.GENERALIZATION, IREntityType.CLASS)
 
   // Standard Relationships defaulting to Class target
   const standardRelationships = [
@@ -25,7 +33,7 @@ export function registerDefaultInferenceRules(inferrer: TypeInferrer): void {
     IRRelationshipType.COMPOSITION,
     IRRelationshipType.AGGREGATION,
     IRRelationshipType.DEPENDENCY,
-    IRRelationshipType.REALIZATION,
+    IRRelationshipType.INTERFACE_REALIZATION,
     IRRelationshipType.BIDIRECTIONAL,
   ]
 

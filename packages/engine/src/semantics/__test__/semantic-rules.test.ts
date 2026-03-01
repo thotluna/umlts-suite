@@ -33,7 +33,7 @@ describe('Semantic Rules', () => {
 
     const diagnostics = reporter.getDiagnostics()
     const error = diagnostics.find(
-      (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
+      (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_GENERALIZATION_MISMATCH,
     )
     expect(error).toBeDefined()
     expect(error?.message).toContain('Invalid inheritance')
@@ -49,7 +49,7 @@ describe('Semantic Rules', () => {
 
     const diagnostics = reporter.getDiagnostics()
     const error = diagnostics.find(
-      (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_REALIZATION_INVALID,
+      (d: Diagnostic) => d.code === DiagnosticCode.SEMANTIC_INTERFACE_REALIZATION_INVALID,
     )
     expect(error).toBeDefined()
     expect(error?.message).toContain('Invalid implementation')

@@ -32,7 +32,7 @@ export class GeneralizationRule implements ISemanticRule<SemanticTargetType.RELA
     }
 
     // 1. RULE: Inheritance (>>) rules
-    if (rel.type === IRRelationshipType.INHERITANCE) {
+    if (rel.type === IRRelationshipType.GENERALIZATION) {
       if (fromEntity.type !== toEntity.type) {
         const isFromClassLike =
           fromEntity.type === IREntityType.CLASS || fromEntity.type === IREntityType.DATA_TYPE
@@ -50,7 +50,7 @@ export class GeneralizationRule implements ISemanticRule<SemanticTargetType.RELA
           context.addError(
             `Invalid inheritance: ${fromEntity.type} '${fromEntity.name}' cannot extend ${toEntity.type} '${toEntity.name}'. Both must be of the same type.`,
             errorToken,
-            DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
+            DiagnosticCode.SEMANTIC_GENERALIZATION_MISMATCH,
           )
         }
       }
@@ -61,13 +61,13 @@ export class GeneralizationRule implements ISemanticRule<SemanticTargetType.RELA
         context.addError(
           `Invalid inheritance: Entity '${fromEntity.name}' cannot extend '${toEntity.name}' because it is marked as ${modifier}.`,
           errorToken,
-          DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH,
+          DiagnosticCode.SEMANTIC_GENERALIZATION_MISMATCH,
         )
       }
     }
 
     // 2. RULE: Realization (>I) rules
-    if (rel.type === IRRelationshipType.IMPLEMENTATION) {
+    if (rel.type === IRRelationshipType.INTERFACE_REALIZATION) {
       // Allow Data Types as either source or target during partial resolution
       const isFromData = fromEntity.type === IREntityType.DATA_TYPE
       const isToData = toEntity.type === IREntityType.DATA_TYPE
@@ -85,7 +85,7 @@ export class GeneralizationRule implements ISemanticRule<SemanticTargetType.RELA
         context.addError(
           `Invalid implementation: '${fromEntity.name}' (${fromEntity.type}) cannot implement '${toEntity.name}' (${toEntity.type}). Only classes/components can implement interfaces.`,
           errorToken,
-          DiagnosticCode.SEMANTIC_REALIZATION_INVALID,
+          DiagnosticCode.SEMANTIC_INTERFACE_REALIZATION_INVALID,
         )
       }
     }
