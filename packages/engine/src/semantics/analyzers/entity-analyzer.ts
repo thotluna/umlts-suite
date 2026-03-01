@@ -17,6 +17,8 @@ import type {
   AttributeNode,
   MethodNode,
   AssociationClassNode,
+  ParameterNode,
+  ConstraintNode,
 } from '@engine/syntax/nodes'
 import { ASTNodeType } from '@engine/syntax/nodes'
 import type { ConstraintAnalyzer } from '@engine/semantics/analyzers/constraint-analyzer'
@@ -204,16 +206,20 @@ export class EntityAnalyzer {
           })
         } else if (m.type === ASTNodeType.METHOD) {
           const meth = m as MethodNode
-          this.validateMemberType(meth.returnType?.raw, namespace, m, typeParameters)
+          const stereotypes = this.stereotypeAnalyzer.process(meth.stereotypes, meth)
+          const isReception = stereotypes.some((s) => s.name.toLowerCase() === 'receive')
+          const isAsync =
+            meth.modifiers?.isAsync || stereotypes.some((s) => s.name.toLowerCase() === 'async')
 
-          entity.operations.push({
+          const irOperation = {
             name: meth.name,
             visibility: this.mapVisibility(meth.visibility),
             isStatic: meth.modifiers?.isStatic || false,
             isAbstract: meth.modifiers?.isAbstract || false,
             isLeaf: meth.modifiers?.isLeaf || meth.modifiers?.isFinal || false,
             isQuery: false,
-            parameters: (meth.parameters || []).map((p) => ({
+            isAsync,
+            parameters: (meth.parameters || []).map((p: ParameterNode) => ({
               name: p.name,
               type: this.processType(p.typeAnnotation?.raw),
               multiplicity: p.multiplicity
@@ -234,15 +240,34 @@ export class EntityAnalyzer {
               line: p.line,
               column: p.column,
               defaultValue: p.defaultValue !== undefined ? String(p.defaultValue) : undefined,
-              constraints: p.constraints?.map((c) => this.constraintAnalyzer.process(c)),
+              constraints: p.constraints?.map((c: ConstraintNode) =>
+                this.constraintAnalyzer.process(c),
+              ),
             })),
             returnType: this.processType(meth.returnType?.raw),
             line: meth.line,
             column: meth.column,
             docs: meth.docs,
-            constraints: (meth.constraints || []).map((c) => this.constraintAnalyzer.process(c)),
-            stereotypes: this.stereotypeAnalyzer.process(meth.stereotypes, meth),
-          })
+            constraints: (meth.constraints || []).map((c: ConstraintNode) =>
+              this.constraintAnalyzer.process(c),
+            ),
+            stereotypes,
+          }
+
+          if (isReception) {
+            if (!entity.receptions) entity.receptions = []
+            entity.receptions.push({
+              name: irOperation.name,
+              parameters: irOperation.parameters,
+              line: irOperation.line,
+              column: irOperation.column,
+              docs: irOperation.docs,
+              constraints: irOperation.constraints,
+              stereotypes: irOperation.stereotypes,
+            })
+          } else {
+            entity.operations.push(irOperation)
+          }
         }
       })
 
