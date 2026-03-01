@@ -119,8 +119,14 @@ export class StereotypeAnalyzer {
     const hierarchy: Partial<Record<UMLMetaclass, UMLMetaclass[]>> = {
       [UMLMetaclass.CLASS]: [UMLMetaclass.CLASSIFIER, UMLMetaclass.TYPE],
       [UMLMetaclass.INTERFACE]: [UMLMetaclass.CLASSIFIER, UMLMetaclass.TYPE],
+      [UMLMetaclass.SIGNAL]: [UMLMetaclass.CLASSIFIER, UMLMetaclass.TYPE],
       [UMLMetaclass.ENUMERATION]: [UMLMetaclass.CLASSIFIER, UMLMetaclass.TYPE],
-      // ... expandir según necesidad
+      [UMLMetaclass.DATA_TYPE]: [UMLMetaclass.CLASSIFIER, UMLMetaclass.TYPE],
+      [UMLMetaclass.ASSOCIATION_CLASS]: [UMLMetaclass.CLASS, UMLMetaclass.ASSOCIATION],
+      [UMLMetaclass.ASSOCIATION]: [UMLMetaclass.RELATIONSHIP],
+      [UMLMetaclass.USAGE]: [UMLMetaclass.DEPENDENCY],
+      [UMLMetaclass.DEPENDENCY]: [UMLMetaclass.RELATIONSHIP],
+      [UMLMetaclass.OPERATION]: [UMLMetaclass.ELEMENT],
       [UMLMetaclass.CLASSIFIER]: [UMLMetaclass.NAMESPACE],
     }
 
