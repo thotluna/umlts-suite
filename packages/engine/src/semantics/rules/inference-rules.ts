@@ -33,7 +33,6 @@ export function registerDefaultInferenceRules(inferrer: TypeInferrer): void {
     IRRelationshipType.COMPOSITION,
     IRRelationshipType.AGGREGATION,
     IRRelationshipType.DEPENDENCY,
-    IRRelationshipType.INTERFACE_REALIZATION,
     IRRelationshipType.BIDIRECTIONAL,
   ]
 
