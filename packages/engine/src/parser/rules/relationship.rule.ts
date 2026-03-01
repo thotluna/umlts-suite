@@ -11,12 +11,13 @@ import { ModifierRule } from '@engine/parser/rules/modifier.rule'
 import { MemberRule } from '@engine/parser/rules/member.rule'
 import { ConstraintRule } from '@engine/parser/rules/constraint.rule'
 import { ASTFactory } from '@engine/parser/factory/ast.factory'
+import { StereotypeApplicationRule } from '@engine/parser/rules/stereotype-application.rule'
 
 export class RelationshipRule implements StatementRule {
   private readonly memberRule = new MemberRule()
 
   public canHandle(context: IParserHub): boolean {
-    let i = ModifierRule.countModifiers(context)
+    let i = StereotypeApplicationRule.skipPrefixes(context)
 
     // 2. Debe empezar con un identificador (entidad de origen)
     if (context.lookahead(i).type !== TokenType.IDENTIFIER) return false
@@ -46,6 +47,7 @@ export class RelationshipRule implements StatementRule {
     const pos = context.getPosition()
 
     try {
+      const stereotypes = StereotypeApplicationRule.parse(context)
       const fromModifiers = ModifierRule.parse(context)
 
       const fromToken = context.peek()
@@ -77,14 +79,6 @@ export class RelationshipRule implements StatementRule {
           kindToken.type !== TokenType.OP_COMP_NON_NAVIGABLE &&
           kindToken.type !== TokenType.OP_AGREG_NON_NAVIGABLE
 
-        let toMultiplicity: string | undefined
-
-        if (context.check(TokenType.LBRACKET)) {
-          toMultiplicity = this.parseMultiplicity(context)
-        } else if (context.match(TokenType.STRING)) {
-          toMultiplicity = context.prev().value
-        }
-
         const toModifiers = ModifierRule.parse(context)
 
         let to = context.consume(TokenType.IDENTIFIER, 'Target entity name expected').value
@@ -103,10 +97,20 @@ export class RelationshipRule implements StatementRule {
           to += context.consume(TokenType.GT, "Expected '>'").value
         }
 
-        // Optional label (only for the link between current 'from' and 'to')
+        let toMultiplicity: string | undefined
+
+        if (context.check(TokenType.LBRACKET)) {
+          toMultiplicity = this.parseMultiplicity(context)
+        } else if (context.match(TokenType.STRING)) {
+          toMultiplicity = context.prev().value
+        }
+
+        // Optional label
         let label: string | undefined
         if (context.match(TokenType.COLON)) {
           label = context.consume(TokenType.STRING, 'Label string expected').value
+        } else if (context.match(TokenType.STRING)) {
+          label = context.prev().value
         }
 
         // Optional block for members/constraints
@@ -157,26 +161,26 @@ export class RelationshipRule implements StatementRule {
           context.consume(TokenType.RBRACE, "Expected '}' at end of relationship block")
         }
 
-        relationships.push(
-          ASTFactory.createRelationship(
-            kind,
-            from,
-            to,
-            isNavigable,
-            fromToken.line,
-            fromToken.column,
-            {
-              fromModifiers,
-              fromMultiplicity,
-              toModifiers,
-              toMultiplicity,
-              label,
-              constraints: constraints.length > 0 ? constraints : undefined,
-              body: body.length > 0 ? body : undefined,
-              docs: context.consumePendingDocs(),
-            },
-          ),
+        const rel = ASTFactory.createRelationship(
+          kind,
+          from,
+          to,
+          isNavigable,
+          fromToken.line,
+          fromToken.column,
+          {
+            fromModifiers,
+            fromMultiplicity,
+            toModifiers,
+            toMultiplicity,
+            label,
+            constraints: constraints.length > 0 ? constraints : undefined,
+            body: body.length > 0 ? body : undefined,
+            docs: context.consumePendingDocs(),
+          },
         )
+        rel.stereotypes = stereotypes
+        relationships.push(rel)
 
         // Para el encadenamiento, el destino actual es el origen del siguiente
         from = to
@@ -214,12 +218,6 @@ export class RelationshipRule implements StatementRule {
       TokenType.OP_USE,
       TokenType.OP_COMP_NON_NAVIGABLE,
       TokenType.OP_AGREG_NON_NAVIGABLE,
-      TokenType.KW_EXTENDS,
-      TokenType.KW_IMPLEMENTS,
-      TokenType.KW_COMP,
-      TokenType.KW_AGREG,
-      TokenType.KW_ASSOC,
-      TokenType.KW_USE,
       TokenType.GT,
     ].includes(type)
   }
@@ -231,6 +229,13 @@ export class RelationshipRule implements StatementRule {
       value += context.advance().value
     }
     context.consume(TokenType.RBRACKET, "Expected ']'")
+    if (value === '') {
+      context.addError(
+        "Empty multiplicity '[]' is not valid. Use '[*]' for zero-or-many.",
+        context.prev(),
+      )
+      return '*'
+    }
     return value
   }
 }
