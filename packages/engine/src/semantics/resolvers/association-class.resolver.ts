@@ -30,7 +30,7 @@ export class AssociationClassResolver {
       )
 
       p.relationships?.forEach((rel) => {
-        const relType = this.relationshipAnalyzer.mapRelationshipType(rel.kind)
+        const { type: relType } = this.relationshipAnalyzer.mapRelationshipType(rel.kind)
         const fromEntity = this.state.symbolTable.get(currentFromFQN)
         const inferenceContext = fromEntity
           ? { sourceType: fromEntity.type, relationshipKind: relType }
@@ -95,7 +95,7 @@ export class AssociationClassResolver {
     this.relationshipAnalyzer.addResolvedRelationship(
       fromFQN,
       toFQN,
-      IRRelationshipType.BIDIRECTIONAL,
+      IRRelationshipType.ASSOCIATION,
       {
         line: node.line,
         column: node.column,

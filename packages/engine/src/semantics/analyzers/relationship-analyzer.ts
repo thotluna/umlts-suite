@@ -1,11 +1,12 @@
 import {
   IRRelationshipType,
-  IREntityType,
   IRVisibility,
   type IRRelationship,
-  type IRConstraint,
   type IREntity,
+  type IRConstraint,
   type IRMultiplicity,
+  type IRAggregationKind,
+  IREntityType,
 } from '@engine/generator/ir/models'
 import { TypeInferrer } from '@engine/semantics/analyzers/type-inferrer'
 import { registerDefaultInferenceRules } from '@engine/semantics/rules/inference-rules'
@@ -143,6 +144,7 @@ export class RelationshipAnalyzer {
       originalTarget?: string
       toName?: string
       fromName?: string
+      aggregation?: IRAggregationKind
     },
   ): void {
     const fromEntity = this.symbolTable.get(fromFQN)
@@ -150,7 +152,7 @@ export class RelationshipAnalyzer {
 
     if (fromEntity != null && toEntity != null) {
       this.hierarchyValidator.validateRelationship(fromEntity, toEntity, type)
-      this.associationValidator.validate(fromEntity, toEntity, type)
+      this.associationValidator.validate(fromEntity, toEntity, type, meta.aggregation)
     }
 
     const isValidTarget = this.associationValidator.validateTarget(
@@ -176,6 +178,7 @@ export class RelationshipAnalyzer {
       from: fromFQN,
       to: toFQN,
       type,
+      aggregation: meta.aggregation,
       line: meta.line,
       column: meta.column,
       label: finalLabel,
@@ -210,7 +213,7 @@ export class RelationshipAnalyzer {
     node?: ASTNode,
     constraintGroupId?: string,
   ): void {
-    const relType = this.mapRelationshipType(kind)
+    const { type: relType, aggregation } = this.mapRelationshipType(kind)
 
     // Extract target name for length calculation
     let targetName = toFQN.split('.').pop()
@@ -242,7 +245,7 @@ export class RelationshipAnalyzer {
 
     if (fromEntity != null && toEntity != null) {
       this.hierarchyValidator.validateRelationship(fromEntity, toEntity, relType)
-      this.associationValidator.validate(fromEntity, toEntity, relType)
+      this.associationValidator.validate(fromEntity, toEntity, relType, aggregation)
     }
 
     let finalLabel: string | undefined
@@ -254,6 +257,7 @@ export class RelationshipAnalyzer {
       from: fromFQN,
       to: toFQN,
       type: relType,
+      aggregation,
       line: node?.line,
       column: node?.column,
       docs: node?.docs,
@@ -283,7 +287,7 @@ export class RelationshipAnalyzer {
             upper: bounds.upper === Infinity ? '*' : bounds.upper,
           }
 
-          if (relType === IRRelationshipType.COMPOSITION && bounds.upper > 1) {
+          if (aggregation === 'composite' && bounds.upper > 1) {
             const errorToken: Token = {
               line: relNode.line || 1,
               column: relNode.column || 1,
@@ -345,52 +349,55 @@ export class RelationshipAnalyzer {
     return `«bind» <${mapping.join(', ')}>`
   }
 
-  public mapRelationshipType(kind: string): IRRelationshipType {
+  public mapRelationshipType(kind: string): {
+    type: IRRelationshipType
+    aggregation?: IRAggregationKind
+  } {
     const k = kind.toLowerCase().trim()
 
     // Inheritance (>>)
     if (['>>', 'extends', 'extend'].includes(k)) {
-      return IRRelationshipType.GENERALIZATION
+      return { type: IRRelationshipType.GENERALIZATION }
     }
 
     // Implementation (>I)
     if (['>i', 'implements', 'implement'].includes(k)) {
-      return IRRelationshipType.INTERFACE_REALIZATION
+      return { type: IRRelationshipType.INTERFACE_REALIZATION }
     }
 
     // Composition (>*)
     if (['>*', '>*|', 'comp', 'composition'].includes(k)) {
-      return IRRelationshipType.COMPOSITION
+      return { type: IRRelationshipType.ASSOCIATION, aggregation: 'composite' }
     }
 
     // Aggregation (>+)
     // Note: The lexer token for aggregation is >+ but some legacy code might check >o.
     // We strictly follow the DSL: >+
     if (['>+', '>+|', 'agreg', 'aggregation'].includes(k)) {
-      return IRRelationshipType.AGGREGATION
+      return { type: IRRelationshipType.ASSOCIATION, aggregation: 'shared' }
     }
 
     // Association (><)
     if (['><', 'assoc', 'association'].includes(k)) {
-      return IRRelationshipType.ASSOCIATION
+      return { type: IRRelationshipType.ASSOCIATION }
     }
 
     // Usage/Dependency (>-, >use)
     if (['>-', '>use', 'use', 'dependency'].includes(k)) {
-      return IRRelationshipType.DEPENDENCY
+      return { type: IRRelationshipType.DEPENDENCY }
     }
 
     // Realization (Internal concept, typically mapped from Implements but kept for safety)
     if (['realize', 'realizes'].includes(k)) {
-      return IRRelationshipType.INTERFACE_REALIZATION
+      return { type: IRRelationshipType.INTERFACE_REALIZATION }
     }
 
     // Bidirectional/Undirected Association (>)
     if (['>', '<>', 'bidir', 'bidirectional'].includes(k)) {
-      return IRRelationshipType.BIDIRECTIONAL
+      return { type: IRRelationshipType.ASSOCIATION } // Simplificado a Association genérico según UML
     }
 
     // Default fallback
-    return IRRelationshipType.ASSOCIATION
+    return { type: IRRelationshipType.ASSOCIATION }
   }
 }

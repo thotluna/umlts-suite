@@ -31,14 +31,11 @@ describe('TypeInferrer', () => {
     expect(result).toBe(IREntityType.INTERFACE)
   })
 
-  it('should infer CLASS for general relationships (Association, Composition, etc)', () => {
+  it('should infer CLASS for general relationships (Association, Dependency, etc)', () => {
     expect(inferrer.infer(IREntityType.CLASS, IRRelationshipType.ASSOCIATION)).toBe(
       IREntityType.CLASS,
     )
-    expect(inferrer.infer(IREntityType.CLASS, IRRelationshipType.COMPOSITION)).toBe(
-      IREntityType.CLASS,
-    )
-    expect(inferrer.infer(IREntityType.CLASS, IRRelationshipType.AGGREGATION)).toBe(
+    expect(inferrer.infer(IREntityType.CLASS, IRRelationshipType.DEPENDENCY)).toBe(
       IREntityType.CLASS,
     )
   })

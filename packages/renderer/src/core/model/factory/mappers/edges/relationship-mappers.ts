@@ -36,28 +36,25 @@ export class HierarchyMapper implements RelationshipMapper {
 
 export class StructuralMapper implements RelationshipMapper {
   public canMap(rel: IRRelationship): boolean {
-    return (
-      rel.type === IRRelationshipType.ASSOCIATION ||
-      rel.type === IRRelationshipType.AGGREGATION ||
-      rel.type === IRRelationshipType.COMPOSITION ||
-      rel.type === IRRelationshipType.DEPENDENCY
-    )
+    return rel.type === IRRelationshipType.ASSOCIATION || rel.type === IRRelationshipType.DEPENDENCY
   }
 
   public map(rel: IRRelationship, context: MappingContext, id: string): UMLEdge {
-    const creators: Record<string, () => UMLEdge> = {
-      [IRRelationshipType.AGGREGATION]: () => new UMLAggregation(id, rel.from, rel.to),
-      [IRRelationshipType.COMPOSITION]: () => new UMLComposition(id, rel.from, rel.to),
-      [IRRelationshipType.DEPENDENCY]: () => new UMLDependency(id, rel.from, rel.to),
-      [IRRelationshipType.ASSOCIATION]: () => {
+    let edge: UMLEdge
+
+    if (rel.type === IRRelationshipType.DEPENDENCY) {
+      edge = new UMLDependency(id, rel.from, rel.to)
+    } else {
+      if (rel.aggregation === 'composite') {
+        edge = new UMLComposition(id, rel.from, rel.to)
+      } else if (rel.aggregation === 'shared') {
+        edge = new UMLAggregation(id, rel.from, rel.to)
+      } else {
         const assoc = new UMLAssociation(id, rel.from, rel.to)
         assoc.isNavigable = rel.isNavigable
-        return assoc
-      },
+        edge = assoc
+      }
     }
-
-    const creator = creators[rel.type as string] || creators[IRRelationshipType.ASSOCIATION]
-    const edge = creator()
 
     context.applyCommonEdgeMetadata(edge, rel)
     return edge

@@ -17,6 +17,7 @@ export type {
   IRAnchor,
   IRStereotypeApplication,
   IRReception,
+  IRAggregationKind,
 } from '@engine/generator/ir/models'
 
 // Diagnostics exports

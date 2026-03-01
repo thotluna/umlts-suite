@@ -47,7 +47,7 @@ describe('AssociationClassResolver', () => {
   })
 
   it('should resolve a valid association class', () => {
-    const node: AssociationClassNode = {
+    const node = {
       type: ASTNodeType.ASSOCIATION_CLASS,
       name: 'Enrollment',
       line: 1,
@@ -57,7 +57,7 @@ describe('AssociationClassResolver', () => {
         { name: 'Course', multiplicity: '*' },
       ],
       body: [],
-    }
+    } as unknown as AssociationClassNode
 
     // Mock getting the Association Class entity itself
     const assocEntity: IREntity = {
@@ -99,7 +99,7 @@ describe('AssociationClassResolver', () => {
     expect(mockAnalyzer.addResolvedRelationship).toHaveBeenCalledWith(
       'Student',
       'Course',
-      IRRelationshipType.BIDIRECTIONAL,
+      IRRelationshipType.ASSOCIATION,
       expect.objectContaining({
         associationClassId: 'Enrollment',
         fromMultiplicity: '1',
@@ -109,14 +109,14 @@ describe('AssociationClassResolver', () => {
   })
 
   it('should ignore association class with invalid number of participants', () => {
-    const node: AssociationClassNode = {
+    const node = {
       type: ASTNodeType.ASSOCIATION_CLASS,
       name: 'Enrollment',
       participants: [{ name: 'Student' }], // Only 1
       body: [],
       line: 1,
       column: 1,
-    }
+    } as unknown as AssociationClassNode
 
     resolver.resolve(node)
 

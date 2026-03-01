@@ -3,6 +3,7 @@ import {
   IRVisibility,
   type IRConstraint,
   type IRModifiers,
+  type IRAggregationKind,
 } from '@engine/generator/ir/models'
 import { type Modifiers } from '@engine/syntax/nodes'
 import type { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
@@ -28,9 +29,7 @@ export class MemberInference {
       // 1. Inference from Properties (Attributes)
       ;(entity.properties || []).forEach((prop) => {
         if (prop.type) {
-          let relType = IRRelationshipType.ASSOCIATION
-          if (prop.aggregation === 'shared') relType = IRRelationshipType.AGGREGATION
-          if (prop.aggregation === 'composite') relType = IRRelationshipType.COMPOSITION
+          const relType = IRRelationshipType.ASSOCIATION
 
           this.inferFromType(
             entity.id,
@@ -38,6 +37,7 @@ export class MemberInference {
             entity.namespace,
             prop.name,
             relType,
+            prop.aggregation,
             undefined,
             prop.visibility,
             undefined,
@@ -61,6 +61,7 @@ export class MemberInference {
             undefined,
             IRRelationshipType.ASSOCIATION,
             undefined,
+            undefined,
             op.visibility,
             undefined,
             undefined,
@@ -78,7 +79,8 @@ export class MemberInference {
               p.type,
               entity.namespace,
               p.name,
-              this.relationshipAnalyzer.mapRelationshipType(p.relationshipKind),
+              this.relationshipAnalyzer.mapRelationshipType(p.relationshipKind).type,
+              this.relationshipAnalyzer.mapRelationshipType(p.relationshipKind).aggregation,
               undefined,
               op.visibility,
               undefined,
@@ -100,6 +102,7 @@ export class MemberInference {
     fromNamespace?: string,
     label?: string,
     relType: IRRelationshipType = IRRelationshipType.ASSOCIATION,
+    aggregation?: IRAggregationKind,
     toMultiplicity?: string,
     visibility?: IRVisibility,
     fromMultiplicity?: string,
@@ -132,6 +135,7 @@ export class MemberInference {
           fromNamespace,
           undefined, // Don't propagate label to generic args
           IRRelationshipType.ASSOCIATION,
+          undefined,
           argMultiplicity || toMultiplicity,
           visibility,
           undefined,
@@ -181,6 +185,7 @@ export class MemberInference {
       visibility,
       associationClassId,
       constraints: memberConstraints,
+      aggregation,
     })
   }
 }

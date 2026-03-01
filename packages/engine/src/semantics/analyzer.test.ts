@@ -98,7 +98,8 @@ describe('SemanticAnalyzer', () => {
       (r: IRRelationship) =>
         r.from === 'DiagramNode' &&
         r.to === 'IRMember' &&
-        r.type === IRRelationshipType.COMPOSITION,
+        r.type === IRRelationshipType.ASSOCIATION &&
+        r.aggregation === 'composite',
     )
 
     expect(rels).toHaveLength(2)
