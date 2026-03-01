@@ -1,4 +1,4 @@
-import type { IREntity } from '@engine/generator/ir/models'
+import type { IREntity, IRAggregationKind } from '@engine/generator/ir/models'
 import { IRRelationshipType, IREntityType } from '@engine/generator/ir/models'
 import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
 import { TokenType } from '@engine/syntax/token.types'
@@ -15,7 +15,12 @@ export class AssociationValidator {
   /**
    * Validates structural integrity of an association.
    */
-  public validate(from: IREntity, to: IREntity, type: IRRelationshipType): void {
+  public validate(
+    from: IREntity,
+    to: IREntity,
+    type: IRRelationshipType,
+    aggregation?: IRAggregationKind,
+  ): void {
     const errorToken: Token = {
       line: from.line || 1,
       column: from.column || 1,
@@ -25,10 +30,10 @@ export class AssociationValidator {
 
     // 1. RULE: Composition/Aggregation Source Type
     // Only Classes and Interfaces can be the 'Whole' in a strong structural relationship.
-    if (type === IRRelationshipType.COMPOSITION || type === IRRelationshipType.AGGREGATION) {
+    if (aggregation === 'composite' || aggregation === 'shared') {
       if (from.type === IREntityType.ENUMERATION) {
         this.context?.addError(
-          `Association Violation: An Enum ('${from.name}') cannot be the aggregate/whole in a ${type} relationship.`,
+          `Association Violation: An Enum ('${from.name}') cannot be the aggregate/whole in an aggregation relationship (${aggregation}).`,
           errorToken,
           DiagnosticCode.SEMANTIC_INVALID_TYPE,
         )

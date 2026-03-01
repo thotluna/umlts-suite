@@ -28,13 +28,7 @@ export function registerDefaultInferenceRules(inferrer: TypeInferrer): void {
   inferrer.register(IREntityType.CLASS, IRRelationshipType.GENERALIZATION, IREntityType.CLASS)
 
   // Standard Relationships defaulting to Class target
-  const standardRelationships = [
-    IRRelationshipType.ASSOCIATION,
-    IRRelationshipType.COMPOSITION,
-    IRRelationshipType.AGGREGATION,
-    IRRelationshipType.DEPENDENCY,
-    IRRelationshipType.BIDIRECTIONAL,
-  ]
+  const standardRelationships = [IRRelationshipType.ASSOCIATION, IRRelationshipType.DEPENDENCY]
 
   standardRelationships.forEach((rel) => {
     inferrer.register(IREntityType.CLASS, rel, IREntityType.CLASS)

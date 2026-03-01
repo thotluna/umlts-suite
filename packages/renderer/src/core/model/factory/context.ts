@@ -4,6 +4,7 @@ import {
   IROperation,
   IRRelationship,
   IRStereotypeApplication,
+  IRReception,
 } from '@umlts/engine'
 import {
   UMLName,
@@ -71,9 +72,22 @@ export class MappingContext {
       m.parameters = op.parameters
       m.returnType = op.returnType
       m.returnMultiplicity = op.returnMultiplicity
+      m.isAsync = op.isAsync
       node.addOperation(m)
       if (op.stereotypes) {
         op.stereotypes.forEach((st: IRStereotypeApplication, j: number) => {
+          m.stereotypes.push(new UMLStereotype(`${m.id}_st_${j}`, st.name, st.values))
+        })
+      }
+    })
+
+    entity.receptions?.forEach((recep: IRReception, i: number) => {
+      const m = new UMLMember(`${entity.id}_recep_${i}`, recep.name)
+      m.parameters = recep.parameters
+      m.isAsync = true // Las recepciones siempre son asíncronas
+      node.addReception(m)
+      if (recep.stereotypes) {
+        recep.stereotypes.forEach((st: IRStereotypeApplication, j: number) => {
           m.stereotypes.push(new UMLStereotype(`${m.id}_st_${j}`, st.name, st.values))
         })
       }

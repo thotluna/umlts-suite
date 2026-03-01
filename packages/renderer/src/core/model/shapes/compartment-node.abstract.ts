@@ -10,6 +10,7 @@ import { MEASURE_CONFIG } from '../base/measure-constants'
 export abstract class UMLCompartmentNode extends UMLHeaderShape {
   public properties: UMLMember[] = []
   public operations: UMLMember[] = []
+  public receptions: UMLMember[] = []
 
   public addProperty(p: UMLMember): void {
     this.properties.push(p)
@@ -17,6 +18,10 @@ export abstract class UMLCompartmentNode extends UMLHeaderShape {
 
   public addOperation(op: UMLMember): void {
     this.operations.push(op)
+  }
+
+  public addReception(r: UMLMember): void {
+    this.receptions.push(r)
   }
 
   public override getDimensions(): Size {
@@ -52,12 +57,18 @@ export abstract class UMLCompartmentNode extends UMLHeaderShape {
     const headH = this.getHeaderHeight()
     const propH = this.properties.length * LINE_HEIGHT
     const opH = this.operations.length * LINE_HEIGHT
+    const recepH = this.receptions.length * LINE_HEIGHT
     const divider =
-      this.properties.length > 0 && this.operations.length > 0 ? SECTION_DIVIDER_HEIGHT : 0
+      (this.properties.length > 0 ? 1 : 0) +
+        (this.operations.length > 0 ? 1 : 0) +
+        (this.receptions.length > 0 ? 1 : 0) >
+      1
+        ? SECTION_DIVIDER_HEIGHT
+        : 0
 
     return {
       width: calculatedWidth,
-      height: headH + propH + opH + divider + PADDING_BOTTOM,
+      height: headH + propH + opH + recepH + divider + PADDING_BOTTOM,
     }
   }
 }

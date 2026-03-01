@@ -1,5 +1,5 @@
 import type { IRRelationship } from '@engine/generator/ir/models'
-import { IRRelationshipType, IREntityType } from '@engine/generator/ir/models'
+import { IREntityType } from '@engine/generator/ir/models'
 import { DiagnosticCode } from '@engine/syntax/diagnostic.types'
 import { TokenType, type Token } from '@engine/syntax/token.types'
 import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
@@ -19,10 +19,7 @@ export class CompositionTargetRule implements ISemanticRule<SemanticTargetType.R
   constructor(private readonly symbolTable: SymbolTable) {}
 
   public validate(rel: IRRelationship, context: ISemanticContext): void {
-    if (
-      rel.type !== IRRelationshipType.COMPOSITION &&
-      rel.type !== IRRelationshipType.AGGREGATION
-    ) {
+    if (rel.aggregation !== 'composite' && rel.aggregation !== 'shared') {
       return
     }
 
@@ -40,7 +37,7 @@ export class CompositionTargetRule implements ISemanticRule<SemanticTargetType.R
     // Only Classes and Interfaces can be the 'Whole' in a strong structural relationship.
     if (fromEntity.type === IREntityType.ENUMERATION) {
       context.addError(
-        `Association Violation: An Enum ('${fromEntity.name}') cannot be the aggregate/whole in a ${rel.type} relationship.`,
+        `Association Violation: An Enum ('${fromEntity.name}') cannot be the aggregate/whole in an aggregation relationship (${rel.aggregation}).`,
         errorToken,
         DiagnosticCode.SEMANTIC_INVALID_TYPE,
       )

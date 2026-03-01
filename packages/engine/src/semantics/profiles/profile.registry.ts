@@ -6,7 +6,7 @@ import { UMLMetaclass } from '@engine/core/metamodel'
 export interface StereotypeDefinition {
   name: string
   extends: UMLMetaclass[] // Metaclases que este estereotipo puede extender
-  properties?: Record<string, 'String' | 'Integer' | 'Boolean' | 'Float'> // Tagged Values
+  properties?: Record<string, 'String' | 'Integer' | 'Boolean' | 'Real'> // Tagged Values
 }
 
 /**

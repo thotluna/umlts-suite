@@ -59,7 +59,7 @@ export class ResolutionPass implements ISemanticPass, ASTVisitor {
     const fromEntity = this.state.symbolTable.get(fromFQN)
 
     ;(node.relationships || []).forEach((rel) => {
-      const relType = this.relationshipAnalyzer.mapRelationshipType(rel.kind)
+      const { type: relType } = this.relationshipAnalyzer.mapRelationshipType(rel.kind)
       const inferenceContext = fromEntity
         ? { sourceType: fromEntity.type, relationshipKind: relType }
         : undefined
@@ -90,7 +90,7 @@ export class ResolutionPass implements ISemanticPass, ASTVisitor {
 
   visitRelationship(node: RelationshipNode): void {
     const ns = this.currentNamespace.join('.')
-    const relType = this.relationshipAnalyzer.mapRelationshipType(node.kind)
+    const { type: relType } = this.relationshipAnalyzer.mapRelationshipType(node.kind)
 
     const fromFQN = this.relationshipAnalyzer.resolveOrRegisterImplicit(
       node.from,

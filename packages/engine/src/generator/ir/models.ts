@@ -181,14 +181,9 @@ export enum IRRelationshipType {
   SUBSTITUTION = 'Substitution', // 9.9.22
   USAGE = 'Usage', // 7.8.23
   TEMPLATE_BINDING = 'TemplateBinding', // 7.3
-
-  // Alias de compatibilidad (Deprecados con valores únicos)
-  INHERITANCE = 'Inheritance',
-  IMPLEMENTATION = 'Implementation',
-  COMPOSITION = 'Composition',
-  AGGREGATION = 'Aggregation',
-  BIDIRECTIONAL = 'Bidirectional',
 }
+
+export type IRAggregationKind = 'none' | 'shared' | 'composite'
 
 /**
  * Representa una conexión entre elementos UML.
@@ -205,6 +200,9 @@ export interface IRRelationship {
   // Roles de asociación
   fromName?: string
   toName?: string
+
+  // Agregación para asociaciones (Alineado con UML 2.5)
+  aggregation?: IRAggregationKind
 
   isNavigable: boolean
   label?: string

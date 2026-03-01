@@ -14,6 +14,7 @@ export class UMLMember extends UMLText {
   public parameters?: IRParameter[]
   public returnType?: string
   public returnMultiplicity?: string | IRMultiplicity
+  public isAsync = false
   public hideConstraints = false
   public constraints: UMLConstraintArc[] = []
   public stereotypes: UMLStereotype[] = []

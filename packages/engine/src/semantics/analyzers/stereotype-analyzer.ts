@@ -140,7 +140,7 @@ export class StereotypeAnalyzer {
         return typeof value === 'string'
       case 'Integer':
         return Number.isInteger(value)
-      case 'Float':
+      case 'Real':
         return typeof value === 'number'
       case 'Boolean':
         return typeof value === 'boolean'
