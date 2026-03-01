@@ -31,6 +31,7 @@ export enum UMLMetaclass {
   USAGE = 'Usage',
   REALIZATION = 'Realization',
   ABSTRACTION = 'Abstraction',
+  RELATIONSHIP = 'Relationship',
 
   // Paquetes (Cláusula 12)
   PACKAGE = 'Package',
