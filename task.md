@@ -528,9 +528,14 @@
 - [x] **FEAT**: Implementar `ProfileRegistry` con soporte para `UMLStandardProfile` (Built-in)
 - [x] **CORE**: Inyectar metaclases en `ASTFactory` para todas las entidades y relaciones
 - [x] **PHASE 3: LEXICAL**: Actualizar Lexer con tokens `@`, `[]`, `profile`, `stereotype`, `extends`
-- [ ] **PHASE 3: SYNTAX**: Implementar `ProfileRule`, `StereotypeRule` y soporte para segmento `[ ]` en entidades
-- [ ] **PHASE 4: SEMANTICS**: Implementar validación de Unicidad, Extensión y Esquema de Datos
-- [ ] **PHASE 5: RENDERER**: Visualizar estereotipos `« »` y compartimento de metadatos `{ }`
+- [x] **PHASE 3: SYNTAX**: Implementar `ProfileRule`, `StereotypeRule` y soporte para segmento `[ ]` en entidades (Verificado con `profiles.parser.test.ts`)
+- [x] **PHASE 4: SEMANTICS**: Implementar validación de Unicidad, Extensión y Esquema de Datos (Verificado con `profiles.semantics.test.ts`)
+- [x] **PHASE 5: RENDERER**: Visualizar estereotipos « » y compartimento de metadatos { }
+  - [x] Implementar `IRStereotypeApplication` en la IR y exportarlo
+  - [x] Refactorizar `UMLStereotype` para soportar `values` (Tagged Values)
+  - [x] Soporte de estereotipos en `UMLMember` (Atributos/Operaciones) y `UMLEdge` (Relaciones)
+  - [x] Actualizar `MappingContext` para propagar metadatos estructurados
+  - [x] Renderizado dinámico en cabecera de clases con soporte de tagged values `{key=value}`
 
 ## Backlog de Interoperabilidad (Migración y Exportación)
 
