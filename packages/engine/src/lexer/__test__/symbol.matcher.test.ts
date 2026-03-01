@@ -12,10 +12,11 @@ describe('SymbolMatcher', () => {
     expect(token?.type).toBe(TokenType.OP_INHERIT)
   })
 
-  it('should match >extends via KeywordOperatorMatcher', () => {
+  it('>extends is no longer a keyword operator — parsed as GT + IDENTIFIER', () => {
     const reader = new LexerReader('>extends')
     const token = matcher.match(reader)
-    expect(token?.type).toBe(TokenType.KW_EXTENDS)
+    // SymbolMatcher only gets '>' as GT, leaves 'extends' as IDENTIFIER
+    expect(token?.type).toBe(TokenType.GT)
   })
 
   it('should match range via RangeMatcher', () => {

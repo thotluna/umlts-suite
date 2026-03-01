@@ -41,6 +41,12 @@ export enum UMLMetaclass {
   STEREOTYPE = 'Stereotype',
   CONSTRAINT = 'Constraint',
   COMMENT = 'Comment',
+
+  // Metaclases abstractas / Jerarquía
+  ELEMENT = 'Element',
+  NAMESPACE = 'Namespace',
+  TYPE = 'Type',
+  CLASSIFIER = 'Classifier',
 }
 
 /**

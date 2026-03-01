@@ -7,7 +7,7 @@ describe('Leaf and Final Modifiers', () => {
 
   it('should parse leaf classes', () => {
     const code = `
-      leaf class MyLeafClass {
+      !class MyLeafClass {
         + attr: string
       }
       !class MyOtherLeafClass {}
@@ -21,7 +21,7 @@ describe('Leaf and Final Modifiers', () => {
     expect(cls2?.isLeaf).toBe(true)
   })
 
-  it('should parse final classes', () => {
+  it.todo('final keyword removed — use ! (MOD_LEAF) instead', () => {
     const code = `
       final class MyFinalClass {}
     `
@@ -31,29 +31,22 @@ describe('Leaf and Final Modifiers', () => {
     expect(cls).toBeDefined()
   })
 
-  it('should parse leaf and final methods', () => {
+  it('should parse leaf methods', () => {
     const code = `
       class Base {
-        leaf method1(): void
-        final method2(): void
         !method3(): void
       }
     `
     const { diagram } = engine.parse(code)
     const cls = diagram.entities.find((e) => e.name === 'Base')
 
-    const m1 = cls?.operations.find((m) => m.name === 'method1')
-    const m2 = cls?.operations.find((m) => m.name === 'method2')
     const m3 = cls?.operations.find((m) => m.name === 'method3')
-
-    expect(m1?.isLeaf).toBe(true)
-    expect(m2?.isLeaf).toBe(true)
     expect(m3?.isLeaf).toBe(true)
   })
 
   it('should report error when inheriting from leaf entity', () => {
     const code = `
-      leaf class Base {}
+      !class Base {}
       class Derived >> Base {}
     `
     const { diagnostics } = engine.parse(code)
@@ -64,7 +57,7 @@ describe('Leaf and Final Modifiers', () => {
     expect(diagnostics[0].message).toContain("cannot extend 'Base' because it is marked as {leaf}")
   })
 
-  it('should report error when inheriting from final entity', () => {
+  it.todo('final keyword removed — leaf and final are unified under ! (MOD_LEAF)', () => {
     const code = `
       final class Base {}
       class Derived >> Base {}
@@ -81,7 +74,7 @@ describe('Leaf and Final Modifiers', () => {
 
   it('should report error when entity is both abstract and leaf', () => {
     const code = `
-      abstract leaf class Broken {}
+      *!class Broken {}
     `
     const { diagnostics } = engine.parse(code)
 
@@ -93,7 +86,7 @@ describe('Leaf and Final Modifiers', () => {
 
   it('should parse root classes', () => {
     const code = `
-      root class MyRootClass {}
+      ^class MyRootClass {}
       ^class MyOtherRootClass {}
     `
     const { diagram } = engine.parse(code)
@@ -108,7 +101,7 @@ describe('Leaf and Final Modifiers', () => {
   it('should report error when root class tries to extend', () => {
     const code = `
       class Base {}
-      root class Broken >> Base {}
+      ^class Broken >> Base {}
     `
     const { diagnostics } = engine.parse(code)
 

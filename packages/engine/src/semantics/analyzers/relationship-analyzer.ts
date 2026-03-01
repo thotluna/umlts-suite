@@ -26,6 +26,8 @@ import type {
 import { MultiplicityValidator } from '@engine/semantics/utils/multiplicity-validator'
 import { TokenType } from '@engine/syntax/token.types'
 import type { Token } from '@engine/syntax/token.types'
+import type { StereotypeAnalyzer } from '@engine/semantics/analyzers/stereotype-analyzer'
+
 /**
  * Handles creation and validation of relationships.
  */
@@ -38,6 +40,7 @@ export class RelationshipAnalyzer {
     private readonly relationships: IRRelationship[],
     private readonly hierarchyValidator: HierarchyValidator,
     private readonly typeResolver: TypeResolutionPipeline,
+    private readonly stereotypeAnalyzer: StereotypeAnalyzer,
     private readonly context?: ISemanticContext,
   ) {
     this.typeInferrer = new TypeInferrer()
@@ -258,6 +261,9 @@ export class RelationshipAnalyzer {
       isNavigable: (node as RelationshipNode | RelationshipHeaderNode)?.isNavigable ?? true,
       constraints: constraintGroupId
         ? [{ kind: 'xor_member', targets: [constraintGroupId] }]
+        : undefined,
+      stereotypes: node
+        ? this.stereotypeAnalyzer.process((node as RelationshipNode).stereotypes, node)
         : undefined,
     }
 

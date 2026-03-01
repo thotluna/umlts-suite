@@ -17,6 +17,14 @@ export interface IRModifiers {
 }
 
 /**
+ * Representa la aplicación de un estereotipo con sus valores asociados (Tagged Values).
+ */
+export interface IRStereotypeApplication {
+  name: string
+  values?: Record<string, string | number | boolean>
+}
+
+/**
  * Categoría: Clasificadores (Cláusulas 10 y 11)
  */
 export enum IREntityType {
@@ -84,7 +92,7 @@ export interface IRProperty {
   column?: number
   docs?: string
   constraints?: IRConstraint[]
-  stereotypes?: string[]
+  stereotypes?: IRStereotypeApplication[]
 }
 
 /**
@@ -106,7 +114,7 @@ export interface IROperation {
   column?: number
   docs?: string
   constraints?: IRConstraint[]
-  stereotypes?: string[]
+  stereotypes?: IRStereotypeApplication[]
 }
 
 /**
@@ -144,7 +152,7 @@ export interface IREntity {
 
   line?: number
   column?: number
-  stereotypes?: string[]
+  stereotypes?: IRStereotypeApplication[]
 }
 
 /**
@@ -193,6 +201,7 @@ export interface IRRelationship {
   column?: number
   docs?: string
   constraints?: IRConstraint[]
+  stereotypes?: IRStereotypeApplication[]
 }
 
 /**

@@ -15,6 +15,11 @@ import type {
   ConstraintNode,
   NoteNode,
   AnchorNode,
+  ProfileNode,
+  StereotypeNode,
+  TaggedValueDefinitionNode,
+  StereotypeApplicationNode,
+  MetadataNode,
   StatementNode,
   MemberNode,
   Modifiers,
@@ -300,6 +305,88 @@ export class ASTFactory {
       metaclass: UMLMetaclass.COMMENT, // Anclaje es una relación de comentario
       from,
       to,
+      line,
+      column,
+    }
+  }
+
+  public static createProfile(
+    name: string,
+    body: StereotypeNode[],
+    line: number,
+    column: number,
+  ): ProfileNode {
+    return {
+      type: ASTNodeType.PROFILE,
+      metaclass: UMLMetaclass.PROFILE,
+      name,
+      body,
+      line,
+      column,
+    }
+  }
+
+  public static createStereotype(
+    name: string,
+    extensions: UMLMetaclass[],
+    properties: TaggedValueDefinitionNode[],
+    line: number,
+    column: number,
+  ): StereotypeNode {
+    return {
+      type: ASTNodeType.STEREOTYPE,
+      metaclass: UMLMetaclass.STEREOTYPE,
+      name,
+      extends: extensions,
+      properties,
+      line,
+      column,
+    }
+  }
+
+  public static createTaggedValueDefinition(
+    name: string,
+    typeAnnotation: TypeNode,
+    line: number,
+    column: number,
+    defaultValue?: string | number | boolean,
+  ): TaggedValueDefinitionNode {
+    return {
+      type: ASTNodeType.TAGGED_VALUE_DEFINITION,
+      metaclass: UMLMetaclass.PROPERTY,
+      name,
+      typeAnnotation,
+      line,
+      column,
+      defaultValue,
+    }
+  }
+
+  public static createStereotypeApplication(
+    name: string,
+    line: number,
+    column: number,
+    values?: Record<string, string | number | boolean>,
+  ): StereotypeApplicationNode {
+    return {
+      type: ASTNodeType.STEREOTYPE_APPLICATION,
+      metaclass: UMLMetaclass.STEREOTYPE,
+      name,
+      line,
+      column,
+      values,
+    }
+  }
+
+  public static createMetadata(
+    values: Record<string, string | number | boolean>,
+    line: number,
+    column: number,
+  ): MetadataNode {
+    return {
+      type: ASTNodeType.METADATA,
+      metaclass: UMLMetaclass.COMMENT,
+      values,
       line,
       column,
     }

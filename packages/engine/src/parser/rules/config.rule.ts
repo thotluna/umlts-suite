@@ -16,7 +16,15 @@ import { ASTFactory } from '@engine/parser/factory/ast.factory'
  */
 export class ConfigRule implements StatementRule {
   public canHandle(context: IParserHub): boolean {
-    return context.check(TokenType.KW_CONFIG) || context.check(TokenType.AT)
+    if (context.check(TokenType.KW_CONFIG)) return true
+    if (context.check(TokenType.AT)) {
+      // Solo manejamos @ si es un par clave-valor (ej: @key: value)
+      // para evitar colisiones con los estereotipos.
+      const next = context.lookahead(1)
+      const afterNext = context.lookahead(2)
+      return next.type === TokenType.IDENTIFIER && afterNext.type === TokenType.COLON
+    }
+    return false
   }
 
   public parse(context: IParserHub, _orchestrator: Orchestrator): StatementNode[] {
@@ -60,15 +68,6 @@ export class ConfigRule implements StatementRule {
       return context.consume(TokenType.STRING, '').value
     } else if (context.check(TokenType.NUMBER)) {
       return Number(context.consume(TokenType.NUMBER, '').value)
-    } else if (
-      context.match(
-        TokenType.KW_PUBLIC,
-        TokenType.KW_PRIVATE,
-        TokenType.KW_PROTECTED,
-        TokenType.KW_INTERNAL,
-      )
-    ) {
-      return context.prev().value
     } else {
       const val = context.consume(TokenType.IDENTIFIER, 'Expected configuration value.').value
       if (val === 'true') return true

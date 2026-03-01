@@ -11,6 +11,7 @@ import { ConstraintRule } from '@engine/parser/rules/constraint.rule'
 import { DocCommentRule } from '@engine/parser/rules/doc-comment.rule'
 import { NoteRule } from '@engine/parser/rules/note.rule'
 import { LinkRule } from '@engine/parser/rules/link.rule'
+import { ProfileRule } from '@engine/parser/rules/profile.rule'
 import { MemberRegistry } from '@engine/parser/rules/member-strategies/member.registry'
 import { TypeRegistry } from '@engine/parser/rules/type-strategies/type.registry'
 import type { StatementRule } from '@engine/parser/rule.types'
@@ -31,6 +32,7 @@ export class ParserFactory {
       new CommentRule(),
       new NoteRule(),
       new LinkRule(),
+      new ProfileRule(),
       new PackageRule(),
       new EnumRule(),
       new AssociationClassRule(),

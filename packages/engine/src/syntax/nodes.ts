@@ -18,6 +18,11 @@ export enum ASTNodeType {
   CONSTRAINT = 'Constraint',
   NOTE = 'Note',
   ANCHOR = 'Anchor',
+  PROFILE = 'Profile',
+  STEREOTYPE = 'Stereotype',
+  TAGGED_VALUE_DEFINITION = 'TaggedValueDefinition',
+  STEREOTYPE_APPLICATION = 'StereotypeApplication',
+  METADATA = 'Metadata',
 }
 
 export interface TypeNode extends ASTNode {
@@ -35,7 +40,8 @@ export interface ASTNode {
   line: number
   column: number
   docs?: string | undefined
-  stereotypes?: string[] // Soporte para aplicaciones de estereotipos
+  stereotypes?: StereotypeApplicationNode[] // Soporte para aplicaciones de estereotipos con valores
+  metadata?: MetadataNode // El compartimento [ ] de metadatos
 }
 
 export interface ProgramNode extends ASTNode {
@@ -54,6 +60,38 @@ export type StatementNode =
   | ConstraintNode
   | NoteNode
   | AnchorNode
+  | ProfileNode
+
+export interface MetadataNode extends ASTNode {
+  type: ASTNodeType.METADATA
+  values: Record<string, string | number | boolean>
+}
+
+export interface StereotypeApplicationNode extends ASTNode {
+  type: ASTNodeType.STEREOTYPE_APPLICATION
+  name: string
+  values?: Record<string, string | number | boolean>
+}
+
+export interface TaggedValueDefinitionNode extends ASTNode {
+  type: ASTNodeType.TAGGED_VALUE_DEFINITION
+  name: string
+  typeAnnotation: TypeNode
+  defaultValue?: string | number | boolean
+}
+
+export interface StereotypeNode extends ASTNode {
+  type: ASTNodeType.STEREOTYPE
+  name: string
+  extends: UMLMetaclass[]
+  properties: TaggedValueDefinitionNode[]
+}
+
+export interface ProfileNode extends ASTNode {
+  type: ASTNodeType.PROFILE
+  name: string
+  body: StereotypeNode[]
+}
 
 export interface NoteNode extends ASTNode {
   type: ASTNodeType.NOTE
@@ -102,7 +140,13 @@ export interface RelationshipHeaderNode extends ASTNode {
   targetModifiers?: Modifiers
 }
 
-export type MemberNode = MethodNode | AttributeNode | CommentNode | ConstraintNode | NoteNode
+export type MemberNode =
+  | MethodNode
+  | AttributeNode
+  | CommentNode
+  | ConstraintNode
+  | NoteNode
+  | MetadataNode
 
 export interface AttributeNode extends ASTNode {
   type: ASTNodeType.ATTRIBUTE
@@ -161,6 +205,7 @@ export interface RelationshipNode extends ASTNode {
   label: string | undefined
   constraints?: ConstraintNode[]
   body?: MemberNode[]
+  stereotypes?: StereotypeApplicationNode[]
 }
 
 export interface AssociationClassNode extends ASTNode {

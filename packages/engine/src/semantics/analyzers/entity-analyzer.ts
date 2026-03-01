@@ -21,6 +21,8 @@ import type {
 import { ASTNodeType } from '@engine/syntax/nodes'
 import type { ConstraintAnalyzer } from '@engine/semantics/analyzers/constraint-analyzer'
 
+import type { StereotypeAnalyzer } from '@engine/semantics/analyzers/stereotype-analyzer'
+
 /**
  * Handles the declaration of entities and their members.
  */
@@ -31,6 +33,7 @@ export class EntityAnalyzer {
     private readonly context: ISemanticContext,
     private readonly configStore: ConfigStore,
     private readonly typeResolver: TypeResolutionPipeline,
+    private readonly stereotypeAnalyzer: StereotypeAnalyzer,
   ) {}
 
   /**
@@ -58,6 +61,7 @@ export class EntityAnalyzer {
       line: node.line,
       column: node.column,
       namespace: entityNamespace,
+      stereotypes: this.stereotypeAnalyzer.process(node.stereotypes, node),
     }
   }
 
@@ -196,6 +200,7 @@ export class EntityAnalyzer {
             docs: attr.docs,
             constraints: attr.constraints?.map((c) => this.constraintAnalyzer.process(c)),
             defaultValue: attr.defaultValue !== undefined ? String(attr.defaultValue) : undefined,
+            stereotypes: this.stereotypeAnalyzer.process(attr.stereotypes, attr),
           })
         } else if (m.type === ASTNodeType.METHOD) {
           const meth = m as MethodNode
@@ -236,6 +241,7 @@ export class EntityAnalyzer {
             column: meth.column,
             docs: meth.docs,
             constraints: (meth.constraints || []).map((c) => this.constraintAnalyzer.process(c)),
+            stereotypes: this.stereotypeAnalyzer.process(meth.stereotypes, meth),
           })
         }
       })

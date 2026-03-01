@@ -38,9 +38,9 @@ describe('EntityRule', () => {
     expect(entity.typeParameters).toEqual(['T', 'ID'])
   })
 
-  it('should parse active and abstract modifiers in different positions', () => {
+  it('should parse active and abstract modifiers via symbols', () => {
     const input = `
-      active class A {}
+      & class A {}
       class * B {}
       * class C {}
       & class D {}

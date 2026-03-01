@@ -12,7 +12,6 @@ export class ModifierRule {
       isStatic: false,
       isActive: false,
       isLeaf: false,
-      isFinal: false,
       isRoot: false,
       isAsync: false,
       ...(modifiersOR ?? {}),
@@ -27,31 +26,27 @@ export class ModifierRule {
     let found = true
     while (found) {
       found = false
-      if (context.match(TokenType.MOD_ABSTRACT, TokenType.KW_ABSTRACT)) {
+      if (context.match(TokenType.MOD_ABSTRACT)) {
         modifiers.isAbstract = true
         found = true
       }
-      if (context.match(TokenType.MOD_STATIC, TokenType.KW_STATIC)) {
+      if (context.match(TokenType.MOD_STATIC)) {
         modifiers.isStatic = true
         found = true
       }
-      if (context.match(TokenType.MOD_ACTIVE, TokenType.KW_ACTIVE)) {
+      if (context.match(TokenType.MOD_ACTIVE)) {
         modifiers.isActive = true
         found = true
       }
-      if (context.match(TokenType.MOD_LEAF, TokenType.KW_LEAF)) {
+      if (context.match(TokenType.MOD_LEAF)) {
         modifiers.isLeaf = true
         found = true
       }
-      if (context.match(TokenType.KW_FINAL)) {
-        modifiers.isFinal = true
-        found = true
-      }
-      if (context.match(TokenType.MOD_ROOT, TokenType.KW_ROOT)) {
+      if (context.match(TokenType.MOD_ROOT)) {
         modifiers.isRoot = true
         found = true
       }
-      if (context.match(TokenType.MOD_ASYNC, TokenType.KW_ASYNC)) {
+      if (context.match(TokenType.MOD_ASYNC)) {
         modifiers.isAsync = true
         found = true
       }
@@ -65,18 +60,11 @@ export class ModifierRule {
   public static isModifier(type: TokenType): boolean {
     return [
       TokenType.MOD_ABSTRACT,
-      TokenType.KW_ABSTRACT,
       TokenType.MOD_STATIC,
-      TokenType.KW_STATIC,
       TokenType.MOD_ACTIVE,
-      TokenType.KW_ACTIVE,
       TokenType.MOD_LEAF,
-      TokenType.KW_LEAF,
-      TokenType.KW_FINAL,
       TokenType.MOD_ROOT,
-      TokenType.KW_ROOT,
       TokenType.MOD_ASYNC,
-      TokenType.KW_ASYNC,
     ].includes(type)
   }
 

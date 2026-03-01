@@ -43,8 +43,8 @@ describe('Profiles and Stereotypes Lexer Support', () => {
     })
     master.match(reader) // consume " "
 
-    // "extends"
-    expect(master.match(reader)).toMatchObject({ type: TokenType.KW_EXTENDS, value: 'extends' })
+    // "extends" is now an IDENTIFIER — keyword operator removed
+    expect(master.match(reader)).toMatchObject({ type: TokenType.IDENTIFIER, value: 'extends' })
     master.match(reader) // consume " "
 
     // "class"

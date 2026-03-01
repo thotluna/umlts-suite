@@ -10,6 +10,7 @@ export class LexerReader {
   private column = 1
 
   constructor(input: string) {
+    if (!input) console.error('LexerReader: input is null or undefined!')
     this.input = input
   }
 

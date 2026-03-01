@@ -1,12 +1,18 @@
 import { TokenType } from '@engine/syntax/token.types'
 import { ASTNodeType } from '@engine/syntax/nodes'
 import type { Token } from '@engine/syntax/token.types'
-import type { MemberNode, StatementNode, Modifiers } from '@engine/syntax/nodes'
+import type {
+  MemberNode,
+  StatementNode,
+  Modifiers,
+  StereotypeApplicationNode,
+} from '@engine/syntax/nodes'
 import type { IParserHub } from '@engine/parser/core/parser.hub'
 import type { StatementRule, Orchestrator } from '@engine/parser/rule.types'
 import { RelationshipHeaderRule } from '@engine/parser/rules/relationship-header.rule'
 import { MemberRule } from '@engine/parser/rules/member.rule'
 import { ASTFactory } from '@engine/parser/factory/ast.factory'
+import { StereotypeApplicationRule } from '@engine/parser/rules/stereotype-application.rule'
 
 /**
  * BaseEntityRule: Clase base abstracta para entidades como Clases e Interfaces.
@@ -28,6 +34,7 @@ export abstract class BaseEntityRule implements StatementRule {
     type: ASTNodeType.CLASS | ASTNodeType.INTERFACE,
     keywordToken: Token,
     modifiers: Modifiers,
+    stereotypes?: StereotypeApplicationNode[],
   ): StatementNode[] {
     const nameToken = context.softConsume(TokenType.IDENTIFIER, 'Entity name expected')
 
@@ -53,6 +60,16 @@ export abstract class BaseEntityRule implements StatementRule {
       body = []
       while (!context.check(TokenType.RBRACE) && !context.isAtEnd()) {
         try {
+          // Soporte para segmento de metadatos: [ table="users" ]
+          if (context.match(TokenType.LBRACKET)) {
+            const line = context.prev().line
+            const col = context.prev().column
+            const values = StereotypeApplicationRule.parseTaggedValues(context)
+            context.softConsume(TokenType.RBRACKET, "Expected ']'")
+            body.push(ASTFactory.createMetadata(values, line, col))
+            continue
+          }
+
           const member = this.memberRule.parse(context, orchestrator)
           if (member != null) {
             body.push(member)
@@ -69,18 +86,19 @@ export abstract class BaseEntityRule implements StatementRule {
       context.softConsume(TokenType.RBRACE, "Expected '}'")
     }
 
-    return [
-      ASTFactory.createEntity(
-        type,
-        nameToken.value,
-        modifiers,
-        relationships,
-        body,
-        keywordToken.line,
-        keywordToken.column,
-        docs,
-        typeParameters,
-      ),
-    ]
+    const entity = ASTFactory.createEntity(
+      type,
+      nameToken.value,
+      modifiers,
+      relationships,
+      body,
+      keywordToken.line,
+      keywordToken.column,
+      docs,
+      typeParameters,
+    )
+    entity.stereotypes = stereotypes
+
+    return [entity]
   }
 }

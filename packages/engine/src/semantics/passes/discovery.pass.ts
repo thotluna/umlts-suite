@@ -12,6 +12,10 @@ import type {
   AttributeNode,
   MethodNode,
   ParameterNode,
+  ProfileNode,
+  StereotypeNode,
+  MetadataNode,
+  TaggedValueDefinitionNode,
 } from '@engine/syntax/nodes'
 import { type ASTVisitor, walkAST } from '@engine/syntax/visitor'
 import type { EntityAnalyzer } from '@engine/semantics/analyzers/entity-analyzer'
@@ -125,4 +129,32 @@ export class DiscoveryPass implements ISemanticPass, ASTVisitor {
   visitAttribute(_node: AttributeNode): void {}
   visitMethod(_node: MethodNode): void {}
   visitParameter(_node: ParameterNode): void {}
+  visitProfile(node: ProfileNode): void {
+    const stereotypes: import('@engine/semantics/profiles/profile.registry').StereotypeDefinition[] =
+      []
+
+    for (const st of node.body) {
+      stereotypes.push({
+        name: st.name,
+        extends: st.extends,
+        properties: st.properties.reduce(
+          (acc, prop) => {
+            const type = prop.typeAnnotation.name as 'String' | 'Integer' | 'Boolean' | 'Float'
+            acc[prop.name] = type
+            return acc
+          },
+          {} as Record<string, 'String' | 'Integer' | 'Boolean' | 'Float'>,
+        ),
+      })
+    }
+
+    this.state.profileRegistry.registerProfile({
+      name: node.name,
+      stereotypes,
+    })
+  }
+
+  visitStereotype(_node: StereotypeNode): void {} // Handled by visitProfile
+  visitMetadata(_node: MetadataNode): void {}
+  visitTaggedValueDefinition(_node: TaggedValueDefinitionNode): void {}
 }
