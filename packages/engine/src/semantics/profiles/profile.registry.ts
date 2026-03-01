@@ -55,6 +55,10 @@ export class ProfileRegistry {
         { name: 'derive', extends: [UMLMetaclass.ABSTRACTION] },
         { name: 'refine', extends: [UMLMetaclass.ABSTRACTION] },
         { name: 'trace', extends: [UMLMetaclass.ABSTRACTION] },
+        { name: 'signal', extends: [UMLMetaclass.CLASS] },
+        { name: 'send', extends: [UMLMetaclass.USAGE, UMLMetaclass.DEPENDENCY] },
+        { name: 'receive', extends: [UMLMetaclass.OPERATION] },
+        { name: 'async', extends: [UMLMetaclass.OPERATION] },
       ],
     })
   }
