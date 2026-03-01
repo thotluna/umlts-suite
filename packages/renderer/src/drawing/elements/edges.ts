@@ -16,48 +16,24 @@ const LABEL_OFFSET = 12
  */
 const END_CLEARANCE: Record<string, number> = {
   Generalization: 13,
-  GENERALIZATION: 13,
-  Inheritance: 13,
-  INHERITANCE: 13,
   InterfaceRealization: 13,
-  INTERFACE_REALIZATION: 13,
-  Implementation: 13,
-  IMPLEMENTATION: 13,
   Association: 11,
-  ASSOCIATION: 11,
   Dependency: 11,
-  DEPENDENCY: 11,
   Usage: 11,
-  USAGE: 11,
   Composition: 2,
-  COMPOSITION: 2,
   Aggregation: 2,
-  AGGREGATION: 2,
   Bidirectional: 2,
-  BIDIRECTIONAL: 2,
 }
 
 const START_CLEARANCE: Record<string, number> = {
   Composition: 20,
-  COMPOSITION: 20,
   Aggregation: 20,
-  AGGREGATION: 20,
   Generalization: 2,
-  GENERALIZATION: 2,
-  Inheritance: 2,
-  INHERITANCE: 2,
   InterfaceRealization: 2,
-  INTERFACE_REALIZATION: 2,
-  Implementation: 2,
-  IMPLEMENTATION: 2,
   Association: 2,
-  ASSOCIATION: 2,
   Dependency: 2,
-  DEPENDENCY: 2,
   Usage: 2,
-  USAGE: 2,
   Bidirectional: 2,
-  BIDIRECTIONAL: 2,
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -84,23 +60,11 @@ export function renderEdge(
 
   const d = trimmed.map((wp, i) => `${i === 0 ? 'M' : 'L'} ${wp.x} ${wp.y}`).join(' ')
 
-  const isDashed =
-    type === 'Implementation' ||
-    type === 'IMPLEMENTATION' ||
-    type === 'InterfaceRealization' ||
-    type === 'INTERFACE_REALIZATION' ||
-    type === 'Dependency' ||
-    type === 'DEPENDENCY' ||
-    type === 'Usage' ||
-    type === 'USAGE'
+  const isDashed = type === 'InterfaceRealization' || type === 'Dependency' || type === 'Usage'
 
-  const isDiamond =
-    type === 'Composition' ||
-    type === 'COMPOSITION' ||
-    type === 'Aggregation' ||
-    type === 'AGGREGATION'
+  const isDiamond = type === 'Composition' || type === 'Aggregation'
 
-  const isBidirectional = type === 'Bidirectional' || type === 'BIDIRECTIONAL'
+  const isBidirectional = type === 'Bidirectional'
 
   const pathEl = svg.path({
     d,
@@ -280,9 +244,7 @@ export function renderMarkers(theme: Theme): string {
     'defs',
     {},
     `
-    <marker id="marker-inheritance" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="12" markerHeight="12" orient="auto" markerUnits="userSpaceOnUse"><path d="M 1 1 L 13 7 L 1 13 Z" fill="${bg}" stroke="${stroke}" stroke-linejoin="round" stroke-width="1.5"/></marker>
     <marker id="marker-generalization" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="12" markerHeight="12" orient="auto" markerUnits="userSpaceOnUse"><path d="M 1 1 L 13 7 L 1 13 Z" fill="${bg}" stroke="${stroke}" stroke-linejoin="round" stroke-width="1.5"/></marker>
-    <marker id="marker-implementation" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="12" markerHeight="12" orient="auto" markerUnits="userSpaceOnUse"><path d="M 1 1 L 13 7 L 1 13 Z" fill="${bg}" stroke="${stroke}" stroke-linejoin="round" stroke-width="1.5"/></marker>
     <marker id="marker-interfacerealization" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="12" markerHeight="12" orient="auto" markerUnits="userSpaceOnUse"><path d="M 1 1 L 13 7 L 1 13 Z" fill="${bg}" stroke="${stroke}" stroke-linejoin="round" stroke-width="1.5"/></marker>
     <marker id="marker-composition" viewBox="0 0 20 14" refX="1" refY="7" markerWidth="18" markerHeight="12" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M 1 7 L 10 1 L 19 7 L 10 13 Z" fill="${stroke}" stroke="${stroke}" stroke-linejoin="round" stroke-width="1"/></marker>
     <marker id="marker-aggregation" viewBox="0 0 20 14" refX="1" refY="7" markerWidth="18" markerHeight="12" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M 1 7 L 10 1 L 19 7 L 10 13 Z" fill="${bg}" stroke="${stroke}" stroke-linejoin="round" stroke-width="1.5"/></marker>

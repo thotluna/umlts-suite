@@ -16,9 +16,6 @@ export class HierarchyMapper implements RelationshipMapper {
     const type = rel.type
     return (
       type === IRRelationshipType.GENERALIZATION ||
-      type === IRRelationshipType.INHERITANCE ||
-      type === IRRelationshipType.REALIZATION ||
-      type === IRRelationshipType.IMPLEMENTATION ||
       type === IRRelationshipType.INTERFACE_REALIZATION
     )
   }
@@ -26,10 +23,7 @@ export class HierarchyMapper implements RelationshipMapper {
   public map(rel: IRRelationship, context: MappingContext, id: string): UMLEdge {
     let edge: UMLEdge
 
-    if (
-      rel.type === IRRelationshipType.GENERALIZATION ||
-      rel.type === IRRelationshipType.INHERITANCE
-    ) {
+    if (rel.type === IRRelationshipType.GENERALIZATION) {
       edge = new UMLGeneralization(id, rel.from, rel.to)
     } else {
       edge = new UMLRealization(id, rel.from, rel.to)

@@ -74,10 +74,9 @@ package analyzers {
   RelationshipAnalyzer >- utils.MultiplicityValidator
   RelationshipAnalyzer >- ir.COMPOSITION
   RelationshipAnalyzer >- parser.SEMANTIC_COMPOSITE_VIOLATION
-  RelationshipAnalyzer >- ir.INHERITANCE
-  RelationshipAnalyzer >- ir.IMPLEMENTATION
+  RelationshipAnalyzer >- ir.GENERALIZATION
+  RelationshipAnalyzer >- ir.INTERFACE_REALIZATION
   RelationshipAnalyzer >- ir.AGGREGATION
-  RelationshipAnalyzer >- ir.REALIZATION
   RelationshipAnalyzer >- ir.DEPENDENCY
   RelationshipAnalyzer >- ir.ASSOCIATION
   class TypeInferrer {

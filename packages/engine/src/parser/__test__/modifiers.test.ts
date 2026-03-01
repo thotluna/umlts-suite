@@ -58,9 +58,9 @@ describe('Leaf and Final Modifiers', () => {
     `
     const { diagnostics } = engine.parse(code)
 
-    expect(diagnostics.some((d) => d.code === DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH)).toBe(
-      true,
-    )
+    expect(
+      diagnostics.some((d) => d.code === DiagnosticCode.SEMANTIC_GENERALIZATION_MISMATCH),
+    ).toBe(true)
     expect(diagnostics[0].message).toContain("cannot extend 'Base' because it is marked as {leaf}")
   })
 
@@ -71,9 +71,9 @@ describe('Leaf and Final Modifiers', () => {
     `
     const { diagnostics } = engine.parse(code)
 
-    expect(diagnostics.some((d) => d.code === DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH)).toBe(
-      true,
-    )
+    expect(
+      diagnostics.some((d) => d.code === DiagnosticCode.SEMANTIC_GENERALIZATION_MISMATCH),
+    ).toBe(true)
     expect(diagnostics[0].message).toContain(
       "cannot extend 'Base' because it is marked as <<final>>",
     )
@@ -85,9 +85,9 @@ describe('Leaf and Final Modifiers', () => {
     `
     const { diagnostics } = engine.parse(code)
 
-    expect(diagnostics.some((d) => d.code === DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH)).toBe(
-      true,
-    )
+    expect(
+      diagnostics.some((d) => d.code === DiagnosticCode.SEMANTIC_GENERALIZATION_MISMATCH),
+    ).toBe(true)
     expect(diagnostics[0].message).toContain("cannot be both 'abstract' and 'leaf'")
   })
 
@@ -112,9 +112,9 @@ describe('Leaf and Final Modifiers', () => {
     `
     const { diagnostics } = engine.parse(code)
 
-    expect(diagnostics.some((d) => d.code === DiagnosticCode.SEMANTIC_INHERITANCE_MISMATCH)).toBe(
-      true,
-    )
+    expect(
+      diagnostics.some((d) => d.code === DiagnosticCode.SEMANTIC_GENERALIZATION_MISMATCH),
+    ).toBe(true)
     expect(diagnostics[0].message).toContain("is marked as {root} and cannot extend 'Base'")
   })
 

@@ -104,7 +104,7 @@
 - [x] Formalización del Orquestador de Pipeline (`UMLRenderer`)
 - [x] Abstracción de Jerarquía (`UMLHierarchyItem`) para soporte agnóstico de contenedores
 - [x] Corrección de Bug de Layout Hierárquico (Offsets de aristas y proporciones)
-- [ ] **TASK**: Unificar y normalizar términos de relaciones (Inheritance vs Generalization, Case-sensitivity) y eliminar redundancia en diccionarios de `edges.ts`.
+- [x] **TASK**: Unificar y normalizar términos de relaciones (Inheritance vs Generalization, Case-sensitivity) y eliminar redundancia en diccionarios de `edges.ts`.
 
 ## Publicación y Despliegue
 
@@ -488,9 +488,7 @@
 - [x] **FEAT**: Generación de IDs únicos para notas para evitar apilamiento en (0,0)
 - [x] **IMPROVEMENT**: Resolución flexible de targets (FQN vs Simple Name) en anclajes
 - [x] **IMPROVEMENT**: Inferencia inteligente de Namespace para posicionamiento de notas
-- [ ] **BUG**: Duplicidad visual de notas en el renderizado (Deduplicación en IRAdapter requerida)
-- [ ] **BUG**: Líneas de anclaje duplicadas (N1 apunta 2 veces a cada clase)
-- [ ] **BUG**: Arco XOR mal posicionado o invisible (Detección de nodo común con FQN)
+
 - [x] **FIX**: Renderizado de paquetes estilo "folder" (UML estándar)
 - [x] **FEAT**: Visualización de estereotipos en miembros y entidades (Async, Readonly)
 - [x] **IMPROVEMENT**: Refinamiento de Layout y Dimensiones (Breathing Room)
@@ -503,12 +501,16 @@
 
 ## Backlog para Cumplimiento Estricto UML 2.x (Arquitectura y Parsers)
 
-- [ ] **TASK**: Unificar y normalizar términos de relaciones (Inheritance vs Generalization, Case-sensitivity) y eliminar redundancia en diccionarios de `edges.ts`.
-- [ ] **Fase 5**: Implementación de metadatos para interactividad
+- [x] **TASK**: Unificar y normalizar términos de relaciones (Inheritance vs Generalization, Case-sensitivity) y eliminar redundancia en diccionarios de `edges.ts`.
 - [ ] **RESEARCH**: Análisis del estándar UML 2.5.1 sobre Profiles y Stereotypes.
+- [ ] **Fase 5**: Implementación de metadatos para interactividad
 - [ ] **DESIGN**: Definir cómo los estereotipos extienden la semántica de la IR (Intermediate Representation).
 - [ ] **FEAT**: Implementar distinción visual y semántica entre `«stereotypes»` (extensión de tipo) y `{constraints}` (reglas lógicas). (Anteriormente RQ 9.3)
 - [ ] **FEAT**: Implementar soporte para Notas como Contenedores de Restricciones mediante el estereotipo `«constraint»`. (Anteriormente RQ 11.2)
+
+- [ ] **BUG**: Duplicidad visual de notas en el renderizado (Deduplicación en IRAdapter requerida)
+- [ ] **BUG**: Líneas de anclaje duplicadas (N1 apunta 2 veces a cada clase)
+- [ ] **BUG**: Arco XOR mal posicionado o invisible (Detección de nodo común con FQN)
 
 - [ ] **FEAT**: Soportar Compartimento de Recepciones (`«signal»`) para clases que manejan eventos asíncronos en `IREntity`.
 - [ ] **FEAT**: Soportar Compartimentos Dinámicos / Personalizados (ej. Excepciones, Reglas de negocio, Responsabilidades en un bloque extra en la clase).

@@ -344,12 +344,12 @@ export class RelationshipAnalyzer {
 
     // Inheritance (>>)
     if (['>>', 'extends', 'extend'].includes(k)) {
-      return IRRelationshipType.INHERITANCE
+      return IRRelationshipType.GENERALIZATION
     }
 
     // Implementation (>I)
     if (['>i', 'implements', 'implement'].includes(k)) {
-      return IRRelationshipType.IMPLEMENTATION
+      return IRRelationshipType.INTERFACE_REALIZATION
     }
 
     // Composition (>*)
@@ -376,7 +376,7 @@ export class RelationshipAnalyzer {
 
     // Realization (Internal concept, typically mapped from Implements but kept for safety)
     if (['realize', 'realizes'].includes(k)) {
-      return IRRelationshipType.REALIZATION
+      return IRRelationshipType.INTERFACE_REALIZATION
     }
 
     // Bidirectional/Undirected Association (>)
