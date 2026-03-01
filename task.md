@@ -176,7 +176,7 @@
 - [x] **FEATURE**: Implementar sistema de auto-escalado (responsive) y zoom manual
 - [x] **IMPROVEMENT**: Mejorar legibilidad and encuadre dinámico (Auto-Fit corregido)
 - [x] **FIX**: Viewport del SVG ignora los límites de los paquetes (Clipping)
-- [/] **FIX**: Ruteo de aristas de herencia forzado a N->S provoca bucles innecesarios
+- [x] **FIX**: Ruteo de aristas de herencia forzado a N->S provoca bucles innecesarios
 - [x] **FIX**: Robustecer autocompletado de `config` en LSP (Heurística de detección de contexto)
 
 ### Motor (@umlts/engine) - Preparación Alpha
@@ -502,11 +502,9 @@
 ## Backlog para Cumplimiento Estricto UML 2.x (Arquitectura y Parsers)
 
 - [x] **TASK**: Unificar y normalizar términos de relaciones (Inheritance vs Generalization, Case-sensitivity) y eliminar redundancia en diccionarios de `edges.ts`.
-- [ ] **RESEARCH**: Análisis del estándar UML 2.5.1 sobre Profiles y Stereotypes.
-- [ ] **Fase 5**: Implementación de metadatos para interactividad
-- [ ] **DESIGN**: Definir cómo los estereotipos extienden la semántica de la IR (Intermediate Representation).
-- [ ] **FEAT**: Implementar distinción visual y semántica entre `«stereotypes»` (extensión de tipo) y `{constraints}` (reglas lógicas). (Anteriormente RQ 9.3)
-- [ ] **FEAT**: Implementar soporte para Notas como Contenedores de Restricciones mediante el estereotipo `«constraint»`. (Anteriormente RQ 11.2)
+- [x] **DESIGN**: Definir cómo los estereotipos extienden la semántica de la IR (Intermediate Representation).
+- [x] **FEAT**: Implementar distinción visual y semántica entre `«stereotypes»` (extensión de tipo) y `{constraints}` (reglas lógicas). (Anteriormente RQ 9.3)
+- [x] **FEAT**: Implementar soporte para Notas como Contenedores de Restricciones mediante el estereotipo `«constraint»`. (Anteriormente RQ 11.2)
 
 - [ ] **BUG**: Duplicidad visual de notas en el renderizado (Deduplicación en IRAdapter requerida)
 - [ ] **BUG**: Líneas de anclaje duplicadas (N1 apunta 2 veces a cada clase)
@@ -514,12 +512,12 @@
 
 - [ ] **FEAT**: Soportar Compartimento de Recepciones (`«signal»`) para clases que manejan eventos asíncronos en `IREntity`.
 - [ ] **FEAT**: Soportar Compartimentos Dinámicos / Personalizados (ej. Excepciones, Reglas de negocio, Responsabilidades en un bloque extra en la clase).
-- [ ] **FEAT**: Soporte a _Tagged Values_ o Propiedades Generales del encabezado de la Clase (ej. `{autor=thot, status=draft}`) en `models.ts` y visualización debajo de los estereotipos.
+- [x] **FEAT**: Soporte a _Tagged Values_ o Propiedades Generales del encabezado de la Clase (ej. `{autor=thot, status=draft}`) en `models.ts` y visualización debajo de los estereotipos.
 - [ ] **FEAT**: Soportar Diagramas de Estructura Compuesta (Composite Structure) dentro de Clases Complejas (Ports, Parts, Connectors dentro de los rectángulos).
 - [ ] **FEAT**: Variables Derivadas. Soportar el renderizado y parsing del prefijo `/` en propiedades cuyo valor es inferido de otros campos.
 - [ ] **FEAT**: Relaciones N-arias (Rombos con múltiple aristas hacia 3+ clases simultáneamente).
 - [ ] **FEAT**: Calificadores (Qualifiers) de Asociación. Elementos de matriz integrados al inicio de una arista de relación.
-- [ ] **FEAT**: Representar Clases Activas (Active Classes / Threads) estandarizadas mediante un flag activo dibujando bordes verticales con dobles líneas paralelas.
+- [x] **FEAT**: Representar Clases Activas (Active Classes / Threads) estandarizadas mediante un flag activo dibujando bordes verticales con dobles líneas paralelas.
 - [ ] **FEAT**: Visualización de Instancias / Objetos en tiempo de ejecución (`anObject : Class`) con el nombre subrayado obligatoriamente por diseño gráfico.
 
 ## UML Profiles & Stereotypes (UML 2.5.1)
@@ -539,13 +537,6 @@
   - [x] Actualizar `MappingContext` para propagar metadatos estructurados
   - [x] Renderizado dinámico en cabecera de clases con soporte de tagged values `{key=value}`
 
-## Backlog de Interoperabilidad (Migración y Exportación)
-
-- [ ] **FEAT**: Diseñar el `XMISerializer` para transformar nuestra estructura de `IRDiagram` en XML compatible con el estándar XMI de MOF/OMG.
-- [ ] **FEAT**: Implementación de un generador de IDs determinísticos robustos para el atributo `xmi:id` de todos los componentes mapeados.
-- [ ] **FEAT**: Mapeo completo de `IREntity` a elementos `<packagedElement xmi:type="uml:Class">`, y traducción de `IRProperty` y `IROperation` a los bloques contenedores orgánicos de `<ownedAttribute>` y `<ownedOperation>`.
-- [ ] **TEST**: Pruebas de integración E2E inyectando el XML generado por UMLTS a herramientas compatibles de mercado para certificar que cargue la topología sin alertar falsos negativos de esquema genérico.
-
 ## VS Code Extension Improvements
 
 - [x] **FEAT**: Implementar icono de archivo para `.umlts` (Visibilidad en Explorer)
@@ -558,3 +549,10 @@
   - [x] Implementar debounce (300ms) para rendimiento
   - [x] Mejorar cálculo de `Range` para subrayado preciso
 - [x] **FEAT**: Implementar `DocumentSymbolProvider` (Navegación via Outline)
+
+## Backlog de Interoperabilidad (Migración y Exportación)
+
+- [ ] **FEAT**: Diseñar el `XMISerializer` para transformar nuestra estructura de `IRDiagram` en XML compatible con el estándar XMI de MOF/OMG.
+- [ ] **FEAT**: Implementación de un generador de IDs determinísticos robustos para el atributo `xmi:id` de todos los componentes mapeados.
+- [ ] **FEAT**: Mapeo completo de `IREntity` a elementos `<packagedElement xmi:type="uml:Class">`, y traducción de `IRProperty` y `IROperation` a los bloques contenedores orgánicos de `<ownedAttribute>` y `<ownedOperation>`.
+- [ ] **TEST**: Pruebas de integración E2E inyectando el XML generado por UMLTS a herramientas compatibles de mercado para certificar que cargue la topología sin alertar falsos negativos de esquema genérico.
