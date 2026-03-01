@@ -6,6 +6,7 @@ import { MethodRule } from '@engine/parser/rules/method.rule'
 import { ModifierRule } from '@engine/parser/rules/modifier.rule'
 import type { IMemberProvider } from '@engine/parser/core/member-provider.interface'
 import { Orchestrator } from '@engine/parser/rule.types'
+import { StereotypeApplicationRule } from '@engine/parser/rules/stereotype-application.rule'
 
 export class FeatureMemberProvider implements IMemberProvider {
   private readonly attributeRule = new AttributeRule()
@@ -13,32 +14,35 @@ export class FeatureMemberProvider implements IMemberProvider {
 
   canHandle(context: IParserHub): boolean {
     const type = context.peek().type
-    return this.isVisibility(type) || ModifierRule.isModifier(type) || type === TokenType.IDENTIFIER
+    return (
+      this.isVisibility(type) ||
+      ModifierRule.isModifier(type) ||
+      type === TokenType.IDENTIFIER ||
+      type === TokenType.AT
+    )
   }
 
   parse(context: IParserHub, orchestrator: Orchestrator): MemberNode | null {
+    const stereotypes = StereotypeApplicationRule.parse(context)
     const visibility = this.parseVisibility(context)
     const modifiers = ModifierRule.parse(context)
     const nameToken = context.consume(TokenType.IDENTIFIER, 'Expected member name')
 
     if (context.check(TokenType.LPAREN)) {
-      return this.methodRule.parse(context, nameToken, visibility, modifiers, orchestrator)
+      const method = this.methodRule.parse(context, nameToken, visibility, modifiers, orchestrator)
+      method.stereotypes = stereotypes
+      return method
     } else {
-      return this.attributeRule.parse(context, nameToken, visibility, modifiers, orchestrator)
+      const attr = this.attributeRule.parse(context, nameToken, visibility, modifiers, orchestrator)
+      attr.stereotypes = stereotypes
+      return attr
     }
   }
 
   private isVisibility(type: TokenType): boolean {
-    return [
-      TokenType.VIS_PUB,
-      TokenType.VIS_PRIV,
-      TokenType.VIS_PROT,
-      TokenType.VIS_PACK,
-      TokenType.KW_PUBLIC,
-      TokenType.KW_PRIVATE,
-      TokenType.KW_PROTECTED,
-      TokenType.KW_INTERNAL,
-    ].includes(type)
+    return [TokenType.VIS_PUB, TokenType.VIS_PRIV, TokenType.VIS_PROT, TokenType.VIS_PACK].includes(
+      type,
+    )
   }
 
   private parseVisibility(context: IParserHub): string {

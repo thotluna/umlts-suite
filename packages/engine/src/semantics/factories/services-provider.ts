@@ -2,6 +2,7 @@ import { EntityAnalyzer } from '@engine/semantics/analyzers/entity-analyzer'
 import { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
 import { ConstraintAnalyzer } from '@engine/semantics/analyzers/constraint-analyzer'
 import { HierarchyValidator } from '@engine/semantics/validators/hierarchy-validator'
+import { StereotypeAnalyzer } from '@engine/semantics/analyzers/stereotype-analyzer'
 import { ValidationEngine } from '@engine/semantics/core/validation-engine'
 import { AssociationClassResolver } from '@engine/semantics/resolvers/association-class.resolver'
 import { MemberInference } from '@engine/semantics/inference/member-inference'
@@ -20,8 +21,16 @@ export class SemanticServicesProvider {
   private _validationEngine?: ValidationEngine
   private _assocClassResolver?: AssociationClassResolver
   private _memberInference?: MemberInference
+  private _stereotypeAnalyzer?: import('@engine/semantics/analyzers/stereotype-analyzer').StereotypeAnalyzer
 
   constructor(private readonly state: ISemanticState) {}
+
+  public getStereotypeAnalyzer(): StereotypeAnalyzer {
+    return (this._stereotypeAnalyzer ??= new StereotypeAnalyzer(
+      this.state.profileRegistry,
+      this.state.context,
+    ))
+  }
 
   public getConstraintAnalyzer(): ConstraintAnalyzer {
     return (this._constraintAnalyzer ??= new ConstraintAnalyzer(
@@ -52,6 +61,7 @@ export class SemanticServicesProvider {
       this.state.context,
       this.state.configStore,
       this.state.typeResolver,
+      this.getStereotypeAnalyzer(),
     ))
   }
 
@@ -61,6 +71,7 @@ export class SemanticServicesProvider {
       this.state.relationships,
       this.getHierarchyValidator(),
       this.state.typeResolver,
+      this.getStereotypeAnalyzer(),
       this.state.context,
     ))
   }

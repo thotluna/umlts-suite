@@ -1,0 +1,66 @@
+// ================================================================
+// Example 2: University Management System
+// Input: "A university has departments. Each department has
+//         professors and courses. Students enroll in courses.
+//         Each enrollment records a grade. A professor can be
+//         a department head. Courses have prerequisites."
+// ================================================================
+
+config {
+  direction: DOWN
+}
+
+package Academic {
+  class University {
+    name: String
+    departments: >* Department[1..*]
+  }
+
+  class Department {
+    name: String
+    code: String
+    head: >< Professor[0..1]
+    courses: >* Course[1..*]
+    professors: >+ Professor[1..*]
+  }
+
+  class Course {
+    code: String
+    title: String
+    credits: Integer
+    maxStudents: Integer
+    prerequisites: >< Course[0..*]
+  }
+
+  class *Person {
+    id: String
+    firstName: String
+    lastName: String
+    email: String
+  }
+
+  class Professor >> Person {
+    title: String
+    hireDate: Date
+    teaches: >< Course[0..*]
+  }
+
+  class Student >> Person {
+    studentId: String
+    enrollmentYear: Integer
+  }
+}
+
+class Enrollment <> (Academic.Student[*], Academic.Course[*]) {
+  enrolledAt: Date
+  grade: Float[0..1]
+  status: EnrollmentStatus
+}
+
+enum EnrollmentStatus(ACTIVE | COMPLETED | WITHDRAWN | FAILED)
+
+note "A student cannot enroll in more than 6 courses per semester" as N1
+N1 .. Academic.Student
+
+note "A professor who is department head cannot teach more than 2 courses" as N2
+N2 .. Academic.Professor, Academic.Department

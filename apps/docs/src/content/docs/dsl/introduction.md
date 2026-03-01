@@ -1,33 +1,106 @@
 ---
 title: ¿Qué es UMLTS?
-description: El razonamiento detrás del lenguaje UMLTS y sus objetivos.
+description: Introducción al lenguaje de modelado textual UMLTS y su motor de procesamiento.
 ---
 
-**UMLTS** (Unified Modeling Language - TypeScript Syntax) es un lenguaje de modelado textual diseñado para desarrolladores que buscan documentar arquitecturas de software sin abandonar su entorno de desarrollo.
+UMLTS es un lenguaje de modelado textual (DSL) diseñado para describir diagramas UML mediante código. Su sintaxis es concisa, legible e inspirada en la estructura de TypeScript, permitiendo declarar clases, interfaces, relaciones y cualquier otro elemento del estándar UML directamente desde el editor, sin depender de herramientas visuales de arrastrar y soltar.
 
-## ¿Por qué existe?
+El objetivo central de UMLTS es que **escribir un diagrama sea tan natural como escribir código**: declaraciones en línea, inferencia de estructura por parte del motor, y una curva de aprendizaje mínima para cualquier desarrollador familiarizado con lenguajes tipados.
 
-Tradicionalmente, el modelado UML se ha hecho con herramientas visuales de "arrastrar y soltar". Esto presenta varios problemas:
+---
 
-1. **Desacoplamiento**: El diagrama vive en un archivo binario separado del código.
-2. **Dificultad de Versionado**: Es casi imposible ver diferencias (`diffs`) significativas en Git.
-3. **Fricción**: Mover una flecha puede tomar más tiempo que definir la relación.
+## El motor
 
-UMLTS resuelve esto permitiéndote escribir tus diagramas como si fueran código.
+El motor de UMLTS es una librería escrita en **Node.js / TypeScript** que toma como entrada código fuente UMLTS y produce una **representación intermedia (IR)** estructurada, lista para ser consumida por un renderer o cualquier pipeline de transformación propio.
 
-## ¿Qué es exactamente?
+El flujo de procesamiento es el siguiente:
 
-Es un **DSL (Domain Specific Language)** con una sintaxis familiar para cualquier desarrollador de TypeScript. No es solo "dibujar cajas"; el sistema entiende la semántica de UML 2.5.1:
+```
+Código fuente .umlts
+        ↓
+     Lexer / Parser
+        ↓
+  AST (Árbol Sintáctico)
+        ↓
+  IR — Intermediate Representation
+        ↓
+   Renderer / Exportador
+```
 
-- Si defines una relación de herencia cíclica, el motor te avisará.
-- Si una multiplicidad es inválida, recibirás un diagnóstico.
-- Si una composición tiene una multiplicidad incorrecta, el analizador lo detectará.
+El IR es un formato propio que abstrae la semántica del diagrama de cualquier detalle de renderizado. El renderer oficial consume este IR para generar diagramas en **SVG**.
 
-## ¿Cómo funciona?
+---
 
-El ecosistema se divide en piezas modulares:
+## Salidas soportadas
 
-1. **Escribes** el DSL en archivos `.umlts`.
-2. **Engine** procesa el texto, valida la semántica y genera un modelo de datos (IR).
-3. **Renderer** toma ese modelo y calcula un layout automático para generar un **SVG** impecable.
-4. **Herramientas** como la extensión de VS Code o Blueprint cierran el ciclo de vida del desarrollo.
+| Salida                 | Estado        | Descripción                                                                                  |
+| :--------------------- | :------------ | :------------------------------------------------------------------------------------------- |
+| IR (formato propio)    | ✅ Disponible | Representación intermedia consumible por el renderer oficial u otros pipelines               |
+| SVG                    | ✅ Disponible | A través del renderer oficial                                                                |
+| XMI (UML 2.x estándar) | 🔜 En roadmap | Exportación al estándar de intercambio XMI para interoperabilidad con otras herramientas UML |
+
+---
+
+## Conformidad con UML 2.5
+
+UMLTS tiene como meta de diseño ser **fiel al estándar UML 2.5.1**. Esto significa que los conceptos del DSL —clases, interfaces, enumeraciones, asociaciones, composiciones, agregaciones, perfiles, estereotipos y multiplicidades— mapean directamente a sus equivalentes normativos en la especificación de la OMG.
+
+El roadmap contempla soporte progresivo para **todos los tipos de diagrama del estándar**:
+
+- Diagrama de clases _(disponible)_
+- Diagrama de secuencia
+- Diagrama de casos de uso
+- Diagrama de componentes
+- Diagrama de despliegue
+- Diagrama de actividad
+- Diagrama de estados
+- Y el resto de diagramas estructurales y de comportamiento definidos en UML 2.5
+
+---
+
+## ¿Por qué un DSL textual?
+
+Las herramientas visuales de modelado UML son útiles para exploración inicial, pero presentan fricciones importantes en flujos de trabajo modernos:
+
+- No se integran bien con control de versiones (Git).
+- Los archivos binarios o propietarios son difíciles de revisar en pull requests.
+- La colaboración asíncrona es limitada.
+- Cambios pequeños en el modelo requieren interacción manual con la interfaz.
+
+UMLTS resuelve estos problemas tratando el diagrama como **texto plano versionable**, que puede vivir junto al código fuente del proyecto, revisarse en un diff, generarse automáticamente y procesarse en pipelines de CI/CD.
+
+---
+
+## ¿Cómo se consume?
+
+El motor se distribuye como una **librería JavaScript / TypeScript** y puede integrarse en cualquier proyecto Node.js:
+
+```ts
+import { UMLEngine } from 'umlts'
+
+const source = `
+class User {
+  id: String
+  email: String
+}
+
+class Order >> BaseEntity {
+  total: Float
+}
+
+User [1] >< Order [0..*]
+`
+
+const ir = UMLEngine.parse(source)
+// ir contiene la representación intermedia lista para renderizar o exportar
+```
+
+> **Nota:** La API pública está en desarrollo activo. Los nombres y firmas de las funciones pueden cambiar hasta alcanzar una versión estable.
+
+---
+
+## Estado actual
+
+UMLTS se encuentra en **desarrollo activo**. La prioridad actual es la cobertura completa del diagrama de clases según UML 2.5.1, incluyendo perfiles, estereotipos, restricciones y clases de asociación.
+
+Se recomienda no usar UMLTS en entornos de producción hasta la publicación de una versión `1.0` estable.

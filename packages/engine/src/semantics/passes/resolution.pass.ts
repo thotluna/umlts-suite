@@ -199,4 +199,11 @@ export class ResolutionPass implements ISemanticPass, ASTVisitor {
     ;(node.notes || []).forEach((n) => walkAST(n, this))
     ;(node.constraints || []).forEach((c) => walkAST(c, this))
   }
+
+  visitProfile(_node: import('@engine/syntax/nodes').ProfileNode): void {}
+  visitStereotype(_node: import('@engine/syntax/nodes').StereotypeNode): void {}
+  visitMetadata(_node: import('@engine/syntax/nodes').MetadataNode): void {}
+  visitTaggedValueDefinition(
+    _node: import('@engine/syntax/nodes').TaggedValueDefinitionNode,
+  ): void {}
 }

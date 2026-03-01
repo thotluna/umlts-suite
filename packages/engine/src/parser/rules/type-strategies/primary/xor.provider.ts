@@ -22,7 +22,7 @@ export class XorTypeProvider implements IPrimaryTypeProvider {
       const t = typeRule.parse(context)
       args.push(t)
       raw += t.raw
-      if (context.match(TokenType.COMMA)) raw += ', '
+      if (context.match(TokenType.PIPE)) raw += ' | '
     }
 
     raw += context.consume(TokenType.RBRACE, "Expected '}' after xor types").value

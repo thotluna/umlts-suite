@@ -24,6 +24,10 @@
         "extensions": [
           ".umlts"
         ],
+        "icon": {
+          "light": "./icons/umlts-icon.svg",
+          "dark": "./icons/umlts-icon.svg"
+        },
         "configuration": "./umlts-configuration.json"
       }
     ],

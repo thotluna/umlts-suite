@@ -41,7 +41,7 @@ describe('Parser', () => {
       class User {
         + name: string
         - age: number [0..1]
-        public static login(id: string): boolean
+        + $ login(id: string): boolean
       }
     `
     const tokens = LexerFactory.create(input).tokenize()
@@ -82,7 +82,7 @@ describe('Parser', () => {
   })
 
   it('should parse a standalone relationship with multiplicities', () => {
-    const input = 'User [1] >> [*] Post'
+    const input = 'User [1] >> Post [*]'
     const tokens = LexerFactory.create(input).tokenize()
     const parser = ParserFactory.create()
     const ast = parser.parse(tokens)
@@ -110,14 +110,13 @@ describe('Parser', () => {
     expect(param.multiplicity).toBe('1..*')
   })
 
-  it('should parse new dependency operators (>- and >use)', () => {
-    const input = 'Service >- API Component >use Library'
+  it('should parse dependency operator (>-)', () => {
+    const input = 'Service >- API'
     const tokens = LexerFactory.create(input).tokenize()
     const parser = ParserFactory.create()
     const ast = parser.parse(tokens)
 
-    expect(ast.body).toHaveLength(2)
+    expect(ast.body).toHaveLength(1)
     expect((ast.body[0] as RelationshipNode).kind).toBe('>-')
-    expect((ast.body[1] as RelationshipNode).kind).toBe('>use')
   })
 })

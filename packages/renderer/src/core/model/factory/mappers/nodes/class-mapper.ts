@@ -49,6 +49,12 @@ export class ClassMapper implements EntityMapper {
     context.applyCommonMetadata(node as UMLClass, entity)
     context.mapCompartments(node as UMLClass, entity)
 
+    if (node instanceof UMLClass) {
+      node.isLeaf = !!entity.isLeaf
+      node.isStatic = !!entity.isStatic
+      node.isActive = !!entity.isActive
+    }
+
     return node
   }
 }

@@ -1,6 +1,7 @@
 import { UMLText } from './text'
 import { type IRMultiplicity, type IRParameter } from '@umlts/engine'
 import { type UMLConstraintArc } from '../connectors/constraint-arc'
+import { UMLStereotype } from './stereotype'
 
 export class UMLMember extends UMLText {
   public isDerived = false
@@ -15,6 +16,7 @@ export class UMLMember extends UMLText {
   public returnMultiplicity?: string | IRMultiplicity
   public hideConstraints = false
   public constraints: UMLConstraintArc[] = []
+  public stereotypes: UMLStereotype[] = []
 
   constructor(id: string, text: string) {
     super(id, text, 12, 'normal')
@@ -27,6 +29,11 @@ export class UMLMember extends UMLText {
     const prefix = this.isDerived ? '/' : ''
     const visSign = this.getVisibilitySign()
     let full = `${visSign} ${prefix}${this.text}`
+
+    if (this.stereotypes.length > 0) {
+      const sts = this.stereotypes.map((st) => st.getLabel()).join('')
+      full = `${sts} ${full}`
+    }
 
     // Add parameters if it's an operation (parameters is defined)
     if (this.parameters) {

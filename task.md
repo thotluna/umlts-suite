@@ -522,9 +522,39 @@
 - [ ] **FEAT**: Representar Clases Activas (Active Classes / Threads) estandarizadas mediante un flag activo dibujando bordes verticales con dobles líneas paralelas.
 - [ ] **FEAT**: Visualización de Instancias / Objetos en tiempo de ejecución (`anObject : Class`) con el nombre subrayado obligatoriamente por diseño gráfico.
 
+## UML Profiles & Stereotypes (UML 2.5.1)
+
+- [x] **DOC**: Definir arquitectura y consenso de sintaxis (`docs/PROFILES_LOG.md`)
+- [x] **DOC**: Crear guías de implementación detalladas para capas Léxica, Sintáctica y Semántica
+- [x] **FEAT**: Implementar base del Metamodelo (`UMLMetaclass`) y anclaje en AST
+- [x] **FEAT**: Implementar `ProfileRegistry` con soporte para `UMLStandardProfile` (Built-in)
+- [x] **CORE**: Inyectar metaclases en `ASTFactory` para todas las entidades y relaciones
+- [x] **PHASE 3: LEXICAL**: Actualizar Lexer con tokens `@`, `[]`, `profile`, `stereotype`, `extends`
+- [x] **PHASE 3: SYNTAX**: Implementar `ProfileRule`, `StereotypeRule` y soporte para segmento `[ ]` en entidades (Verificado con `profiles.parser.test.ts`)
+- [x] **PHASE 4: SEMANTICS**: Implementar validación de Unicidad, Extensión y Esquema de Datos (Verificado con `profiles.semantics.test.ts`)
+- [x] **PHASE 5: RENDERER**: Visualizar estereotipos « » y compartimento de metadatos { }
+  - [x] Implementar `IRStereotypeApplication` en la IR y exportarlo
+  - [x] Refactorizar `UMLStereotype` para soportar `values` (Tagged Values)
+  - [x] Soporte de estereotipos en `UMLMember` (Atributos/Operaciones) y `UMLEdge` (Relaciones)
+  - [x] Actualizar `MappingContext` para propagar metadatos estructurados
+  - [x] Renderizado dinámico en cabecera de clases con soporte de tagged values `{key=value}`
+
 ## Backlog de Interoperabilidad (Migración y Exportación)
 
 - [ ] **FEAT**: Diseñar el `XMISerializer` para transformar nuestra estructura de `IRDiagram` en XML compatible con el estándar XMI de MOF/OMG.
 - [ ] **FEAT**: Implementación de un generador de IDs determinísticos robustos para el atributo `xmi:id` de todos los componentes mapeados.
 - [ ] **FEAT**: Mapeo completo de `IREntity` a elementos `<packagedElement xmi:type="uml:Class">`, y traducción de `IRProperty` y `IROperation` a los bloques contenedores orgánicos de `<ownedAttribute>` y `<ownedOperation>`.
 - [ ] **TEST**: Pruebas de integración E2E inyectando el XML generado por UMLTS a herramientas compatibles de mercado para certificar que cargue la topología sin alertar falsos negativos de esquema genérico.
+
+## VS Code Extension Improvements
+
+- [x] **FEAT**: Implementar icono de archivo para `.umlts` (Visibilidad en Explorer)
+- [x] **FEAT**: Actualizar Syntax Highlighting (TextMate) con soporte para:
+  - [x] Keywords: `profile`, `stereotype`, `xor`, `config`
+  - [x] Estereotipos: `@name`
+  - [x] Nuevos modificadores: `!`, `&`, `^`, `$`
+  - [x] Operadores de relación: `><`, `<>`, `>*|`, `>+|`
+- [x] **IMPROVEMENT**: Mejorar marcado de errores (Diagnostics):
+  - [x] Implementar debounce (300ms) para rendimiento
+  - [x] Mejorar cálculo de `Range` para subrayado preciso
+- [x] **FEAT**: Implementar `DocumentSymbolProvider` (Navegación via Outline)

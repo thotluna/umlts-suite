@@ -17,11 +17,6 @@ export class RelationshipHeaderRule {
         TokenType.OP_COMP_NON_NAVIGABLE,
         TokenType.OP_AGREG_NON_NAVIGABLE,
         TokenType.OP_USE,
-        TokenType.KW_EXTENDS,
-        TokenType.KW_IMPLEMENTS,
-        TokenType.KW_COMP,
-        TokenType.KW_AGREG,
-        TokenType.KW_USE,
         TokenType.GT,
       )
     ) {

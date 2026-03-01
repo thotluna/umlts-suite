@@ -24,7 +24,7 @@ describe('Multiplicity and Composite Rules', () => {
     const code = `
       class A {}
       class B {}
-      A "5..2" > "1" B
+      A "5..2" >> B "1"
     `
     const { diagnostics } = engine.parse(code)
 
@@ -39,7 +39,7 @@ describe('Multiplicity and Composite Rules', () => {
     const code = `
       class Whole {}
       class Part {}
-      Whole "1" >* "1" Part
+      Whole "1" >* Part "1"
     `
     const { diagnostics } = engine.parse(code)
 
@@ -51,7 +51,7 @@ describe('Multiplicity and Composite Rules', () => {
     const code = `
       class Whole {}
       class Part {}
-      Whole "2" >* "1" Part
+      Whole "2" >* Part "1"
     `
     const { diagnostics } = engine.parse(code)
 

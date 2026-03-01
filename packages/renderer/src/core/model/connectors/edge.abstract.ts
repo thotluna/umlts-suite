@@ -2,6 +2,7 @@ import { UMLPathNode } from '../base/path-node.abstract'
 import { type Point } from '../base/types'
 import { type IRMultiplicity } from '@umlts/engine'
 import { type UMLConstraintArc } from './constraint-arc'
+import { type UMLStereotype } from '../content/stereotype'
 
 /**
  * UMLEdge: Semantic connection between entities.
@@ -12,6 +13,7 @@ export abstract class UMLEdge extends UMLPathNode {
   public label?: string
   public visibility?: string
   public constraints: UMLConstraintArc[] = []
+  public stereotypes: UMLStereotype[] = []
   public associationClassId?: string
 
   // Layout metadata

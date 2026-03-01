@@ -11,6 +11,7 @@ import type { ConstraintRegistry } from '@engine/semantics/session/constraint-re
 import type { ConfigStore } from '@engine/semantics/session/config-store'
 import type { ISemanticState } from '@engine/semantics/core/semantic-state.interface'
 import type { TypeResolutionPipeline } from '@engine/semantics/inference/type-resolution.pipeline'
+import { ProfileRegistry } from '@engine/semantics/profiles/profile.registry'
 
 /**
  * Encapsulates the complete state of a semantic analysis session.
@@ -20,6 +21,7 @@ export class AnalysisSession implements ISemanticState {
   public readonly relationships: IRRelationship[] = []
   public readonly notes: IRNote[] = []
   public readonly anchors: IRAnchor[] = []
+  public readonly profileRegistry: ProfileRegistry
 
   constructor(
     public readonly symbolTable: SymbolTable,
@@ -27,7 +29,9 @@ export class AnalysisSession implements ISemanticState {
     public readonly configStore: ConfigStore,
     public readonly context: ISemanticContext,
     public readonly typeResolver: TypeResolutionPipeline,
-  ) {}
+  ) {
+    this.profileRegistry = new ProfileRegistry()
+  }
 
   public recordRelationship(relationship: IRRelationship): void {
     this.relationships.push(relationship)

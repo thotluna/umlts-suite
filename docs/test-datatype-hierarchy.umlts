@@ -1,6 +1,6 @@
-config {
-  language: "typescript"
-}
+
+@language: "typescript"
+
 
 // --- CASO 1: RECUPERACIÓN DE IDENTIDAD POR JERARQUÍA ---
 
@@ -37,14 +37,14 @@ class B >> P {
 /**
  * Abstract sin métodos: DEBE ser Class.
  */
-abstract class AbstractValue {
+class *AbstractValue {
   uuid: string
 }
 
 /**
  * Static sin métodos: DEBE ser Class.
  */
-static class GlobalConstants {
+class $GlobalConstants {
   API_URL: string
   VERSION: number
 }
@@ -52,14 +52,14 @@ static class GlobalConstants {
 /**
  * Active sin métodos: DEBE ser Class.
  */
-active class BackgroundTask {
+class &BackgroundTask {
   status: string
 }
 
 /**
  * Leaf/Final sin métodos: DEBE ser Class.
  */
-leaf class SchemaDefinition {
+class !SchemaDefinition {
   types: string
 }
 

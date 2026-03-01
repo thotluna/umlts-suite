@@ -5,6 +5,7 @@ import {
   UMLGenericInterface,
   UMLClass,
   UMLEnum,
+  UMLHeaderShape,
 } from '../../core/model/index'
 import { MEASURE_CONFIG } from '../../core/model/base/measure-constants'
 import { type DiagramConfig } from '../../core/types'
@@ -51,12 +52,10 @@ export function renderClassNode(
 
   // Header separator and content
   const HEADER_HEIGHT_NORMAL = 40
-  let stereotypeCount = 0
   const headerLines: { text: string; size: number; isBold?: boolean; isItalic?: boolean }[] = []
 
   if (node.type !== 'Class') {
     headerLines.push({ text: `«${node.type.toLowerCase()}»`, size: theme.fontSizeSmall })
-    stereotypeCount++
   }
 
   const isAbstract = node instanceof UMLClass && node.isAbstract
@@ -65,15 +64,22 @@ export function renderClassNode(
 
   if (isAbstract) {
     headerLines.push({ text: '«abstract»', size: theme.fontSizeSmall })
-    stereotypeCount++
   }
   if (isStatic) {
     headerLines.push({ text: '«static»', size: theme.fontSizeSmall })
-    stereotypeCount++
   }
   if (isLeaf) {
     headerLines.push({ text: '{leaf}', size: theme.fontSizeSmall })
-    stereotypeCount++
+  }
+
+  // Add custom stereotypes (only labels in header)
+  if (node instanceof UMLHeaderShape) {
+    node.stereotypes.forEach((st) => {
+      const stText = st.getLabel()
+      if (!headerLines.some((l) => l.text === stText)) {
+        headerLines.push({ text: stText, size: theme.fontSizeSmall })
+      }
+    })
   }
 
   headerLines.push({
@@ -84,7 +90,7 @@ export function renderClassNode(
   })
 
   // We use the same calculation as in measureNodeDimensions to ensure visual consistency
-  const headerHeight = HEADER_HEIGHT_NORMAL + stereotypeCount * 14
+  const headerHeight = HEADER_HEIGHT_NORMAL + (headerLines.length - 1) * 14
   const headerSep = svg.line(x, y + headerHeight, x + width, y + headerHeight, {
     stroke: theme.nodeDivider,
     'stroke-width': 1,
@@ -121,7 +127,20 @@ export function renderClassNode(
   const { PADDING_X, LINE_HEIGHT: CFG_LINE_HEIGHT } = MEASURE_CONFIG
   const MARGIN_X = PADDING_X / 2
 
+  // Metadata collection for the third compartment
+  const taggedValues: string[] = []
+
   if (node instanceof UMLCompartmentNode) {
+    // Collect entity stereotypes values
+    node.stereotypes.forEach((st) => {
+      if (st.values && Object.keys(st.values).length > 0) {
+        const tags = Object.entries(st.values)
+          .map(([k, v]) => `${k}=${v}`)
+          .join(', ')
+        taggedValues.push(`{${st.getLabel()} ${tags}}`)
+      }
+    })
+
     // 1. Properties
     for (const prop of node.properties) {
       membersContent += svg.text(
@@ -134,6 +153,17 @@ export function renderClassNode(
         },
         svg.escape(prop.getFullText()),
       )
+
+      // Collect member tagged values
+      prop.stereotypes.forEach((st) => {
+        if (st.values && Object.keys(st.values).length > 0) {
+          const tags = Object.entries(st.values)
+            .map(([k, v]) => `${k}=${v}`)
+            .join(', ')
+          taggedValues.push(`{${prop.text}.${st.getLabel()} ${tags}}`)
+        }
+      })
+
       memberY += CFG_LINE_HEIGHT
     }
 
@@ -159,7 +189,43 @@ export function renderClassNode(
         },
         svg.escape(op.getFullText()),
       )
+
+      // Collect member tagged values
+      op.stereotypes.forEach((st) => {
+        if (st.values && Object.keys(st.values).length > 0) {
+          const tags = Object.entries(st.values)
+            .map(([k, v]) => `${k}=${v}`)
+            .join(', ')
+          taggedValues.push(`{${op.text}.${st.getLabel()} ${tags}}`)
+        }
+      })
+
       memberY += CFG_LINE_HEIGHT
+    }
+  }
+
+  // metadata compartment if we have tagged values
+  let metadataContent = ''
+  if (taggedValues.length > 0) {
+    // Add a final separator
+    metadataContent += svg.line(x, memberY - 10, x + width, memberY - 10, {
+      stroke: theme.nodeDivider,
+      'stroke-width': 1,
+    })
+    memberY += 10
+
+    for (const tv of taggedValues) {
+      metadataContent += svg.text(
+        {
+          x: x + MARGIN_X,
+          y: memberY,
+          fill: theme.nodeMemberText,
+          'font-size': theme.fontSizeSmall,
+          opacity: 0.7,
+        },
+        svg.escape(tv),
+      )
+      memberY += 14
     }
   }
 
@@ -224,7 +290,13 @@ export function renderClassNode(
       'data-type': node.type.toLowerCase(),
       cursor: 'pointer',
     },
-    bg + activeLines + headerSep + headerContent + membersContent + templateBoxStr,
+    bg +
+      activeLines +
+      headerSep +
+      headerContent +
+      membersContent +
+      metadataContent +
+      templateBoxStr,
   )
 }
 

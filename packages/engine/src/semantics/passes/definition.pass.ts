@@ -100,4 +100,11 @@ export class DefinitionPass implements ISemanticPass, ASTVisitor {
   visitAttribute(_node: AttributeNode): void {}
   visitMethod(_node: MethodNode): void {}
   visitParameter(_node: ParameterNode): void {}
+
+  visitProfile(_node: import('@engine/syntax/nodes').ProfileNode): void {}
+  visitStereotype(_node: import('@engine/syntax/nodes').StereotypeNode): void {}
+  visitMetadata(_node: import('@engine/syntax/nodes').MetadataNode): void {}
+  visitTaggedValueDefinition(
+    _node: import('@engine/syntax/nodes').TaggedValueDefinitionNode,
+  ): void {}
 }

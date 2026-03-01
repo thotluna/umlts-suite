@@ -7,18 +7,21 @@ import { ModifierRule } from '@engine/parser/rules/modifier.rule'
 
 import { ASTFactory } from '@engine/parser/factory/ast.factory'
 
+import { StereotypeApplicationRule } from '@engine/parser/rules/stereotype-application.rule'
+
 /**
  * EnumRule: Regla especializada para el parseo de enumeraciones.
  * Soporta tanto la sintaxis en línea como de bloque.
  */
 export class EnumRule implements StatementRule {
   public canHandle(context: IParserHub): boolean {
-    const skip = ModifierRule.countModifiers(context)
+    const skip = StereotypeApplicationRule.skipPrefixes(context)
     return context.lookahead(skip).type === TokenType.KW_ENUM
   }
 
   public parse(context: IParserHub, _orchestrator: Orchestrator): StatementNode[] {
     const pos = context.getPosition()
+    const stereotypes = StereotypeApplicationRule.parse(context)
     let modifiers = ModifierRule.parse(context)
 
     if (!context.match(TokenType.KW_ENUM)) {
@@ -36,18 +39,18 @@ export class EnumRule implements StatementRule {
     // 1. Soporte para enums en línea: enum UserRole(ADMIN, EDITOR, VIEWER)
     if (context.match(TokenType.LPAREN)) {
       const body = this.parseInlineBody(context)
-      return [
-        ASTFactory.createEntity(
-          ASTNodeType.ENUM,
-          nameToken.value,
-          modifiers,
-          [],
-          body,
-          keywordToken.line,
-          keywordToken.column,
-          docs,
-        ),
-      ]
+      const enumNode = ASTFactory.createEntity(
+        ASTNodeType.ENUM,
+        nameToken.value,
+        modifiers,
+        [],
+        body,
+        keywordToken.line,
+        keywordToken.column,
+        docs,
+      )
+      enumNode.stereotypes = stereotypes
+      return [enumNode]
     }
 
     // 2. Soporte para enums de bloque: enum Color { RED, GREEN }
@@ -66,18 +69,19 @@ export class EnumRule implements StatementRule {
       context.softConsume(TokenType.RBRACE, "Expected '}'")
     }
 
-    return [
-      ASTFactory.createEntity(
-        ASTNodeType.ENUM,
-        nameToken.value,
-        modifiers,
-        [],
-        body,
-        keywordToken.line,
-        keywordToken.column,
-        docs,
-      ),
-    ]
+    const enumNode = ASTFactory.createEntity(
+      ASTNodeType.ENUM,
+      nameToken.value,
+      modifiers,
+      [],
+      body,
+      keywordToken.line,
+      keywordToken.column,
+      docs,
+    )
+    enumNode.stereotypes = stereotypes
+
+    return [enumNode]
   }
 
   private parseInlineBody(context: IParserHub): MemberNode[] {

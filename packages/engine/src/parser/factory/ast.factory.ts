@@ -15,10 +15,16 @@ import type {
   ConstraintNode,
   NoteNode,
   AnchorNode,
+  ProfileNode,
+  StereotypeNode,
+  TaggedValueDefinitionNode,
+  StereotypeApplicationNode,
+  MetadataNode,
   StatementNode,
   MemberNode,
   Modifiers,
 } from '@engine/syntax/nodes'
+import { UMLMetaclass } from '@engine/core/metamodel'
 import type { Diagnostic } from '@engine/syntax/diagnostic.types'
 
 /**
@@ -34,6 +40,7 @@ export class ASTFactory {
   ): ProgramNode {
     return {
       type: ASTNodeType.PROGRAM,
+      metaclass: UMLMetaclass.MODEL,
       body,
       line,
       column,
@@ -50,6 +57,7 @@ export class ASTFactory {
   ): PackageNode {
     return {
       type: ASTNodeType.PACKAGE,
+      metaclass: UMLMetaclass.PACKAGE,
       name,
       body,
       line,
@@ -69,8 +77,16 @@ export class ASTFactory {
     docs?: string,
     typeParameters?: string[],
   ): EntityNode {
+    const metaclass =
+      type === ASTNodeType.CLASS
+        ? UMLMetaclass.CLASS
+        : type === ASTNodeType.INTERFACE
+          ? UMLMetaclass.INTERFACE
+          : UMLMetaclass.ENUMERATION
+
     return {
       type,
+      metaclass,
       name,
       modifiers,
       relationships,
@@ -93,6 +109,7 @@ export class ASTFactory {
   ): RelationshipNode {
     return {
       type: ASTNodeType.RELATIONSHIP,
+      metaclass: UMLMetaclass.ASSOCIATION, // Por defecto, se refina en semántica
       kind,
       from,
       to,
@@ -116,6 +133,7 @@ export class ASTFactory {
   ): RelationshipHeaderNode {
     return {
       type: ASTNodeType.RELATIONSHIP,
+      metaclass: UMLMetaclass.ASSOCIATION,
       kind,
       target,
       isNavigable,
@@ -136,6 +154,7 @@ export class ASTFactory {
   ): AttributeNode {
     return {
       type: ASTNodeType.ATTRIBUTE,
+      metaclass: UMLMetaclass.PROPERTY,
       name,
       visibility,
       typeAnnotation,
@@ -159,6 +178,7 @@ export class ASTFactory {
   ): MethodNode {
     return {
       type: ASTNodeType.METHOD,
+      metaclass: UMLMetaclass.OPERATION,
       name,
       visibility,
       returnType,
@@ -179,6 +199,7 @@ export class ASTFactory {
   ): ParameterNode {
     return {
       type: ASTNodeType.PARAMETER,
+      metaclass: UMLMetaclass.PARAMETER,
       name,
       typeAnnotation,
       line,
@@ -197,6 +218,7 @@ export class ASTFactory {
   ): TypeNode {
     return {
       type: ASTNodeType.TYPE,
+      metaclass: UMLMetaclass.DATA_TYPE,
       name,
       kind,
       raw,
@@ -209,6 +231,7 @@ export class ASTFactory {
   public static createComment(value: string, line: number, column: number): CommentNode {
     return {
       type: ASTNodeType.COMMENT,
+      metaclass: UMLMetaclass.COMMENT,
       value,
       line,
       column,
@@ -222,6 +245,7 @@ export class ASTFactory {
   ): ConfigNode {
     return {
       type: ASTNodeType.CONFIG,
+      metaclass: UMLMetaclass.COMMENT, // Config no es UML estándar, lo tratamos como metadatos/comentario
       options,
       line,
       column,
@@ -238,6 +262,7 @@ export class ASTFactory {
   ): AssociationClassNode {
     return {
       type: ASTNodeType.ASSOCIATION_CLASS,
+      metaclass: UMLMetaclass.ASSOCIATION_CLASS,
       name,
       participants,
       body,
@@ -255,6 +280,7 @@ export class ASTFactory {
   ): ConstraintNode {
     return {
       type: ASTNodeType.CONSTRAINT,
+      metaclass: UMLMetaclass.CONSTRAINT,
       kind,
       line,
       column,
@@ -265,6 +291,7 @@ export class ASTFactory {
   public static createNote(value: string, line: number, column: number, id?: string): NoteNode {
     return {
       type: ASTNodeType.NOTE,
+      metaclass: UMLMetaclass.COMMENT,
       value,
       line,
       column,
@@ -275,8 +302,91 @@ export class ASTFactory {
   public static createAnchor(from: string, to: string[], line: number, column: number): AnchorNode {
     return {
       type: ASTNodeType.ANCHOR,
+      metaclass: UMLMetaclass.COMMENT, // Anclaje es una relación de comentario
       from,
       to,
+      line,
+      column,
+    }
+  }
+
+  public static createProfile(
+    name: string,
+    body: StereotypeNode[],
+    line: number,
+    column: number,
+  ): ProfileNode {
+    return {
+      type: ASTNodeType.PROFILE,
+      metaclass: UMLMetaclass.PROFILE,
+      name,
+      body,
+      line,
+      column,
+    }
+  }
+
+  public static createStereotype(
+    name: string,
+    extensions: UMLMetaclass[],
+    properties: TaggedValueDefinitionNode[],
+    line: number,
+    column: number,
+  ): StereotypeNode {
+    return {
+      type: ASTNodeType.STEREOTYPE,
+      metaclass: UMLMetaclass.STEREOTYPE,
+      name,
+      extends: extensions,
+      properties,
+      line,
+      column,
+    }
+  }
+
+  public static createTaggedValueDefinition(
+    name: string,
+    typeAnnotation: TypeNode,
+    line: number,
+    column: number,
+    defaultValue?: string | number | boolean,
+  ): TaggedValueDefinitionNode {
+    return {
+      type: ASTNodeType.TAGGED_VALUE_DEFINITION,
+      metaclass: UMLMetaclass.PROPERTY,
+      name,
+      typeAnnotation,
+      line,
+      column,
+      defaultValue,
+    }
+  }
+
+  public static createStereotypeApplication(
+    name: string,
+    line: number,
+    column: number,
+    values?: Record<string, string | number | boolean>,
+  ): StereotypeApplicationNode {
+    return {
+      type: ASTNodeType.STEREOTYPE_APPLICATION,
+      metaclass: UMLMetaclass.STEREOTYPE,
+      name,
+      line,
+      column,
+      values,
+    }
+  }
+
+  public static createMetadata(
+    values: Record<string, string | number | boolean>,
+    line: number,
+    column: number,
+  ): MetadataNode {
+    return {
+      type: ASTNodeType.METADATA,
+      metaclass: UMLMetaclass.COMMENT,
+      values,
       line,
       column,
     }
