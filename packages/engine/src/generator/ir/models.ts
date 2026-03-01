@@ -108,8 +108,22 @@ export interface IROperation {
   parameters: IRParameter[]
   returnType?: string
   returnMultiplicity?: IRMultiplicity
+  isAsync: boolean // Para operaciones marcadas con @async o recepciones
 
   // Metadata de soporte
+  line?: number
+  column?: number
+  docs?: string
+  constraints?: IRConstraint[]
+  stereotypes?: IRStereotypeApplication[]
+}
+
+/**
+ * Categoría: Características - Recepción (Cláusula 11.4.1)
+ */
+export interface IRReception {
+  name: string
+  parameters: IRParameter[]
   line?: number
   column?: number
   docs?: string
@@ -136,6 +150,7 @@ export interface IREntity {
   // Miembros estructurados según Metaclases UML
   properties: IRProperty[]
   operations: IROperation[]
+  receptions?: IRReception[]
   literals?: IREnumerationLiteral[]
 
   isImplicit: boolean // Estado interno del motor
