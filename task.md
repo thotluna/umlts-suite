@@ -543,3 +543,16 @@
 - [ ] **FEAT**: Implementación de un generador de IDs determinísticos robustos para el atributo `xmi:id` de todos los componentes mapeados.
 - [ ] **FEAT**: Mapeo completo de `IREntity` a elementos `<packagedElement xmi:type="uml:Class">`, y traducción de `IRProperty` y `IROperation` a los bloques contenedores orgánicos de `<ownedAttribute>` y `<ownedOperation>`.
 - [ ] **TEST**: Pruebas de integración E2E inyectando el XML generado por UMLTS a herramientas compatibles de mercado para certificar que cargue la topología sin alertar falsos negativos de esquema genérico.
+
+## VS Code Extension Improvements
+
+- [x] **FEAT**: Implementar icono de archivo para `.umlts` (Visibilidad en Explorer)
+- [x] **FEAT**: Actualizar Syntax Highlighting (TextMate) con soporte para:
+  - [x] Keywords: `profile`, `stereotype`, `xor`, `config`
+  - [x] Estereotipos: `@name`
+  - [x] Nuevos modificadores: `!`, `&`, `^`, `$`
+  - [x] Operadores de relación: `><`, `<>`, `>*|`, `>+|`
+- [x] **IMPROVEMENT**: Mejorar marcado de errores (Diagnostics):
+  - [x] Implementar debounce (300ms) para rendimiento
+  - [x] Mejorar cálculo de `Range` para subrayado preciso
+- [x] **FEAT**: Implementar `DocumentSymbolProvider` (Navegación via Outline)

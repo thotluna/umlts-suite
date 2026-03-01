@@ -1,0 +1,91 @@
+// ================================================================
+// Example 1: E-Commerce Domain
+// Input: "An e-commerce system with customers, orders, products,
+//         and payment methods. Orders contain line items.
+//         Payment can be credit card, PayPal, or bank transfer."
+// ================================================================
+
+config {
+  direction: DOWN
+}
+
+package Core {
+  class Customer {
+    id: String
+    name: String
+    email: String
+    orders: >* Order[0..*]
+    addresses: >+ Address[1..*]
+  }
+
+  class Order {
+    id: String
+    createdAt: Date
+    total: Real
+    items: >* OrderLine[1..*]
+    payment: >< Payment[0..1]
+  }
+
+  class OrderLine {
+    quantity: Integer
+    unitPrice: Real
+    product: >< Product[1]
+  }
+
+  class Address {
+    street: String
+    city: String
+    zip: String
+    country: String
+  }
+}
+
+package Catalog {
+  class Product {
+    id: String
+    name: String
+    description: String
+    price: Real
+    stock: Integer
+    category: >< Category[1]
+  }
+
+  class Category {
+    id: String
+    name: String
+    parent: >< Category[0..1]
+  }
+}
+
+package Billing {
+  class *Payment {
+    id: String
+    amount: Real
+    processedAt: Date
+    *process(): Boolean
+  }
+
+  class CreditCardPayment >> Payment {
+    cardNumber: String
+    expiryDate: String
+  }
+
+  class PayPalPayment >> Payment {
+    email: String
+    transactionId: String
+  }
+
+  class BankTransferPayment >> Payment {
+    iban: String
+    swift: String
+  }
+}
+
+xor {
+  Core.Order >< Billing.CreditCardPayment
+  Core.Order >< Billing.PayPalPayment
+  Core.Order >< Billing.BankTransferPayment
+}
+
+note "An order total must equal the sum of all line item subtotals" as N1
+N1 .. Core.Order

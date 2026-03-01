@@ -1,0 +1,75 @@
+// ================================================================
+// Example 3: Banking System (Profiles + Stereotypes)
+// Input: "A banking system with accounts, transactions, and
+//         customers. Use JPA stereotypes for persistence.
+//         Accounts can be savings or checking.
+//         Transactions are either deposits or withdrawals."
+// ================================================================
+
+profile Persistence {
+  stereotype Entity >> class {
+    table: String
+    schema: String = "public"
+  }
+}
+
+config {
+  direction: DOWN
+}
+
+package Banking {
+  @Entity
+  class *Account {
+    id: String
+    balance: Real
+    openedAt: Date
+    isActive: Boolean
+    owner: >< Customer[1]
+    transactions: >* Transaction[0..*]
+    [ table="accounts" ]
+  }
+
+  class SavingsAccount >> Account {
+    interestRate: Real
+    minBalance: Real
+  }
+
+  class CheckingAccount >> Account {
+    overdraftLimit: Real
+    monthlyFee: Real
+  }
+
+  @Entity
+  class *Transaction {
+    id: String
+    amount: Real
+    timestamp: Date
+    description: String
+    *execute(): Boolean
+    [ table="transactions" ]
+  }
+
+  class Deposit >> Transaction
+  class Withdrawal >> Transaction
+
+  @Entity
+  class Customer {
+    id: String
+    firstName: String
+    lastName: String
+    email: String
+    accounts: >< Account[0..*]
+    [ table="customers" ]
+  }
+}
+
+xor {
+  Banking.Customer >< Banking.SavingsAccount
+  Banking.Customer >< Banking.CheckingAccount
+}
+
+note "Withdrawal amount cannot exceed account balance for SavingsAccount" as N1
+N1 .. Banking.Withdrawal, Banking.SavingsAccount
+
+note "CheckingAccount allows overdraft up to overdraftLimit" as N2
+N2 .. Banking.CheckingAccount

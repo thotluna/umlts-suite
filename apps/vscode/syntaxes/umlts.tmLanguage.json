@@ -5,6 +5,7 @@
   "patterns": [
     { "include": "#comments" },
     { "include": "#strings" },
+    { "include": "#stereotypes" },
     { "include": "#keywords" },
     { "include": "#multiplicity" },
     { "include": "#relations" },
@@ -39,11 +40,19 @@
         }
       ]
     },
+    "stereotypes": {
+      "patterns": [
+        {
+          "name": "entity.name.type.stereotype.umlts",
+          "match": "@\\w+"
+        }
+      ]
+    },
     "keywords": {
       "patterns": [
         {
           "name": "keyword.control.umlts",
-          "match": "\\b(class|interface|enum|package)\\b"
+          "match": "\\b(class|interface|enum|package|profile|stereotype|config|xor)\\b"
         },
         {
           "name": "storage.modifier.visibility.umlts",
@@ -63,7 +72,11 @@
         },
         {
           "name": "keyword.operator.relation.symbolic.umlts",
-          "match": ">>|\\>I|\\>\\*|\\>\\+|\\>-"
+          "match": ">>|\\>I|\\>\\*|\\>\\+|\\>-|><|<>"
+        },
+        {
+          "name": "keyword.operator.relation.non-navigable.umlts",
+          "match": ">\\*\\||>\\+\\|"
         },
         {
           "name": "keyword.operator.generic.umlts",
@@ -83,7 +96,7 @@
       "patterns": [
         {
           "name": "storage.modifier.symbol.umlts",
-          "match": "[\\$\\*]"
+          "match": "[\\$\\*\\!\\&\\^]"
         }
       ]
     },
@@ -115,7 +128,7 @@
       "patterns": [
         {
           "name": "support.type.primitive.umlts",
-          "match": "\\b(String|Number|Boolean|Date|void|any)\\b"
+          "match": "\\b(String|Integer|Float|Number|Boolean|Date|void|any)\\b"
         },
         {
           "name": "entity.name.type.umlts",

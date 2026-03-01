@@ -437,7 +437,10 @@ profile Backend {
 }
 ```
 
-Metaclases válidas (términos UML canónicos): `class`, `interface`, `enum`, `package`, `property`, `operation`, `association`.
+Metaclases válidas:
+
+- **Como keyword** (siempre funciona): `class`, `interface`, `enum`, `package`
+- **Como identificador** (case-sensitive, usar PascalCase): `Property`, `Operation`, `Association`
 
 ### Aplicación de Estereotipos
 

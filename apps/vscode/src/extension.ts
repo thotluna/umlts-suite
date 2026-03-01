@@ -7,6 +7,7 @@ import {
   type IREntity,
   type Diagnostic,
   type IRRelationship,
+  IREntityType,
 } from '@umlts/engine'
 import { UMLPreviewPanel } from './preview'
 import { TypeScriptPlugin } from '@umlts/plugin-ts'
@@ -28,28 +29,33 @@ export function activate(context: vscode.ExtensionContext) {
     return lastParseResult
   }
 
+  let validationTimer: NodeJS.Timeout | undefined
+
   const validateDocument = async (document: vscode.TextDocument) => {
     if (document.languageId !== 'umlts') return
 
-    const result = await engine.parse(document.getText())
-    lastParseResult = result
-    lastDocumentUri = document.uri.toString()
+    if (validationTimer) clearTimeout(validationTimer)
 
-    const vsDiagnostics: vscode.Diagnostic[] = result.diagnostics.map((diag: Diagnostic) => {
-      const range = new vscode.Range(
-        (diag.line || 1) - 1,
-        Math.max(0, (diag.column || 1) - 1),
-        (diag.line || 1) - 1,
-        Math.max(0, (diag.column || 1) - 1) + (diag.length || 1),
-      )
-      const severity =
-        diag.severity === 'Warning'
-          ? vscode.DiagnosticSeverity.Warning
-          : vscode.DiagnosticSeverity.Error
-      return new vscode.Diagnostic(range, diag.message, severity)
-    })
+    validationTimer = setTimeout(async () => {
+      const result = await engine.parse(document.getText())
+      lastParseResult = result
+      lastDocumentUri = document.uri.toString()
 
-    diagnosticCollection.set(document.uri, vsDiagnostics)
+      const vsDiagnostics: vscode.Diagnostic[] = result.diagnostics.map((diag: Diagnostic) => {
+        const line = Math.max(0, (diag.line || 1) - 1)
+        const col = Math.max(0, (diag.column || 1) - 1)
+        const len = diag.length || 1
+
+        const range = new vscode.Range(line, col, line, col + len)
+        const severity =
+          diag.severity === 'Warning'
+            ? vscode.DiagnosticSeverity.Warning
+            : vscode.DiagnosticSeverity.Error
+        return new vscode.Diagnostic(range, diag.message, severity)
+      })
+
+      diagnosticCollection.set(document.uri, vsDiagnostics)
+    }, 300)
   }
 
   // --- Autocompletado ---
@@ -133,6 +139,9 @@ export function activate(context: vscode.ExtensionContext) {
         'internal',
         'static',
         'abstract',
+        'profile',
+        'stereotype',
+        'xor',
       ]
       keywords.forEach((kw) => {
         completions.push(new vscode.CompletionItem(kw, vscode.CompletionItemKind.Keyword))
@@ -335,8 +344,68 @@ export function activate(context: vscode.ExtensionContext) {
     },
   })
 
+  // --- Symbols (Outline) ---
+  const symbolProvider = vscode.languages.registerDocumentSymbolProvider('umlts', {
+    async provideDocumentSymbols(document) {
+      const result = await getParseResult(document)
+      if (!result || !result.diagram) return []
+
+      const symbols: vscode.DocumentSymbol[] = []
+
+      result.diagram.entities.forEach((entity: IREntity) => {
+        const line = Math.max(0, (entity.line || 1) - 1)
+        const range = new vscode.Range(line, 0, line, 20) // Heurística simple
+        const symbol = new vscode.DocumentSymbol(
+          entity.name,
+          `${entity.type}`,
+          entity.type === IREntityType.INTERFACE
+            ? vscode.SymbolKind.Interface
+            : entity.type === IREntityType.ENUMERATION
+              ? vscode.SymbolKind.Enum
+              : vscode.SymbolKind.Class,
+          range,
+          range,
+        )
+
+        // Miembros
+        entity.properties.forEach((p) => {
+          const pLine = Math.max(0, (p.line || 1) - 1)
+          const pRange = new vscode.Range(pLine, 0, pLine, 10)
+          symbol.children.push(
+            new vscode.DocumentSymbol(
+              p.name,
+              p.type || '',
+              vscode.SymbolKind.Property,
+              pRange,
+              pRange,
+            ),
+          )
+        })
+
+        entity.operations.forEach((op) => {
+          const oLine = Math.max(0, (op.line || 1) - 1)
+          const oRange = new vscode.Range(oLine, 0, oLine, 10)
+          symbol.children.push(
+            new vscode.DocumentSymbol(
+              op.name,
+              op.returnType || 'void',
+              vscode.SymbolKind.Method,
+              oRange,
+              oRange,
+            ),
+          )
+        })
+
+        symbols.push(symbol)
+      })
+
+      return symbols
+    },
+  })
+
   // Suscripciones y eventos
   context.subscriptions.push(
+    symbolProvider,
     vscode.workspace.onDidOpenTextDocument(validateDocument),
     vscode.workspace.onDidChangeTextDocument((e) => {
       lastParseResult = null // Invalida caché
