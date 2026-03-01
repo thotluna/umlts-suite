@@ -153,7 +153,10 @@ export function renderEdge(
   if (edge.label) {
     const showVisibility = options?.showVisibility !== false
     const visibility = showVisibility && edge.visibility ? `${edge.visibility} ` : ''
-    const displayText = `${visibility}${edge.label}`
+
+    // Add stereotypes to the label
+    const sts = edge.stereotypes.map((st) => st.getFullText()).join('\n')
+    const displayText = sts ? `${sts}\n${visibility}${edge.label}` : `${visibility}${edge.label}`
 
     let x: number, y: number
     let textAnchor = 'middle'

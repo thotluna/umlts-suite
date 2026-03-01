@@ -1,4 +1,10 @@
-import { IREntity, IRProperty, IROperation, IRRelationship } from '@umlts/engine'
+import {
+  IREntity,
+  IRProperty,
+  IROperation,
+  IRRelationship,
+  IRStereotypeApplication,
+} from '@umlts/engine'
 import {
   UMLName,
   UMLStereotype,
@@ -29,8 +35,8 @@ export class MappingContext {
     }
 
     if (entity.stereotypes) {
-      entity.stereotypes.forEach((st, i) => {
-        node.addStereotype(new UMLStereotype(`${entity.id}_st_${i}`, st))
+      entity.stereotypes.forEach((st: IRStereotypeApplication, i: number) => {
+        node.addStereotype(new UMLStereotype(`${entity.id}_st_${i}`, st.name, st.values))
       })
     }
 
@@ -49,6 +55,11 @@ export class MappingContext {
       m.isStatic = prop.isStatic
       m.isLeaf = prop.isLeaf
       node.addProperty(m)
+      if (prop.stereotypes) {
+        prop.stereotypes.forEach((st: IRStereotypeApplication, j: number) => {
+          m.stereotypes.push(new UMLStereotype(`${m.id}_st_${j}`, st.name, st.values))
+        })
+      }
     })
 
     entity.operations?.forEach((op: IROperation, i: number) => {
@@ -61,6 +72,11 @@ export class MappingContext {
       m.returnType = op.returnType
       m.returnMultiplicity = op.returnMultiplicity
       node.addOperation(m)
+      if (op.stereotypes) {
+        op.stereotypes.forEach((st: IRStereotypeApplication, j: number) => {
+          m.stereotypes.push(new UMLStereotype(`${m.id}_st_${j}`, st.name, st.values))
+        })
+      }
     })
   }
 
@@ -71,5 +87,10 @@ export class MappingContext {
     edge.label = rel.label
     edge.fromMultiplicity = rel.fromMultiplicity
     edge.toMultiplicity = rel.toMultiplicity
+    if (rel.stereotypes) {
+      rel.stereotypes.forEach((st: IRStereotypeApplication, i: number) => {
+        edge.stereotypes.push(new UMLStereotype(`${edge.id}_st_${i}`, st.name, st.values))
+      })
+    }
   }
 }

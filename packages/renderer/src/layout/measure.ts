@@ -91,13 +91,45 @@ export function measureNodeDimensions(node: UMLSpatialNode): NodeDimensions {
     memberCount = node.literals.length
   }
 
+  // Tagged values compartment
+  let taggedValuesHeight = 0
+  if (node instanceof UMLCompartmentNode) {
+    const collectedTags: string[] = []
+
+    // Entity tags
+    node.stereotypes.forEach((st) => {
+      if (st.values && Object.keys(st.values).length > 0) collectedTags.push('tag')
+    })
+
+    // Member tags
+    node.properties.forEach((p) => {
+      p.stereotypes.forEach((st) => {
+        if (st.values && Object.keys(st.values).length > 0) collectedTags.push('tag')
+      })
+    })
+    node.operations.forEach((op) => {
+      op.stereotypes.forEach((st) => {
+        if (st.values && Object.keys(st.values).length > 0) collectedTags.push('tag')
+      })
+    })
+
+    if (collectedTags.length > 0) {
+      taggedValuesHeight = 10 + collectedTags.length * 14
+    }
+  }
+
   // Real height calculation
   let currentHeaderHeight: number = HEADER_HEIGHT_NORMAL
   if (node instanceof UMLHeaderShape) {
     currentHeaderHeight = node.getHeaderHeight()
   }
 
-  const height = currentHeaderHeight + memberCount * LINE_HEIGHT + dividerHeight + PADDING_BOTTOM
+  const height =
+    currentHeaderHeight +
+    memberCount * LINE_HEIGHT +
+    dividerHeight +
+    PADDING_BOTTOM +
+    taggedValuesHeight
 
   return { width, height }
 }
