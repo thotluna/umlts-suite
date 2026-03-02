@@ -141,66 +141,123 @@ export function renderClassNode(
       }
     })
 
-    // 1. Properties
-    for (const prop of node.properties) {
-      membersContent += svg.text(
-        {
-          x: x + MARGIN_X,
-          y: memberY,
-          fill: theme.nodeMemberText,
-          'font-size': theme.fontSizeBase,
-          'text-decoration': prop.isStatic ? 'underline' : 'none',
-        },
-        svg.escape(prop.getFullText()),
-      )
-
-      // Collect member tagged values
-      prop.stereotypes.forEach((st) => {
-        if (st.values && Object.keys(st.values).length > 0) {
-          const tags = Object.entries(st.values)
-            .map(([k, v]) => `${k}=${v}`)
-            .join(', ')
-          taggedValues.push(`{${prop.text}.${st.getLabel()} ${tags}}`)
-        }
-      })
-
-      memberY += CFG_LINE_HEIGHT
+    // Helper to render dividers
+    let hasPreviousCompartment = false
+    const addDivider = (isDashed = false) => {
+      if (hasPreviousCompartment) {
+        membersContent += svg.line(x, memberY - 14, x + width, memberY - 14, {
+          stroke: theme.nodeDivider,
+          'stroke-width': isDashed ? 0.5 : 0.7,
+          'stroke-dasharray': isDashed ? '2,2' : 'none',
+        })
+      }
     }
 
-    // Section divider if needed
-    if (node.properties.length > 0 && node.operations.length > 0) {
-      membersContent += svg.line(x, memberY - 14, x + width, memberY - 14, {
-        stroke: theme.nodeDivider,
-        'stroke-width': 0.5,
-        'stroke-dasharray': '2,2',
-      })
+    // 1. Properties
+    if (node.properties.length > 0) {
+      addDivider(true)
+      hasPreviousCompartment = true
+      for (const prop of node.properties) {
+        membersContent += svg.text(
+          {
+            x: x + MARGIN_X,
+            y: memberY,
+            fill: theme.nodeMemberText,
+            'font-size': theme.fontSizeBase,
+            'text-decoration': prop.isStatic ? 'underline' : 'none',
+          },
+          svg.escape(prop.getFullText()),
+        )
+
+        // Collect member tagged values
+        prop.stereotypes.forEach((st) => {
+          if (st.values && Object.keys(st.values).length > 0) {
+            const tags = Object.entries(st.values)
+              .map(([k, v]) => `${k}=${v}`)
+              .join(', ')
+            taggedValues.push(`{${prop.text}.${st.getLabel()} ${tags}}`)
+          }
+        })
+        memberY += CFG_LINE_HEIGHT
+      }
     }
 
     // 2. Operations
-    for (const op of node.operations) {
-      membersContent += svg.text(
-        {
-          x: x + MARGIN_X,
-          y: memberY,
-          fill: theme.nodeMemberText,
-          'font-size': theme.fontSizeBase,
-          'font-style': op.isAbstract ? 'italic' : 'normal',
-          'text-decoration': op.isStatic ? 'underline' : 'none',
-        },
-        svg.escape(op.getFullText()),
-      )
+    if (node.operations.length > 0) {
+      addDivider(node.properties.length > 0) // Dash if coming from properties
+      hasPreviousCompartment = true
+      for (const op of node.operations) {
+        membersContent += svg.text(
+          {
+            x: x + MARGIN_X,
+            y: memberY,
+            fill: theme.nodeMemberText,
+            'font-size': theme.fontSizeBase,
+            'font-style': op.isAbstract ? 'italic' : 'normal',
+            'text-decoration': op.isStatic ? 'underline' : 'none',
+          },
+          svg.escape(op.getFullText()),
+        )
 
-      // Collect member tagged values
-      op.stereotypes.forEach((st) => {
-        if (st.values && Object.keys(st.values).length > 0) {
-          const tags = Object.entries(st.values)
-            .map(([k, v]) => `${k}=${v}`)
-            .join(', ')
-          taggedValues.push(`{${op.text}.${st.getLabel()} ${tags}}`)
-        }
-      })
+        // Collect member tagged values
+        op.stereotypes.forEach((st) => {
+          if (st.values && Object.keys(st.values).length > 0) {
+            const tags = Object.entries(st.values)
+              .map(([k, v]) => `${k}=${v}`)
+              .join(', ')
+            taggedValues.push(`{${op.text}.${st.getLabel()} ${tags}}`)
+          }
+        })
+        memberY += CFG_LINE_HEIGHT
+      }
+    }
 
-      memberY += CFG_LINE_HEIGHT
+    // 3. Receptions
+    if (node.receptions.length > 0) {
+      addDivider()
+      hasPreviousCompartment = true
+      for (const recep of node.receptions) {
+        membersContent += svg.text(
+          {
+            x: x + MARGIN_X,
+            y: memberY,
+            fill: theme.nodeMemberText,
+            'font-size': theme.fontSizeBase,
+          },
+          svg.escape(recep.getFullText()),
+        )
+
+        // Collect member tagged values
+        recep.stereotypes.forEach((st) => {
+          if (st.values && Object.keys(st.values).length > 0) {
+            const tags = Object.entries(st.values)
+              .map(([k, v]) => `${k}=${v}`)
+              .join(', ')
+            taggedValues.push(`{${recep.text}.${st.getLabel()} ${tags}}`)
+          }
+        })
+        memberY += CFG_LINE_HEIGHT
+      }
+    }
+
+    // 4. Notes
+    if (node.notes.length > 0) {
+      addDivider()
+      hasPreviousCompartment = true
+      for (const note of node.notes) {
+        membersContent += svg.text(
+          {
+            x: x + MARGIN_X,
+            y: memberY,
+            fill: theme.nodeMemberText,
+            'font-size': theme.fontSizeSmall,
+            opacity: 0.8,
+            'font-style': 'italic',
+          },
+          svg.escape(note),
+        )
+        memberY += CFG_LINE_HEIGHT * 0.8
+      }
     }
   }
 

@@ -11,6 +11,7 @@ export abstract class UMLCompartmentNode extends UMLHeaderShape {
   public properties: UMLMember[] = []
   public operations: UMLMember[] = []
   public receptions: UMLMember[] = []
+  public notes: string[] = []
 
   public addProperty(p: UMLMember): void {
     this.properties.push(p)
@@ -22,6 +23,10 @@ export abstract class UMLCompartmentNode extends UMLHeaderShape {
 
   public addReception(r: UMLMember): void {
     this.receptions.push(r)
+  }
+
+  public addNote(note: string): void {
+    this.notes.push(note)
   }
 
   public override getDimensions(): Size {
@@ -42,6 +47,12 @@ export abstract class UMLCompartmentNode extends UMLHeaderShape {
     for (const op of this.operations) {
       maxChars = Math.max(maxChars, op.getFullText().length)
     }
+    for (const r of this.receptions) {
+      maxChars = Math.max(maxChars, r.getFullText().length)
+    }
+    for (const n of this.notes) {
+      maxChars = Math.max(maxChars, n.length + 2)
+    }
 
     const {
       CHAR_WIDTH,
@@ -58,17 +69,45 @@ export abstract class UMLCompartmentNode extends UMLHeaderShape {
     const propH = this.properties.length * LINE_HEIGHT
     const opH = this.operations.length * LINE_HEIGHT
     const recepH = this.receptions.length * LINE_HEIGHT
-    const divider =
-      (this.properties.length > 0 ? 1 : 0) +
-        (this.operations.length > 0 ? 1 : 0) +
-        (this.receptions.length > 0 ? 1 : 0) >
-      1
-        ? SECTION_DIVIDER_HEIGHT
-        : 0
+    const notesH = this.notes.length * (LINE_HEIGHT * 0.8) // Notes are smaller
+
+    // Collect tagged values height (from stereotypes)
+    let taggedValuesH = 0
+    const tagCount = this.countTaggedValues()
+    if (tagCount > 0) {
+      taggedValuesH = 10 + tagCount * 14
+    }
+
+    const activeCompartments = [
+      this.properties.length > 0,
+      this.operations.length > 0,
+      this.receptions.length > 0,
+      this.notes.length > 0,
+    ].filter(Boolean).length
+
+    const dividerH = activeCompartments > 1 ? (activeCompartments - 1) * SECTION_DIVIDER_HEIGHT : 0
 
     return {
       width: calculatedWidth,
-      height: headH + propH + opH + recepH + divider + PADDING_BOTTOM,
+      height: headH + propH + opH + recepH + notesH + dividerH + taggedValuesH + PADDING_BOTTOM,
     }
+  }
+
+  private countTaggedValues(): number {
+    let count = 0
+    this.stereotypes.forEach((st) => {
+      if (st.values && Object.keys(st.values).length > 0) count++
+    })
+    this.properties.forEach((p) => {
+      p.stereotypes.forEach((st) => {
+        if (st.values && Object.keys(st.values).length > 0) count++
+      })
+    })
+    this.operations.forEach((op) => {
+      op.stereotypes.forEach((st) => {
+        if (st.values && Object.keys(st.values).length > 0) count++
+      })
+    })
+    return count
   }
 }
