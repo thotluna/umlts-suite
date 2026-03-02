@@ -17,7 +17,7 @@
 
 - ID Único (String)
 - Ancho / Width (Number) -> **Calculado por nosotros** basándonos en el texto más largo.
-- Alto / Height (Number) -> **Calculado por nosotros** basándonos en el número de líneas (cabecera, atributos, métodos).
+- Alto / Height (Number) -> **Calculado por nosotros** basándonos en el número de líneas de todos los compartimentos (cabecera, atributos, métodos, recepciones, notas internas y valores etiquetados).
 - Opciones de Layout (Object/Map)
 - Puertos (Opcional, si se quieren puntos de anclaje fijos)
 - Propiedades de Jerarquía (si es parte de un paquete)

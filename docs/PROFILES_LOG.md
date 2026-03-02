@@ -67,4 +67,4 @@ Establecer un mecanismo robusto y ágil para el uso de Perfiles y Estereotipos e
 2. **Fase 2: Infraestructura de Perfiles**: (Completado) Implementación del `ProfileRegistry` y carga del Perfil Estándar.
 3. **Fase 3: Gramática y Parser**: (Completado) Implementación de `ProfileRule`, `StereotypeRule`, `StereotypeApplicationRule` y soporte en entidades. Ver [impl_lexical.md](./impl_lexical.md) e [impl_syntax.md](./impl_syntax.md).
 4. **Fase 4: Semántica y Metadata**: (En curso) Definición de reglas de validación y chequeo de tipos para Tagged Values. Ver [impl_semantic.md](./impl_semantic.md).
-5. **Fase 5: Renderizado**: (Pendiente) Visualización de `«estereotipo»` y el compartimento de metadatos `{key=value}` en el diagrama SVG.
+5. **Fase 5: Renderizado**: (Completado) Visualización de `«estereotipo»` y el compartimento de metadatos `{key=value}` en el diagrama SVG, incluyendo el cálculo correcto de dimensiones para estos elementos.
