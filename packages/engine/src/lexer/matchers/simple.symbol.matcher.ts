@@ -32,6 +32,7 @@ export class SimpleSymbolMatcher implements TokenMatcher {
     '!': TokenType.MOD_LEAF,
     '^': TokenType.MOD_ROOT,
     '=': TokenType.EQUALS,
+    '/': TokenType.SLASH,
   }
 
   public match(reader: LexerReader): Token | null {

@@ -516,7 +516,7 @@
 - [ ] **FEAT**: Soportar Compartimentos Dinámicos / Personalizados (ej. Excepciones, Reglas de negocio, Responsabilidades en un bloque extra en la clase).
 - [x] **FEAT**: Soporte a _Tagged Values_ o Propiedades Generales del encabezado de la Clase (ej. `{autor=thot, status=draft}`) en `models.ts` y visualización debajo de los estereotipos.
 - [ ] **FEAT**: Soportar Diagramas de Estructura Compuesta (Composite Structure) dentro de Clases Complejas (Ports, Parts, Connectors dentro de los rectángulos).
-- [ ] **FEAT**: Variables Derivadas. Soportar el renderizado y parsing del prefijo `/` en propiedades cuyo valor es inferido de otros campos.
+- [x] **FEAT**: Variables Derivadas. Soportar el renderizado y parsing del prefijo `/` en propiedades cuyo valor es inferido de otros campos.
 - [ ] **FEAT**: Relaciones N-arias (Rombos con múltiple aristas hacia 3+ clases simultáneamente).
 - [ ] **FEAT**: Calificadores (Qualifiers) de Asociación. Elementos de matriz integrados al inicio de una arista de relación.
 - [x] **FEAT**: Representar Clases Activas (Active Classes / Threads) estandarizadas mediante un flag activo dibujando bordes verticales con dobles líneas paralelas.

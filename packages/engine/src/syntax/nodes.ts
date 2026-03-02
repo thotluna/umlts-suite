@@ -161,6 +161,7 @@ export interface AttributeNode extends ASTNode {
   constraints?: ConstraintNode[]
   notes?: NoteNode[]
   targetModifiers?: Modifiers
+  isDerived?: boolean
   defaultValue?: string | number | boolean
 }
 
