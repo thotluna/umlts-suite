@@ -490,6 +490,7 @@
 - [x] **IMPROVEMENT**: Inferencia inteligente de Namespace para posicionamiento de notas
 
 - [x] **FIX**: Renderizado de paquetes estilo "folder" (UML estándar)
+- [x] Corregir la aplicación de estereotipos en relaciones inline (ej: `@send collector: >- Station`).
 - [x] **FEAT**: Visualización de estereotipos en miembros y entidades (Async, Readonly)
 - [x] **IMPROVEMENT**: Refinamiento de Layout y Dimensiones (Breathing Room)
   - [x] Implementar IDs determinísticos para aristas (`rel_A_B_Type_N`) para estabilidad de layout.
@@ -510,7 +511,7 @@
 - [ ] **BUG**: Líneas de anclaje duplicadas (N1 apunta 2 veces a cada clase)
 - [ ] **BUG**: Arco XOR mal posicionado o invisible (Detección de nodo común con FQN)
 
-- [ ] **FEAT**: Soportar Compartimento de Recepciones (`«signal»`) para clases que manejan eventos asíncronos en `IREntity`.
+- [x] **FEAT**: Soportar Compartimento de Recepciones (`«signal»`) para clases que manejan eventos asíncronos en `IREntity`.
 - [ ] **FEAT**: Soportar Compartimentos Dinámicos / Personalizados (ej. Excepciones, Reglas de negocio, Responsabilidades en un bloque extra en la clase).
 - [x] **FEAT**: Soporte a _Tagged Values_ o Propiedades Generales del encabezado de la Clase (ej. `{autor=thot, status=draft}`) en `models.ts` y visualización debajo de los estereotipos.
 - [ ] **FEAT**: Soportar Diagramas de Estructura Compuesta (Composite Structure) dentro de Clases Complejas (Ports, Parts, Connectors dentro de los rectángulos).

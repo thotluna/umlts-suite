@@ -118,8 +118,8 @@ Actualizar el renderizado visual en `packages/renderer/src/drawing/elements/clas
 
 ## ✅ Checklist de Verificación
 
-- [ ] ¿El motor detecta `& class` y marca `isActive: true` en el IR?
-- [ ] ¿El motor mueve los métodos con `@receive` al campo `receptions` del IR?
-- [ ] ¿El renderer dibuja un compartimento separado para las recepciones?
-- [ ] ¿Las relaciones con `@send` muestran la etiqueta `«send»` y flecha abierta?
-- [ ] ¿Los tests existentes siguen pasando?
+- [x] ¿El motor detecta `& class` y marca `isActive: true` en el IR?
+- [x] ¿El motor mueve los métodos con `@receive` al campo `receptions` del IR?
+- [x] ¿El renderer dibuja un compartimento separado para las recepciones?
+- [x] ¿Las relaciones con `@send` muestran la etiqueta `«send»` y flecha abierta?
+- [x] ¿Los tests existentes siguen pasando?
