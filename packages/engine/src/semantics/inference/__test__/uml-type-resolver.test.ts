@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { UMLTypeResolver } from '@engine/semantics/inference/uml-type-resolver'
-import { ASTNodeType, type TypeNode } from '@engine/syntax/nodes'
+import { type TypeNode } from '@engine/syntax/nodes'
+import { ASTFactory } from '@engine/parser/factory/ast.factory'
 
 describe('UMLTypeResolver', () => {
   let resolver: UMLTypeResolver
@@ -25,15 +26,7 @@ describe('UMLTypeResolver', () => {
   })
 
   it('resolve() should always return null (it handles core primitives only)', () => {
-    const node: TypeNode = {
-      type: ASTNodeType.TYPE,
-      kind: 'simple',
-      name: 'Integer',
-      raw: 'Integer',
-      arguments: [], // TypeNode has arguments
-      line: 0,
-      column: 0,
-    }
+    const node: TypeNode = ASTFactory.createType('Integer', 'simple', 'Integer', 0, 0)
     expect(resolver.resolve(node)).toBeNull()
   })
 })

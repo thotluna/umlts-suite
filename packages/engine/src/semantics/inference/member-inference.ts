@@ -5,6 +5,9 @@ import {
   type IRModifiers,
   type IRAggregationKind,
   type IRStereotypeApplication,
+  type IROperation,
+  type IRReception,
+  type IRParameter,
 } from '@engine/generator/ir/models'
 import { type Modifiers } from '@engine/syntax/nodes'
 import type { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
@@ -52,29 +55,34 @@ export class MemberInference {
       })
 
       // 2. Inference from Operations (Return types and Parameters)
-      ;(entity.operations || []).forEach((op) => {
-        if (op.returnType) {
-          this.inferFromType(
-            entity.id,
-            op.returnType,
-            entity.namespace,
-            undefined,
-            IRRelationshipType.ASSOCIATION,
-            undefined,
-            undefined,
-            op.visibility,
-            undefined,
-            undefined,
-            op.line,
-            op.column,
-            undefined,
-            op.constraints,
-            undefined,
-            op.stereotypes,
-          )
+      const processOpLike = (op: IROperation | IRReception, isReception = false): void => {
+        if (!isReception) {
+          const operation = op as IROperation
+          if (operation.returnType) {
+            this.inferFromType(
+              entity.id,
+              operation.returnType,
+              entity.namespace,
+              undefined,
+              IRRelationshipType.ASSOCIATION,
+              undefined,
+              undefined,
+              operation.visibility,
+              undefined,
+              undefined,
+              operation.line,
+              operation.column,
+              undefined,
+              operation.constraints,
+              undefined,
+              operation.stereotypes,
+            )
+          }
         }
 
-        ;(op.parameters || []).forEach((p) => {
+        const visibility = 'visibility' in op ? op.visibility : IRVisibility.PUBLIC
+
+        ;(op.parameters || []).forEach((p: IRParameter) => {
           if (p.type && p.relationshipKind) {
             this.inferFromType(
               entity.id,
@@ -84,7 +92,7 @@ export class MemberInference {
               this.relationshipAnalyzer.mapRelationshipType(p.relationshipKind).type,
               this.relationshipAnalyzer.mapRelationshipType(p.relationshipKind).aggregation,
               undefined,
-              op.visibility,
+              visibility,
               undefined,
               undefined,
               p.line || op.line,
@@ -92,12 +100,14 @@ export class MemberInference {
               p.modifiers,
               undefined,
               undefined,
-              // Parameters don't have stereotypes in IR yet, but we pass undefined or the op's if meant to apply
               undefined,
             )
           }
         })
-      })
+      }
+
+      ;(entity.operations || []).forEach((op) => processOpLike(op))
+      ;(entity.receptions || []).forEach((rec) => processOpLike(rec, true))
     })
   }
 
