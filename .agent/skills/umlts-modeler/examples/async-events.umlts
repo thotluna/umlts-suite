@@ -1,0 +1,56 @@
+config {
+  direction: "left-right"
+}
+
+/**
+ * WeatherSensor es una clase activa (&) que monitorea el entorno.
+ * Utiliza una relación de dependencia con el estereotipo @send para indicat 
+ * el envío asíncrono de señales.
+ */
+& class WeatherSensor {
+  frequency: Integer
+  
+  // Envío de señales a la estación
+  @send collector: >- WeatherStation 
+  
+  @async startScanning()
+  stopScanning()
+}
+
+/**
+ * WeatherStation es el nodo central.
+ * Utiliza @receive para definir su compartimento de "Receptions" («signal»).
+ */
+& class WeatherStation {
+  
+  // Relación estructural hacia la UI
+  dashboard: >< DashboardUI[1]
+  // Recepción de señales (Receptions)
+  @receive onDataReceived(data: >- WeatherData)
+  @receive onSensorFault(error: String)
+  
+  // Procesamiento en segundo plano
+  @async processBatch()
+  
+ - saveToHistory(record: WeatherData)
+
+}
+
+/**
+ * Representa la señal asíncrona que viaja entre componentes.
+ */
+@signal
+class WeatherData {
+  temperature: Real
+  humidity: Real
+  timestamp: Date
+}
+
+/**
+ * Interfaz de usuario que reacciona a los cambios.
+ */
+class DashboardUI {
+  @async refreshDisplay()
+}
+
+

@@ -80,6 +80,7 @@ export interface IRProperty {
   isStatic: boolean
   isReadOnly: boolean
   isLeaf: boolean
+  isDerived: boolean
   multiplicity?: IRMultiplicity
   isOrdered: boolean
   isUnique: boolean

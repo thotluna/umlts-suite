@@ -139,11 +139,11 @@ export class DiscoveryPass implements ISemanticPass, ASTVisitor {
         extends: st.extends,
         properties: st.properties.reduce(
           (acc, prop) => {
-            const type = prop.typeAnnotation.name as 'String' | 'Integer' | 'Boolean' | 'Float'
+            const type = prop.typeAnnotation.name as 'String' | 'Integer' | 'Boolean' | 'Real'
             acc[prop.name] = type
             return acc
           },
-          {} as Record<string, 'String' | 'Integer' | 'Boolean' | 'Float'>,
+          {} as Record<string, 'String' | 'Integer' | 'Boolean' | 'Real'>,
         ),
       })
     }

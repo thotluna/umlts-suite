@@ -18,7 +18,8 @@ export class FeatureMemberProvider implements IMemberProvider {
       this.isVisibility(type) ||
       ModifierRule.isModifier(type) ||
       type === TokenType.IDENTIFIER ||
-      type === TokenType.AT
+      type === TokenType.AT ||
+      type === TokenType.SLASH
     )
   }
 
@@ -26,6 +27,12 @@ export class FeatureMemberProvider implements IMemberProvider {
     const stereotypes = StereotypeApplicationRule.parse(context)
     const visibility = this.parseVisibility(context)
     const modifiers = ModifierRule.parse(context)
+
+    let isDerived = false
+    if (context.match(TokenType.SLASH)) {
+      isDerived = true
+    }
+
     const nameToken = context.consume(TokenType.IDENTIFIER, 'Expected member name')
 
     if (context.check(TokenType.LPAREN)) {
@@ -33,8 +40,16 @@ export class FeatureMemberProvider implements IMemberProvider {
       method.stereotypes = stereotypes
       return method
     } else {
-      const attr = this.attributeRule.parse(context, nameToken, visibility, modifiers, orchestrator)
+      const attr = this.attributeRule.parse(
+        context,
+        nameToken,
+        visibility,
+        modifiers,
+        orchestrator,
+        isDerived,
+      )
       attr.stereotypes = stereotypes
+      attr.isDerived = isDerived
       return attr
     }
   }

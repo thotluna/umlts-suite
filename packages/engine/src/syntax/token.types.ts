@@ -43,6 +43,7 @@ export enum TokenType {
   STAR = 'STAR', // *
   EXCLAMATION = 'EXCLAMATION', // !
   EQUALS = 'EQUALS', // =
+  SLASH = 'SLASH', // /
 
   VIS_PUB = 'VIS_PUB', // +
   VIS_PRIV = 'VIS_PRIV', // -

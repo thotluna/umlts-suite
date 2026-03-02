@@ -70,7 +70,7 @@ When no language plugin is active in the context, use **exclusively** the five U
 | `String`  | Text values                 |
 | `Integer` | Whole numbers               |
 | `Boolean` | True/False flags            |
-| `Float`   | Decimal numbers             |
+| `Real`    | Decimal numbers             |
 | `Date`    | Temporal values (extension) |
 
 **NEVER** use language-specific types: `string`, `int`, `bool`, `number`, `double`, `char`, `long`.
@@ -235,8 +235,10 @@ enum Status(ACTIVE | INACTIVE)     // Inline enum
 ### Member Syntax
 
 ```
-[docs] [visibility] [modifiers] name [( params )] : [relation_operator] [target_modifiers] Type [multiplicity] [= default] [constraints] [notes]
+[docs] [visibility] [modifiers] [/] name [( params )] : [relation_operator] [target_modifiers] Type [multiplicity] [= default] [constraints] [notes]
 ```
+
+- `/`: Prefijo para **Propiedades Derivadas** (calculadas).
 
 ### Relation in Header
 

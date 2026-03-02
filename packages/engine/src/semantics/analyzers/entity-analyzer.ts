@@ -210,8 +210,14 @@ export class EntityAnalyzer {
             type: this.processType(attr.typeAnnotation?.raw),
             visibility: this.mapVisibility(attr.visibility),
             isStatic: attr.modifiers?.isStatic || false,
-            isReadOnly: attr.modifiers?.isFinal || false,
+            isReadOnly:
+              attr.modifiers?.isFinal ||
+              attr.constraints?.some(
+                (c) => c.kind.toLowerCase() === 'readonly' || c.kind.toLowerCase() === 'readonly',
+              ) ||
+              false,
             isLeaf: attr.modifiers?.isLeaf || false,
+            isDerived: attr.isDerived || false,
             multiplicity,
             isOrdered: false,
             isUnique: true,

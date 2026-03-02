@@ -12,6 +12,7 @@ export class AttributeRule {
     visibility: string,
     modifiers: Modifiers,
     _orchestrator: Orchestrator,
+    isDerived: boolean = false,
   ): AttributeNode {
     const suffix = MemberSuffixRule.parse(context)
 
@@ -23,6 +24,7 @@ export class AttributeRule {
       name.line,
       name.column,
       {
+        isDerived,
         multiplicity: suffix.multiplicity,
         relationshipKind: suffix.relationshipKind,
         isNavigable: suffix.isNavigable,

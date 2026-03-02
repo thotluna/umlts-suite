@@ -55,6 +55,7 @@ export class MappingContext {
       m.visibility = prop.visibility
       m.isStatic = prop.isStatic
       m.isLeaf = prop.isLeaf
+      m.isDerived = prop.isDerived || false
       node.addProperty(m)
       if (prop.stereotypes) {
         prop.stereotypes.forEach((st: IRStereotypeApplication, j: number) => {
