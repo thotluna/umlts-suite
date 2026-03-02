@@ -1,5 +1,5 @@
 import type { IREntity, IRMultiplicity } from '@engine/generator/ir/models'
-import { IREntityType, IRVisibility } from '@engine/generator/ir/models'
+import { IREntityType, IRVisibility, IRRelationshipType } from '@engine/generator/ir/models'
 import type { SymbolTable } from '@engine/semantics/symbol-table'
 import type { ConfigStore } from '@engine/semantics/session/config-store'
 import type { ISemanticContext } from '@engine/semantics/core/semantic-context.interface'
@@ -21,6 +21,7 @@ import type {
   ConstraintNode,
 } from '@engine/syntax/nodes'
 import { ASTNodeType } from '@engine/syntax/nodes'
+import { UMLMetaclass } from '@engine/core/metamodel'
 import type { ConstraintAnalyzer } from '@engine/semantics/analyzers/constraint-analyzer'
 
 import type { StereotypeAnalyzer } from '@engine/semantics/analyzers/stereotype-analyzer'
@@ -181,6 +182,25 @@ export class EntityAnalyzer {
             return
           }
 
+          // Refine metaclass if it's an inline relationship
+          if (attr.relationshipKind) {
+            const { type: relType } = this.mapRelationshipKind(attr.relationshipKind)
+            switch (relType) {
+              case 'Dependency':
+                attr.metaclass = UMLMetaclass.DEPENDENCY
+                break
+              case 'Association':
+                attr.metaclass = UMLMetaclass.ASSOCIATION
+                break
+              case 'Generalization':
+                attr.metaclass = UMLMetaclass.GENERALIZATION
+                break
+              case 'InterfaceRealization':
+                attr.metaclass = UMLMetaclass.INTERFACE_REALIZATION
+                break
+            }
+          }
+
           const multiplicity = attr.multiplicity
             ? this.processMultiplicity(attr.multiplicity, attr.line, attr.column)
             : undefined
@@ -196,6 +216,9 @@ export class EntityAnalyzer {
             isOrdered: false,
             isUnique: true,
             aggregation: this.mapAggregation(attr.relationshipKind),
+            relationshipType: attr.relationshipKind
+              ? (this.mapRelationshipKind(attr.relationshipKind).type as IRRelationshipType)
+              : undefined,
             label: attr.label,
             line: attr.line,
             column: attr.column,
@@ -206,6 +229,26 @@ export class EntityAnalyzer {
           })
         } else if (m.type === ASTNodeType.METHOD) {
           const meth = m as MethodNode
+
+          // Refine metaclass for return relationship
+          if (meth.returnRelationshipKind) {
+            const { type: relType } = this.mapRelationshipKind(meth.returnRelationshipKind)
+            switch (relType) {
+              case 'Dependency':
+                meth.metaclass = UMLMetaclass.DEPENDENCY
+                break
+              case 'Association':
+                meth.metaclass = UMLMetaclass.ASSOCIATION
+                break
+              case 'Generalization':
+                meth.metaclass = UMLMetaclass.GENERALIZATION
+                break
+              case 'InterfaceRealization':
+                meth.metaclass = UMLMetaclass.INTERFACE_REALIZATION
+                break
+            }
+          }
+
           const stereotypes = this.stereotypeAnalyzer.process(meth.stereotypes, meth)
           const isReception = stereotypes.some((s) => s.name.toLowerCase() === 'receive')
           const isAsync =
@@ -286,6 +329,14 @@ export class EntityAnalyzer {
       default:
         return 'none'
     }
+  }
+
+  private mapRelationshipKind(kind: string): { type: string } {
+    const k = (kind || '').toLowerCase().trim()
+    if (['>>', 'extends', 'extend'].includes(k)) return { type: 'Generalization' }
+    if (['>i', 'implements', 'implement'].includes(k)) return { type: 'InterfaceRealization' }
+    if (['>-', '>use', 'use', 'dependency'].includes(k)) return { type: 'Dependency' }
+    return { type: 'Association' }
   }
 
   private validateMemberType(

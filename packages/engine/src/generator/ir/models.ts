@@ -84,6 +84,7 @@ export interface IRProperty {
   isOrdered: boolean
   isUnique: boolean
   aggregation: 'none' | 'shared' | 'composite' // Cláusula 11.5.3.2
+  relationshipType?: IRRelationshipType
   label?: string
   defaultValue?: string
 

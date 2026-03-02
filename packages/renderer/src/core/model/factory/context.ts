@@ -92,6 +92,10 @@ export class MappingContext {
         })
       }
     })
+
+    if (entity.docs) {
+      node.addNote(entity.docs)
+    }
   }
 
   /**

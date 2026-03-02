@@ -7,7 +7,9 @@ import {
   type IRMultiplicity,
   type IRAggregationKind,
   IREntityType,
+  type IRStereotypeApplication,
 } from '@engine/generator/ir/models'
+import { UMLMetaclass } from '@engine/core/metamodel'
 import { TypeInferrer } from '@engine/semantics/analyzers/type-inferrer'
 import { registerDefaultInferenceRules } from '@engine/semantics/rules/inference-rules'
 import type { SymbolTable } from '@engine/semantics/symbol-table'
@@ -145,10 +147,30 @@ export class RelationshipAnalyzer {
       toName?: string
       fromName?: string
       aggregation?: IRAggregationKind
+      stereotypes?: IRStereotypeApplication[] // Will be processed
+      node?: ASTNode // For error reporting and metaclass refinement
     },
   ): void {
     const fromEntity = this.symbolTable.get(fromFQN)
     const toEntity = this.symbolTable.get(toFQN)
+
+    // Refine AST metaclass for stereotype validation if node is provided
+    if (meta.node) {
+      switch (type) {
+        case IRRelationshipType.GENERALIZATION:
+          meta.node.metaclass = UMLMetaclass.GENERALIZATION
+          break
+        case IRRelationshipType.INTERFACE_REALIZATION:
+          meta.node.metaclass = UMLMetaclass.INTERFACE_REALIZATION
+          break
+        case IRRelationshipType.DEPENDENCY:
+          meta.node.metaclass = UMLMetaclass.DEPENDENCY
+          break
+        case IRRelationshipType.ASSOCIATION:
+          meta.node.metaclass = UMLMetaclass.ASSOCIATION
+          break
+      }
+    }
 
     if (fromEntity != null && toEntity != null) {
       this.hierarchyValidator.validateRelationship(fromEntity, toEntity, type)
@@ -198,6 +220,11 @@ export class RelationshipAnalyzer {
         (meta.constraintGroupId
           ? [{ kind: 'xor_member', targets: [meta.constraintGroupId] }]
           : undefined),
+      stereotypes:
+        meta.stereotypes ||
+        (meta.node && meta.node.stereotypes
+          ? this.stereotypeAnalyzer.process(meta.node.stereotypes, meta.node)
+          : undefined),
     }
 
     this.relationships.push(irRel)
@@ -214,6 +241,24 @@ export class RelationshipAnalyzer {
     constraintGroupId?: string,
   ): void {
     const { type: relType, aggregation } = this.mapRelationshipType(kind)
+
+    // Refine AST metaclass for stereotype validation
+    if (node) {
+      switch (relType) {
+        case IRRelationshipType.GENERALIZATION:
+          node.metaclass = UMLMetaclass.GENERALIZATION
+          break
+        case IRRelationshipType.INTERFACE_REALIZATION:
+          node.metaclass = UMLMetaclass.INTERFACE_REALIZATION
+          break
+        case IRRelationshipType.DEPENDENCY:
+          node.metaclass = UMLMetaclass.DEPENDENCY
+          break
+        case IRRelationshipType.ASSOCIATION:
+          node.metaclass = UMLMetaclass.ASSOCIATION
+          break
+      }
+    }
 
     // Extract target name for length calculation
     let targetName = toFQN.split('.').pop()

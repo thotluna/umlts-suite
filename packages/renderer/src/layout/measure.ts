@@ -67,6 +67,12 @@ export function measureNodeDimensions(node: UMLSpatialNode): NodeDimensions {
     for (const op of node.operations) {
       maxChars = Math.max(maxChars, op.getFullText().length)
     }
+    for (const r of node.receptions) {
+      maxChars = Math.max(maxChars, r.getFullText().length)
+    }
+    for (const n of node.notes) {
+      maxChars = Math.max(maxChars, n.length + 2)
+    }
   }
 
   // Enum literals width
@@ -79,29 +85,34 @@ export function measureNodeDimensions(node: UMLSpatialNode): NodeDimensions {
   const width = Math.max(MIN_WIDTH, Math.ceil(maxChars * CHAR_WIDTH + PADDING_X + genericOverhead))
 
   // 2. Calculate height
-  let memberCount = 0
+  let memberHeight = 0
   let dividerHeight = 0
-
-  if (node instanceof UMLCompartmentNode) {
-    memberCount = node.properties.length + node.operations.length
-    if (node.properties.length > 0 && node.operations.length > 0) {
-      dividerHeight = SECTION_DIVIDER_HEIGHT
-    }
-  } else if (node instanceof UMLEnum) {
-    memberCount = node.literals.length
-  }
-
-  // Tagged values compartment
   let taggedValuesHeight = 0
-  if (node instanceof UMLCompartmentNode) {
-    const collectedTags: string[] = []
 
-    // Entity tags
+  if (node instanceof UMLCompartmentNode) {
+    const propH = node.properties.length * LINE_HEIGHT
+    const opH = node.operations.length * LINE_HEIGHT
+    const recepH = node.receptions.length * LINE_HEIGHT
+    const notesH = node.notes.length * (LINE_HEIGHT * 0.8)
+
+    memberHeight = propH + opH + recepH + notesH
+
+    const activeCompartments = [
+      node.properties.length > 0,
+      node.operations.length > 0,
+      node.receptions.length > 0,
+      node.notes.length > 0,
+    ].filter(Boolean).length
+
+    if (activeCompartments > 1) {
+      dividerHeight = (activeCompartments - 1) * SECTION_DIVIDER_HEIGHT
+    }
+
+    // Tagged values compartment
+    const collectedTags: string[] = []
     node.stereotypes.forEach((st) => {
       if (st.values && Object.keys(st.values).length > 0) collectedTags.push('tag')
     })
-
-    // Member tags
     node.properties.forEach((p) => {
       p.stereotypes.forEach((st) => {
         if (st.values && Object.keys(st.values).length > 0) collectedTags.push('tag')
@@ -112,10 +123,17 @@ export function measureNodeDimensions(node: UMLSpatialNode): NodeDimensions {
         if (st.values && Object.keys(st.values).length > 0) collectedTags.push('tag')
       })
     })
+    node.receptions.forEach((r) => {
+      r.stereotypes.forEach((st) => {
+        if (st.values && Object.keys(st.values).length > 0) collectedTags.push('tag')
+      })
+    })
 
     if (collectedTags.length > 0) {
       taggedValuesHeight = 10 + collectedTags.length * 14
     }
+  } else if (node instanceof UMLEnum) {
+    memberHeight = node.literals.length * LINE_HEIGHT
   }
 
   // Real height calculation
@@ -125,11 +143,7 @@ export function measureNodeDimensions(node: UMLSpatialNode): NodeDimensions {
   }
 
   const height =
-    currentHeaderHeight +
-    memberCount * LINE_HEIGHT +
-    dividerHeight +
-    PADDING_BOTTOM +
-    taggedValuesHeight
+    currentHeaderHeight + memberHeight + dividerHeight + PADDING_BOTTOM + taggedValuesHeight
 
   return { width, height }
 }

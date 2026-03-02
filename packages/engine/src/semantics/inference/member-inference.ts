@@ -4,6 +4,7 @@ import {
   type IRConstraint,
   type IRModifiers,
   type IRAggregationKind,
+  type IRStereotypeApplication,
 } from '@engine/generator/ir/models'
 import { type Modifiers } from '@engine/syntax/nodes'
 import type { RelationshipAnalyzer } from '@engine/semantics/analyzers/relationship-analyzer'
@@ -29,14 +30,12 @@ export class MemberInference {
       // 1. Inference from Properties (Attributes)
       ;(entity.properties || []).forEach((prop) => {
         if (prop.type) {
-          const relType = IRRelationshipType.ASSOCIATION
-
           this.inferFromType(
             entity.id,
             prop.type,
             entity.namespace,
             prop.name,
-            relType,
+            prop.relationshipType || IRRelationshipType.ASSOCIATION,
             prop.aggregation,
             undefined,
             prop.visibility,
@@ -47,6 +46,7 @@ export class MemberInference {
             undefined,
             prop.constraints,
             prop.label,
+            prop.stereotypes,
           )
         }
       })
@@ -69,6 +69,8 @@ export class MemberInference {
             op.column,
             undefined,
             op.constraints,
+            undefined,
+            op.stereotypes,
           )
         }
 
@@ -88,6 +90,9 @@ export class MemberInference {
               p.line || op.line,
               p.column || op.column,
               p.modifiers,
+              undefined,
+              undefined,
+              // Parameters don't have stereotypes in IR yet, but we pass undefined or the op's if meant to apply
               undefined,
             )
           }
@@ -112,6 +117,7 @@ export class MemberInference {
     targetModifiers?: Modifiers | IRModifiers,
     memberConstraints?: IRConstraint[],
     explicitLabel?: string,
+    stereotypes?: IRStereotypeApplication[],
   ): void {
     const { baseName, args, multiplicity } = TypeValidator.decomposeGeneric(typeName)
     const { values: enumValues } = TypeValidator.decomposeEnum(typeName)
@@ -186,6 +192,7 @@ export class MemberInference {
       associationClassId,
       constraints: memberConstraints,
       aggregation,
+      stereotypes,
     })
   }
 }
