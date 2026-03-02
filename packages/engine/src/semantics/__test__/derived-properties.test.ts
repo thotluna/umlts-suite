@@ -47,4 +47,29 @@ describe('Derived Properties Semantics', () => {
     expect(status.visibility).toBe(IRVisibility.PUBLIC)
     expect(status.isReadOnly).toBe(true)
   })
+
+  it('should parse the complex example from derived-properties.umlts', () => {
+    const dsl = `
+      class Invoice {
+        subtotal: Real
+        taxRate: Real = 0.16
+        
+        // Propiedad derivada (calculada)
+        / total: Real
+        
+        // Atributo privado con getter derivado
+        - _items: LineItem[*]
+        / itemsCount: Integer {readonly}
+      }
+
+      class LineItem {
+        product: String
+        quantity: Integer
+        unitPrice: Real
+        / lineTotal: Real
+      }
+    `
+    const result = engine.parse(dsl)
+    expect(result.diagnostics).toHaveLength(0)
+  })
 })
