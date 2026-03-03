@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { LexerReader } from '@engine/lexer/lexer.reader'
-import { BidirAssociationMatcher } from '@engine/lexer/matchers/bidir.association.matcher'
 import { TokenType } from '@engine/syntax/token.types'
+import { RelationshipBidirMatcher } from '@engine/lexer/matchers/Relationship.bidir.matcher'
 
 describe('BidirAssociationMatcher', () => {
-  const matcher = new BidirAssociationMatcher()
+  const matcher = new RelationshipBidirMatcher()
 
   it('should match <>', () => {
     const reader = new LexerReader('<>')

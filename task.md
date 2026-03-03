@@ -299,6 +299,11 @@
   - [x] Descomponer `CommentMatcher`, `SymbolMatcher`, `IdentifierMatcher`, `NumberMatcher`, `StringMatcher` y `WhitespaceMatcher` en matchers atómicos.
   - [x] Unificar la entrada del Lexer a un único `rootMatcher`.
   - [x] Fortalecer suite de pruebas del Lexer (Ambiguity, Greedy matching, Error recovery)
+  - [x] **LEXER**: Refinamiento de Relaciones y Etiquetas (Coherencia UML 2.5.1)
+    - [x] Modularizar matchers de relación (Inheritance, Implement, Composite, Aggregation, Association, Use)
+    - [x] Implementar `RelationshipBidirMatcher` para el operador de diamante `<>`
+    - [x] Implementar `LabelMatcher` para captura atómica de etiquetas `'...'` (reutilizable para roles y XOR)
+    - [x] Resolver colisiones de prioridad entre símbolos simples y etiquetas
 - [x] **DOC**: Consolidar guía oficial del DSL (`dsl-guide.md`) y purgar documentación obsoleta
 
 ## Refinamiento de Semántica DataType (UML 2.5.1)

@@ -6,7 +6,7 @@ import { TokenType, type Token } from '@engine/syntax/token.types'
  * Matches relationship labels enclosed in single quotes (e.g., 'Inquiry').
  * This provides atomic capture of labels for the Parser.
  */
-export class RelationshipLabelMatcher implements TokenMatcher {
+export class LabelMatcher implements TokenMatcher {
   public match(reader: LexerReader): Token | null {
     if (reader.peek() !== "'") return null
 
@@ -36,7 +36,7 @@ export class RelationshipLabelMatcher implements TokenMatcher {
     reader.advance() // Consume closing '
 
     return {
-      type: TokenType.STRING,
+      type: TokenType.LABEL,
       value,
       line: startLine,
       column: startColumn,

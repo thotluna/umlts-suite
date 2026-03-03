@@ -30,7 +30,7 @@ describe('Lexer', () => {
       const tokens = lexer.tokenize()
 
       expect(tokens[0]).toMatchObject({ type: TokenType.STRING, value: 'Double string' })
-      expect(tokens[1]).toMatchObject({ type: TokenType.STRING, value: 'Single string' })
+      expect(tokens[1]).toMatchObject({ type: TokenType.LABEL, value: 'Single string' })
     })
   })
 
