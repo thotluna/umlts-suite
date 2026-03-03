@@ -63,6 +63,7 @@ export enum TokenType {
   IDENTIFIER = 'IDENTIFIER',
   NUMBER = 'NUMBER',
   STRING = 'STRING',
+  LABEL = 'LABEL',
 
   // Others
   COMMENT = 'COMMENT',

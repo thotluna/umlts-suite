@@ -7,6 +7,6 @@ import { QuotedStringMatcher } from '@engine/lexer/matchers/quoted.string.matche
 export class StringMatcher extends AbstractCompositeMatcher {
   constructor() {
     super()
-    this.use(new QuotedStringMatcher('"'), new QuotedStringMatcher("'"))
+    this.use(new QuotedStringMatcher('"'))
   }
 }

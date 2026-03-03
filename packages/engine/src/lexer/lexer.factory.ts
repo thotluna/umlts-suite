@@ -27,8 +27,8 @@ export class LexerFactory {
       new CommentMatcher(),
       new IdentifierMatcher(),
       new NumberMatcher(),
-      new StringMatcher(),
       new SymbolMatcher(),
+      new StringMatcher(),
     )
 
     return new Lexer(input, master)

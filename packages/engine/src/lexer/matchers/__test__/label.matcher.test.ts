@@ -1,15 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import { LexerReader } from '@engine/lexer/lexer.reader'
-import { RelationshipLabelMatcher } from '@engine/lexer/matchers/relationship.label.matcher'
+import { LabelMatcher } from '@engine/lexer/matchers/label.matcher'
 import { TokenType } from '@engine/syntax/token.types'
 
 describe('RelationshipLabelMatcher', () => {
-  const matcher = new RelationshipLabelMatcher()
+  const matcher = new LabelMatcher()
 
   it('should match a simple label', () => {
     const reader = new LexerReader("'Inquiry'")
     const token = matcher.match(reader)
-    expect(token?.type).toBe(TokenType.STRING)
+    expect(token?.type).toBe(TokenType.LABEL)
     expect(token?.value).toBe('Inquiry')
     expect(reader.isAtEnd()).toBe(true)
   })
