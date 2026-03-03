@@ -25,6 +25,7 @@ export enum TokenType {
   OP_ASSOC_BIDIR = 'OP_ASSOC_BIDIR', // <>
   OP_COMP_NON_NAVIGABLE = 'OP_COMP_NON_NAVIGABLE', // >*|
   OP_AGREG_NON_NAVIGABLE = 'OP_AGREG_NON_NAVIGABLE', // >+|
+  OP_ASSOC_NON_NAVIGABLE = 'OP_ASSOC_NON_NAVIGABLE', // ><|
 
   GT = 'GT', // >
   LT = 'LT', // <
@@ -44,6 +45,7 @@ export enum TokenType {
   EXCLAMATION = 'EXCLAMATION', // !
   EQUALS = 'EQUALS', // =
   SLASH = 'SLASH', // /
+  SIMPLE_QUOTE = 'SIMPLE_QUOTE',
 
   VIS_PUB = 'VIS_PUB', // +
   VIS_PRIV = 'VIS_PRIV', // -
